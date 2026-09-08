@@ -95,6 +95,7 @@ export function LibraryAgentDock({
   onTurnToolActivityChange,
   onTerminalToolObservation,
   onFileAnswer = null,
+  filingAnswer = false,
   noticeActions = null,
   chatWidth,
 }: {
@@ -115,6 +116,8 @@ export function LibraryAgentDock({
   onTurnStarted?: AcpChatPanelProps["onTurnStarted"];
   /** Files the last answer as a wiki page; null while there is no answer to file. */
   onFileAnswer?: (() => void) | null;
+  /** Keeps the offer visible while its create-only write is pending. */
+  filingAnswer?: boolean;
   /** The doors an `auto-allowed` notice carries; see `AcpChatPanelProps.noticeActions`. */
   noticeActions?: AcpChatPanelProps["noticeActions"];
   /**
@@ -303,12 +306,14 @@ export function LibraryAgentDock({
                   <Chip
                     data-testid="library-file-answer"
                     onClick={onFileAnswer}
+                    disabled={filingAnswer}
+                    aria-busy={filingAnswer || undefined}
                     tone="secondary"
                     hoverInk="strong"
                     aria-label={tLibrary("wiki.fileAnswerTooltip")}
                   >
                     <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
-                    <span>{tLibrary("wiki.fileAnswer")}</span>
+                    <span>{tLibrary(filingAnswer ? "localCompile.applying" : "wiki.fileAnswer")}</span>
                   </Chip>
                 </Tooltip>
               ) : null

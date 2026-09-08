@@ -7,7 +7,7 @@
 // true: change the array order and the screen order must follow, and a screen that ignores the array
 // turns this red.
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { AgentClientButtons } from "./AgentClientButtons";
 import { AGENT_CLIENTS } from "@/entities/vault-session";
@@ -127,6 +127,27 @@ describe("AgentClientButtons — 쓰지 못한 write 는 성공처럼 보이지 
       </NextIntlClientProvider>,
     );
   }
+
+  it('keeps the busy glyph native and static until the config write actually completes', async () => {
+    let finish!: () => void;
+    const pendingWrite = new Promise<void>((resolve) => { finish = resolve; });
+    renderWithWriter(() => pendingWrite);
+    const button = screen.getByTestId('agent-client-claude-code');
+    expect(button.querySelector('[data-brand-detail]')).toBeNull();
+    fireEvent.click(button);
+    expect(button).toHaveAttribute('data-state', 'busy');
+    expect(button).toBeDisabled();
+    const mark = button.querySelector('[data-brand-detail="micro"]');
+    expect(mark).toHaveAttribute('width', '16');
+    expect(mark).toHaveAttribute('height', '16');
+    expect(mark).toHaveClass('atlas-inline-waiting-mark');
+    expect(mark?.parentElement).toHaveClass('size-3.5');
+    expect(button.querySelector('.animate-spin')).toBeNull();
+    await act(async () => finish());
+    const ready = screen.getByTestId('agent-client-claude-code');
+    expect(ready).toHaveAttribute('data-state', 'ready');
+    expect(ready.querySelector('[data-brand-detail]')).toBeNull();
+  });
 
   it("실패한 write 는 실패라고 말한다", async () => {
     const onWriteConfigs = vi.fn(() => Promise.reject(new Error("Permission denied")));

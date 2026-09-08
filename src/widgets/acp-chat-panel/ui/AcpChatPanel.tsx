@@ -6,7 +6,6 @@ import {
   ArrowUp,
   ChevronRight,
   History,
-  LoaderCircle,
   Presentation,
   RotateCcw,
   Square,
@@ -33,6 +32,7 @@ import { formatDate } from '@/shared/lib/format-date';
 import { badgeClass } from '@/shared/ui/badge-class';
 import { controlClass } from '@/shared/ui/control-class';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
+import { BrandWaitingMark } from '@/shared/ui/brand-waiting-mark';
 import { useHeldValue } from '@/shared/lib/use-presence';
 import {
   COMPOSER_MIN_ROWS,
@@ -1161,6 +1161,16 @@ export function AcpChatPanel({
   }, [busy, lastTurnUpdateAt, pending, status]);
   const turnSilent = busy && silence !== null && silence.basis === lastTurnUpdateAt;
   const silentMinutes = silence?.minutes ?? 0;
+  const [cancelledWaitTurnId, setCancelledWaitTurnId] = useState<string | null>(null);
+  // A received answer belongs to the reader immediately. Only the current turn's
+  // unanswered wait gets one character; permission and silence keep their own meaning.
+  const showAnswerWait = busy
+    && lastUserEventIndex >= 0
+    && events[lastUserEventIndex]?.id !== cancelledWaitTurnId
+    && !hasCompletedAgentAnswer
+    && pending === null
+    && error === null
+    && !turnSilent;
   // When the dock's first frame loads and immediately after session replacement,
   // the process effect has not yet started,
   // so the actual state is idle. While this panel is open, the user sees 「Waiting for Connection」 — we project only the screen state as starting without touching the protocol state. As long as sessionEnabled=true, 「Off」 does not flash during render cycles.
@@ -1332,11 +1342,7 @@ export function AcpChatPanel({
             aria-live="polite"
             className="m-auto grid max-w-[38ch] justify-items-center gap-2 text-center"
           >
-            <LoaderCircle
-              size={ICON_SIZE.lg}
-              aria-hidden
-              className="motion-safe:animate-spin text-[color:var(--color-text-quaternary)]"
-            />
+            <BrandWaitingMark active />
             <p className="break-keep text-body leading-prose text-[color:var(--color-text-secondary)]">
               {t(download ? 'firstRun.title' : 'starting.title')}
             </p>
@@ -1465,6 +1471,11 @@ export function AcpChatPanel({
             </div>
           );
         })}
+        {showAnswerWait ? (
+          <div data-testid="acp-answer-wait" className="flex justify-center py-2">
+            <BrandWaitingMark active />
+          </div>
+        ) : null}
         <Surface
           as="section"
           open={presentationTrace !== null && !presentationVisible}
@@ -1960,8 +1971,8 @@ export function AcpChatPanel({
             {/*
               The status is a **sentence-weight word, not a chip**. Up in the header it was a
               bordered badge competing with the title; on this row it is one of several controls,
-              and a filled box among buttons reads as another button. The spinner is what carries
-              「still starting」 — the word alone cannot show that time is passing.
+              and a filled box among buttons reads as another button. The centered waiting
+              character carries startup motion once; this footer keeps the status in words.
             */}
             <span
               data-acp-status-badge={displayStatus}
@@ -1973,14 +1984,6 @@ export function AcpChatPanel({
               */
               className="flex shrink-0 items-center gap-1 text-label leading-label text-[color:var(--color-text-quaternary)]"
             >
-              {displayStatus === 'starting' ? (
-                <LoaderCircle
-                  data-testid="acp-connection-spinner"
-                  size={ICON_SIZE.sm}
-                  className="motion-safe:animate-spin"
-                  aria-hidden
-                />
-              ) : null}
               {t(`status.${displayStatus}`)}
               {turnElapsedLabel ? <span data-testid="acp-turn-elapsed" className="tabular-nums">· {turnElapsedLabel}</span> : null}
             </span>
@@ -2023,7 +2026,11 @@ export function AcpChatPanel({
             </TooltipProvider>
             <span data-testid="acp-chat-send-group" className="flex items-center gap-1">
             {busy ? (
-              <Chip size="md" tone="secondary" data-testid="acp-chat-stop" onClick={cancel}>
+              <Chip size="md" tone="secondary" data-testid="acp-chat-stop" onClick={() => {
+                // Cancellation is requested now; protocol completion still waits for the adapter.
+                setCancelledWaitTurnId(events[lastUserEventIndex]?.id ?? null);
+                cancel();
+              }}>
                 <Square size={ICON_SIZE.sm} aria-hidden />
                 {t('stop')}
               </Chip>

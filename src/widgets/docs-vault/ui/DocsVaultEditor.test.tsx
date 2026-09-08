@@ -1,4 +1,4 @@
-import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NextIntlClientProvider } from 'next-intl';
 import koMessages from '../../../../messages/ko.json';
@@ -43,6 +43,25 @@ afterEach(() => {
 });
 
 describe('DocsVaultEditor', () => {
+  it('shows a static native character only while the actual save is pending', async () => {
+    let finish!: () => void;
+    const pendingSave = new Promise<void>((resolve) => { finish = resolve; });
+    render(<DocsVaultEditor vaultScope={VAULT_SCOPE} doc={doc} getDocContent={async () => 'initial'} onSave={() => pendingSave} onClose={vi.fn()} />);
+    fireEvent.change(await screen.findByDisplayValue('initial'), { target: { value: 'updated' } });
+    const save = screen.getByRole('button', { name: '저장' });
+    expect(save.querySelector('[data-brand-detail]')).toBeNull();
+    fireEvent.click(save);
+    expect(save).toBeDisabled();
+    const mark = save.querySelector('[data-brand-detail="micro"]');
+    expect(mark).toHaveAttribute('width', '16');
+    expect(mark).toHaveAttribute('height', '16');
+    expect(mark).toHaveClass('atlas-inline-waiting-mark');
+    expect(mark?.parentElement).toHaveClass('size-3');
+    expect(save.querySelector('.animate-spin')).toBeNull();
+    await act(async () => finish());
+    expect(save.querySelector('[data-brand-detail]')).toBeNull();
+  });
+
   it('saves edited content and shows saved feedback', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(

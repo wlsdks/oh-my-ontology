@@ -48,7 +48,7 @@ The criterion for separation is not the topic, but **"when it is read."** All fo
 - [Topology node focus & scale (ego popover)](#topology-node-focus-scale-ego-popover)
 - [Anti-AI Design Criteria](#anti-ai-design-criteria)
 - [Architecture canvas — the flow surface (new, 2026-08-28)](#architecture-canvas-the-flow-surface-new-2026-08-28)
-- [Library shelf — a wiki page is a spine (new, 2026-09-08)](#library-shelf-a-wiki-page-is-a-spine-new-2026-09-08)
+- [Library index — readable page titles](#library-index-readable-page-titles)
 - [Absolute rules (Don'ts)](#absolute-rules-donts)
 - [Arrows carry information or they don't ship](#arrows-carry-information-or-they-dont-ship)
 - [Dimensional regularity — when content length varies](#dimensional-regularity-when-content-length-varies)
@@ -375,6 +375,19 @@ At desktop widths its 64×64 stage uses a measured clear lane at the map's right
 edge. Six poses use five synchronized 120ms transitions;
 the last WALK pixels equal the first READ pixels and the terminal READ pixels
 equal the first SUCCESS pixels.
+
+**Pending-operation motion**: `BrandWaitingMark` uses the first four existing
+64px WALK poses in the order 0, 1, 2, 1, 0, 3, 2, 1. Eight `--motion-base`
+beats make one 1440ms cycle, with native-pixel steps of 2px and a 4px hop.
+CSS owns the steps; there is no per-frame React update or JavaScript clock.
+The owning pending state mounts it; viewport and document visibility pause it.
+Reduced motion has no frame animation or translation. Full-screen loading
+fallbacks can start before hydration; route loading inherits the status's
+400ms delay. This is separate from the verified READ/SUCCESS sequence and
+never implies progress or completion. Small save/configuration glyph slots
+retain their geometry with native static 16px micro art. Only descendants of
+`.topology-ui-scale` cancel its `--topology-ui-scale-factor` for these rasters;
+a root factor alone does not mean that an unzoomed surface needs compensation.
 
 **Shipping assets**:
 
@@ -1644,89 +1657,32 @@ occlusion, selection and text readability as open problems is why that win has n
 The metaphor this surface already has is the owner's own: a building X-ray, which is drawn in 2D
 for the same reason architectural drawings are.
 
-## Library shelf — a wiki page is a spine (new, 2026-09-08)
+## Library index — readable page titles
 
-> The wiki half of the Library's 280px index column. Registered here because it adds a
-> token family and a mark vocabulary, not because it adds a screen.
+The wiki index uses full-width horizontal rows. A title gets up to two lines;
+a short freshness caption sits below it rather than competing for title width.
+The full accessible name and tooltip retain title, freshness, template problem,
+and exceptional author. Page length is not encoded by a control's width.
 
-### The problem this shape exists for
+`controlClass({ shape: 'row', size: 'md' })` owns focus, ink, and interaction.
+The selected row uses the solid indigo accent and indigo fill. A top amber rim
+marks changed or unmeasured source evidence; a bottom amber rim marks a page
+format problem. These are distinct repair tasks, and their accessible text
+states the distinction. Unverified pages keep readable ink on an unfilled row.
+The retained `--library-spine-rim` is a 2px state marker, not a book shape.
 
-The wiki list drew every page as an identical row: same glyph, same ink, same height. So
-*"which of these has fallen behind the file it was written from"* — the question a wiki
-over a folder of documents keeps asking — could only be answered by opening pages one at a
-time. The fact was already in the folder: `source_hash` records what a page was written
-from, and `vault-library.ts` has derived per-page freshness since the pairing shipped.
-Nothing on screen spent it. The shelf spends it.
+Hover uses the existing control colour and shadow transitions. There is no
+rotated label, lifted book, per-page progress chase, or resting animation.
+Compile marks the list busy and gives a status sentence; it does not imply
+which individual page is being read without a receipt. Search continues to use
+ranked rows. `LibraryShelf.test.tsx` exercises the state distinctions.
 
-### The marks, and the fact each one carries
-
-| Mark | Fact | Token |
-|---|---|---|
-| every spine one height | none — a shelf, so nothing reads as a bar chart | `--library-spine-height` |
-| a wider spine | the page is longer (four steps, `spine-shape.ts` owns the thresholds) | `--library-spine-width-xs/-sm/-md/-lg` |
-| amber rim on the head | a cited source changed after this page was written | `--library-spine-rim`, `--color-amber-source-a90` |
-| amber rim on the foot | the page's own shape misses the wiki template | `--library-spine-rim`, `--color-amber-source-a90` |
-| body unfilled, label a step back | **nothing has ever checked this page against a file** | no fill; `controlClass` `tone: 'default'` |
-| solid accent edge, indigo body | the page open in the reader beside it | `--color-indigo-accent`, `--color-indigo-a22` |
-| the board under the books turns indigo | Compile is running; the shelf is what the turn is about | `--color-indigo-a40` |
-| the book comes off the shelf under the pointer | this is the one you are about to pull | `--library-spine-lift`, `--library-spine-lift-scale` |
-
-**Two ambers, two ends, and they are not one state drawn twice.** The head is about the
-*source* and the cure is Compile; the foot is about the page's *own bytes* and the cure is
-an edit. Colour is never the only carrier: the spine's accessible name says which is
-which, in words, along with the whole title — a 26px spine truncates, so `title` and
-`aria-label` carry it.
-
-**The spine is a `controlClass({ shape: 'tile' })`.** `tile` is the one vertical shape
-in the value layer, and it gives the spine its border, radius, focus ring, disabled state
-and the three-rung ink ladder (`tone: strong | secondary | default`). What the shape
-cannot know is the geometry of a book, so the width ramp, the single height and the square
-foot come from the tokens below and override the tile's own padding — the established
-surface-token path this document already licenses under "Panel Width · Measurement Width".
-
-**Selected and stale must not be confusable.** Measured at 1512 on `--color-panel`
-(#0f1011): the open page's edge is the solid `--color-indigo-accent` at **4.96:1**, which
-clears WCAG 1.4.11's 3:1 for a mark identifying a state; the stale head rim is **8.7:1**;
-between the two edges ΔE(CIE76) is **109.9**. An earlier build used
-`--color-indigo-line-a35` for that edge and measured 1.4:1 — the page a person had open
-was the quietest thing on its own shelf. Title ink stays over the 4.5:1 text floor in
-every state (11.4 fresh, 5.9 unverified, 14.3 selected).
-
-### Values
-
-| Token | Value | Derivation |
-|---|---|---|
-| `--library-spine-height` | 164px | one height for every spine; fits ~22 characters of `text-label` set vertically, which covered 5 of 6 titles whole on the measured folder |
-| `--library-spine-width-xs` | 26px (coarse pointer: `--touch-target-min`, 44px) | shortest page; four steps because an eye compares books without a legend and a continuous width claims a precision nobody can read |
-| `--library-spine-width-sm` | 32px (coarse: `+8px`) | also the step an **unread** page takes — never the shortest, which would be a fact nothing established |
-| `--library-spine-width-md` | 38px (coarse: `+16px`) | |
-| `--library-spine-width-lg` | 46px (coarse: `+24px`) | six `lg` spines plus gaps still wrap inside the 264px the column leaves |
-| — | — | **The coarse ramp is a ramp, not a floor.** `max(26px, 44px)` cleared the touch target by flattening `xs`, `sm` and `md` onto one 44px width: four page-length steps became two, so a finger-driven reader lost the fact a pointer-driven one keeps. Each step now stands its own distance above the 44px floor (design council, 2026-09-08). |
-| `--library-spine-gap` | 3px | books touch on a shelf; enough to keep two edges from reading as one |
-| `--library-spine-rim` | 2px | the head and foot marks |
-| `--library-spine-lift` | 4px | hover; the shadow under it is `--shadow-control-press`, the smallest geometry on the elevation ladder, so a 4px lift is not lit by a 18px shadow |
-| `--library-spine-lift-scale` | 1.02 | hover, with the lift, over `--motion-fast` |
-| — | — | there is deliberately **no** dim/opacity token: an unverified spine is unfilled and takes `controlClass`'s `tone: 'default'`, because dimming the label instead put its ink under the 4.5:1 floor |
-
-### Motion
-
-Hover is the only motion on this shelf: 4px up and 1.02 over `--motion-fast`,
-`origin-bottom`, with `--shadow-control-press` under it — a lifted surface that casts no
-shadow is the contradictory depth this document already refuses. **Compile has no
-motion at all.** A light that stepped from spine to spine on a JS clock shipped on
-2026-09-08 and the design council cut it the same day: it measured **1.29:1** against the
-open page's own fill, so a still frame could not say whether a lit book was the one being
-worked on or the one already open, and resting on one book at a time read as *this page
-now* — a per-page progress nothing on this screen holds. What states the turn is what
-always stated it: the indigo board, `aria-busy`, and the sentence *Compile is re-reading
-the shelf*. With no clock there is nothing for reduced motion to replace;
-`LibraryShelf.test.tsx` owns that proof.
-
-### What the shelf is not
-
-A search result. A shelf is a resting state — a picture of a folder, comparable across. A
-search is a ranked answer to a question just typed, and an answer reads down a column, so
-a non-empty query puts the rows back, pill and writer caption included.
+The selected document owns the reader's existing `--measure-doc-column` (760px)
+and prose measure. Its graph opens through one labelled action in a viewport
+`Dialog`, inset by the existing `--chrome-inset`. This size is a primitive role,
+so it retains the same focus trap, Escape, scrim, exit lockout and scroll lock
+as other dialogs. Closing returns to the originating page and scroll position.
+A closed graph must not keep a drawing loop running. The Dialog reads system motion preference through the live shared subscription. Reduced entry and exit use `OVERLAY_RISE_REDUCED` with zero travel, retaining the opacity fade; changing the preference while the workbench is open takes effect without remounting it.
 
 ## Absolute rules (Don'ts)
 

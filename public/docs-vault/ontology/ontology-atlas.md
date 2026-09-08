@@ -18,12 +18,17 @@ relation_notes: { domains/agent-integration: "Atlas promises that an AI agent re
 ## Definition
 A local-first codebase ontology workbench that records what a codebase builds, why it is structured that way, and what a change will affect. It links product domains and capabilities to implementation evidence, dependencies, and impact in a computable Markdown graph that people and AI agents maintain together.
 
+
+Library additionally keeps original documents, linked wiki write-ups and explicitly filed cited answers for general knowledge, with or without code nodes. These pages remain outside the code ontology; saving them does not establish truth or accepted ontology meaning.
+
 ## Evidence
 - README.md: "Understand what your codebase builds, why it is structured that way, and what a change will affect."
+- README.md and docs/FEATURES.md: general-knowledge Library actions and explicit source/ontology boundary
 - AGENTS.md: Project overview ("a local-first codebase ontology workbench" spanning product meaning to implementation evidence)
 
 ## In Scope / Out of Scope
 - In scope: Codebase ontology schema, codebase architecture governance, compilation, querying, MCP/CLI agent integration, local vault management, topology browsing, project portfolio, onboarding/deployment/app shell, and product/business meaning that explains the codebase or change impact
+- In scope: general-knowledge Library sources, linked wiki write-ups, passage questions and explicit answer filing, including documents-only folders
 - Out of scope: General-purpose ontologies unrelated to a codebase; exhaustive symbol indexing; backend/authentication/cloud collaboration (permanently removed in R10, conditionally reintroduced only for Layer 2)
 
 ## Confidence
@@ -36,6 +41,8 @@ high (direct quote from README + AGENTS.md)
 What product/system outcome and user problem define the ontology scope?
 
 Ontology Atlas helps people and AI coding agents understand what a codebase builds, why it is structured that way, and what a change will affect by preserving product meaning and implementation evidence in one local-first codebase ontology.
+
+Library additionally keeps original documents, linked wiki write-ups and explicitly filed cited answers for general knowledge, with or without code nodes. These pages remain outside the code ontology; saving them does not establish truth or accepted ontology meaning.
 
 - Concepts: `ontology-atlas`
 - Evidence: `README.md`

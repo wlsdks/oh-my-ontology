@@ -47,11 +47,11 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: a lit three.js atlas on the download hero, with Architecture and the Library as captured screens; an MCP screen; Connectors from Notion, GitHub, Context7 or Playwright. The Library graph pulls apart by hand; a stepper, an outside-notes door, a local model card; Check proposes nodes; Strata names planes.
+**Added**: a three.js download hero and captured Architecture/Library screens; MCP screen; Notion, GitHub, Context7 and Playwright Connectors. The Library graph pulls apart by hand; a stepper, an outside-notes door, a local model card; Check proposes nodes; Strata names planes.
 
-**Changed**: the Library keeps its graph beside an open page, focuses it there, and marks what an agent reads and writes; the download demo is refilmed and second; the hero is three controls, Mac opening Silicon and Intel; the index switches Sources and Wiki; Connectors add from one list; Insights opens on four measures; glow, gradients and overshoot are token-bound.
+**Changed**: the Library uses readable titles and opens its graph on request; pending work has a stepping Atlas character; refilmed download demo; three hero controls, Mac opening Silicon and Intel; the index switches Sources and Wiki; Connectors add from one list; Insights opens on four measures; glow, gradients and overshoot are token-bound.
 
-**Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name the tool; loose files ring the cluster; the Docs head fits 280px; the 3D picker closes cleanly.
+**Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name the tool; loose files ring the cluster; the Docs head fits 280px; the 3D picker closes cleanly; cited chat replies retain unmeasured evidence and Undo.
 
 
 ## 2026-09-05 · v1.0.6: the in-app Claude chat keeps its permission gate

@@ -1,4 +1,4 @@
-import { BrandMark } from './brand-mark';
+import { BrandWaitingMark } from './brand-waiting-mark';
 
 export interface MapEntryLoadingVisualProps {
   title: string;
@@ -8,7 +8,7 @@ export interface MapEntryLoadingVisualProps {
   lede?: string;
 }
 
-/** One visual of map cold boot: center state + circuit-style spinner. */
+/** Map cold boot keeps one centered status and a native waiting character. */
 export function MapEntryLoadingVisual({
   title,
   description,
@@ -38,16 +38,7 @@ export function MapEntryLoadingVisual({
         className="flex max-w-md flex-col items-center text-center"
       >
         <div className="relative grid size-16 place-items-center" aria-hidden="true">
-          <span className="absolute inset-0 rounded-full border border-[color:var(--color-border-soft)]" />
-          <span
-            data-testid="map-entry-loading-spinner"
-            className="absolute inset-1 rounded-full border border-transparent border-r-[color:var(--color-indigo-a46)] border-t-[color:var(--color-indigo-accent)] motion-safe:animate-spin motion-reduce:animate-none"
-          />
-          <BrandMark
-            size={32}
-            detail="compact"
-            className="size-8"
-          />
+          <BrandWaitingMark active initialVisibility="visible" />
         </div>
         <p className="mt-5 text-title font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
           {title}

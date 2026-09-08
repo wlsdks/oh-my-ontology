@@ -1,11 +1,102 @@
 import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
+
+import { buildLibraryModel } from "@/entities/docs-vault/lib/vault-library";
+import type { VaultDoc } from "@/entities/docs-vault/model/types";
+import { parseFrontmatter } from "@/shared/lib/parse-frontmatter";
 
 import { answerSlug, buildAnswerPage } from "./answer-page";
 
 const NOW = new Date("2026-09-07T03:00:00Z");
 
+function asLibraryDoc(page: ReturnType<typeof buildAnswerPage>): VaultDoc {
+  const { frontmatter } = parseFrontmatter(page.text);
+  return {
+    slug: page.slug, path: page.path, title: String(frontmatter.title), frontmatter,
+    tags: [], headings: [], excerpt: "", wordCount: 12, updatedAt: NOW.toISOString(), linksOut: [],
+  };
+}
+
+describe("filed answers do not mint source-read provenance", () => {
+  const path = "sources/room-capacity.md";
+  const oldBytes = "Capacity: 24 participants.\n";
+  const newBytes = "Capacity: 18 participants; supersedes 24.\n";
+  const hash = (bytes: string) => createHash("sha256").update(bytes).digest("hex");
+
+  it.each([
+    ["an unchanged source is not proof of a read", oldBytes],
+    ["a revised source must not be rebound to an older answer", newBytes],
+  ])("%s", (_case, bytes) => {
+    // A passive measurement can arrive before or after the answer. Neither is a read receipt.
+    const input = {
+      question: "How many people can attend?",
+      answer: `The room allows 24 participants. [[src:${path}#l1]]`,
+      askedOn: null, writer: "agent:codex", now: NOW, knownSources: [path],
+      hashes: new Map([[path, hash(bytes)]]),
+    };
+    const page = buildAnswerPage(input);
+    expect(page.problems).toEqual([]);
+    expect(page.text).toContain(input.answer);
+    const doc = asLibraryDoc(page);
+    expect(doc.frontmatter.source_hash).toEqual({ [path]: "unmeasured" });
+    const model = buildLibraryModel({
+      docs: [doc],
+      sources: [{ path, name: "room-capacity.md", format: "md", bytes: bytes.length, mtime: NOW.getTime() }],
+      hashes: input.hashes,
+    });
+    expect(model.pairing.writeUpsBySource.get(path)?.[0]?.freshness).toBe("behind");
+    expect(model.sources[0]?.state).toBe("stale");
+    expect(model.needsCompileCount).toBe(1);
+  });
+
+  it("retains an outstanding source revision when an answer is filed beside an older wiki page", () => {
+    const page = buildAnswerPage({
+      question: "Can we announce the capacity?",
+      answer: `The room allows 24 participants. [[src:${path}#l1]]`,
+      askedOn: "wiki/room", writer: "agent:codex", now: NOW, knownSources: [path],
+    });
+    const answer = asLibraryDoc(page);
+    const original: VaultDoc = {
+      ...answer, slug: "wiki/room", path: "wiki/room.md",
+      frontmatter: { ...answer.frontmatter, source_hash: { [path]: hash(oldBytes) } },
+    };
+    const source = { path, name: "room-capacity.md", format: "md", bytes: newBytes.length, mtime: NOW.getTime() };
+    const hashes = new Map([[path, hash(newBytes)]]);
+    const before = buildLibraryModel({ docs: [original], sources: [source], hashes });
+    const after = buildLibraryModel({ docs: [original, answer], sources: [source], hashes });
+    expect(before.needsCompileCount).toBe(1);
+    expect(after.needsCompileCount).toBe(1);
+    expect(after.sources[0]?.state).toBe("stale");
+    expect(after.pairing.writeUpsBySource.get(path)?.every((row) => row.freshness === "behind")).toBe(true);
+  });
+});
+
 describe("buildAnswerPage files an answer back as a wiki page", () => {
-  it("turns cited lines into facts, cited files into sources with hashes, and the rest into Not in sources", () => {
+  it('normalizes text-file colon line citations and preserves both range endpoints', () => {
+    const page = buildAnswerPage({
+      question: 'Can we announce the workshop?',
+      answer: 'Approval is missing (`sources/plan.md:7`). The hold expires soon (sources/venue.txt:5-6).',
+      askedOn: null, writer: 'agent:claude-code', now: NOW,
+      knownSources: ['sources/plan.md', 'sources/venue.txt'],
+    });
+    expect(page.problems).toEqual([]);
+    expect(page.text).toContain('[[src:sources/plan.md#l7]]');
+    expect(page.text).toContain('[[src:sources/venue.txt#l5]]–[[src:sources/venue.txt#l6]]');
+    expect(asLibraryDoc(page).frontmatter.source_hash).toEqual({
+      'sources/plan.md': 'unmeasured', 'sources/venue.txt': 'unmeasured',
+    });
+  });
+
+  it.each(['sources/report.pdf:7', 'sources/report.docx:7', 'sources/plan.md:0', 'sources/plan.md:7:2', 'sources/plan.md:9-3', 'sources/plan.md:7.5', 'https://example.com/sources/plan.md:7', '[link](sources/plan.md:7)'])('does not infer a citation from %s', (citation) => {
+    const page = buildAnswerPage({
+      question: 'Where is the approval?', answer: `Approval is recorded (${citation}).`,
+      askedOn: null, writer: 'agent:claude-code', now: NOW,
+      knownSources: ['sources/report.pdf', 'sources/report.docx', 'sources/plan.md'],
+    });
+    expect(page.problems[0]?.code).toBe('no-cited-fact');
+  });
+
+  it("retains cited lines and source paths with unmeasured provenance, and keeps uncited lines separate", () => {
     const page = buildAnswerPage({
       question: "Why was the reopening moved?",
       answer: [
@@ -16,12 +107,11 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
       askedOn: "wiki/change-request",
       writer: "agent:claude-code",
       now: NOW,
-      hashes: new Map([["sources/change-request.docx", "a".repeat(64)], ["sources/site-survey.pdf", "b".repeat(64)]]),
       knownSources: ["sources/change-request.docx", "sources/site-survey.pdf"],
     });
-    expect(page.slug).toBe("wiki/answers/2026-09-07-why-was-the-reopening-moved");
+    expect(page.slug).toMatch(/^wiki\/answers\/2026-09-07-why-was-the-reopening-moved-[0-9a-f-]{36}$/);
     expect(page.text).toContain("sources:\n  - sources/change-request.docx\n  - sources/site-survey.pdf");
-    expect(page.text).toContain(`sources/site-survey.pdf: ${"b".repeat(64)}`);
+    expect(page.text).toContain("sources/site-survey.pdf: unmeasured");
     expect(page.text).toContain("## Facts\n\n- The change request moved");
     expect(page.text).toContain("## Not in sources\n\n- I could not find who signed the survey.");
     expect(page.text).toContain("Asked while reading [[wiki/change-request]].");
@@ -34,7 +124,6 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
       askedOn: "wiki/change-request",
       writer: "agent:claude-code",
       now: NOW,
-      hashes: new Map(),
       knownSources: ["sources/change-request.docx", "sources/site-survey.pdf"],
       pagesForSource: (path) =>
         path === "sources/site-survey.pdf" ? ["wiki/site-survey", "wiki/change-request"] : ["wiki/change-request"],
@@ -55,7 +144,6 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
       askedOn: "wiki/change-request-CR3",
       writer: "agent:claude-code",
       now: NOW,
-      hashes: new Map([["sources/change-request-CR3.docx", "c".repeat(64)]]),
       knownSources: ["sources/change-request-CR3.docx", "sources/contractor-quotes.csv"],
     });
     expect(page.problems).toEqual([]);
@@ -73,7 +161,6 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
       askedOn: null,
       writer: "agent:claude-code",
       now: NOW,
-      hashes: new Map(),
       knownSources: [],
     });
     expect(page.problems[0]?.code).toBe("no-cited-fact");
@@ -84,5 +171,15 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
   it("makes a stable slug from the question's first words and the day", () => {
     expect(answerSlug("Is this figure final?!", NOW)).toBe("wiki/answers/2026-09-07-is-this-figure-final");
     expect(answerSlug("이 숫자 맞아?", NOW)).toBe("wiki/answers/2026-09-07-이-숫자-맞아");
+  });
+
+  it('gives repeated questions fresh bounded destinations while keeping their full human title', () => {
+    const question = '𐐀'.repeat(120);
+    const input = { question, answer: 'A fact [[src:sources/plan.md#l1]].', askedOn: null, writer: 'agent:test', now: NOW, knownSources: ['sources/plan.md'] };
+    const first = buildAnswerPage(input);
+    const second = buildAnswerPage(input);
+    expect(second.path).not.toBe(first.path);
+    expect(new TextEncoder().encode(first.path.split('/').at(-1)!).length).toBeLessThan(200);
+    expect(parseFrontmatter(first.text).frontmatter.title).toBe(question);
   });
 });

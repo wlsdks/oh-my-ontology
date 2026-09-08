@@ -18,12 +18,12 @@ import {
   Link as LinkIcon,
   List,
   ListOrdered,
-  Loader2,
   Quote,
   Save,
   X,
 } from 'lucide-react';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
+import { BrandMark } from '@/shared/ui/brand-mark';
 import type { VaultDoc } from '@/entities/docs-vault';
 import { useOntologyKindLabel } from '@/entities/ontology-class';
 import { resolveLocaleDisplayName } from '@/shared/lib/locale-display-name';
@@ -793,7 +793,10 @@ export function DocsVaultEditor({
           >
             {saving ? (
               <>
-                <Loader2 size={ICON_SIZE.sm} className="animate-spin" aria-hidden />
+                {/* Keep the 12px layout slot while the micro master stays native 16px. */}
+                <span className="relative inline-flex size-3 shrink-0" aria-hidden="true">
+                  <BrandMark detail="micro" alt="" className="atlas-inline-waiting-mark absolute left-1/2 top-1/2 size-4 max-w-none -translate-x-1/2 -translate-y-1/2" />
+                </span>
                 {t('saving')}
               </>
             ) : (

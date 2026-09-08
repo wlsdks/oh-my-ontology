@@ -730,6 +730,11 @@ view-doc · pin · unpin · copy URL · print · edit · new doc · rename · de
 A vault holds three kinds of file and **only one is the graph**. Docs draws that one; this
 destination draws the other two.
 
+The Library supports general knowledge as well as documents associated with code.
+Sources remain original files; write-ups and filed answers remain wiki pages.
+Documents-only folders need no code nodes or separate mode switch. The ontology
+retains its codebase scope.
+
 It shipped inside the Docs sidebar on 2026-09-05 and moved out the next day. The owner
 read the merged screen as cluttered and asked whether gathering documents belonged inside
 Docs at all, and the measurement agreed: five capped lists shared one 280px column, so
@@ -746,9 +751,11 @@ facts the folder holds about a file Atlas has never opened (path, format, size, 
 sha256 or "not measured") plus one door that reveals it in Finder or hands over the bytes.
 With no folder open the whole screen is one centred stage naming the two kinds of file and
 offering the picker, and a folder that is open but holds nothing gets the same grammar with
-the two doors instead. **With a folder open and nothing selected the right pane is the
-graph**, at the pane's own height. Below `lg` there is one column — the graph on top, the
-two lists under it — and selecting swaps it, with a way back. A folder that holds wiki
+the two doors instead. **With a folder open and nothing selected, the right pane shows the existing
+source-to-wiki steps.** Graph opens on request in a large dialog, both from this
+landing and above an open page. Closing it preserves the selected document and
+reading position. Below `lg` there is one column — guidance above the index —
+and selecting opens the reader with a way back. A folder that holds wiki
 pages and no `kind:` node opens here rather than on the map: it is a wiki on its own, and
 an empty canvas had nothing to say to the person who chose it (ledger, 2026-09-06). A
 folder with even one node still opens on the map.
@@ -1198,7 +1205,7 @@ arrival 0.85 of the way in.
 **What left `/docs` on 2026-09-06**: Sources, Wiki, the doors, and the agent dock.
 What stayed: the review queue, recently changed, the tree, and the editor.
 
-**The wiki index is a shelf of spines** (2026-09-08). Each page stands as a book spine, equal height, width from page length; a page whose source changed since it was compiled wears an amber cap, a page never checked stands unfilled, the open page carries an indigo edge. Hover lifts a spine 4 px at 1.02 over `--motion-fast`; while Compile re-reads the folder a light steps along the shelf one spine at a time instead of a spinner (a static board under reduced motion). Search brings the rows back, since a ranked answer is a list. Measured at 1512: stale against selected edge at ΔE 110, every title over 4.5:1, the same five of six titles readable as in the old list. New page stays under the board.
+**The wiki index uses readable horizontal rows** (2026-09-09). Titles get up to two lines, with a short freshness caption below. The selected page has an indigo edge; changed or unmeasured source evidence and invalid page format keep distinct amber markers and accessible explanations. Search remains a ranked list. Compile marks the list busy without suggesting per-page progress. The graph opens through a labelled action above the reader instead of compressing the document into a third column.
 
 ### `/ontology` — retired tree/ego hub → thin redirect (B3 Hub is soon the map)
 
@@ -1577,19 +1584,24 @@ first ready frame instead of only after a turn. An adapter with no session list,
 with no past conversation, and a conversation the adapter will not reload all fall through
 to a new one, which is what happened before. *New conversation* still means new.
 
-**File the answer** (2026-09-07). After an ask turn ends, a chip in the conversation,
+**File the answer** (2026-09-07, ordinary conversation included 2026-09-09). After a question from the conversation or passage menu ends, a chip in the conversation,
 directly under the answer and above the composer, writes the last answer as a page under
 `wiki/answers/`: the question is the title and summary,
 every answer line with a `[[src:…]]` citation becomes a fact, the cited files become
-`sources:` with the hashes the Library measured, and uncited lines go under "Not in
+`sources:` with `unmeasured` receipts, and uncited lines go under "Not in
 sources". A citation an agent wrote loosely in prose, `sources/<file>#p3` bare or in
 backticks with or without `src:`, is rewritten into the wiki form first, since it names
 the same place (the first installed-app answer cited every fact that way and was refused
-as uncited); the ask brief now names the form outright. The page meets the same validator
+as uncited); the ask brief now names the form outright. Plain-text file references such as `sources/notes.md:7` and ascending `:5-6` ranges are also normalized to explicit line anchors; binary-document pages are not inferred. Ordinary follow-up questions do not inherit an earlier Compile or Check request, and their capture does not change tool permissions. The page meets the same validator
 as every other; an answer that cites nothing is refused by name (`no-cited-fact`), and one
 that does not fit is not written and the first problem is said instead. The summary ends
 with "See also" links to every page that already writes up a cited source, so the folder
 check's `shared-source-unlinked` has nothing to raise on a filed answer.
+Passive source hashes do not establish which bytes the answer used. Filing an
+older answer after its source changed therefore keeps that answer unverified
+and does not clear the outstanding source revision. Its citations still need
+review; a cited sentence is not automatically a supported claim. Undo removes
+the newly filed answer while preserving the original source and existing pages.
 
 **Reading a DOCX without a shell** (2026-09-07). The MCP server's `read_source` returns the
 text of one file under `sources/` in the units a citation names — a DOCX by heading, an

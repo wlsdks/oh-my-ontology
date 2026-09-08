@@ -1322,6 +1322,59 @@
     animation: atlasMascotSprite6 var(--atlas-mascot-sequence-duration) steps(5, end) both;
   }
 
+  /* WAIT accompanies an actual pending operation, independently of the verified
+     READ/SUCCESS presence. Eight existing base beats form one step/hop/settle
+     cycle. Only the first four native 64px poses are used; no art is rescaled. */
+  @keyframes atlasWaitingStep {
+    0%, 50%, 100% { background-position-x: 0; transform: translate(0, 0); }
+    12.5% { background-position-x: -64px; transform: translate(-2px, 0); }
+    25% { background-position-x: -128px; transform: translate(-2px, -4px); }
+    37.5%, 87.5% { background-position-x: -64px; transform: translate(0, 0); }
+    62.5% { background-position-x: -192px; transform: translate(2px, 0); }
+    75% { background-position-x: -128px; transform: translate(2px, -4px); }
+  }
+
+  .atlas-waiting-mark {
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 384px 64px;
+    image-rendering: pixelated;
+    animation: atlasWaitingStep calc(var(--motion-base) * 8) steps(1, end) infinite;
+    animation-play-state: paused;
+  }
+
+  /* Only an actual UI-zoom ancestor needs compensation. The root factor also
+     exists on unzoomed fallbacks and portals, where applying its inverse alone
+     would shrink the native art. Keep sprite cells and busy micro marks at 1:1. */
+  .topology-ui-scale .atlas-waiting-mark,
+  .topology-ui-scale .atlas-inline-waiting-mark {
+    zoom: calc(1 / var(--topology-ui-scale-factor));
+  }
+
+  .atlas-waiting-mark[data-waiting-motion='running'] {
+    animation-play-state: running;
+  }
+
+  /* The full-screen route's existing delay hides the whole status group. Its
+     child pose clock waits the same delay, so hidden character frames do no work. */
+  .route-loading-in > .atlas-waiting-mark {
+    animation-delay: inherit;
+  }
+
+  .atlas-waiting-mark[data-waiting-motion='still'] {
+    animation: none;
+    background-position: 0 0;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atlas-waiting-mark {
+      animation: none !important;
+      background-position: 0 0 !important;
+      transform: none !important;
+    }
+  }
+
   /* Agent panel waiting dot — reuses same heartbeat syntax (slow low-contrast cycle).
      Only opacity moves, not glow, and this is **not fake progress**:
      turns on only while actual round-trip runs, and the fact of progress is told by the tool row below. prefers-reduced-motion automatically stops it via base layer global rule below — dot remains visible and "thinking · N sec" text beside it continues telling same fact, so information does not decrease at all. */
@@ -2930,40 +2983,9 @@
     /* Document list aside expanded width — retract existing hardcoded w-[280px]. */
     --docs-list-width: 280px;
 
-    /*
-     * **The library shelf** — the wiki half of that 280px column draws its pages as
-     * spines standing on a shelf, so a page's freshness is readable **before** it is
-     * opened. Every value here carries one fact and nothing else:
-     *
-     * - height is **one** value for every spine. A shelf whose books differ in height
-     *   because their titles differ in length is the copy-decided card height the
-     *   Don'ts refuse; the row is a shelf, not a bar chart.
-     * - the four widths are the **only** thing that varies with the page, and what
-     *   varies is how long the page is (`src/views/library/lib/spine-shape.ts` owns the
-     *   thresholds). Four steps, because a person compares books by eye and a
-     *   continuous width would say a precision nobody can read.
-     * - the rim is the freshness mark: the head carries "this page's source moved after
-     *   it was written", the foot carries "this page's own shape misses the template".
-     *   Static, both of them — a state is not an animation.
-     * - the state ink is the value layer's `tone` axis, not a colour written here,
-     *   and a page nothing has checked simply has **no fill** — an outline of a book
-     *   rather than a book. An opacity token was tried first and dropped: dimming the
-     *   label with it put its ink under the 4.5:1 text floor.
-     * - the lift is what hover does. Allowed since 2026-09-08 (`docs/DECISIONS.md`,
-     *   "The expression bans are lifted") and spent on a fact: the book you are about
-     *   to pull comes off the shelf.
-     * - the dwell is how long Compile's light rests on one spine while the shelf is
-     *   re-read. It replaces a spinner with the thing being worked on.
-     */
-    --library-spine-height: 164px;
-    --library-spine-width-xs: 26px;
-    --library-spine-width-sm: 32px;
-    --library-spine-width-md: 38px;
-    --library-spine-width-lg: 46px;
-    --library-spine-gap: 3px;
+    /* Library index state markers: source evidence at the head, page format at
+       the foot. Row geometry comes from controlClass, not the retired book ramp. */
     --library-spine-rim: 2px;
-    --library-spine-lift: 4px;
-    --library-spine-lift-scale: 1.02;
     /* drawer/audit modal shared scrim, single source — same value as existing sourceTreeOpen drawer. Dark-only (no light branch). */
     --docs-scrim: rgba(0, 0, 0, 0.5);
     /*
@@ -3736,19 +3758,6 @@ primary colors reference global monochrome/single indigo ladder (`--color-indigo
          32px while the comment claimed promotion, and abolished that token so GlobalSearch
          now reads --overlay-close-size. */
       --overlay-close-size: var(--touch-target-min);
-      /* Library spines (2026-09-08): a 26px book is under the 44px floor on a coarse pointer, and
-         `touch-hit-expand` cannot help because a 3px gap would make neighbouring hit areas
-         overlap and open the wrong book. So the spine itself widens to the floor; the four
-         steps keep their order (every step is at least the floor, longer pages stay wider). */
-      /* A finger needs `--touch-target-min` (44px), and `max()` gave it by flattening the
-         three narrow steps onto one 44px width — the page-length ramp survived as two
-         values instead of four, so on a touch screen the shelf stopped saying how much
-         page is behind a book (design council, 2026-09-08). The steps are raised as a
-         ramp instead: 44 is the floor and each step keeps its own width above it. */
-      --library-spine-width-xs: var(--touch-target-min);
-      --library-spine-width-sm: calc(var(--touch-target-min) + 8px);
-      --library-spine-width-md: calc(var(--touch-target-min) + 16px);
-      --library-spine-width-lg: calc(var(--touch-target-min) + 24px);
       /*
        * (Promotion of `--docs-header-tile-size` here on 2026-07-29 became **unnecessary** on 2026-08-03
        * — document hub header tiles directly read the above `--chrome-tile-size`,

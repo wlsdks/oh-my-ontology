@@ -38,6 +38,7 @@ const VAULT: Record<string, string> = {
   "sources/design-system.pdf": "%PDF-1.7 design system\n",
   "sources/features.html": "<html>features</html>\n",
   "sources/release-dates.csv": "date,name\n2026-09-05,launch\n",
+  "wiki/notes.md": "---\ntitle: Reader notes\ncreated_by: human\nsources: []\nstatus: draft\n---\n\n## Summary\n\nNotes to read while the four sources await write-ups.\n\n## Facts\n\n## Decisions\n\n## Open questions\n\n## Not in sources\n",
 };
 
 /** One ready, verified, config-isolated runtime — the only kind in-app chat may open. */
@@ -231,14 +232,10 @@ test.describe("Compile opens the agent dock", () => {
      * was drawn, so a machine with a single brain showed it **nowhere** — which is why the
      * next case pins the other half rather than trusting that this one covers both.
      *
-     * ⚠️ **"The shelf is drawn" now means the popup is open.** Later the same day the pane
-     * became the graph and the shelf became a `Surface` raised by a chip, so "nothing is
-     * selected" stopped implying the steps are on screen. The condition the screen uses is
-     * the popup's own openness, and so is this case's: it presses the chip first, which is
-     * the state a person is in when they can see step two at all.
+     * The unselected landing now draws the steps directly; selecting a page
+     * hands the disclosure to the index beside its Compile control.
      */
-    await page.getByTestId("library-shelf-open").click();
-    await expect(page.getByTestId("library-shelf-popover")).toBeVisible();
+    await expect(page.getByTestId("library-stage")).toBeVisible();
     await expect(page.getByTestId("library-stage-transfer")).toContainText("llm-audit.jsonl");
     await expect(page.getByTestId("library-transfer")).toHaveCount(0);
 
@@ -265,9 +262,8 @@ test.describe("Compile opens the agent dock", () => {
   }) => {
     await openFolder(page);
     /*
-     * Closing the shelf hands the sentence to the column, and so does opening a document.
-     * Both are pinned here, because between them they are every moment step two is not on
-     * screen — and losing the sentence in either is the regression this exists for: the
+     * Opening a document hands the sentence to the column. The landing and
+     * selected-page states cover both owners of the disclosure — and losing the sentence in either is the regression this exists for: the
      * person is one press away from Compile in the index column the whole time.
      *
      * ⚠️ **The rule the owner's 2026-09-06 reading pinned**: the disclosure lives where
@@ -276,9 +272,9 @@ test.describe("Compile opens the agent dock", () => {
      * bottom of the column under a list that was still going. It is one slot: the reason
      * Compile cannot run, or what leaves the computer when it does.
      */
-    await page.getByTestId("library-shelf-open").click();
     await expect(page.getByTestId("library-stage-transfer")).toBeVisible();
-    await page.getByTestId("library-shelf-close").click();
+    await expect(page.getByTestId("library-transfer")).toHaveCount(0);
+    await page.getByTestId("library-wiki-wiki/notes").click();
     await expect(page.getByTestId("library-stage-transfer")).toHaveCount(0);
     await expect(page.getByTestId("library-transfer")).toContainText("llm-audit.jsonl");
 

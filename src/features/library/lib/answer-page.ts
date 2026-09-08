@@ -13,8 +13,10 @@ import {
  *
  * The page is built by the app, not by another agent turn: the question becomes the
  * summary, every answer line that carries a `[[src:…]]` citation becomes a fact, the cited
- * files become `sources:` with the hashes the Library already measured, and lines with no
- * citation go under "Not in sources" so the page never claims more than the answer proved.
+ * files become `sources:`, and lines without citations go under "Not in sources".
+ * Citation presence is not proof of semantic entailment. Nor do the Library's current
+ * file hashes prove which bytes the answer read: a retained answer may predate them.
+ * Until the answer carries a verified read receipt, its source hashes stay unmeasured.
  * The result is judged by the same validator every page meets; a page that does not fit
  * is not written, and the problems come back instead.
  */
@@ -25,6 +27,8 @@ export interface AnswerPageInput {
   askedOn: string | null;
   writer: string;
   now: Date;
+  /** A fresh filing identity; callers may supply one for a deterministic retry/test. */
+  filingId?: string;
   /**
    * The wiki pages that already write up a source path, so the answer can point at them.
    * A page that lists a source another page lists and links neither is the folder finding
@@ -32,8 +36,6 @@ export interface AnswerPageInput {
    * three pages at once (2026-09-07). One "See also" line under the summary settles it.
    */
   pagesForSource?: (sourcePath: string) => readonly string[];
-  /** sha256 by vault-relative source path, from the Library's own measurement. */
-  hashes: ReadonlyMap<string, string>;
   knownSources: readonly string[];
 }
 
@@ -60,20 +62,36 @@ const LOOSE_CITATION = new RegExp(
 /** The wiki form only, anchor included; what the validator will count. */
 const CITATION = new RegExp(WIKI_CITATION_PATTERN, "g");
 
+// A colon after a plain-text source path names a line, never a PDF page or an
+// extracted Office-document paragraph. Ranges retain both explicit endpoints.
+const TEXT_LINE_CITATION = new RegExp(
+  '(^|[\\s(,;])`?(?:src:)?(' + WIKI_SOURCES_DIR +
+    '\\/[^\\s`()[\\]#|:]+\\.(?:md|markdown|txt|csv|tsv|json|jsonl|yaml|yml|toml|ini|log|xml|html|htm|rst)):' +
+    '([1-9]\\d*)(?:[-–]([1-9]\\d*))?`?(?!\\.\\d)(?=$|[\\s),.;])',
+  'gi',
+);
+
 /** Every loose citation in a line rewritten as `[[src:sources/<file>#<anchor>]]`. */
 function normalizeCitations(line: string): string {
-  return line.replace(LOOSE_CITATION, (_whole, path: string, anchor: string) => `[[src:${path}#${anchor}]]`);
+  const normalizedLines = line.replace(TEXT_LINE_CITATION, (whole, prefix: string, path: string, first: string, last: string | undefined, offset: number) => {
+    const start = Number(first);
+    const end = last === undefined ? start : Number(last);
+    // Do not rewrite a Markdown link destination or a malformed/range-like number.
+    if ((prefix === '(' && line.slice(0, offset).endsWith(']')) || !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || end < start) return whole;
+    return `${prefix}[[src:${path}#l${start}]]${end === start ? '' : `–[[src:${path}#l${end}]]`}`;
+  });
+  return normalizedLines.replace(LOOSE_CITATION, (_whole, path: string, anchor: string) => `[[src:${path}#${anchor}]]`);
 }
 
 export function answerSlug(question: string, now: Date): string {
-  const words = question
+  const words = Array.from(question
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s-]/gu, " ")
     .trim()
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 6)
-    .join("-");
+    .join("-")).slice(0, 32).join('');
   const stamp = now.toISOString().slice(0, 10);
   return `${WIKI_DIR}/answers/${stamp}-${words || "answer"}`;
 }
@@ -94,7 +112,11 @@ export function buildAnswerPage(input: AnswerPageInput): AnswerPageResult {
       uncited.push(`- ${bare}`);
     }
   }
-  const slug = answerSlug(input.question, input.now);
+  const filingId = input.filingId ?? globalThis.crypto.randomUUID();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(filingId)) {
+    throw new Error('A filed answer requires a fresh UUIDv4 identity.');
+  }
+  const slug = `${answerSlug(input.question, input.now)}-${filingId.toLowerCase()}`;
   const sourceList = [...sources];
   const related = [
     ...new Set(sourceList.flatMap((path) => input.pagesForSource?.(path) ?? [])),
@@ -108,7 +130,7 @@ export function buildAnswerPage(input: AnswerPageInput): AnswerPageResult {
     "sources:",
     ...sourceList.map((path) => `  - ${path}`),
     "source_hash:",
-    ...sourceList.map((path) => `  ${path}: ${input.hashes.get(path) ?? "unmeasured"}`),
+    ...sourceList.map((path) => `  ${path}: unmeasured`),
     "status: draft",
     `summary: ${yaml(`An answer filed from the conversation${input.askedOn ? ` while reading ${input.askedOn}` : ""}.`)}`,
     "---",

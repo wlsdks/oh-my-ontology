@@ -240,17 +240,15 @@ test.describe("Check the wiki opens the agent dock", () => {
     expect(overflow).toBeLessThanOrEqual(0);
     const box = (await report.boundingBox())!;
     expect(box.x + box.width).toBeLessThanOrEqual(390);
-    // At 320 (1280 at 400% zoom) the report and the shelf chip are still hit-testable: an
+    // At 320 (1280 at 400% zoom) the report and the Graph action are still hit-testable: an
     // `overflow-hidden` ancestor clips instead of scrolling, so `scrollWidth` alone stays
     // green over lost content (design-responsive, council 2026-09-07).
     await page.setViewportSize({ width: 320, height: 844 });
-    for (const id of ["library-check-report", "library-shelf-open"]) {
+    for (const id of ["library-check-report", "library-graph-open"]) {
       const target = page.getByTestId(id);
-      if ((await target.count()) === 0) continue;
-      // Below `lg` the graph and its header are hidden while a page is open, so the shelf
-      // chip has no box there; only what is drawn is judged.
-      const rect = await target.boundingBox();
-      if (!rect) continue;
+      // The Graph action stays in the reader header at every width.
+      await expect(target).toBeVisible();
+      const rect = (await target.boundingBox())!;
       const hit = await page.evaluate(
         ([x, y, testId]) => document.elementFromPoint(x, y)?.closest(`[data-testid="${testId}"]`) !== null,
         [rect.x + rect.width / 2, rect.y + Math.min(rect.height / 2, 20), id] as const,

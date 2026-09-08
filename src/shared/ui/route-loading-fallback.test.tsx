@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it } from 'vitest';
+import { renderToString } from 'react-dom/server';
 import koMessages from '../../../messages/ko.json';
 import { RouteLoadingFallback } from './route-loading-fallback';
 
@@ -19,6 +20,17 @@ function renderFallback() {
 }
 
 describe('RouteLoadingFallback', () => {
+  it('server-renders the waiting character inside the same delayed status before hydration', () => {
+    const html = renderToString(
+      <NextIntlClientProvider locale="ko" timeZone="Asia/Seoul" messages={koMessages}>
+        <RouteLoadingFallback />
+      </NextIntlClientProvider>,
+    );
+    expect(html).toContain('data-waiting-motion="running"');
+    expect(html).toContain('route-loading-in');
+    expect(html).toContain(koMessages.nav.surfaceLoading);
+  });
+
   it('#main 랜드마크를 세우고 로딩 중임을 표시한다', () => {
     renderFallback();
     const main = screen.getByTestId('route-loading-fallback');
@@ -39,6 +51,8 @@ describe('RouteLoadingFallback', () => {
     renderFallback();
     const status = screen.getByRole('status');
     expect(status.textContent?.trim()).toBe(koMessages.nav.surfaceLoading);
+    expect(screen.getAllByTestId('brand-waiting-mark')).toHaveLength(1);
+    expect(status).toContainElement(screen.getByTestId('brand-waiting-mark'));
   });
 
   it('가짜 진행 표시(진행바 · 퍼센트)를 그리지 않는다', () => {

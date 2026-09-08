@@ -98,6 +98,14 @@ describe("Dialog — 모달성 계약", () => {
     expect(dialog.className).toContain("w-[min(var(--dialog-w-md),calc(100vw-2rem))]");
   });
 
+  it("size=viewport 는 기존 chrome inset 안에서 그래프 같은 작업 면을 쓴다", () => {
+    render(<Harness size={"viewport" as never} />);
+    const dialog = openDialog();
+    expect(dialog.className).toContain("w-[calc(100vw-var(--chrome-inset)*2)]");
+    expect(dialog.className).toContain("h-[calc(100vh-var(--chrome-inset)*2)]");
+    expect(dialog.className).toContain("max-w-none");
+  });
+
   it("여는 순간 초점이 첫 focusable 로 들어가고, 닫으면 연 컨트롤로 돌아간다", async () => {
     render(<Harness />);
     const opener = screen.getByTestId("opener");

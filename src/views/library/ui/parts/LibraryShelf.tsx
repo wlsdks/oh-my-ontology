@@ -6,17 +6,13 @@ import type { useTranslations } from "next-intl";
 import type { LibraryWikiPage } from "@/entities/docs-vault";
 import { cn } from "@/shared/lib/cn";
 import { controlClass } from "@/shared/ui/control-class";
-import {
-  SPINE_WIDTH_TOKEN,
-  spineFreshness,
-  spineWidthStep,
-} from "../../lib/spine-shape";
+import { spineFreshness } from "../../lib/spine-shape";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 import { isWikiFolderCode } from "../../lib/merge-wiki-verdict";
 import { writerLabel } from "../../lib/writer-label";
 
 /**
- * **The shelf: what the wiki holds, and how much of it is still true.**
+ * **The wiki index: what the folder holds, and how much of it is still true.**
  *
  * The index used to draw wiki pages as a column of identical rows. Every row carried the
  * same glyph, the same ink and the same height, so *"which of these has fallen behind the
@@ -25,16 +21,16 @@ import { writerLabel } from "../../lib/writer-label";
  * the folder the whole time: `source_hash` is exactly that fact, and `vault-library.ts`
  * has derived it per page since the pairing shipped. Nothing on screen spent it.
  *
- * So the resting state of the wiki list is a **shelf**, and a page is a **spine**:
+ * The resting state is a readable row for each page: title first, then a short
+ * source-state caption. The full source/currentness explanation remains in the row's
+ * accessible name and title so the compact caption never has to carry the whole claim.
  *
  * | What the eye sees | What it is |
  * |---|---|
- * | every spine the same height | not a fact — a shelf, so nothing reads as a bar chart |
- * | a wider spine | a longer page (`spineWidthStep`, four steps, `--library-spine-width-*`) |
- * | an amber rim on the head | a source moved after this page was written |
- * | a quiet, unfilled spine | **nothing has ever checked this page against a file** |
- * | an amber rim on the foot | the page's own shape misses the wiki template |
- * | an indigo spine | the page open in the reader beside it |
+ * | title | the page a person can open without hover |
+ * | caption | source matches, needs review, or has not been checked |
+ * | top/bottom marker | source or page-shape problem, with the exact reason in words |
+ * | indigo row | the page currently open in the reader |
  *
  * ⚠️ **The two ambers are not one state drawn twice.** The head is about the *source*
  * (compile it again); the foot is about the *page's own bytes* (fix the sections). They
@@ -48,9 +44,8 @@ import { writerLabel } from "../../lib/writer-label";
  *
  * ## Search is still a list
  *
- * A shelf is a resting state — a picture of a folder you can compare across. A search
- * result is a ranked answer to a question, and vertical books make a poor answer list, so
- * `LibrarySection` keeps the row list for a non-empty query and this shelf for the rest.
+ * Search and resting states share this row grammar so a page does not become harder to
+ * identify when a query is cleared.
  *
  * ## Compile marks the shelf, not a spine
  *
@@ -101,12 +96,11 @@ export function LibraryShelf({
         return {
           page,
           freshness: spineFreshness({ page, writeUpsBySource: model.pairing.writeUpsBySource }),
-          widthStep: spineWidthStep(model.pageTexts.get(page.slug)?.length ?? null),
           /** The page's own shape, not the folder's opinion of where it sits. */
           ownProblem: problems.find((problem) => !isWikiFolderCode(problem.code)) ?? null,
         };
       }),
-    [model.pageTexts, model.pairing.writeUpsBySource, model.verdicts, pages],
+    [model.pairing.writeUpsBySource, model.verdicts, pages],
   );
 
   return (
@@ -118,9 +112,9 @@ export function LibraryShelf({
         data-testid="library-wiki-shelf"
         aria-label={t("shelf.listAria")}
         aria-busy={compiling || undefined}
-        className="flex flex-wrap items-end gap-x-[var(--library-spine-gap)] gap-y-4 px-2 pb-1 pt-2"
+      className="flex flex-col gap-1 px-2 pb-1 pt-2"
       >
-        {spines.map(({ page, freshness, widthStep, ownProblem }) => {
+        {spines.map(({ page, freshness, ownProblem }) => {
           const active = page.slug === selectedSlug;
           const writer = (page.createdBy ?? "") !== majorityWriter ? writerLabel(page.createdBy, t) : null;
           /*
@@ -141,12 +135,10 @@ export function LibraryShelf({
                 type="button"
                 data-testid={`library-wiki-${page.slug}`}
                 data-freshness={freshness}
-                data-width-step={widthStep}
                 aria-current={active ? "true" : undefined}
                 aria-label={facts.join(" · ")}
                 title={facts.join("\n")}
                 onClick={() => onSelect(page.slug)}
-                style={{ width: SPINE_WIDTH_TOKEN[widthStep], height: "var(--library-spine-height)" }}
                 /*
                  * **The value layer owns what a control is; this file owns what a spine
                  * is.** `tile` is the one vertical shape in `control-class.ts` — a box
@@ -171,17 +163,15 @@ export function LibraryShelf({
                  * all four edges, against a 2px cap at one end (ΔE 109.9 between them).
                  */
                 className={controlClass({
-                  shape: "tile",
-                  size: "xs",
+                  shape: "row",
+                  size: "md",
                   tone: active ? "strong" : freshness === "unverified" ? "default" : "secondary",
                   /* The ink step under the cursor is the layer's axis, not a hand-written
                      `hover:text-*` — the same rule that keeps 303 other hovers countable. */
                   hoverInk: "strong",
                   className: cn(
-                    "group relative flex-none origin-bottom justify-center overflow-hidden rounded-b-none px-0 py-3",
-                    "transition-[translate,scale,box-shadow,background-color,border-color,color]",
-                    "motion-safe:hover:translate-y-[calc(var(--library-spine-lift)*-1)]",
-                    "motion-safe:hover:scale-[var(--library-spine-lift-scale)]",
+                    "group relative min-h-0 items-start justify-start overflow-hidden border px-3 py-2.5 text-left",
+                    "transition-[box-shadow,background-color,border-color,color]",
                     "hover:shadow-[var(--shadow-control-press)]",
                     active
                       ? "border-[color:var(--color-indigo-accent)] bg-[color:var(--color-indigo-a22)]"
@@ -217,11 +207,13 @@ export function LibraryShelf({
                   text floor. A spine truncates in the middle of a long name, so the whole
                   title is in the accessible name above.
                 */}
-                <span
-                  data-spine-title
-                  className="relative min-h-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-label leading-body [writing-mode:vertical-rl]"
-                >
-                  {page.title}
+                <span className="relative flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="line-clamp-2 break-keep text-body leading-body">
+                    {page.title}
+                  </span>
+                  <span className="text-label leading-label text-[color:var(--color-text-tertiary)]">
+                    {t(`shelf.state.${freshness}`)}
+                  </span>
                 </span>
               </button>
             </li>

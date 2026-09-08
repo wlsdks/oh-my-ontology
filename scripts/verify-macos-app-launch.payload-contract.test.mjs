@@ -107,6 +107,25 @@ test("payload contract · 정상 페이로드는 통과한다", () => {
   assert.equal(validateWebviewVerifyPayload(validPayload()), null);
 });
 
+test("payload contract accepts a rendered Library-only workbench without code destinations", () => {
+  const payload = validPayload({
+    href: "tauri://localhost/ko/library/",
+    bodyText: "자료실\n에이전트\nMCP\n기록\n이 폴더 안\n원문 4\n위키 5",
+    markers: { ontologyNav: false, sourceVaultNav: false, libraryNav: true, librarySurface: true },
+  });
+  assert.equal(validateWebviewVerifyPayload(payload, { expectedPath: "/ko/library/" }), null);
+  for (const marker of ["libraryNav", "librarySurface"]) {
+    assert.match(
+      validateWebviewVerifyPayload({ ...payload, markers: { ...payload.markers, [marker]: false } }, { expectedPath: "/ko/library/" }),
+      /Library surface and navigation/,
+    );
+  }
+  assert.match(
+    validateWebviewVerifyPayload({ ...payload, href: "tauri://localhost/ko/docs/" }, { expectedPath: "/ko/library/" }),
+    /ontology navigation marker/,
+  );
+});
+
 test("payload contract · v2 캔버스 픽셀 증거가 없으면 멈춘다", () => {
   assert.match(
     validateOntologyMapCanvasEvidence({ topologyMapEngine: "v2" }),

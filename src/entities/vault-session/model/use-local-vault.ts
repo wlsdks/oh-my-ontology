@@ -1834,6 +1834,7 @@ export function useLocalVaultInternal() {
     scaffoldOntology,
     ensureAgentConfigs,
     updateFrontmatter,
+    markSelfWrite,
     consumeSelfWrittenSlugs,
     selfEditTimestamps,
   };

@@ -273,6 +273,89 @@ pub(crate) fn write_entry_atomically(
     write_entry_bytes_atomically(parent, file_name, contents.as_bytes(), create_mode)
 }
 
+/// Publish complete bytes under a new name. Unlike renameat, linkat cannot
+/// replace an entry another writer created before the publication point.
+#[cfg(unix)]
+pub(crate) fn create_entry_atomically(
+    parent: &fs::File,
+    file_name: &std::ffi::CStr,
+    contents: &str,
+    create_mode: libc::mode_t,
+) -> Result<bool, String> {
+    use std::os::fd::{AsRawFd, FromRawFd};
+
+    static SEQUENCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| err_str(error.to_string()))?
+        .as_nanos();
+    let mut created = None;
+    for _ in 0..64 {
+        let sequence = SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let name = std::ffi::CString::new(format!(
+            ".oatlas-create-{}-{nonce:x}-{sequence:x}.tmp",
+            std::process::id()
+        ))
+        .map_err(|error| err_str(error.to_string()))?;
+        let fd = unsafe {
+            libc::openat(
+                parent.as_raw_fd(),
+                name.as_ptr(),
+                libc::O_WRONLY | libc::O_CREAT | libc::O_EXCL | libc::O_CLOEXEC | libc::O_NOFOLLOW,
+                create_mode as libc::c_uint,
+            )
+        };
+        if fd >= 0 {
+            created = Some((name, unsafe { fs::File::from_raw_fd(fd) }));
+            break;
+        }
+        let error = std::io::Error::last_os_error();
+        if error.kind() != std::io::ErrorKind::AlreadyExists {
+            return Err(err_str(error.to_string()));
+        }
+    }
+    let (name, mut temporary) = created
+        .ok_or_else(|| err_str("could not reserve a private temporary name for file creation"))?;
+    let result = (|| -> std::io::Result<bool> {
+        ensure_private_temporary(&temporary, "before writing")?;
+        temporary.write_all(contents.as_bytes())?;
+        temporary.sync_all()?;
+        ensure_private_temporary(&temporary, "before commit")?;
+        let linked = unsafe {
+            libc::linkat(
+                parent.as_raw_fd(),
+                name.as_ptr(),
+                parent.as_raw_fd(),
+                file_name.as_ptr(),
+                0,
+            )
+        };
+        if linked == 0 {
+            Ok(true)
+        } else {
+            let error = std::io::Error::last_os_error();
+            if error.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(false)
+            } else {
+                Err(error)
+            }
+        }
+    })();
+    // The destination is never cleanup collateral, including after publication.
+    let removed = unsafe { libc::unlinkat(parent.as_raw_fd(), name.as_ptr(), 0) };
+    if removed != 0 {
+        return Err(err_str(format!(
+            "could not clean the private creation temporary: {}",
+            std::io::Error::last_os_error()
+        )));
+    }
+    let published = result.map_err(|error| err_str(error.to_string()))?;
+    if published {
+        parent.sync_all().map_err(|error| err_str(error.to_string()))?;
+    }
+    Ok(published)
+}
+
 /// The same guarded write for bytes that are not text.
 ///
 /// A raw source imported into `sources/` is a PDF, a spreadsheet, a scan — never a

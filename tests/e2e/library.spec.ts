@@ -424,29 +424,11 @@ test.describe("the Library destination", () => {
 
 
 /**
- * **The pane is the graph; the guide is a compact stepper; an empty folder is neither.**
- *
- * The shape shipped on 2026-09-06 and the owner read it the same day, in the installed
- * app, on a folder with nothing in it: *"why does this design look like this? It looks
- * broken … the sizes inside the right panel are no good … and it overlaps this text."*
- * Measured on that frame at 1512×982 — the panel was 560px of a 1168px pane, its lower
- * half lay over the canvas's own legend, its first card carried ~130px of empty space
- * between its numbers and its buttons, and it raised itself over a folder whose every
- * other surface was already saying the same emptiness.
- *
- * These cases hold what the redesign has to keep true, and every one of them is a number
- * from that frame rather than a preference:
- *
- * 1. a folder with no sources **and no pages** is one centred stage, and nothing raises
- *    itself over anything;
- * 2. a folder with files opens on the picture, with the guide one press away;
- * 3. the guide is narrow, its rows are equal by anatomy, and it stands **clear of the
- *    caption and the legend** — proven with `elementsFromPoint`, not by looking;
- * 4. Escape closes it and hands focus back to the chip;
- * 5. choosing a file still swaps the pane for the reader, and the way back returns the
- *    picture rather than a blank column.
- *
- * The narrow bands stay in the list because the whole rule is "the same at every width".
+ * Direction B keeps the reader and its guidance in the pane; the graph opens on request.
+ * These probes retain the measurable contracts: one empty state, equal step anatomy,
+ * graph labels and hit ownership, full graph height, stable focus, and independent narrow
+ * index scrolling. The retired popup geometry is replaced by viewport-dialog geometry,
+ * not waived. Closing a page restores guidance without starting a graph by itself.
  */
 const NARROW_VAULT: Record<string, string> = {
   "project.md": ["---", "kind: project", "slug: narrow-demo", "title: Narrow demo", "---", "", "# Narrow demo", ""].join("\n"),
@@ -513,8 +495,8 @@ test.describe("the Library pane", () => {
       "library-graph",
       "library-graph-empty",
       "library-status-strip",
-      "library-shelf-open",
-      "library-shelf-popover",
+      "library-reader-landing",
+      "library-graph-open",
     ]) {
       await expect(page.getByTestId(gone), `${gone} still draws over an empty folder`).toHaveCount(
         0,
@@ -542,134 +524,71 @@ test.describe("the Library pane", () => {
     expect(await stage.locator("h1, h2, h3").count()).toBe(1);
   });
 
-  test("opens on the graph, with the guide behind one chip", async ({ page }) => {
+  test("opens on readable guidance and shows a full graph only when requested", async ({ page }) => {
     await openLibrary(page);
-
-    // 1 — the picture, not a strip: it is drawn, and it is most of the pane's height.
     const canvas = page.getByTestId("library-graph-canvas");
-    await expect(canvas).toBeVisible();
-    const readerBox = (await page.getByTestId("library-reader").boundingBox())!;
-    const canvasBox = (await canvas.boundingBox())!;
-    expect(canvasBox.height).toBeGreaterThan(readerBox.height * 0.6);
+    await expect(canvas).toHaveCount(0);
+    const stage = page.getByTestId("library-stage");
+    await expect(stage).toBeVisible();
+    await expect(page.getByTestId("library-graph-open")).toHaveCount(1);
 
-    /*
-     * Small enough to hold them, so every mark wears its name. The attribute is the
-     * canvas's own account of which policy is in force — there is no DOM to read a
-     * painted name out of, so without it the rule would be unfalsifiable.
-     */
-    await expect(canvas).toHaveAttribute("data-labels", "standing");
-
-    /*
-     * 2 — the header says **one** verdict, not three turns. The triplet shipped as
-     * "Gather done · Compile next · Read next", which on an untouched folder read as a
-     * run of not-yet-my-turn beside a caption of zeroes.
-     */
     const strip = page.getByTestId("library-status-strip");
     await expect(strip).toContainText("Compile next");
-    // The count that decides it stays — it is the half a person can go and check.
     await expect(strip).toContainText("2 waiting");
-    // The other two steps' turns do not. Their words are in the guide, one press away.
     await expect(strip).not.toContainText("Gather");
     await expect(strip).not.toContainText("Read");
 
-    // 3 — one press away, and nothing was auto-raised.
-    await expect(page.getByTestId("library-shelf-popover")).toHaveCount(0);
-    await page.getByTestId("library-shelf-open").click();
-    const shelf = page.getByTestId("library-shelf-popover");
-    await expect(shelf).toBeVisible();
-    for (const step of ["gather", "compile", "read"]) {
-      await expect(shelf.getByTestId(`library-stage-${step}`)).toBeVisible();
-    }
-
-    /*
-     * 4 — narrow, and **equal by anatomy**. The old panel stretched three cards to one
-     * height with `auto-rows-fr`, which bought equality with ~130px of empty space inside
-     * the shortest card. The rows now match because each is head, one caption line and
-     * one action row of reserved height; step two is allowed to be taller, because what
-     * it adds is a state of the folder (a blocked reason, the runner's card, the transfer
-     * sentence) rather than a longer paragraph. So the measured slot is that fixed core.
-     */
-    const shelfBox = (await shelf.boundingBox())!;
-    expect(shelfBox.width).toBeLessThanOrEqual(360);
+    const stageBox = (await stage.boundingBox())!;
+    expect(stageBox.width).toBeLessThanOrEqual(640);
     const cores: number[] = [];
     for (const step of ["gather", "compile", "read"]) {
-      cores.push(
-        (await shelf
-          .getByTestId(`library-stage-${step}`)
-          .getByTestId("library-step-core")
-          .boundingBox())!.height,
-      );
+      const row = stage.getByTestId(`library-stage-${step}`);
+      await expect(row).toBeVisible();
+      cores.push((await row.getByTestId("library-step-core").boundingBox())!.height);
     }
     for (const height of cores) expect(Math.abs(height - cores[0]!)).toBeLessThanOrEqual(2);
-    // No four-row table survived the move: those counts live in the index beside the files.
-    expect(await shelf.locator("dl").count()).toBe(0);
+    expect(await stage.locator("dl").count()).toBe(0);
 
-    /*
-     * 5 — **nothing of it lies over the picture's own writing.** The defect the owner
-     * named was the panel across the canvas's sentence, so this reads the stack at three
-     * points of the caption and the legend rather than trusting a rect comparison.
-     */
-    const overlap = await page.evaluate(() => {
-      const covered = (selector: string) => {
-        const element = document.querySelector(selector);
-        if (!element) return null;
+    await page.getByTestId("library-graph-open").click();
+    const graph = page.getByTestId("library-graph-dialog");
+    await expect(graph).toBeVisible();
+    await expect(graph).toHaveAttribute("aria-modal", "true");
+    await expect(canvas).toHaveAttribute("data-labels", "standing");
+    expect((await canvas.boundingBox())!.height).toBeGreaterThan((await graph.boundingBox())!.height * 0.6);
+    const reachable = await canvas.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return document.elementFromPoint(rect.left + 20, rect.top + rect.height / 2) === element;
+    });
+    expect(reachable, "the requested graph is covered by another surface").toBe(true);
+    for (const id of ["library-graph-counts", "library-graph-hint"]) {
+      const label = graph.getByTestId(id);
+      await expect(label).toBeVisible();
+      const hit = await label.evaluate((element) => {
         const rect = element.getBoundingClientRect();
-        const y = rect.top + rect.height / 2;
-        return [rect.left + 4, rect.left + rect.width / 2, rect.right - 4].some((x) =>
-          document
-            .elementsFromPoint(x, y)
-            .some((node) => node.closest('[data-testid="library-shelf-popover"]')),
-        );
-      };
-      return {
-        caption: covered('[data-testid="library-graph-counts"]'),
-        legend: covered('[data-testid="library-graph-hint"]'),
-      };
-    });
-    expect(overlap.caption, "the guide covers the graph caption").toBe(false);
-    expect(overlap.legend, "the guide covers the graph legend").toBe(false);
-
-    /*
-     * It is a popover, never a modal — and `toBeVisible()` cannot say that, because
-     * Playwright's visibility ignores occlusion and a full-screen scrim would still pass
-     * (design-interaction, 2026-09-06). What proves it is the stack: at a point on the
-     * canvas outside the panel, the canvas is what a press would reach.
-     */
-    await expect(shelf).not.toHaveAttribute("aria-modal", /.*/);
-    const canvasReachable = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="library-graph-canvas"]');
-      const rect = element!.getBoundingClientRect();
-      return (
-        document.elementsFromPoint(rect.left + 20, rect.top + rect.height / 2)[0] === element
-      );
-    });
-    expect(canvasReachable, "something is drawn over the picture").toBe(true);
-
-    // Escape closes it and hands focus back to the chip that opened it.
+        return element.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+      });
+      expect(hit, `${id} is occluded`).toBe(true);
+    }
     await page.keyboard.press("Escape");
-    await expect(shelf).toHaveCount(0);
-    await expect(page.getByTestId("library-shelf-open")).toBeFocused();
+    await expect(graph).toHaveCount(0);
+    await expect(page.getByTestId("library-graph-open")).toBeFocused();
+    await expect(stage).toBeVisible();
   });
 
-  test("a press settles the guide either way, and it never returns by itself", async ({
-    page,
-  }) => {
+  test("closing a page returns to guidance without reopening the graph", async ({ page }) => {
     await openLibrary(page);
-
-    const shelf = page.getByTestId("library-shelf-popover");
-    await expect(shelf).toHaveCount(0);
-    await page.getByTestId("library-shelf-open").click();
-    await expect(shelf).toBeVisible();
-    await page.getByTestId("library-shelf-close").click();
-    await expect(shelf).toHaveCount(0);
-
-    // Re-rendering the pane by opening and closing something else must not raise it.
-    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
+    await page.getByTestId("library-graph-open").click();
+    const graph = page.getByTestId("library-graph-dialog");
+    await expect(graph).toBeVisible();
+    await graph.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(graph).toHaveCount(0);
     await page.getByTestId("library-index-segment-wiki").click();
     await page.getByTestId("library-wiki-wiki/quarter-plan").click();
     await expect(page.getByTestId("library-wiki-header")).toBeVisible();
+    await expect(page.getByTestId("library-reader-landing")).toHaveCount(0);
     await page.getByTestId("library-reader-back").click();
-    await expect(shelf).toHaveCount(0);
+    await expect(page.getByTestId("library-reader-landing")).toBeVisible();
+    await expect(page.getByTestId("library-graph-canvas")).toHaveCount(0);
   });
 
   /**
@@ -852,13 +771,11 @@ test.describe("the Library pane", () => {
     await expect(tip).toHaveCount(0);
 
     /*
-     * 2 — *"the left panel must be closable, I may want only the graph."* The column folds
-     * to the rail tab, the graph takes the width, and the tab brings it back. The canvas
-     * width is the measurement: a fold that does not widen the picture is a fold that only
-     * hid something.
+     * The index fold gives width to the reader, and its control returns keyboard focus.
+     * Measure the pane rather than a graph that now opens only in a dialog.
      */
-    const canvas = page.getByTestId("library-graph-canvas");
-    const wide = (await canvas.boundingBox())!.width;
+    const pane = page.getByTestId("library-reader");
+    const wide = (await pane.boundingBox())!.width;
     await page.getByTestId("library-index-collapse").click();
     await expect(page.getByTestId("library-index")).toBeHidden();
     const tab = page.getByTestId("library-index-tab");
@@ -866,7 +783,7 @@ test.describe("the Library pane", () => {
     // Focus followed the control that vanished, so the keyboard is not back at the top.
     await expect(tab).toBeFocused();
     await expect
-      .poll(async () => Math.round((await canvas.boundingBox())!.width))
+      .poll(async () => Math.round((await pane.boundingBox())!.width))
       .toBeGreaterThan(Math.round(wide) + 200);
 
     await tab.click();
@@ -895,66 +812,34 @@ test.describe("the Library pane", () => {
     );
   });
 
-  /**
-   * **The two close paths a pointer test cannot see** (design-interaction, 2026-09-06).
-   *
-   * The outside-press listener is `pointerdown`, so every pointer route closed the panel
-   * and the keyboard route did not: Enter on an index row left it open over a reader whose
-   * canvas — and therefore whose anchor chip — had just been hidden, so focus returned to a
-   * `display:none` control and Escape took two presses. And the return itself was wrong in
-   * the other direction: closing by pressing something else handed focus **back to the
-   * chip**, out from under the control just used.
-   */
-  test("a choice closes the guide from the keyboard too, and an outside press leaves focus alone", async ({
-    page,
-  }) => {
+  test("keyboard selection gives the reader focus and discovery keeps its own focus", async ({ page }) => {
     await openLibrary(page);
-    const shelf = page.getByTestId("library-shelf-popover");
-
-    // 1 — Enter on a row is not a pointerdown, and it still closes the panel.
-    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
     await page.getByTestId("library-index-segment-wiki").click();
-    await page.getByTestId("library-shelf-open").click();
-    await expect(shelf).toBeVisible();
     await page.getByTestId("library-wiki-wiki/quarter-plan").focus();
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("library-wiki-header")).toBeVisible();
-    await expect(shelf).toHaveCount(0);
-
-    /*
-     * 2 — an outside **press** onto another control keeps focus where the press put it.
-     * `Find documents` is the target because it is focusable, it is outside the panel, and
-     * it changes nothing about the selection, so the only thing this can measure is where
-     * focus ends up. The panel used to drag it back to the chip one exit window later.
-     */
+    await expect(page.getByTestId("library-reader-landing")).toHaveCount(0);
+    await expect(page.getByTestId("library-reader")).toBeFocused();
     await page.getByTestId("library-reader-back").click();
-    // Back on the Sources half, where `Find documents` is: the switch decides which doors
-    // are drawn, and this case needs one that is focusable and changes no selection.
     await page.getByTestId("library-index-segment-sources").click();
-    await page.getByTestId("library-shelf-open").click();
-    await expect(shelf).toBeVisible();
     await page.getByTestId("library-find-documents").click();
-    await expect(shelf).toHaveCount(0);
-    // The dialog that press opens owns focus now; the point is that the chip does not take
-    // it back. Waiting past the exit window is what makes the assertion able to fail.
-    await page.waitForTimeout(400);
-    await expect(page.getByTestId("library-shelf-open")).not.toBeFocused();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect.poll(() => dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
+    await expect(page.getByTestId("library-graph-open")).not.toBeFocused();
   });
 
-  test("choosing a file swaps the pane for the reader, and the way back returns the graph", async ({
-    page,
-  }) => {
+  test("choosing a file opens the reader and closing returns guidance", async ({ page }) => {
     await openLibrary(page);
-    await expect(page.getByTestId("library-graph-canvas")).toBeVisible();
-    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
+    await expect(page.getByTestId("library-reader-landing")).toBeVisible();
+    await expect(page.getByTestId("library-graph-canvas")).toHaveCount(0);
     await page.getByTestId("library-index-segment-wiki").click();
     await page.getByTestId("library-wiki-wiki/quarter-plan").click();
     await expect(page.getByTestId("library-wiki-header")).toContainText("Quarter plan");
-    // The canvas stands aside rather than unmounting — it keeps its settled positions.
-    await expect(page.getByTestId("library-graph-canvas")).toBeHidden();
-
+    await expect(page.getByTestId("library-reader-landing")).toHaveCount(0);
     await page.getByTestId("library-reader-back").click();
-    await expect(page.getByTestId("library-graph-canvas")).toBeVisible();
+    await expect(page.getByTestId("library-reader-landing")).toBeVisible();
+    await expect(page.getByTestId("library-graph-canvas")).toHaveCount(0);
     await expect(page.getByTestId("library-wiki-header")).toHaveCount(0);
   });
 });
@@ -974,99 +859,42 @@ const NARROW_VIEWPORTS = [
  */
 
 for (const viewport of NARROW_VIEWPORTS) {
-  test(`the graph takes the top of the column at ${viewport.label}`, async ({ page }) => {
+  test(`guidance and the requested graph remain reachable at ${viewport.label}`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await openLibrary(page, NARROW_VAULT);
-
-    // 1 — the picture is drawn here too. It used not to be: the pane holding it was
-    // hidden whenever nothing was chosen, so a phone got two lists and nothing else.
-    const canvas = page.getByTestId("library-graph-canvas");
-    await expect(canvas).toBeVisible();
-    const canvasBox = (await canvas.boundingBox())!;
+    const landing = page.getByTestId("library-reader-landing");
+    await expect(landing).toBeVisible();
     const indexBox = (await page.getByTestId("library-index").boundingBox())!;
-    expect(canvasBox.y).toBeLessThan(indexBox.y);
-    /*
-     * Height, not width: the canvas is cut to the **picture's** width so a uniform fit
-     * leaves no gutters, and a folder of unconnected files settles into a squarer cloud
-     * than a tall column. What has to be true here is that the graph really took the top
-     * of the column rather than a strip of it.
-     */
-    const readerBox = (await page.getByTestId("library-reader").boundingBox())!;
-    expect(canvasBox.height).toBeGreaterThan(readerBox.height * 0.6);
-
-    /*
-     * 2 — the popup hangs from the row, not from the graph's half of the column, so it is
-     * not cut: at 390 the pane it is drawn over is 373px tall and all three rows are
-     * inside the panel and inside the window. It is also **not** allowed to reach the
-     * bottom tab bar, which is the reserve this surface pays for itself.
-     */
-    await page.getByTestId("library-shelf-open").click();
-    const shelf = page.getByTestId("library-shelf-popover");
-    await expect(shelf).toBeVisible();
-    const shelfBox = (await shelf.boundingBox())!;
-    expect(shelfBox.width).toBeLessThanOrEqual(360);
+    expect((await landing.boundingBox())!.y).toBeLessThan(indexBox.y);
+    await expect(page.getByTestId("library-graph-canvas")).toHaveCount(0);
+    // Guidance owns a scroller; every step can be reached without scrolling the page.
     for (const step of ["gather", "compile", "read"]) {
-      const row = shelf.getByTestId(`library-stage-${step}`);
-      await expect(row).toBeVisible();
+      const row = page.getByTestId(`library-stage-${step}`);
+      await row.scrollIntoViewIfNeeded();
       await expect(row).toBeInViewport();
+      const visible = await row.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const owner = element.closest('[data-testid="library-reader-landing"]')!.getBoundingClientRect();
+        const y = Math.max(rect.top, owner.top) + 4;
+        return element.contains(document.elementFromPoint(rect.left + rect.width / 2, y));
+      });
+      expect(visible, `${step} is clipped by the index`).toBe(true);
     }
-    /*
-     * The reserve, not merely the window: the bottom tab bar stands over this column, and a
-     * panel whose last row ends behind it is a row nobody can press. Reading the token is
-     * what stops the assertion idling — the panel's height is its content's, so "inside the
-     * viewport" carries hundreds of pixels of slack and would pass with the cap deleted.
-     */
-    const reserve = await page.evaluate(() => {
-      /*
-       * The token is a `calc()`, so reading it off `:root` returns the unresolved
-       * expression and parses to `NaN`. A fresh element with `transition: none` is this
-       * repository's own way of resolving a length — fresh because a reused one reports the
-       * value it is transitioning **from**.
-       */
-      const probe = document.createElement("div");
-      probe.style.cssText =
-        "position:absolute;left:-9999px;transition:none;height:var(--topology-mobile-bottom-tab-reserve)";
-      document.body.append(probe);
-      const height = probe.getBoundingClientRect().height;
-      probe.remove();
-      return height;
-    });
-    expect(reserve, "the bottom-tab reserve token is not readable").toBeGreaterThan(0);
-    expect(shelfBox.y + shelfBox.height).toBeLessThanOrEqual(viewport.height - reserve);
-
-    /*
-     * And the picture's legend yields rather than being covered. Below `lg` the canvas is
-     * the top half of one column and the panel reaches the sentence at its foot; measured
-     * with `elementsFromPoint` before the fix, the panel was over all three of its probe
-     * points. It stays in the document as the canvas's own description — a reader with no
-     * picture at all must still be told what the marks mean.
-     */
-    const legend = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="library-graph-hint"]');
-      const rect = element!.getBoundingClientRect();
-      const canvas = document.querySelector('[data-testid="library-graph-canvas"]');
-      return {
-        drawn: rect.width > 1 && rect.height > 1,
-        describes: (canvas?.getAttribute("aria-describedby") ?? "").includes("library-graph-hint"),
-        text: (element!.textContent ?? "").trim().length,
-      };
-    });
-    expect(legend.drawn, "the legend is still painted under the guide").toBe(false);
-    expect(legend.describes, "the canvas lost its description with the legend").toBe(true);
-    expect(legend.text).toBeGreaterThan(0);
-
+    await page.getByTestId("library-graph-open").click();
+    const graph = page.getByTestId("library-graph-dialog");
+    const canvas = graph.getByTestId("library-graph-canvas");
+    await expect(canvas).toBeVisible();
+    const graphBox = (await graph.boundingBox())!;
+    expect(graphBox.x).toBeGreaterThanOrEqual(0);
+    expect(graphBox.y).toBeGreaterThanOrEqual(0);
+    expect(graphBox.x + graphBox.width).toBeLessThanOrEqual(viewport.width);
+    expect(graphBox.y + graphBox.height).toBeLessThanOrEqual(viewport.height);
+    expect((await canvas.boundingBox())!.height).toBeGreaterThan(graphBox.height * 0.6);
+    await expect(graph.getByTestId("library-graph-hint")).toBeVisible();
+    await expect(canvas).toHaveAttribute("aria-describedby", /library-graph-hint/);
     await page.keyboard.press("Escape");
-    await expect(shelf).toHaveCount(0);
-    // And it comes back the moment the panel does not need the room.
-    expect(
-      await page.evaluate(() => {
-        const rect = document
-          .querySelector('[data-testid="library-graph-hint"]')!
-          .getBoundingClientRect();
-        return rect.width > 1 && rect.height > 1;
-      }),
-      "the legend stayed hidden after the guide closed",
-    ).toBe(true);
+    await expect(graph).toHaveCount(0);
+    await expect(page.getByTestId("library-graph-open")).toBeFocused();
 
     // 3 — the index still owns its own overflow, in one scroller rather than two.
     const scroller = page.getByTestId("library-index-scroll");
@@ -1093,12 +921,13 @@ for (const viewport of NARROW_VIEWPORTS) {
       element.scrollTop = 0;
     });
 
-    // 4 — choosing swaps the whole column, and the way back returns the picture.
+    // Choosing swaps the column; closing returns guidance and the same index.
     await page.getByTestId("library-source-sources/report-01.pdf").click();
     await expect(page.getByTestId("library-source-summary")).toBeVisible();
     await expect(page.getByTestId("library-index")).toBeHidden();
     await page.getByTestId("library-reader-back").click();
-    await expect(canvas).toBeVisible();
+    await expect(landing).toBeVisible();
+    await expect(page.getByTestId("library-graph-canvas")).toHaveCount(0);
     await expect(page.getByTestId("library-index")).toBeVisible();
   });
 }

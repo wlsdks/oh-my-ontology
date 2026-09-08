@@ -2,8 +2,9 @@
 
 import { Fragment, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowUpRight, Check, CircleAlert, Copy, Info, Loader2 } from "lucide-react";
+import { ArrowUpRight, Check, CircleAlert, Copy, Info } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
+import { BrandMark } from '@/shared/ui/brand-mark';
 import { Link } from "@/i18n/navigation";
 import { AGENT_GRAPH_WORKFLOW_HREF, type AgentServerAvailability } from "@/shared/config";
 import { copyText } from "@/shared/lib/copy-text";
@@ -503,8 +504,11 @@ function ClientAction({
   // A failure is a state of this control, so it is said on this control. One sentence serves
   // every action here: what did not happen is already in the label beside it.
   const isFailed = feedback === "failed";
+  // The native 16px micro mark sits in the existing 14px slot, keeping the label in place.
   const shownIcon = isBusy ? (
-    <Loader2 size={ICON_SIZE.md} aria-hidden className="animate-spin" />
+    <span className="relative inline-flex size-3.5 shrink-0" aria-hidden="true">
+      <BrandMark detail="micro" alt="" className="atlas-inline-waiting-mark absolute left-1/2 top-1/2 size-4 max-w-none -translate-x-1/2 -translate-y-1/2" />
+    </span>
   ) : isDone || isCopied ? (
     <Check size={ICON_SIZE.md} aria-hidden />
   ) : isFailed ? (

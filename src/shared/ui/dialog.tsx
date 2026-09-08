@@ -2,15 +2,17 @@
 
 import { useSyncExternalStore, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { cn } from "@/shared/lib/cn";
 import { mergeRefs } from "@/shared/lib/merge-refs";
 import { useBodyScrollLock } from "@/shared/lib/use-body-scroll-lock";
 import { useDialogFocusTrap } from "@/shared/lib/use-dialog-focus-trap";
+import { usePrefersReducedMotion } from "@/shared/lib/use-prefers-reduced-motion";
 import {
   EXIT_TRANSITION,
   OVERLAY_RISE,
+  OVERLAY_RISE_REDUCED,
   OVERLAY_SETTLED,
   OVERLAY_SPRING,
   OVERLAY_SPRING_REDUCED,
@@ -65,8 +67,8 @@ export interface DialogProps {
   open: boolean;
   /** Escape, a scrim click and the consumer's close button all funnel through this one. */
   onClose: () => void;
-  /** Two width steps — sm 420 (default), md 560. A new step means convening the design-systems seat first. */
-  size?: "sm" | "md";
+  /** Fixed prompt widths or a viewport work surface held inside the existing chrome inset. */
+  size?: "sm" | "md" | "viewport";
   /**
    * `alertdialog` for a surface that interrupts to confirm something **irreversible**, `dialog`
    * (the default) for everything else. The WAI-ARIA APG separates the two on exactly that
@@ -117,7 +119,8 @@ export function Dialog({
   className,
   children,
 }: DialogProps) {
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
+  const overlayStart = reducedMotion ? OVERLAY_RISE_REDUCED : OVERLAY_RISE;
   const containerRef = useDialogFocusTrap<HTMLDivElement>({
     open,
     onEscape: onClose,
@@ -151,9 +154,9 @@ export function Dialog({
           <motion.div
             ref={mergeRefs(containerRef, containerLockoutRef)}
             onAnimationStart={containerLockoutOnAnimationStart}
-            initial={OVERLAY_RISE}
+            initial={overlayStart}
             animate={OVERLAY_SETTLED}
-            exit={{ ...OVERLAY_RISE, transition: EXIT_TRANSITION }}
+            exit={{ ...overlayStart, transition: EXIT_TRANSITION }}
             transition={reducedMotion ? OVERLAY_SPRING_REDUCED : OVERLAY_SPRING}
             role={role}
             aria-modal="true"
@@ -166,8 +169,10 @@ export function Dialog({
             // No ring on programmatically moved container focus
             // (the verdict `dialog-focus-ring.spec.ts` enforces).
             className={cn(
-              "w-[min(var(--dialog-w-sm),calc(100vw-2rem))] rounded-panel border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] p-4 shadow-[var(--shadow-elevation-3)] focus:outline-none",
+              "rounded-panel border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] p-4 shadow-[var(--shadow-elevation-3)] focus:outline-none",
+              size !== "viewport" && "w-[min(var(--dialog-w-sm),calc(100vw-2rem))]",
               size === "md" && "w-[min(var(--dialog-w-md),calc(100vw-2rem))]",
+              size === "viewport" && "h-[calc(100vh-var(--chrome-inset)*2)] w-[calc(100vw-var(--chrome-inset)*2)] max-w-none",
               className,
             )}
           >
