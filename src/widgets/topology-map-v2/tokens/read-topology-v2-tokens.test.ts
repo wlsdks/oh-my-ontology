@@ -89,8 +89,11 @@ const FIXTURE_VALUES: Record<string, string> = {
   "--topology-v2-mass-heavy-angfreq": "16",
   "--topology-v2-mass-heavy-zeta": "0.55",
   "--topology-v2-mass-drop-max-px": "14",
-  "--topology-v2-ego-halo-alpha": "0.16",
+  "--topology-v2-ego-halo-alpha": "0.2",
   "--topology-v2-ego-halo-pad": "28",
+  "--topology-v2-ego-glow-blur-px": "22",
+  "--topology-v2-ego-glow-alpha": "0.55",
+  "--topology-v2-node-bloom-alpha": "0.35",
   "--topology-v2-press-angfreq": "16",
   "--topology-v2-press-zeta": "0.35",
 

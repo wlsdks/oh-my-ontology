@@ -1205,6 +1205,10 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
       ctx.fill();
     }
   }
+  // Ego light (2026-09-08): the glow under the focused node's lines and the bloom under the
+  // node ride the centre's focus ramp, so they arrive with the dive and leave with the fade.
+  const egoGlowRamp =
+    !domeOn && colorFocusedNodeId !== null ? Math.min(1, Math.max(0, focusRampById.get(colorFocusedNodeId) ?? 0)) : 0;
   const neighborsOfFocusedRaw = focusedNodeId ? world.neighborMap.get(focusedNodeId) ?? EMPTY_NEIGHBOR_SET : EMPTY_NEIGHBOR_SET;
   /*
    * Dome ancestry (2026-08-23, `docs/DECISIONS.md` (107)). In the dome, height IS the containment
@@ -1808,6 +1812,14 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         edgeHaloScratch.px = domeHaloWidthPx;
         edgeHaloScratch.alpha = Math.min(DOME_HALO_ALPHA_CAP, ctx.globalAlpha * DOME_HALO_ALPHA_GAIN);
       }
+      // Ego line glow — a blurred copy of the line under itself, indigo, on the centre's
+      // focus ramp. Only the ego lines carry it (≤ degree per frame), so the blur's cost
+      // stays bounded; everything else draws exactly as before.
+      const edgeGlows = egoGlowRamp > 0.001 && edgeEgoState === "ego" && !trailLensActive;
+      if (edgeGlows) {
+        ctx.shadowColor = hexWithAlpha(tokens.indigo, tokens.egoGlowAlpha * egoGlowRamp);
+        ctx.shadowBlur = tokens.egoGlowBlurPx * egoGlowRamp;
+      }
       tracesDraw(
         ctx,
         {
@@ -1840,6 +1852,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         },
         traceTokensFrame,
       );
+      if (edgeGlows) ctx.shadowBlur = 0;
       const caption = edge.id ? relationCaptions?.get(edge.id) : null;
       const directionalCaption = isDirectionalRelation(edge.relationType);
       const captionInFocus = selectedEdge ? isSelectedEdge : focusedNodeId ? touches : true;
@@ -2285,6 +2298,28 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         ctx.beginPath();
         ctx.arc(screen.x, screen.y, screenRadius + haloPx, 0, Math.PI * 2);
         ctx.fill();
+        ctx.globalAlpha = prevAlpha;
+      }
+    }
+    // Bloom — a blurred indigo disc under the focused node (on the focus ramp) or the
+    // hovered node (on its emphasis ramp): light marks the one thing the hand is on.
+    // 2D only; the 3D views keep their depth grammar.
+    if (!domeOn) {
+      const bloomRamp =
+        colorEgoState === "center"
+          ? egoGlowRamp
+          : !focusedNodeId && node.id === hoveredNodeId
+            ? Math.min(1, Math.max(0, emphasis))
+            : 0;
+      if (bloomRamp > 0.001) {
+        const prevAlpha = ctx.globalAlpha;
+        ctx.shadowColor = hexWithAlpha(tokens.indigoBright, 0.9 * bloomRamp);
+        ctx.shadowBlur = tokens.egoGlowBlurPx * 1.4 * bloomRamp;
+        ctx.fillStyle = hexWithAlpha(tokens.indigo, tokens.nodeBloomAlpha * bloomRamp);
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, screenRadius * 1.05, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
         ctx.globalAlpha = prevAlpha;
       }
     }

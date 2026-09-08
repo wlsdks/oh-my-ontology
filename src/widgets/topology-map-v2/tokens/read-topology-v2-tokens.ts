@@ -243,6 +243,12 @@ export interface TopologyV2Tokens {
   egoHaloAlpha: number;
   /** `--topology-v2-ego-halo-pad` — screen px the ego halo reaches past the farthest 1-hop neighbour. */
   egoHaloPad: number;
+  /** `--topology-v2-ego-glow-blur-px` — canvas shadow blur (px) for the focused node's bloom and its lines' glow. */
+  egoGlowBlurPx: number;
+  /** `--topology-v2-ego-glow-alpha` — alpha of the glow under the focused node's relation lines. */
+  egoGlowAlpha: number;
+  /** `--topology-v2-node-bloom-alpha` — alpha of the blurred indigo disc under the focused or hovered node. */
+  nodeBloomAlpha: number;
   /** `--topology-v2-press-angfreq` — ω of the hover press step response. */
   pressAngFreq: number;
   /** `--topology-v2-press-zeta` — ζ of the hover press (below 1 overshoots). */
@@ -408,6 +414,9 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "massDropMaxPx", cssVar: "--topology-v2-mass-drop-max-px", kind: "number" },
   { key: "egoHaloAlpha", cssVar: "--topology-v2-ego-halo-alpha", kind: "number" },
   { key: "egoHaloPad", cssVar: "--topology-v2-ego-halo-pad", kind: "number" },
+  { key: "egoGlowBlurPx", cssVar: "--topology-v2-ego-glow-blur-px", kind: "number" },
+  { key: "egoGlowAlpha", cssVar: "--topology-v2-ego-glow-alpha", kind: "number" },
+  { key: "nodeBloomAlpha", cssVar: "--topology-v2-node-bloom-alpha", kind: "number" },
   { key: "pressAngFreq", cssVar: "--topology-v2-press-angfreq", kind: "number" },
   { key: "pressZeta", cssVar: "--topology-v2-press-zeta", kind: "number" },
   { key: "selectPulseScaleDelta", cssVar: "--topology-v2-select-pulse-scale-delta", kind: "number" },
