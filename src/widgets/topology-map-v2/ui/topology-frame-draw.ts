@@ -107,7 +107,8 @@ import { worldToScreen } from "./topology-camera-math";
 const EDGE_CULL_MARGIN_PX = 24;
 const NODE_CULL_SLACK = 3;
 import { isSpineNode, radiusForKind, type TopologyWorld, type WorldEdge, type WorldNode } from "./topology-world";
-import { pressResponse } from "../model/mass-spring";
+import { pressResponse } from "../expressive/mass-spring";
+import { beginEdgeGlow, drawEgoHalo, drawNodeBloom, egoHaloReach, endEdgeGlow } from "../expressive/ego-light";
 
 /**
  * Dashed aura ring that tells an expanded parent apart from a collapsed one. The
@@ -233,15 +234,6 @@ const labelScreenScratch = { x: 0, y: 0 };
  * Token arguments are frame-invariant too, hence one per frame
  * (`traceTokensFrame`/`nodeShapeTokensFrame`).
  */
-/** `#rrggbb` → `rgba(r,g,b,a)` for a `CanvasGradient` stop, which cannot take a `var()`. */
-function hexWithAlpha(hex: string, alpha: number): string {
-  const h = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
-  const r = parseInt(h.slice(1, 3), 16);
-  const g = parseInt(h.slice(3, 5), 16);
-  const b = parseInt(h.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${Math.min(1, Math.max(0, alpha)).toFixed(3)})`;
-}
-
 const edgeHaloScratch = { color: "", px: 0, alpha: 0 };
 
 /** `lerpColorHex(fill, sheenTint, blend)` cache — constant per fill; invalidated wholesale when tokens change. */
@@ -539,7 +531,7 @@ export interface FrameDrawParams {
   /**
    * Press (2026-09-08, direction B): the ms clock at which the current hover began, or
    * null. The hovered node's swell runs the underdamped step response
-   * (`model/mass-spring.ts#pressResponse`) from that instant instead of the critical
+   * (`expressive/mass-spring.ts#pressResponse`) from that instant instead of the critical
    * emphasis ramp, so a hover reads as a press that gives. Omitted keeps the ramp.
    */
   hoverStartedAt?: number | null;
@@ -1179,30 +1171,21 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
   // deselect fade; under reduced motion the ramp snaps and the halo simply is. Drawn under
   // the edges. 2D only — the 3D views carry their own depth grammar.
   if (!domeOn && colorFocusedNodeId !== null && tokens.egoHaloAlpha > 0) {
-    const centerRamp = Math.min(1, Math.max(0, focusRampById.get(colorFocusedNodeId) ?? 0));
+    const centerRamp = focusRampById.get(colorFocusedNodeId) ?? 0;
     const center = world.nodeById.get(colorFocusedNodeId);
     if (center && centerRamp > 0.001) {
-      const cx = (center.x - camX) * camScale + halfW;
-      const cy = (center.y - camY) * camScale + halfH;
-      let reach = radiusForKind(center.kind, tokens) * center.magnitudeScale * camScale;
+      const disc = (n: WorldNode) => ({
+        x: (n.x - camX) * camScale + halfW,
+        y: (n.y - camY) * camScale + halfH,
+        r: radiusForKind(n.kind, tokens) * n.magnitudeScale * camScale,
+      });
+      const c = disc(center);
+      const neighbours: { x: number; y: number; r: number }[] = [];
       for (const id of world.neighborMap.get(colorFocusedNodeId) ?? EMPTY_NEIGHBOR_SET) {
         const n = world.nodeById.get(id);
-        if (!n) continue;
-        const d =
-          Math.hypot((n.x - center.x) * camScale, (n.y - center.y) * camScale) +
-          radiusForKind(n.kind, tokens) * n.magnitudeScale * camScale;
-        if (d > reach) reach = d;
+        if (n) neighbours.push(disc(n));
       }
-      const r = (reach + tokens.egoHaloPad) * (0.72 + 0.28 * centerRamp);
-      const a = tokens.egoHaloAlpha * centerRamp;
-      const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      halo.addColorStop(0, hexWithAlpha(tokens.indigo, a));
-      halo.addColorStop(0.55, hexWithAlpha(tokens.indigo, a * 0.45));
-      halo.addColorStop(1, hexWithAlpha(tokens.indigo, 0));
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
+      drawEgoHalo(ctx, { cx: c.x, cy: c.y, reach: egoHaloReach(c, neighbours), ramp: centerRamp }, tokens);
     }
   }
   // Ego light (2026-09-08): the glow under the focused node's lines and the bloom under the
@@ -1815,11 +1798,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
       // Ego line glow — a blurred copy of the line under itself, indigo, on the centre's
       // focus ramp. Only the ego lines carry it (≤ degree per frame), so the blur's cost
       // stays bounded; everything else draws exactly as before.
-      const edgeGlows = egoGlowRamp > 0.001 && edgeEgoState === "ego" && !trailLensActive;
-      if (edgeGlows) {
-        ctx.shadowColor = hexWithAlpha(tokens.indigo, tokens.egoGlowAlpha * egoGlowRamp);
-        ctx.shadowBlur = tokens.egoGlowBlurPx * egoGlowRamp;
-      }
+      const edgeGlows = edgeEgoState === "ego" && !trailLensActive && beginEdgeGlow(ctx, egoGlowRamp, tokens);
       tracesDraw(
         ctx,
         {
@@ -1852,7 +1831,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         },
         traceTokensFrame,
       );
-      if (edgeGlows) ctx.shadowBlur = 0;
+      if (edgeGlows) endEdgeGlow(ctx);
       const caption = edge.id ? relationCaptions?.get(edge.id) : null;
       const directionalCaption = isDirectionalRelation(edge.relationType);
       const captionInFocus = selectedEdge ? isSelectedEdge : focusedNodeId ? touches : true;
@@ -2311,17 +2290,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
           : !focusedNodeId && node.id === hoveredNodeId
             ? Math.min(1, Math.max(0, emphasis))
             : 0;
-      if (bloomRamp > 0.001) {
-        const prevAlpha = ctx.globalAlpha;
-        ctx.shadowColor = hexWithAlpha(tokens.indigoBright, 0.9 * bloomRamp);
-        ctx.shadowBlur = tokens.egoGlowBlurPx * 1.4 * bloomRamp;
-        ctx.fillStyle = hexWithAlpha(tokens.indigo, tokens.nodeBloomAlpha * bloomRamp);
-        ctx.beginPath();
-        ctx.arc(screen.x, screen.y, screenRadius * 1.05, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = prevAlpha;
-      }
+      drawNodeBloom(ctx, { x: screen.x, y: screen.y, r: screenRadius }, bloomRamp, tokens);
     }
     // perf 2026-08-19 — one token argument per frame (`nodeShapeTokensFrame`). The
     // state literals stay spelled out because the review-ring-authorship contract

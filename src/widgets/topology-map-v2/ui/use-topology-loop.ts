@@ -24,8 +24,18 @@ import {
 import type { CameraAxes, CameraTarget } from "../engine/camera";
 import { MAX_FRAME_DELTA_SECONDS } from "../engine/spring";
 import { CAMERA_TRANSITION_MIN_MS, cameraTransitionDurationMs, easeCameraKeyframe, easeInOutCubic, type CameraKeyframe, type CameraTween } from "../model/camera-easing";
-import { stepTugAxis, tugFactorForHop, tugFalloffForDistance } from "../interaction/drag-tug";
-import { clampDropVelocity, massForDegree, releaseSpringForMass, springAtRest, stepDampedSpring } from "../model/mass-spring";
+import { tugFactorForHop, tugFalloffForDistance } from "../interaction/drag-tug";
+import {
+  isOffsetAtRest,
+  REST_OFFSET,
+  seedDropOffset,
+  smoothVelocity,
+  snapOffset,
+  springForDegree,
+  stepHomeOffset,
+  stepLagOffset,
+  type SpringOffset,
+} from "../expressive/release-offsets";
 import { isCameraUnsettled, isCanvasActive, isDomeSpinAnimating, isEgoTailAnimating, shouldSkipFrame } from "../model/idle-gate";
 import { ambientSleepFactor, isAmbientAsleep } from "../model/ambient-sleep";
 import { NAVIGATION_INTENT_EVENT, NAVIGATION_YIELD_MS } from "@/shared/lib/navigation-intent";
@@ -724,10 +734,10 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
    * Each tug-affected neighbour's current offset (world units) plus its velocity, added on
    * top of its natural position. While the drag is live the offset lags on the exponential
    * (`stepTugAxis`); after release it is a damped spring whose ζ and ω come from the node's
-   * mass (`model/mass-spring.ts`, 2026-09-08), so a hub rings once and a leaf snaps. The
-   * dragged node's own entry is its **drop**: seeded with the hand's velocity on release.
+   * mass (`expressive/release-offsets.ts`, 2026-09-08), so a hub rings once and a leaf snaps.
+   * The dragged node's own entry is its **drop**: seeded with the hand's velocity on release.
    */
-  const dragTugOffsetsRef = useRef<Map<string, { x: number; y: number; vx: number; vy: number }>>(new Map());
+  const dragTugOffsetsRef = useRef<Map<string, SpringOffset>>(new Map());
   /** The dragged node's smoothed world velocity while pinned — what its drop carries on release. */
   const dragVelRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   /** The dragged node's position last frame, for the velocity above. */
@@ -3933,34 +3943,29 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
           const dragStart = dragStartPosRef.current;
           const factors = { oneHop: tokens.dragTug1Hop, twoHop: tokens.dragTug2Hop };
           const tugIds = new Set<string>([...affected.oneHop, ...affected.twoHop]);
-          // Mass (2026-09-08, direction B): a node's release spring comes from its degree.
+          // Mass (2026-09-08, direction B): a node's release spring comes from its degree
+          // (`expressive/release-offsets.ts`; the loop only owns the refs).
           const massTokens = {
             heavyDegree: tokens.massHeavyDegree,
             lightAngFreq: tokens.massLightAngFreq,
             heavyAngFreq: tokens.massHeavyAngFreq,
             heavyZeta: tokens.massHeavyZeta,
           };
-          const springFor = (id: string) =>
-            releaseSpringForMass(massForDegree(world.neighborMap.get(id)?.size ?? 0, massTokens.heavyDegree), massTokens);
+          const springFor = (id: string) => springForDegree(world.neighborMap.get(id)?.size ?? 0, massTokens);
           if (pinned && draggedNode) {
-            // Remember the hand's velocity (world units/s, lightly smoothed) so the drop
-            // can carry it. Reset the drop latch: every release seeds once.
+            // Remember the hand's velocity so the drop can carry it; reset the drop latch.
             const prev = dragPrevPosRef.current;
-            if (prev && dt > 0) {
-              const vx = (draggedNode.x - prev.x) / dt;
-              const vy = (draggedNode.y - prev.y) / dt;
-              dragVelRef.current = { x: dragVelRef.current.x * 0.5 + vx * 0.5, y: dragVelRef.current.y * 0.5 + vy * 0.5 };
-            }
+            if (prev) dragVelRef.current = smoothVelocity(dragVelRef.current, draggedNode.x - prev.x, draggedNode.y - prev.y, dt);
             dragPrevPosRef.current = { x: draggedNode.x, y: draggedNode.y };
             dropSeededRef.current = false;
           } else if (draggedNode && !dropSeededRef.current) {
-            // Drop: the released node keeps going a little past the drop point on its
-            // mass spring, capped to one radius step. Reduced motion: it stops where the
-            // hand left it.
+            // Drop: seeded once per release. Reduced motion: the node stops where the hand left it.
             dropSeededRef.current = true;
             if (!reducedMotionRef.current) {
-              const v = clampDropVelocity(dragVelRef.current.x, dragVelRef.current.y, springFor(affected.draggedId), tokens.massDropMaxPx);
-              dragTugOffsetsRef.current.set(affected.draggedId, { x: 0, y: 0, vx: v.vx, vy: v.vy });
+              dragTugOffsetsRef.current.set(
+                affected.draggedId,
+                seedDropOffset(dragVelRef.current.x, dragVelRef.current.y, springFor(affected.draggedId), tokens.massDropMaxPx),
+              );
             }
             dragVelRef.current = { x: 0, y: 0 };
             dragPrevPosRef.current = null;
@@ -3985,25 +3990,14 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
               targetX = (draggedNode.x - dragStart.x) * factor;
               targetY = (draggedNode.y - dragStart.y) * factor;
             }
-            const prevOffset = dragTugOffsetsRef.current.get(id) ?? { x: 0, y: 0, vx: 0, vy: 0 };
-            let nextOffset: { x: number; y: number; vx: number; vy: number };
-            if (reducedMotionRef.current) {
-              // Under reduced motion the neighbor offset tracks the pointer
-              // 1:1 (user-driven position, no animated lag/catch-up easing).
-              nextOffset = { x: targetX, y: targetY, vx: 0, vy: 0 };
-            } else if (pinned) {
-              // Live drag: the exponential lag as before. Velocity is kept by finite
-              // difference so the release spring starts continuous with the lag.
-              const x = stepTugAxis(prevOffset.x, targetX, dt, DRAG_TUG_EASE_TAU);
-              const y = stepTugAxis(prevOffset.y, targetY, dt, DRAG_TUG_EASE_TAU);
-              nextOffset = { x, y, vx: dt > 0 ? (x - prevOffset.x) / dt : 0, vy: dt > 0 ? (y - prevOffset.y) / dt : 0 };
-            } else {
-              // Release: a damped spring home, ζ and ω by this neighbour's own mass.
-              const spring = springFor(id);
-              const sx = stepDampedSpring(prevOffset.x, prevOffset.vx, 0, dt, spring);
-              const sy = stepDampedSpring(prevOffset.y, prevOffset.vy, 0, dt, spring);
-              nextOffset = { x: sx.value, y: sy.value, vx: sx.velocity, vy: sy.velocity };
-            }
+            const prevOffset = dragTugOffsetsRef.current.get(id) ?? REST_OFFSET;
+            // Reduced motion tracks the pointer 1:1; a live drag lags on the exponential as
+            // before; a release springs home on this neighbour's own mass.
+            const nextOffset = reducedMotionRef.current
+              ? snapOffset(targetX, targetY)
+              : pinned
+                ? stepLagOffset(prevOffset, targetX, targetY, dt, DRAG_TUG_EASE_TAU)
+                : stepHomeOffset(prevOffset, dt, springFor(id));
             dragTugOffsetsRef.current.set(id, nextOffset);
             if (tugged) {
               tugged.x += nextOffset.x;
@@ -4014,15 +4008,13 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
           // top of the sim's position, until it is at rest.
           const drop = !pinned && draggedNode ? dragTugOffsetsRef.current.get(affected.draggedId) : undefined;
           if (drop && draggedNode) {
-            const spring = springFor(affected.draggedId);
-            const sx = stepDampedSpring(drop.x, drop.vx, 0, dt, spring);
-            const sy = stepDampedSpring(drop.y, drop.vy, 0, dt, spring);
-            if (springAtRest(sx.value, sx.velocity, 0) && springAtRest(sy.value, sy.velocity, 0)) {
+            const next = stepHomeOffset(drop, dt, springFor(affected.draggedId));
+            if (isOffsetAtRest(next)) {
               dragTugOffsetsRef.current.delete(affected.draggedId);
             } else {
-              dragTugOffsetsRef.current.set(affected.draggedId, { x: sx.value, y: sy.value, vx: sx.velocity, vy: sy.velocity });
-              draggedNode.x += sx.value;
-              draggedNode.y += sy.value;
+              dragTugOffsetsRef.current.set(affected.draggedId, next);
+              draggedNode.x += next.x;
+              draggedNode.y += next.y;
             }
           }
         }

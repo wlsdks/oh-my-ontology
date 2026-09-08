@@ -229,7 +229,7 @@ export interface TopologyV2Tokens {
   dragTug2Hop: number;
   /** `--topology-v2-drag-tug-radius` — world-space radius past which drag tug is exactly 0 (`interaction/drag-tug.ts#tugFalloffForDistance`). */
   dragTugRadius: number;
-  /** `--topology-v2-mass-heavy-degree` — degree at which a node is fully heavy (`model/mass-spring.ts`). */
+  /** `--topology-v2-mass-heavy-degree` — degree at which a node is fully heavy (`expressive/mass-spring.ts`). */
   massHeavyDegree: number;
   /** `--topology-v2-mass-light-angfreq` — release spring ω for a weightless node (ζ=1). */
   massLightAngFreq: number;
