@@ -239,10 +239,6 @@ export interface TopologyV2Tokens {
   massHeavyZeta: number;
   /** `--topology-v2-mass-drop-max-px` — the farthest a released node may carry past its drop point (world units). */
   massDropMaxPx: number;
-  /** `--topology-v2-ego-halo-alpha` — alpha of the indigo ground halo under a focused node's neighbourhood. */
-  egoHaloAlpha: number;
-  /** `--topology-v2-ego-halo-pad` — screen px the ego halo reaches past the farthest 1-hop neighbour. */
-  egoHaloPad: number;
   /** `--topology-v2-ego-glow-blur-px` — canvas shadow blur (px) for the focused node's bloom and its lines' glow. */
   egoGlowBlurPx: number;
   /** `--topology-v2-ego-glow-alpha` — alpha of the glow under the focused node's relation lines. */
@@ -412,8 +408,6 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "massHeavyAngFreq", cssVar: "--topology-v2-mass-heavy-angfreq", kind: "number" },
   { key: "massHeavyZeta", cssVar: "--topology-v2-mass-heavy-zeta", kind: "number" },
   { key: "massDropMaxPx", cssVar: "--topology-v2-mass-drop-max-px", kind: "number" },
-  { key: "egoHaloAlpha", cssVar: "--topology-v2-ego-halo-alpha", kind: "number" },
-  { key: "egoHaloPad", cssVar: "--topology-v2-ego-halo-pad", kind: "number" },
   { key: "egoGlowBlurPx", cssVar: "--topology-v2-ego-glow-blur-px", kind: "number" },
   { key: "egoGlowAlpha", cssVar: "--topology-v2-ego-glow-alpha", kind: "number" },
   { key: "nodeBloomAlpha", cssVar: "--topology-v2-node-bloom-alpha", kind: "number" },

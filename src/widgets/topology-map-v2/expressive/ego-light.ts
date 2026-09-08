@@ -1,10 +1,14 @@
 /**
- * Ego light — the three pieces of light a focus or hover puts on the map:
+ * Ego light — the two pieces of light a focus or hover puts on the map:
  *
- * - the **ground halo**: an indigo radial gradient under the focused node whose
- *   radius reaches the farthest 1-hop neighbour plus a pad (hop depth as light);
  * - the **node bloom**: a blurred indigo disc under the focused or hovered node;
  * - the **edge glow**: a canvas shadow set around the ego lines while they draw.
+ *
+ * A third piece, a ground halo whose radius reached the farthest 1-hop neighbour,
+ * was removed by the design council on 2026-09-08: measured over 36 focus states it
+ * enclosed 410 nodes of which 290 (70.7%) were not neighbours, and a degree-3 and a
+ * degree-15 node both produced R=620, so the disc asserted a reach the data did not
+ * hold. The 1-hop fact is carried by the edge glow, which touches only real relations.
  *
  * Every piece takes a `ramp` (0..1, the host's focus or emphasis ramp) so it
  * arrives and leaves with the state it marks, and paints nothing at 0. Screen
@@ -14,10 +18,6 @@
 export interface EgoLightTokens {
   indigo: string;
   indigoBright: string;
-  /** `--topology-v2-ego-halo-alpha` */
-  egoHaloAlpha: number;
-  /** `--topology-v2-ego-halo-pad` (screen px) */
-  egoHaloPad: number;
   /** `--topology-v2-ego-glow-blur-px` */
   egoGlowBlurPx: number;
   /** `--topology-v2-ego-glow-alpha` */
@@ -41,41 +41,7 @@ export interface ScreenDisc {
   r: number;
 }
 
-/** How far the halo reaches: the farthest neighbour's far rim, or the centre's own radius. */
-export function egoHaloReach(center: ScreenDisc, neighbours: Iterable<ScreenDisc>): number {
-  let reach = center.r;
-  for (const n of neighbours) {
-    const d = Math.hypot(n.x - center.x, n.y - center.y) + n.r;
-    if (d > reach) reach = d;
-  }
-  return reach;
-}
-
 const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
-
-/**
- * The ground halo. Grows from 72% to 100% of its reach on the ramp so it arrives with
- * the dive rather than popping; alpha rides the ramp too. Draw it under the edges.
- */
-export function drawEgoHalo(
-  ctx: CanvasRenderingContext2D,
-  state: { cx: number; cy: number; reach: number; ramp: number },
-  tokens: Pick<EgoLightTokens, "indigo" | "egoHaloAlpha" | "egoHaloPad">,
-): void {
-  const ramp = clamp01(state.ramp);
-  if (ramp <= 0.001 || tokens.egoHaloAlpha <= 0) return;
-  const r = (state.reach + tokens.egoHaloPad) * (0.72 + 0.28 * ramp);
-  if (!(r > 0)) return;
-  const a = tokens.egoHaloAlpha * ramp;
-  const halo = ctx.createRadialGradient(state.cx, state.cy, 0, state.cx, state.cy, r);
-  halo.addColorStop(0, hexWithAlpha(tokens.indigo, a));
-  halo.addColorStop(0.55, hexWithAlpha(tokens.indigo, a * 0.45));
-  halo.addColorStop(1, hexWithAlpha(tokens.indigo, 0));
-  ctx.fillStyle = halo;
-  ctx.beginPath();
-  ctx.arc(state.cx, state.cy, r, 0, Math.PI * 2);
-  ctx.fill();
-}
 
 /** The bloom under one node. Restores `shadowBlur` and `globalAlpha` before returning. */
 export function drawNodeBloom(

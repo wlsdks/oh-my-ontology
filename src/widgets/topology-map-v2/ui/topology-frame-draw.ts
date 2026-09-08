@@ -108,7 +108,7 @@ const EDGE_CULL_MARGIN_PX = 24;
 const NODE_CULL_SLACK = 3;
 import { isSpineNode, radiusForKind, type TopologyWorld, type WorldEdge, type WorldNode } from "./topology-world";
 import { pressResponse } from "../expressive/mass-spring";
-import { beginEdgeGlow, drawEgoHalo, drawNodeBloom, egoHaloReach, endEdgeGlow } from "../expressive/ego-light";
+import { beginEdgeGlow, drawNodeBloom, endEdgeGlow } from "../expressive/ego-light";
 
 /**
  * Dashed aura ring that tells an expanded parent apart from a collapsed one. The
@@ -1164,30 +1164,11 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     out.control.y = (controlY - camY) * camScale + halfH;
     return out;
   };
-  // Reach (2026-09-08, direction B "Weighted graph"): the focused node's neighbourhood sits
-  // on an indigo ground halo whose radius is the farthest 1-hop neighbour plus a pad, so
-  // hop depth is drawn as light on the ground rather than only as un-dimmed marks. Rides
-  // the same focus ramp as the dim, so it arrives with the dive and leaves with the
-  // deselect fade; under reduced motion the ramp snaps and the halo simply is. Drawn under
-  // the edges. 2D only — the 3D views carry their own depth grammar.
-  if (!domeOn && colorFocusedNodeId !== null && tokens.egoHaloAlpha > 0) {
-    const centerRamp = focusRampById.get(colorFocusedNodeId) ?? 0;
-    const center = world.nodeById.get(colorFocusedNodeId);
-    if (center && centerRamp > 0.001) {
-      const disc = (n: WorldNode) => ({
-        x: (n.x - camX) * camScale + halfW,
-        y: (n.y - camY) * camScale + halfH,
-        r: radiusForKind(n.kind, tokens) * n.magnitudeScale * camScale,
-      });
-      const c = disc(center);
-      const neighbours: { x: number; y: number; r: number }[] = [];
-      for (const id of world.neighborMap.get(colorFocusedNodeId) ?? EMPTY_NEIGHBOR_SET) {
-        const n = world.nodeById.get(id);
-        if (n) neighbours.push(disc(n));
-      }
-      drawEgoHalo(ctx, { cx: c.x, cy: c.y, reach: egoHaloReach(c, neighbours), ramp: centerRamp }, tokens);
-    }
-  }
+  // Reach was drawn here until the design council of 2026-09-08 cut it: a ground halo
+  // sized by the farthest 1-hop neighbour enclosed 290 non-neighbours out of 410 nodes
+  // across 36 focus states, and a degree-3 node produced the same radius as a degree-15
+  // one, so the disc lit whatever the layout happened to put inside it. The 1-hop fact
+  // stays with the edge glow below, which can only touch a real relation.
   // Ego light (2026-09-08): the glow under the focused node's lines and the bloom under the
   // node ride the centre's focus ramp, so they arrive with the dive and leave with the fade.
   const egoGlowRamp =

@@ -3405,9 +3405,6 @@
     --topology-v2-mass-heavy-angfreq: 16;
     --topology-v2-mass-heavy-zeta: 0.55;
     --topology-v2-mass-drop-max-px: 14;
-    /* Reach — the ego halo under a focused node reaches to its farthest 1-hop neighbour plus this pad (screen px), at this alpha of the indigo, on the focus ramp. The halo's size is the neighbourhood's size: hop depth drawn as ground light. */
-    --topology-v2-ego-halo-alpha: 0.2;
-    --topology-v2-ego-halo-pad: 28;
     /* Ego light — the focused node blooms (a soft indigo disc under it, blurred by `-glow-blur-px`) and its relation lines carry a glow of the same blur, both on the focus ramp; the hovered node carries the bloom at `-node-bloom-alpha` on its emphasis ramp. Light says "this is the one your hand is on"; nothing at rest glows. */
     --topology-v2-ego-glow-blur-px: 22;
     --topology-v2-ego-glow-alpha: 0.55;
