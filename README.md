@@ -99,6 +99,12 @@ Each file's frontmatter declares what it is (`project`, `domain`, `capability`,
 `element`, or a linked `document`) and what it points at. That folder is the
 whole database.
 
+The Library also works with general knowledge: collect original sources, read
+linked wiki pages, ask about a passage, and explicitly file a cited answer for
+later review. A folder of wiki pages can be used without code or ontology nodes.
+The ontology remains the codebase meaning layer; Library pages do not become
+ontology nodes automatically.
+
 Because the kinds and relation types are a small fixed set, the folder is not
 just readable — it is **computable**. Atlas compiles it into a graph and answers
 questions a note-taking tool cannot: *what breaks if I change this, what is this
@@ -801,18 +807,18 @@ own dogfood vault in [`docs/ontology/`](docs/ontology/); run
 
 ## What this is not
 
-- **Not a general-purpose ontology editor.** Atlas starts from a codebase. A
-  business concept belongs when it explains what that codebase builds, why an
-  implementation boundary exists, or what a change can affect. Unrelated
-  knowledge management belongs in a more general tool.
+- **Not a general-purpose ontology editor.** The ontology describes a codebase.
+  A business concept belongs there when it explains what that codebase builds,
+  why an implementation boundary exists, or what a change can affect. The
+  Library separately accepts general sources and wiki pages without code nodes.
 - **Not a source-code IDE.** A useful analogy is an **IDE for codebase meaning**:
   Atlas brings construction, inspection, validation, review, and maintenance of
   the codebase ontology into one workbench. The analogy stops there; Atlas does
   not edit, build, run, or debug the code.
-- **Not a wiki, and not agent memory.** A wiki only people write rots the week
-  it is written; a store only agents write drifts with nobody left to judge it.
-  Atlas is one layer both audiences read and write, and the arbiter is a git
-  diff. The side-by-side comparison is
+- **No automatic acceptance of generated knowledge.** The Library includes a
+  wiki that people and agents can maintain. Saving a page or answer preserves
+  it for review; it does not establish that its claims are true or promote it
+  into accepted ontology meaning. The side-by-side comparison is
   [above](#why-not-just-use-a-notes-tool).
 - **Not a code index.** Grep, language servers, AST indexes, and CodeGraph
   answer where a symbol lives and what calls it, and Atlas replaces none of

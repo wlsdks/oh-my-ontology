@@ -171,6 +171,9 @@ export const SCRIM_FADE_REDUCED = OVERLAY_SPRING_REDUCED;
  */
 export const OVERLAY_RISE = { opacity: 0, y: 8 } as const;
 
+/** Keep the overlay fade without snapping its position when motion is reduced. */
+export const OVERLAY_RISE_REDUCED = { opacity: 0, y: 0 } as const;
+
 /** The rest state `OVERLAY_RISE` travels to. */
 export const OVERLAY_SETTLED = { opacity: 1, y: 0 } as const;
 

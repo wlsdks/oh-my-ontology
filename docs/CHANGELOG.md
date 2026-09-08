@@ -45,6 +45,12 @@
 
 ---
 
+## 2026-09-09 · Unreleased: clearer Library reading and safer answer filing
+
+**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced-motion support.
+
+**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Dialog motion follows live system preferences.
+
 ## 2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list
 
 **Added**: a lit three.js atlas on the download hero, with Architecture and the Library as captured screens; an MCP screen; Connectors from Notion, GitHub, Context7 or Playwright. The Library graph pulls apart by hand; a stepper, an outside-notes door, a local model card; Check proposes nodes; Strata names planes.

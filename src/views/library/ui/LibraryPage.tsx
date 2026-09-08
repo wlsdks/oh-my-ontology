@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Info, ListChecks, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Info, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { useLocalVault, useVaultIdentityScope, useVaultSessionIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
@@ -42,6 +42,7 @@ import {
   parseLintFindings,
   buildAnswerPage,
   buildHumanPage,
+  createWikiFile,
   deleteWikiFile,
   writeWikiFile,
   EMPTY_LIBRARY_WORK_ACTIVITY,
@@ -85,7 +86,7 @@ import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { PAGE_COLUMN_STAGE } from "@/shared/ui/page-frame";
 import { TOAST_TOP_OFFSET_UNDER_LIBRARY_PANE_CHROME_PX } from "@/shared/ui/toast-position";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
-import { Tooltip, TooltipProvider, useToast } from "@/shared/ui";
+import { Button, Dialog, Tooltip, TooltipProvider, useToast } from "@/shared/ui";
 
 import { isWikiFurnitureSlug } from "@/shared/lib/wiki-page-schema";
 import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/compile-availability";
@@ -95,11 +96,10 @@ import { useLibraryAgent } from "../lib/use-library-agent";
 import { LibraryCheckReport, findingKey, reportOutline } from "./parts/LibraryCheckReport";
 import { LibrarySection } from "./parts/LibrarySection";
 import { CompileBrainSelect } from "./parts/CompileBrainSelect";
-import { LibraryShelfPopover } from "./parts/LibraryShelfPopover";
 import { LibraryStage } from "./parts/LibraryStage";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
-import { LibraryAgentDock } from "./parts/LibraryAgentDock";
+import { LibraryAgentDock, type LibraryAgentOpeningRequest } from "./parts/LibraryAgentDock";
 import { LibraryConversationDoor } from "./parts/LibraryConversationDoor";
 import { SelectionAsk } from "./parts/SelectionAsk";
 import { useChatWidth } from "@/widgets/acp-chat-panel";
@@ -107,37 +107,6 @@ import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
 import { WikiPageHeader } from "./parts/WikiPageHeader";
 import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
-
-/**
- * The two columns of the pane when the picture stands beside the page (direction B,
- * 2026-09-08). `READER_COLUMN_PX` is the shared reading measure (760) plus the reading
- * pane's own 40px of padding; `GRAPH_COLUMN_MIN_PX` is the width below which the canvas
- * stops reading as a picture. Their sum is the pane floor the observer compares against.
- */
-const READER_COLUMN_PX = 800;
-const GRAPH_COLUMN_MIN_PX = 360;
-/**
- * The width the verdict always sets aside for the index, whether it is standing or
- * folded (`--docs-list-width`). **The fold must not be able to summon a column.**
- * Measured 2026-09-08 by design-responsive: deciding on the reader alone, folding the
- * index widened it by exactly 244px, and at a 1300px window that one press turned a
- * document-only pane into a 400px canvas beside it — a control named "fold the index"
- * producing a graph. Reserving the column's width in the arithmetic means folding it only
- * ever gives the canvas more room inside a mode that was already on.
- */
-const INDEX_RESERVE_PX = 280;
-/**
- * How far **below** the floor the pane must fall before the second column leaves, the
- * index auto-fold's own 420/460 idea sized for this boundary: measured 2026-09-08, a bare
- * `>=` flipped the pane between one column and two on a single pixel — jittering a window
- * between 1503 and 1504 toggled the layout ten times out of ten.
- *
- * The band is one-sided on purpose. Both columns stand the moment the room is genuinely
- * there, because 1512 — the width the owner approved direction B at — leaves exactly
- * 1168px, eight over the floor; a symmetric band would have deleted the direction on the
- * machine it was chosen on.
- */
-const GRAPH_COLUMN_RELEASE_PX = 40;
 
 /**
  * The **Library** — project documents of any format, and the wiki pages written from
@@ -170,26 +139,13 @@ const GRAPH_COLUMN_RELEASE_PX = 40;
  * facts the folder knows about it, because there is nothing else that could honestly be
  * drawn for a PDF.
  *
- * **With nothing selected the pane is the graph** (2026-09-06, owner, third pass). It was
- * a 320px graph strip with the guided shelf stacked under it, and the owner opened the
- * installed app on a folder a local `qwen3:8b` had just compiled and read exactly that:
- * *"shouldn't the Library tab's default be the graph on top? why is the area split above
- * and below? the area underneath should come up as a popup."* Two surfaces were sharing
- * one column and neither was the screen. So the picture fills the pane the way the map
- * fills its own tab, and the shelf — a guide, which is a thing a person consults rather
- * than reads — is a `Surface` one chip away, with its verdict left behind on the graph's
- * header as a one-line status strip. `docs/DECISIONS.md`, 2026-09-06.
+ * With nothing selected the reader shows the existing gather/compile/read guidance.
+ * The graph opens from one header action in a viewport dialog, leaving the selected
+ * document and conversation mounted behind it. It is a requested view, never a
+ * permanent strip competing with the text (owner-selected direction B, 2026-09-09).
  *
- * Below `lg` the two panes become one column — **the graph on top, the lists under it** —
- * and selecting swaps the column for the reader, with a way back. Two 280px-plus panes do
- * not fit a phone, and hiding the index behind a drawer would bury the two doors
- * (`Add files`, `Find documents`) that are the reason someone opens this screen at all.
- *
- * ⚠️ **The narrow column used to draw nothing at all in this state** (fixed 2026-09-06).
- * The reader box was `max-lg:hidden` whenever nothing was chosen, which is exactly the
- * state this pane is for — so a phone, and any window under 1024px, got the two lists and
- * no overview and no guidance. Measured a zero rect at 390×844 and 768×1024 on the seeded
- * folder. It is now the top half of that column at every width.
+ * Below `lg`, guidance stands above the index; selecting gives the reader the full
+ * column, and closing the page returns to the same guidance and index.
  *
  * ## With no folder open, and with an empty one
  *
@@ -208,12 +164,39 @@ const GRAPH_COLUMN_RELEASE_PX = 40;
  * across it. The screen is now `LibraryStartStage`, and the guide is only ever a press.
  */
 
+/** Presentation/capture only: a normal conversation retains the same write permission path. */
+export function matchLibraryOpeningRequest(
+  text: string,
+  request: LibraryAgentOpeningRequest | null,
+  consumedNonce: number | null,
+): LibraryAgentOpeningRequest | null {
+  return request && request.nonce !== consumedNonce && request.text.trim() === text.trim()
+    ? request
+    : null;
+}
+
+export interface RetainedLibraryAnswer {
+  generation: number;
+  question: string;
+  text: string;
+  askedOn: string | null;
+}
+
+export function clearFiledAnswer(current: RetainedLibraryAnswer | null, filed: RetainedLibraryAnswer): RetainedLibraryAnswer | null {
+  return current === filed ? null : current;
+}
+
+export function restoreFiledAnswer(current: RetainedLibraryAnswer | null, filed: RetainedLibraryAnswer, generation: number): RetainedLibraryAnswer | null {
+  return generation === filed.generation && current === null ? filed : current;
+}
+
 export function LibraryPage() {
   const reducedMotion = usePrefersReducedMotion();
   const t = useTranslations("library");
   const locale = useLocale();
   const toast = useToast();
   const localVault = useLocalVault();
+  const { markSelfWrite } = localVault;
   const workVaultScope = useVaultSessionIdentityScope();
 
   const handle = selectOpenVaultHandle(localVault.status, localVault.handle);
@@ -250,7 +233,9 @@ export function LibraryPage() {
       root.style.removeProperty("--app-toast-top-offset");
     };
   }, []);
-  const [shelfOpen, setShelfOpen] = useState(false);
+  const [graphOpen, setGraphOpen] = useState(false);
+  const graphTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const graphRestoreFrameRef = useRef<number | null>(null);
   /** Set when a page opened on its own (a check ending), so the focus stays where the person had it. */
   const skipReaderFocusRef = useRef(false);
   /*
@@ -267,7 +252,6 @@ export function LibraryPage() {
    */
   const [compileRunning, setCompileRunning] = useState(false);
   const choose = useCallback((next: typeof selected) => {
-    setShelfOpen(false);
     setSelected(next);
     /*
      * **The switch follows what was opened.** A file can be reached from three places that
@@ -278,7 +262,6 @@ export function LibraryPage() {
     if (next && next.kind !== "report") writeLibraryIndexSegment(next.kind === "wiki" ? "wiki" : "sources");
   }, []);
   const [busy, setBusy] = useState(false);
-  const shelfChipRef = useRef<HTMLButtonElement | null>(null);
 
   /*
    * `.claude/rules/architecture.md`: the condition that draws a surface must also guard
@@ -732,6 +715,38 @@ export function LibraryPage() {
         onOpen={() => agent.setOpen(true)}
       />
     ) : null;
+  const graphAction = (
+    <Button
+      ref={graphTriggerRef}
+      variant="outline"
+      size="sm"
+      data-testid="library-graph-open"
+      onClick={(event) => {
+        if (graphRestoreFrameRef.current !== null) {
+          window.cancelAnimationFrame(graphRestoreFrameRef.current);
+          graphRestoreFrameRef.current = null;
+        }
+        event.currentTarget.focus({ preventScroll: true });
+        setGraphOpen(true);
+      }}
+    >
+      {t("graph.title")}
+    </Button>
+  );
+  const closeGraph = useCallback(() => {
+    setGraphOpen(false);
+    if (graphRestoreFrameRef.current !== null) window.cancelAnimationFrame(graphRestoreFrameRef.current);
+    graphRestoreFrameRef.current = window.requestAnimationFrame(() => {
+      graphRestoreFrameRef.current = null;
+      graphTriggerRef.current?.focus({ preventScroll: true });
+    });
+  }, []);
+  useEffect(
+    () => () => {
+      if (graphRestoreFrameRef.current !== null) window.cancelAnimationFrame(graphRestoreFrameRef.current);
+    },
+    [],
+  );
   useEffect(() => {
     const root = document.documentElement;
     if (!dockOpen) {
@@ -813,7 +828,11 @@ export function LibraryPage() {
   /* The last question asked from a page and the answer it got: the pair a person can file
      back as a wiki page (owner direction 2026-09-07, the LLM Wiki pattern). */
   const pendingAskRef = useRef<{ question: string; askedOn: string | null } | null>(null);
-  const [lastAnswer, setLastAnswer] = useState<{ question: string; text: string; askedOn: string | null } | null>(null);
+  const [lastAnswer, setLastAnswer] = useState<RetainedLibraryAnswer | null>(null);
+  const answerGenerationRef = useRef(0);
+  const filedAnswersRef = useRef(new WeakSet<RetainedLibraryAnswer>());
+  const [filingAnswer, setFilingAnswer] = useState<RetainedLibraryAnswer | null>(null);
+  const consumedOpeningNonceRef = useRef<number | null>(null);
   const judgeWrite = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null }) =>
       nativeVaultRootPath
@@ -848,7 +867,12 @@ export function LibraryPage() {
         return;
       }
       try {
-        await writeWikiFile(handle, page.path, page.text);
+        if (nativeVaultRootPath) {
+          if (!await createWikiFile(handle, page.path, page.text)) throw new Error(`Document already exists: "${page.slug}"`);
+        } else {
+          await writeWikiFile(handle, page.path, page.text);
+        }
+        markSelfWrite(page.slug);
         setSelected({ kind: "wiki", slug: page.slug });
         toast.show(t("wiki.newPageDone", { page: page.slug }), "success", {
           label: t("wiki.undo"),
@@ -866,39 +890,58 @@ export function LibraryPage() {
         toast.show(err instanceof Error && err.message ? err.message : t("wiki.newPageFailed"), "error");
       }
     },
-    [handle, knownSlugs, t, toast],
+    [handle, knownSlugs, markSelfWrite, nativeVaultRootPath, t, toast],
   );
 
   const handleFileAnswer = useCallback(async () => {
-    if (!lastAnswer || !handle) return;
-    const page = buildAnswerPage({
+    if (!lastAnswer || !handle || lastAnswer.generation !== answerGenerationRef.current || filedAnswersRef.current.has(lastAnswer)) return;
+    const filed = lastAnswer;
+    const selectionAtFileStart = latestSelectedRef.current;
+    const input = {
       question: lastAnswer.question,
       answer: lastAnswer.text,
       askedOn: lastAnswer.askedOn,
       writer: agent.runtime ? `agent:${agent.runtime.id}` : "agent:unknown",
       now: new Date(),
-      hashes: model.hashes,
       knownSources: model.sources.map((row) => row.path),
-      pagesForSource: (path) =>
+      pagesForSource: (path: string) =>
         [...model.pairing.originalsByWiki.entries()]
           .filter(([, originals]) => originals.some((original) => original.path === path))
           .map(([slug]) => slug),
-    });
+    };
+    let page = buildAnswerPage(input);
     if (page.problems.length > 0) {
       toast.show(t("wiki.fileAnswerRejected", { code: page.problems[0]!.code }), "error");
       return;
     }
+    // Lock the exact answer synchronously; two presses before a React commit still
+    // create only one write. A later answer can be filed independently.
+    filedAnswersRef.current.add(filed);
+    setFilingAnswer(filed);
     try {
-      await writeWikiFile(handle, page.path, page.text);
-      const filed = lastAnswer;
-      setLastAnswer(null);
-      setSelected({ kind: "wiki", slug: page.slug });
+      let created = false;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        if (await createWikiFile(handle, page.path, page.text)) {
+          created = true;
+          break;
+        }
+        page = buildAnswerPage(input);
+      }
+      if (!created) throw new Error('Could not reserve a fresh answer filename; existing pages were preserved.');
+      markSelfWrite(page.slug);
+      setLastAnswer((current) => clearFiledAnswer(current, filed));
+      setSelected((current) =>
+        answerGenerationRef.current === filed.generation && current === selectionAtFileStart
+          ? { kind: "wiki", slug: page.slug }
+          : current,
+      );
       toast.show(t("wiki.fileAnswerDone", { page: page.slug }), "success", {
         label: t("wiki.undo"),
         onClick: () => {
-          void deleteWikiFile(handle, page.path).then(
-            () => {
-              setLastAnswer(filed);
+            void deleteWikiFile(handle, page.path).then(
+              () => {
+              filedAnswersRef.current.delete(filed);
+              setLastAnswer((current) => restoreFiledAnswer(current, filed, answerGenerationRef.current));
               setSelected((current) => (current?.kind === "wiki" && current.slug === page.slug ? null : current));
               toast.show(t("wiki.undone", { page: page.slug }), "success");
             },
@@ -907,9 +950,12 @@ export function LibraryPage() {
         },
       });
     } catch (err) {
+      filedAnswersRef.current.delete(filed);
       toast.show(err instanceof Error && err.message ? err.message : t("wiki.fileAnswerRejected", { code: "write" }), "error");
+    } finally {
+      setFilingAnswer((current) => current === filed ? null : current);
     }
-  }, [agent.runtime, handle, lastAnswer, model.hashes, model.pairing.originalsByWiki, model.sources, t, toast]);
+  }, [agent.runtime, handle, lastAnswer, markSelfWrite, model.pairing.originalsByWiki, model.sources, t, toast]);
 
   const autoDecide = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null; toolName: string | null }) => {
@@ -944,9 +990,22 @@ export function LibraryPage() {
     latestDocsRef.current = docs;
   }, [docs]);
   const handleTurnStarted = useCallback(
-    (_start: { text: string; startedAt: string }) => {
-      const kind = agent.openingRequest?.kind ?? "compile";
+    (start: { text: string; startedAt: string }) => {
       if (!handle) return null;
+      const generation = ++answerGenerationRef.current;
+      const opening = matchLibraryOpeningRequest(start.text, agent.openingRequest, consumedOpeningNonceRef.current);
+      if (opening) consumedOpeningNonceRef.current = opening.nonce;
+      // Unmatched prompts are ordinary conversation, not another run of the last
+      // Compile/Check action. This classification never changes judgeWrite/autoDecide.
+      const kind = opening?.kind ?? "ask";
+      const selectionAtStart = latestSelectedRef.current;
+      const asked = kind === "ask"
+        ? opening && pendingAskRef.current
+          ? pendingAskRef.current
+          : { question: start.text.trim(), askedOn: selectionAtStart?.kind === "wiki" ? selectionAtStart.slug : null }
+        : null;
+      if (opening?.kind === "ask") pendingAskRef.current = null;
+      setLastAnswer(null);
       const stamp = (list: typeof docs) =>
         new Map(
           list
@@ -1007,8 +1066,7 @@ export function LibraryPage() {
          * is an entry, or the log would claim a compile that never ran.
          */
         if (kind === "ask") {
-          const asked = pendingAskRef.current;
-          if (asked && lastAgentText && lastAgentText.trim()) setLastAnswer({ question: asked.question, text: lastAgentText, askedOn: asked.askedOn });
+          if (generation === answerGenerationRef.current && asked && lastAgentText && lastAgentText.trim()) setLastAnswer({ generation, question: asked.question, text: lastAgentText, askedOn: asked.askedOn });
           return;
         }
         if (kind === "propose" || kind === "import") return;
@@ -1024,7 +1082,7 @@ export function LibraryPage() {
         }
       };
     },
-    [agent.openingRequest?.kind, agent.runtime, choose, handle, model.sources],
+    [agent.openingRequest, agent.runtime, choose, handle, model.sources],
   );
 
   /**
@@ -1130,28 +1188,15 @@ export function LibraryPage() {
    * would close two things with one press.
    */
   useEffect(() => {
-    if (selected === null || findOpen) return;
+    if (selected === null || findOpen || graphOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       setSelected(null);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [agent.open, findOpen, selected]);
+  }, [agent.open, findOpen, graphOpen, selected]);
 
-  /**
-   * **Nothing raises itself any more** (owner, 2026-09-06).
-   *
-   * The panel used to open by itself over a folder with no sources, on the reasoning that
-   * there was nothing else to look at. The owner opened exactly that folder in the
-   * installed app and read the result as broken: the guide lay across the graph's own
-   * "Nothing to draw yet…" sentence while three other surfaces said the same emptiness.
-   *
-   * A folder with nothing in it is now an **empty state** rather than a workbench with a
-   * popup over it (`LibraryStartStage`), so the state that justified the automatic open
-   * no longer reaches this shape at all. What is left is a press: the chip opens the
-   * guidance, Escape or an outside press closes it, and focus goes back to the chip.
-   */
   /** Which list the index draws, and whether the column is folded — both per machine. */
   const indexSegment = useLibraryIndexSegment();
   const indexCollapsedByChoice = useLibraryIndexCollapsed();
@@ -1172,26 +1217,10 @@ export function LibraryPage() {
    * does not exist yet — the screen is the centred start stage. A ref would still be null
    * at that moment and the observer would never attach, which is exactly what happened:
    * measured 2026-09-08, the pane reported 1384px wide while the verdict still said the
-   * canvas could not stand beside it. Holding the node in state re-runs the effect when
+   * auto-fold observer had never attached. Holding the node in state re-runs the effect when
    * the workbench arrives.
    */
   const [readerEl, setReaderEl] = useState<HTMLDivElement | null>(null);
-  /** The whole row, so the verdict is not moved by the index folding inside it. */
-  const [paneRowEl, setPaneRowEl] = useState<HTMLElement | null>(null);
-  const readerWidthRef = useRef<HTMLDivElement | null>(null);
-  /**
-   * **Can the picture stand beside the page?** (owner direction B, 2026-09-08.)
-   *
-   * The document column keeps the reading measure it has everywhere else — 760px of text
-   * plus its own 40px of padding — so the graph gets whatever is left. Below 360px the
-   * canvas stops being a picture and becomes a strip, which is the shape the owner
-   * rejected on 2026-09-06, so that is the floor: the two stand together only while the
-   * pane holds `800 + 360`. At 1512 with the index open the pane is 1168 and the canvas
-   * gets 368; folding the index gives it 642. At the installed app's 1040 floor, and
-   * with the conversation dock open, there is no room and the screen falls back to the
-   * pane it has today — the canvas hides and the `Graph` chip is the way back.
-   */
-  const [graphBesideReader, setGraphBesideReader] = useState(false);
   useEffect(() => {
     const el = readerEl;
     if (!el || typeof ResizeObserver === "undefined") return;
@@ -1222,35 +1251,6 @@ export function LibraryPage() {
     return () => observer.disconnect();
   }, [readerEl]);
 
-  /**
-   * **The two-column verdict is measured on the row, and it has a band.**
-   *
-   * Both halves of that sentence are corrections design-responsive measured on the first
-   * build: deciding on the reader let the index's own fold flip the mode, and deciding on
-   * a bare threshold flipped it on one pixel. The row's width minus a constant index
-   * reserve is a quantity the fold cannot move, and the band means the pane changes shape
-   * only when the window has clearly crossed rather than grazed the floor.
-   */
-  useEffect(() => {
-    const el = paneRowEl;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const observe = () => {
-      const pane = el.getBoundingClientRect().width - INDEX_RESERVE_PX;
-      const wide = window.matchMedia("(min-width: 1024px)").matches;
-      if (!wide) {
-        setGraphBesideReader(false);
-        return;
-      }
-      const floor = READER_COLUMN_PX + GRAPH_COLUMN_MIN_PX;
-      setGraphBesideReader((current) =>
-        current ? pane >= floor - GRAPH_COLUMN_RELEASE_PX : pane >= floor,
-      );
-    };
-    observe();
-    const observer = new ResizeObserver(observe);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [paneRowEl]);
   const indexCollapsed = indexCollapsedByChoice || autoFolded;
   const indexTabRef = useRef<HTMLButtonElement | null>(null);
   const indexCollapseRef = useRef<HTMLButtonElement | null>(null);
@@ -1312,32 +1312,8 @@ export function LibraryPage() {
     pendingIndexFocusRef.current = null;
     (pending === "tab" ? indexTabRef.current : indexCollapseRef.current)?.focus();
   }, [indexCollapsed]);
-  /**
-   * **Choosing a file closes the guide, by any route** (design-interaction, 2026-09-06).
-   *
-   * Selecting hides the canvas, and the chip lives in the canvas's header — so a panel
-   * left open after a choice floats over the reader with its anchor gone: `onExited`
-   * focuses a `display:none` chip (a silent no-op), the panel's own Escape handler eats
-   * the first press, and the way back needs two. The pointer path happened to be covered
-   * because the outside-press listener is `pointerdown`; **Enter on a row is not a
-   * pointerdown**, so the keyboard path was the one that broke.
-   *
-   * It is a setter rather than `open={shelfOpen && selected === null}` on purpose: the
-   * derived form would raise the panel again the moment somebody pressed back, which is
-   * the self-raising behaviour this redesign removed.
-   */
-  /**
-   * Whether this folder has anything for the workbench to show — the same test the canvas
-   * makes, so the two can never disagree about whether there is a picture.
-   */
+  /** A source or a page gives the index and guidance something to show. */
   const libraryIsEmpty = model.sources.length === 0 && model.wikiPages.length === 0;
-  const closeShelf = useCallback(() => setShelfOpen(false), []);
-  /**
-   * Pressing a door inside the panel keeps it open: without this, `Add files` succeeding
-   * would re-render the pane under the hand that just used it.
-   */
-  const keepShelf = useCallback(() => setShelfOpen(true), []);
-
   /**
    * **Where the keyboard lands when the empty folder stops being empty.**
    *
@@ -1535,9 +1511,7 @@ export function LibraryPage() {
       tabIndex={-1}
       data-testid="library-page"
       data-library-state={opened ? opened.kind : "nothing-open"}
-      ref={setPaneRowEl}
-      /* `relative` is the shelf popup's containing block: it hangs from this row so it can
-         be taller than the pane it is drawn over (see `LibraryShelfPopover`). */
+      /* The conversation dock remains anchored to this stable row. */
       className="topology-ui-scale relative flex min-h-0 w-full flex-1 bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)] max-lg:flex-col"
     >
       {/*
@@ -1691,28 +1665,10 @@ export function LibraryPage() {
                 />
               ) : null
             }
-            /*
-             * Exactly one surface discloses what leaves this computer, and it is the one a
-             * person is looking at. Both ask `libraryTransferSentence`, so neither can name
-             * a different brain.
-             *
-             * ⚠️ **"While the shelf is drawn" had to be redefined when the shelf became a
-             * popup** (2026-09-06). The rule shipped as `selected === null`, which was the
-             * same thing while the shelf owned the pane: nothing chosen meant the steps
-             * were on screen. The shelf is now raised over the graph by a chip, so nothing
-             * chosen no longer means it is showing — with the popup closed the sentence
-             * would have been on **no** surface at all, which is the one outcome this
-             * disclosure may not have. So the condition is the popup itself: while it is
-             * open step two owns the sentence, and every other moment this column does.
-             *
-             * ⚠️ It also had to survive the switch (2026-09-07): the sentence sits under
-             * Compile, and Compile is now drawn only while the Wiki list is showing. That
-             * is the placement `.claude/rules/local-first.md` asks for — the disclosure is
-             * beside the press — and the press itself is what it discloses, so a column
-             * with no Compile on it has nothing to disclose.
-             */
+            /* Guidance owns the disclosure while it is visible; after a selection,
+               the index keeps it beside its Compile action. */
             compileNote={
-              shelfOpen || compileBlocked !== null
+              selected === null || compileBlocked !== null
                 ? null
                 : libraryTransferSentence({ route: agent.route, localModel: agent.localModel }, t)
             }
@@ -1750,23 +1706,14 @@ export function LibraryPage() {
       <div
         ref={(node) => {
           readerRef.current = node;
-          readerWidthRef.current = node;
           setReaderEl(node);
         }}
         tabIndex={-1}
         data-testid="library-reader"
-        /* The pane itself is a column again. The row that #1527 put here moved one level
-           in, so the activity lane can span the pane above it: a lane inside the row would
-           stand as a third column, and a lane inside either column would vanish with it. */
+        /* One stable column keeps reading focus and the work lane across selections. */
         className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden max-lg:order-first"
       >
-        {/*
-          **What the agent is touching, above the picture rather than inside it.** The lane
-          reserves its height before the first event, so a receipt arriving never resizes
-          the canvas and moves the very marks it is explaining. It stands above the row, so
-          it survives every state the row has: the picture alone, the picture beside the
-          page, and the page alone below `lg`.
-        */}
+        {/* Work stays above the reader and guidance, independent of the graph dialog. */}
         <LibraryWorkActivityStrip
           activity={libraryWorkActivity}
           /* The lane belongs to an open conversation, not to the folder: see the prop's
@@ -1780,177 +1727,52 @@ export function LibraryPage() {
             )
           }
         />
-        <div
-          className={cn(
-            "flex min-h-0 min-w-0 flex-1 overflow-hidden",
-            // A row only while both columns stand; everything else keeps the single column
-            // this pane has had since 2026-09-06.
-            graphBesideReader && selected ? "flex-row" : "flex-col",
-          )}
-        >
-          {/*
-            **This pane is the picture.** The Library's two lists say what is in the folder
-            one row at a time; this says it all at once — which page came from which file,
-            and which concepts a page reaches into. It is the same two file kinds, drawn
-            instead of listed, so it belongs to this screen rather than to the map, which
-            draws neither of them (`docs/DECISIONS.md`, 2026-09-06).
-
-            ⚠️ **`hidden`, never unmounted.** Choosing a document stands the canvas aside and
-            the reader takes the pane, but the widget keeps its ForceAtlas2 pass and its
-            settled positions: unmounting would throw both away and pay up to 95ms again,
-            replaying the arrival, every time somebody looked at a page and came back.
-          */}
-          <div
-            data-testid="library-graph-column"
-            className={cn(
-              "flex min-h-0 flex-col",
-              // Beside the page it is a column of its own and takes what the reader leaves;
-              // alone it is the whole pane, as before.
-              graphBesideReader && selected
-                ? "min-w-0 flex-1 border-r border-[color:var(--color-border-soft)]"
-                : "flex-1",
-              selected && !graphBesideReader && "hidden",
-            )}
-          >
-            <LibraryGraph
-              docs={manifest?.docs ?? EMPTY_DOCS}
-              wikiPages={model.wikiPages}
-              activity={libraryWorkActivity}
-              visible={selected === null}
-              /* `model.sources`, never `manifest.sources`: the rows carry the state the list
-                 prints, so the canvas cannot draw a confident citation beside a row that says
-                 the file changed underneath it (design-infoviz, 2026-09-06). */
-              sources={model.sources}
-              selection={
-                opened === null || opened.kind === "report"
-                  ? null
-                  : opened.kind === "wiki"
-                    ? { kind: "wiki", ref: opened.slug }
-                    : { kind: "source", ref: opened.path }
-              }
-              onSelect={(next) => {
-                /*
-                 * **The hand keeps the canvas** (design-interaction, 2026-09-08). Choosing a
-                 * page moves focus into the reader, which was right while the canvas vanished
-                 * behind it. Beside the reader the canvas is still on screen exactly where the
-                 * keyboard left it, and the reader's wrapper is `tabIndex={-1}` — a node the
-                 * design system deliberately never rings — so arrow-key + Enter used to make
-                 * the visible focus ring disappear into nothing.
-                 */
-                if (graphBesideReader) skipReaderFocusRef.current = true;
-                choose(
-                  next.kind === "wiki"
-                    ? { kind: "wiki", slug: next.ref }
-                    : { kind: "source", path: next.ref },
-                );
-              }}
-              /* Below `lg` the canvas is the top half of one column and the guide reaches
-                 the legend at its foot; measured with `elementsFromPoint` at 768 and 390. */
-              captionQuiet={shelfOpen}
-              /* Beside the reader the canvas is a column, so it drops the standing legend and
-                 keeps the slot for the hover line (direction B, 2026-09-08). */
-              compact={graphBesideReader && selected !== null}
-              headerEnd={
-                <>
-                  <LibraryStatusStrip model={model} t={t} />
-                  {conversationDoor}
-                  <button
-                    type="button"
-                    ref={shelfChipRef}
-                    onClick={() => setShelfOpen(!shelfOpen)}
-                    aria-expanded={shelfOpen}
-                    /*
-                     * `true`, not `"dialog"`: the surface it raises is deliberately not one —
-                     * no scrim, no trap, no `aria-modal`, because it exists to be read
-                     * against the picture behind it. Claiming a dialog and drawing a popover
-                     * is the mismatch a screen reader has no way to recover from
-                     * (design-interaction, 2026-09-06).
-                     */
-                    aria-haspopup="true"
-                    aria-controls={shelfOpen ? "library-shelf-popover" : undefined}
-                    data-testid="library-shelf-open"
-                    className={controlClass({
-                      shape: "chip",
-                      tone: "muted",
-                      hoverInk: "strong",
-                      className: "flex-none gap-1.5",
-                    })}
-                  >
-                    <ListChecks size={ICON_SIZE.sm} aria-hidden />
-                    {t("stage.open")}
-                  </button>
-                </>
-              }
-            />
-          </div>
-          {/*
-            **The document column.** While the picture stands beside it this box is the
-            reading measure and nothing more: 760px of text plus its own padding, with the
-            canvas on its left holding the page's neighbourhood. Alone it is the whole pane,
-            exactly as before.
-          */}
-          <div
-            data-testid="library-document-column"
-            /* The width is the **same constant the observer compares against**, so the column
-               and the verdict that draws it cannot drift apart. A Tailwind class built from
-               the constant would compile to nothing. */
-            style={graphBesideReader && selected ? { width: READER_COLUMN_PX } : undefined}
-            className={cn(
-              "flex min-h-0 min-w-0 flex-col",
-              // Empty with nothing chosen — and an empty `flex-1` sibling would take half the
-              // canvas's height, which is what it did the first time (three e2e heights fell
-              // by half, measured 2026-09-08).
-              !selected ? "hidden" : graphBesideReader ? "shrink-0" : "flex-1",
-            )}
-          >
-          {selected && !graphBesideReader ? (
-            /*
-             * **The way back exists at every width now.** It was `lg:hidden`, because below
-             * `lg` selecting swaps the whole column and the person visibly needs a door
-             * home, while at `lg` and above the index never left. That reasoning stopped
-             * being true on 2026-09-06: with nothing selected the right pane is the guided
-             * shelf, so it became a place a person can reach only once per session —
-             * measured by design-interaction, the only ways back were a reload and the
-             * browser's own Back, which leaves the Library and drops the open folder.
-             *
-             * The chip names where it goes. It read *Library* with an arrow, and the
-             * owner pressed it and got the graph: "then it is the graph, not the library"
-             * (2026-09-07). So it says *Graph*, and the arrow is gone — the word is the
-             * destination, and a glyph beside it added nothing the word did not say.
-             */
-            <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
+            {selected ? (
               <button
                 type="button"
                 onClick={() => setSelected(null)}
                 data-testid="library-reader-back"
                 className={controlClass({ shape: "chip", tone: "muted" })}
               >
-                {t("graph.title")}
-              </button>
-              <span className="ml-auto flex items-center">{conversationDoor}</span>
-            </div>
-          ) : selected ? (
-            /*
-             * Beside the picture there is nowhere to go **back** to — the graph never left —
-             * but there is still the everyday reversal: closing the page. Escape already did
-             * it; a shortcut nobody is told about is the ability being absent
-             * (design-interaction, 2026-09-08), so it also has a control. It says what it
-             * does rather than naming a destination, which is what separates it from the
-             * `Graph` chip the narrow layout still carries.
-             */
-            <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
-              <button
-                type="button"
-                onClick={() => setSelected(null)}
-                data-testid="library-reader-close"
-                className={controlClass({ shape: "chip", tone: "muted" })}
-              >
                 {t("graph.readerClose")}
               </button>
-              <span className="ml-auto flex items-center">{conversationDoor}</span>
+            ) : null}
+            <div className="min-w-0 flex-1"><LibraryStatusStrip model={model} t={t} /></div>
+            <span className="flex shrink-0 items-center gap-2">{graphAction}{conversationDoor}</span>
+          </div>
+          {!selected ? (
+            <div data-testid="library-reader-landing" className="min-h-0 flex-1 overflow-y-auto px-3 py-6">
+              <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
+                <h2 className="mb-3 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
+                  {t("stage.title")}
+                </h2>
+                <LibraryStage
+                  model={model}
+                  route={agent.route}
+                  agentLabel={agent.runtime?.label ?? null}
+                  localModel={agent.localModel}
+                  localCompile={agent.localCompile}
+                  brain={agent.brain}
+                  brainChoosable={agent.brainChoosable}
+                  onChooseBrain={agent.chooseBrain}
+                  inApp={nativeVaultRootPath !== null}
+                  onAddFiles={handleAddFiles}
+                  onFindDocuments={handleFindDocuments}
+                  onCompile={handleCompile}
+                  onLint={agent.route === "agent" ? handleLint : null}
+                  onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
+                  busy={busy}
+                  t={t}
+                />
+              </div>
             </div>
           ) : null}
-
+          <div
+            data-testid="library-document-column"
+            className={cn("flex min-h-0 min-w-0 flex-1 flex-col", !selected && "hidden")}
+          >
           {opened?.kind === "report" ? (
             <DocReadingPane
               data-testid="library-report-pane"
@@ -2075,53 +1897,42 @@ export function LibraryPage() {
         </div>
       </div>
 
-      {/*
-        The guided shelf, raised over the picture rather than sharing the pane with it.
-        It is parented **here**, on the row, and not inside the pane: below `lg` that pane
-        is half a phone and would cut the panel to 373px (measured 390×844).
-      */}
-      <LibraryShelfPopover
-        open={shelfOpen}
-        onClose={closeShelf}
-        anchorRef={shelfChipRef}
-        title={t("stage.title")}
-        closeLabel={t("stage.close")}
+      {/* A requested graph owns its viewport; closing it leaves the reader and dock intact. */}
+      <Dialog
+        open={graphOpen}
+        onClose={closeGraph}
+        size="viewport"
+        labelledBy="library-graph-dialog-title"
+        testId="library-graph-dialog"
+        className="flex min-h-0 flex-col p-0"
       >
-<LibraryStage
-          model={model}
-          route={agent.route}
-          agentLabel={agent.runtime?.label ?? null}
-          localModel={agent.localModel}
-          localCompile={agent.localCompile}
-          brain={agent.brain}
-          brainChoosable={agent.brainChoosable}
-          onChooseBrain={agent.chooseBrain}
-          inApp={nativeVaultRootPath !== null}
-          onAddFiles={() => {
-            keepShelf();
-            handleAddFiles();
-          }}
-          onFindDocuments={() => {
-            keepShelf();
-            handleFindDocuments();
-          }}
-          onCompile={() => {
-            keepShelf();
-            handleCompile();
-          }}
-          onLint={
-            agent.route === "agent"
-              ? () => {
-                  keepShelf();
-                  handleLint();
-                }
-              : null
+        <div className="flex flex-none items-center gap-3 border-b border-[color:var(--color-border-soft)] px-4 py-3">
+          <h2 id="library-graph-dialog-title" className="min-w-0 flex-1 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
+            {t("graph.title")}
+          </h2>
+          <Button variant="ghost" size="sm" onClick={closeGraph}>
+            {t("stage.close")}
+          </Button>
+        </div>
+        <LibraryGraph
+          docs={manifest?.docs ?? EMPTY_DOCS}
+          wikiPages={model.wikiPages}
+          sources={model.sources}
+          activity={libraryWorkActivity}
+          visible={graphOpen}
+          selection={
+            opened === null || opened.kind === "report"
+              ? null
+              : opened.kind === "wiki"
+                ? { kind: "wiki", ref: opened.slug }
+                : { kind: "source", ref: opened.path }
           }
-          onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
-          busy={busy}
-          t={t}
+          onSelect={(next) => {
+            choose(next.kind === "wiki" ? { kind: "wiki", slug: next.ref } : { kind: "source", path: next.ref });
+            setGraphOpen(false);
+          }}
         />
-      </LibraryShelfPopover>
+      </Dialog>
 
       {/*
         The dock is a **sibling of the reader inside this row**, which is the whole of what
@@ -2141,6 +1952,7 @@ export function LibraryPage() {
           onTurnToolActivityChange={handleAcpToolActivityChange}
           onTerminalToolObservation={handleTerminalToolObservation}
           onFileAnswer={lastAnswer ? handleFileAnswer : null}
+          filingAnswer={lastAnswer !== null && filingAnswer === lastAnswer}
           noticeActions={{
             openPage: (path) => choose({ kind: "wiki", slug: path.replace(/\.md$/, "") }),
             askNext: () => {

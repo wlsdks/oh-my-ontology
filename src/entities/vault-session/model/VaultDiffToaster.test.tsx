@@ -193,6 +193,34 @@ describe('VaultDiffToaster', () => {
     expect(toastMocks.show).toHaveBeenCalledWith('추가 — d', 'info');
   });
 
+  it('자체 기록은 한 번만 소비하고, 같은 slug의 뒤 외부 편집과 다른 추가는 남긴다', () => {
+    let suppressOwn = false;
+    const consumeSelfWrittenSlugs = () => {
+      const consumed = suppressOwn ? new Set(['wiki/answer']) : new Set<string>();
+      suppressOwn = false;
+      return consumed;
+    };
+    suppressOwn = true;
+    localVaultMocks.useLocalVault.mockReturnValue({
+      status: 'loaded', manifest: manifestWith([{ slug: 'seed', mtime: 1 }]), consumeSelfWrittenSlugs,
+    });
+    const { rerender } = render(<VaultDiffToaster />);
+
+    localVaultMocks.useLocalVault.mockReturnValue({
+      status: 'loaded', manifest: manifestWith([{ slug: 'seed', mtime: 1 }, { slug: 'wiki/answer', mtime: 2 }, { slug: 'external', mtime: 2 }]), consumeSelfWrittenSlugs,
+    });
+    rerender(<VaultDiffToaster />);
+    expect(toastMocks.show).toHaveBeenCalledTimes(1);
+    expect(toastMocks.show).toHaveBeenLastCalledWith('추가 — external', 'info');
+
+    localVaultMocks.useLocalVault.mockReturnValue({
+      status: 'loaded', manifest: manifestWith([{ slug: 'seed', mtime: 1 }, { slug: 'wiki/answer', mtime: 3 }, { slug: 'external', mtime: 2 }]), consumeSelfWrittenSlugs,
+    });
+    rerender(<VaultDiffToaster />);
+    expect(toastMocks.show).toHaveBeenCalledTimes(2);
+    expect(toastMocks.show).toHaveBeenLastCalledWith('편집 — answer', 'success');
+  });
+
   /**
    * **A notification has to carry information** (owner instruction, 2026-08-01). What the owner
    * caught on screen was `✓ Edited: capabilities/payment-authorization` — `capabilities/` is a

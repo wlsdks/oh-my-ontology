@@ -39,6 +39,8 @@ interface HarnessWindow extends Window {
     emitWait(): void;
     emitWrite(): void;
     finish(): void;
+    answer(text: string): void;
+    mutateSource(path: string, text: string): void;
     snapshot(): LibraryWorkHarnessSnapshot;
   };
 }
@@ -59,6 +61,8 @@ export interface LibraryWorkHarness {
   wait(page: Page): Promise<void>;
   write(page: Page): Promise<void>;
   finish(page: Page): Promise<void>;
+  answer(page: Page, text: string): Promise<void>;
+  mutateSource(page: Page, path: string, text: string): Promise<void>;
 }
 
 /**
@@ -68,7 +72,7 @@ export interface LibraryWorkHarness {
  */
 export async function installLibraryWorkHarness(
   page: Page,
-  options: { scenario?: LibraryWorkScenario } = {},
+  options: { scenario?: LibraryWorkScenario; files?: Record<string, string> } = {},
 ): Promise<LibraryWorkHarness> {
   const scenario = options.scenario ?? "successful-write";
   await page.addInitScript(
@@ -151,6 +155,13 @@ export async function installLibraryWorkHarness(
         result(promptId, { stopReason: initialScenario === "successful-write" && Object.keys(files).includes("wiki/architecture.md") ? "end_turn" : "tool_rejected" });
         promptId = null;
       };
+      const answer = (text: string) => {
+        if (promptId === null) return;
+        phase = "finished";
+        update({ sessionUpdate: "agent_message_chunk", content: { type: "text", text } });
+        result(promptId, { stopReason: "end_turn" });
+        promptId = null;
+      };
       const handleClientMessage = (message: JsonRecord) => {
         const method = typeof message.method === "string" ? message.method : undefined;
         const id = jsonRpcId(message.id);
@@ -183,19 +194,36 @@ export async function installLibraryWorkHarness(
         if (command === "pick_vault_directory") return Promise.resolve(vaultRoot);
         if (command === "vault_path_exists") { const path = relative(args.relativePath); return Promise.resolve(args.kind === "directory" ? path === "" || [...directories].some((directory) => directory === path) || Object.keys(files).some((file) => file.startsWith(`${path}/`)) : path in files); }
         if (command === "vault_fingerprint") return Promise.resolve(fingerprint());
-        if (command === "hash_vault_files") return Promise.resolve([]);
+        if (command === "hash_vault_files") return Promise.all((args.relativePaths as string[]).map(async (relativePath) => {
+          const text = files[relativePath];
+          if (text === undefined) return { relativePath, sha256: null };
+          const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+          return { relativePath, sha256: [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("") };
+        }));
         if (command === "list_vault_directory") { const directory = relative(args.relativePath); const prefix = directory ? `${directory}/` : ""; const entries = new Map<string, "file" | "directory">(); for (const file of Object.keys(files)) { if (!file.startsWith(prefix)) continue; const rest = file.slice(prefix.length); if (!rest) continue; const [name, child] = rest.split("/"); entries.set(name, child ? "directory" : "file"); } return Promise.resolve([...entries].map(([name, kind]) => ({ name, kind }))); }
         if (command === "read_vault_text_file") { const path = relative(args.relativePath); if (!(path in files)) return Promise.reject(new Error(`missing ${path}`)); return Promise.resolve({ text: files[path], lastModified: mtimes[path] ?? nextMtime }); }
         if (command === "read_vault_binary_file") { const path = relative(args.relativePath); if (!(path in files)) return Promise.reject(new Error(`missing ${path}`)); return Promise.resolve({ bytes: [...new TextEncoder().encode(files[path])], lastModified: mtimes[path] ?? nextMtime }); }
+        if (command === "create_vault_text_file") {
+          const path = relative(args.relativePath);
+          if (Object.prototype.hasOwnProperty.call(files, path)) return Promise.resolve(false);
+          write(path, String(args.content ?? ""));
+          return Promise.resolve(true);
+        }
         if (command === "write_vault_text_file") { write(relative(args.relativePath), String(args.content ?? "")); return Promise.resolve(null); }
+        if (command === "remove_vault_entry") {
+          const path = relative(args.relativePath);
+          delete files[path]; delete mtimes[path]; nextMtime += 1;
+          emit("vault-changed", {});
+          return Promise.resolve(null);
+        }
         return Promise.reject(new Error(`no stub for ${command}`));
       };
       fixtureWindow.isTauri = true;
       fixtureWindow.__TAURI_INTERNALS__ = { transformCallback: (callback: EventCallback) => { const id = callbackId++; callbacks.set(id, callback); return id; }, invoke };
       fixtureWindow.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: (event: string, id: number) => { listeners.get(event)?.delete(id); callbacks.delete(id); } };
-      fixtureWindow.__atlasLibraryWorkHarness = { emitRead, emitWait, emitWrite, finish, snapshot: () => ({ files: { ...files }, writes: [...writes], calls: [...calls], events: [...events], scenario: initialScenario }) };
+      fixtureWindow.__atlasLibraryWorkHarness = { emitRead, emitWait, emitWrite, finish, answer, mutateSource: write, snapshot: () => ({ files: { ...files }, writes: [...writes], calls: [...calls], events: [...events], scenario: initialScenario }) };
     },
-    { initialFiles: VAULT_FILES, initialScenario: scenario, vaultRoot: VAULT_ROOT, runtime: RUNTIME, architecturePage: ARCHITECTURE_PAGE },
+    { initialFiles: options.files ?? VAULT_FILES, initialScenario: scenario, vaultRoot: VAULT_ROOT, runtime: RUNTIME, architecturePage: ARCHITECTURE_PAGE },
   );
   const call = (currentPage: Page, method: "emitRead" | "emitWait" | "emitWrite" | "finish") => currentPage.evaluate((name) => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.[name](), method);
   return { snapshot: (currentPage) => currentPage.evaluate(() => {
@@ -213,7 +241,10 @@ export async function installLibraryWorkHarness(
       return entry.method === "response" && decision?.optionId === "allow";
     }));
     await call(currentPage, "emitWrite");
-  }, finish: (currentPage) => call(currentPage, "finish") };
+  }, finish: (currentPage) => call(currentPage, "finish"),
+  answer: (currentPage, text) => currentPage.evaluate((text) => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.answer(text), text),
+  mutateSource: (currentPage, path, text) => currentPage.evaluate(({ path, text }) => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.mutateSource(path, text), { path, text }),
+  };
 }
 
 export async function openLibraryWorkScenario(page: Page, options: { scenario?: LibraryWorkScenario } = {}): Promise<LibraryWorkHarness> {

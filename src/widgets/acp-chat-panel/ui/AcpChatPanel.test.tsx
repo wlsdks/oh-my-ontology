@@ -1503,6 +1503,7 @@ describe('대화 패널 — 못 하는 일은 정직하게', () => {
       fireEvent.click(screen.getByTestId('acp-chat-send'));
       // The agent never answers, and never says anything either.
       expect(screen.queryByTestId('acp-chat-turn-silent')).toBeNull();
+      expect(screen.getByTestId('acp-answer-wait')).toBeInTheDocument();
 
       await vi.advanceTimersByTimeAsync(TURN_SILENCE_LIMIT_MS + 6_000);
       await waitFor(() =>
@@ -1510,6 +1511,7 @@ describe('대화 패널 — 못 하는 일은 정직하게', () => {
       );
       // The way out has to be on screen next to the words that name the problem.
       expect(screen.getByTestId('acp-chat-stop')).toBeInTheDocument();
+      expect(screen.queryByTestId('acp-answer-wait')).toBeNull();
     } finally {
       vi.useRealTimers();
     }
@@ -2109,6 +2111,7 @@ describe('첫 내려받기 — 「켜는 중」만으로는 부족하다 (2026-0
     );
     const waiting = await screen.findByTestId('acp-starting');
     expect(waiting.textContent).toContain('starting.title');
+    expect(screen.getAllByTestId('brand-waiting-mark')).toHaveLength(1);
     // No download, so nothing claims one — and no invented megabytes.
     expect(waiting.textContent).not.toContain('firstRun.title');
     expect(screen.queryByTestId('acp-first-run-progress')).toBeNull();
@@ -2116,9 +2119,44 @@ describe('첫 내려받기 — 「켜는 중」만으로는 부족하다 (2026-0
     expect(screen.queryByTestId('acp-chat-empty')).toBeNull();
   });
 
+  it('shows one current-turn waiting character until answer text arrives, yielding to permission and cancellation', async () => {
+    await bootSession();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'First question' } });
+    fireEvent.click(screen.getByTestId('acp-chat-send'));
+    await screen.findByTestId('acp-answer-wait');
+    expect(screen.getAllByTestId('brand-waiting-mark')).toHaveLength(1);
+
+    act(() => emit({ jsonrpc: '2.0', method: 'session/update', params: { update: { sessionUpdate: 'agent_message_chunk', content: { text: ' ' } } } }));
+    expect(screen.getByTestId('acp-answer-wait')).toBeInTheDocument();
+    act(() => emit({ jsonrpc: '2.0', method: 'session/update', params: { update: { sessionUpdate: 'agent_message_chunk', content: { text: 'Here is the answer.' } } } }));
+    await waitFor(() => expect(screen.queryByTestId('acp-answer-wait')).toBeNull());
+    act(() => replyTo('session/prompt', { stopReason: 'end_turn' }));
+    await waitFor(() => expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready'));
+
+    // A previous answer does not hide the next turn's wait.
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Second question' } });
+    fireEvent.click(screen.getByTestId('acp-chat-send'));
+    await screen.findByTestId('acp-answer-wait');
+    act(() => emit(permissionRequest('/somewhere/else.md')));
+    await screen.findByTestId('acp-permission-card');
+    expect(screen.queryByTestId('acp-answer-wait')).toBeNull();
+    fireEvent.click(screen.getByTestId('acp-permission-reject'));
+    await screen.findByTestId('acp-answer-wait');
+    fireEvent.click(screen.getByTestId('acp-chat-stop'));
+    await waitFor(() => expect(screen.queryByTestId('acp-answer-wait')).toBeNull());
+    // The adapter has not acknowledged Stop; the UI does not fabricate a terminal state.
+    expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'thinking');
+    act(() => replyTo('session/prompt', { stopReason: 'cancelled' }));
+    await waitFor(() => expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready'));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Third question' } });
+    fireEvent.click(screen.getByTestId('acp-chat-send'));
+    await screen.findByTestId('acp-answer-wait');
+  });
+
   it('준비되면 기다림 표시는 사라진다', async () => {
     await bootSession();
     expect(screen.queryByTestId('acp-starting')).toBeNull();
+    expect(screen.queryByTestId('brand-waiting-mark')).toBeNull();
   });
 
   /*
@@ -2223,7 +2261,8 @@ describe('빈 대화의 추천 — 이 폴더에 대한 것만 그린다', () =>
     );
 
     expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'starting');
-    expect(screen.getByTestId('acp-connection-spinner')).toBeTruthy();
+    // A suspended session has not begun work; its status word must not start a dance.
+    expect(screen.queryByTestId('brand-waiting-mark')).toBeNull();
     expect(screen.getByTestId('acp-chat-empty')).toBeTruthy();
     expect(screen.getByTestId('acp-chat-suggestion-explain')).toBeTruthy();
     expect(screen.getByTestId('acp-chat-composer')).toBeTruthy();

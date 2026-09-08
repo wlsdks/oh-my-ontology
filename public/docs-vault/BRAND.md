@@ -78,13 +78,25 @@ Planning text alone cannot claim READ; an exact read-like tool must be present.
 SUCCESS requires a timestamped terminal projection. Visual state,
 `data-mascot-state`, and localized `role=status` text share that source.
 
-Motion is finite. There is no idle loop, random map traversal, inferred work,
+This verified work sequence is finite. There is no idle loop, random map traversal, inferred work,
 particle cloud, glow, or separate mascot event bus. Under reduced motion, travel
 and frame stepping stop while the static pose and status text preserve the fact.
 At desktop widths the 64×64 stage stays in a measured clear lane at the map's
 right edge. Six poses share five 120ms frame/travel transitions; WALK's terminal
 frame equals READ's first frame, and READ's terminal frame equals SUCCESS's first,
 so a truthful state change does not teleport the character.
+
+Pending operations use a separate `BrandWaitingMark`: a native 64px character
+steps and hops using the first four existing WALK poses while the operation is
+actually pending. It does not claim a read, progress percentage, or success.
+The awaiting surface retains its status and cancel control. The first answer,
+Stop, permission request, error, or silence warning removes the pre-answer mark.
+Offscreen and hidden-document instances pause; reduced motion keeps one still
+pose. Route loading shares the status's existing delayed appearance. Small
+save/configuration controls use the native static 16px micro art in their
+existing glyph slots, without shrinking the 64px character. Beneath the app's
+zoomed chrome, these pending marks cancel that inherited zoom so the rasters
+stay 64px and 16px. Unzoomed loading surfaces and portals keep their native size.
 
 ## Generated Assets
 

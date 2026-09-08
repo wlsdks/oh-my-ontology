@@ -957,6 +957,8 @@
                                     window.__ontologyAtlasVerifyFixtureVaultError || "",
                                   ontologyNav: links.some((link) => link.href.includes("/ontology") || /온톨로지|Ontology/.test(link.text)),
                                   sourceVaultNav: links.some((link) => link.href.includes("/docs") || /저장소|문서함|Source Vault|Documents/.test(link.text)),
+                                  libraryNav: Boolean(document.querySelector('nav a[href*="/library"]')),
+                                  librarySurface: Boolean(document.querySelector('[data-testid="library-page"]')),
                                   agentBriefCopy: buttons.some((text) => /브리핑 복사|Copy brief/.test(text)) && /agent_brief/.test(bodyText),
                                   insightsMaintenanceBoard: Boolean(insightsMaintenanceBoard),
                                   insightsQuestionModel:

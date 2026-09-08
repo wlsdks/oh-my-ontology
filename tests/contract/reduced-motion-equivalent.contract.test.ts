@@ -41,6 +41,8 @@ const CSS = readFileSync(path.join(process.cwd(), 'app/globals.css'), 'utf8');
  * **red**.
  */
 const INTENTIONALLY_STILL: Readonly<Record<string, string>> = {
+  "atlas-waiting-mark":
+    "The native character remains visible beside the parent's unchanged status and Stop action; reduced motion removes the decorative frame steps and hops.",
   "atlas-mascot-presence--walking":
     "The travel axis is decorative. Reduced motion places the verified state immediately; the role=status text still carries the same fact.",
   "atlas-mascot-sprite":
@@ -173,6 +175,14 @@ describe('reduced-motion 동등물 계약', () => {
   });
 
   const requiresEquivalent = animatedClasses.filter((cls) => !(cls in INTENTIONALLY_STILL));
+
+  it('the waiting character keeps its first native pose without animation or travel under reduced motion', () => {
+    const waiting = allRules.filter((rule) => rule.selector.trim() === '.atlas-waiting-mark');
+    expect(waiting).toHaveLength(1);
+    expect(waiting[0].body).toMatch(/animation:\s*none\s*!important\s*;/);
+    expect(waiting[0].body).toMatch(/background-position:\s*0 0\s*!important\s*;/);
+    expect(waiting[0].body).toMatch(/transform:\s*none\s*!important\s*;/);
+  });
 
   it('후보를 CSS 에서 실제로 뽑아냈다 — 빈손으로 통과하지 않는다', () => {
     // Measured at 27 after the Studio-only motion was retired. A drop means the scanner has gone blind.

@@ -35,6 +35,9 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || undefined;
 
 const nextConfig: NextConfig = {
   allowedDevOrigins,
+  // The TypeScript 6 compatibility package exposes tsc6, not bin/tsc.
+  // Keep build-time type checking on its supported programmatic API.
+  experimental: { useTypeScriptCli: false },
   env: { NEXT_PUBLIC_RELEASE_VERSION: releaseVersion },
   output: 'export',
   basePath,

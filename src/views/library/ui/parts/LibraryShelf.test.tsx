@@ -85,6 +85,13 @@ afterEach(() => {
 });
 
 describe("the wiki list at rest is a shelf, and every spine carries its freshness", () => {
+  it("shows the source state in the horizontal row, without asking people to hover a vertical title", () => {
+    mount(<Harness />);
+
+    expect(screen.getByTestId("library-wiki-wiki/budget")).toHaveTextContent("Budget review");
+    expect(screen.getByText("Source review needed")).toBeInTheDocument();
+  });
+
   it("draws one spine per page, each with the state the folder derived", () => {
     mount(<Harness />);
     expect(screen.getByTestId("library-wiki-shelf")).toBeInTheDocument();
@@ -106,16 +113,13 @@ describe("the wiki list at rest is a shelf, and every spine carries its freshnes
     ).not.toBeNull();
   });
 
-  it("varies width with the page's length and never with its height", () => {
+  it("uses one readable row shape regardless of page length", () => {
     mount(<Harness />);
-    expect(screen.getByTestId("library-wiki-wiki/plan")).toHaveAttribute("data-width-step", "xs");
-    expect(screen.getByTestId("library-wiki-wiki/budget")).toHaveAttribute("data-width-step", "md");
-    // Unread: the middle-low step, never the shortest — that would be a fact nothing established.
-    expect(screen.getByTestId("library-wiki-wiki/handover")).toHaveAttribute("data-width-step", "sm");
     for (const slug of ["plan", "budget", "handover"]) {
-      expect(screen.getByTestId(`library-wiki-wiki/${slug}`).style.height).toBe(
-        "var(--library-spine-height)",
-      );
+      const row = screen.getByTestId(`library-wiki-wiki/${slug}`);
+      expect(row.textContent).not.toBeNull();
+      expect(row.querySelector("[data-spine-title]")).toBeNull();
+      expect(row.className).not.toContain("writing-mode");
     }
   });
 
@@ -123,7 +127,7 @@ describe("the wiki list at rest is a shelf, and every spine carries its freshnes
     mount(<Harness />);
     const spine = screen.getByTestId("library-wiki-wiki/budget");
     expect(spine.getAttribute("aria-label")).toContain("Budget review");
-    expect(spine.getAttribute("aria-label")).toContain("its source changed after this page was written");
+    expect(spine.getAttribute("aria-label")).toContain("The source has changed or has not been checked against this page.");
     expect(spine.getAttribute("title")).toContain("Budget review");
   });
 

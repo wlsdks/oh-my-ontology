@@ -172,6 +172,10 @@ test.describe("A folder of pages and no nodes opens on the Library", () => {
     await expect(segment).toBeVisible({ timeout: 30_000 });
     await expect(page).toHaveURL(/\/en\/library\/?/);
     await expect(segment).toContainText("Wiki 1");
+    await expect(page.getByTestId("library-reader-landing")).toBeVisible();
+    await expect(page.getByTestId("library-stage")).toBeVisible();
+    await expect(page.getByTestId("library-graph-open")).toHaveCount(1);
+    await expect(page.getByTestId("library-graph-canvas")).toHaveCount(0);
     await page.getByTestId("library-index-segment-wiki").click();
     await expect(page.getByTestId("library-wiki")).toBeVisible();
     // The rail reads the same files: a wiki without a map has no map doors, and keeps the

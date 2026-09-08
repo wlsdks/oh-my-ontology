@@ -3876,7 +3876,7 @@
   },
   "acpChat": {
     "ariaLabel": "Conversation with {runtime}",
-    "emptyHint": "Ask anything about this folder. Whatever you are looking at on the map works too.",
+    "emptyHint": "Ask anything about this folder.",
     "composerLabel": "Write what you want done",
     "send": "Send",
     "stop": "Stop",
@@ -4605,13 +4605,18 @@
       "undoFailed": "Could not undo: the file is already gone or the folder is not writable."
     },
     "shelf": {
-      "listAria": "Wiki pages as a shelf, each spine carrying its freshness",
+      "listAria": "Wiki pages and their source versions",
       "freshness": {
-        "fresh": "up to date with the file it was written from",
-        "stale": "its source changed after this page was written",
+        "fresh": "The checked source versions have not changed.",
+        "stale": "The source has changed or has not been checked against this page.",
         "unverified": "nothing has checked this page against a file"
       },
-      "compiling": "Compile is re-reading the shelf."
+      "state": {
+        "fresh": "Checked sources unchanged",
+        "stale": "Source review needed",
+        "unverified": "Source not checked"
+      },
+      "compiling": "Compile is re-reading the sources."
     },
     "graph": {
       "title": "Graph",

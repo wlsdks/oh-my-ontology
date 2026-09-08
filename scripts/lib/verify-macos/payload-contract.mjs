@@ -140,14 +140,22 @@ export function validateWebviewVerifyPayload(payload, {
       return `WebView viewport was ${width || "unknown"}x${height || "unknown"}, expected at most ${maxWebviewSize.width}x${maxWebviewSize.height}`;
     }
   }
-  if (payload.markers.ontologyNav !== true) {
-    return "WebView did not report the ontology navigation marker";
-  }
-  if (payload.markers.sourceVaultNav !== true) {
-    return "WebView did not report the source vault navigation marker";
-  }
   const webviewUrl = new URL(payload.href);
   const webviewPath = webviewUrl.pathname;
+  // A documents-only folder intentionally has no code map or Docs destination.
+  // Its Library route must instead prove both the real surface and its navigation.
+  if (/\/library\/?$/.test(webviewPath)) {
+    if (payload.markers.librarySurface !== true || payload.markers.libraryNav !== true) {
+      return "WebView did not report a rendered Library surface and navigation";
+    }
+  } else {
+    if (payload.markers.ontologyNav !== true) {
+      return "WebView did not report the ontology navigation marker";
+    }
+    if (payload.markers.sourceVaultNav !== true) {
+      return "WebView did not report the source vault navigation marker";
+    }
+  }
   // Map rebuild engine (docs/archive/TOPOLOGY-MAP-REBUILD.md) — validates the
   // map-canvas contract instead of the Sigma/skeleton one. Used as a gate
   // throughout this function.

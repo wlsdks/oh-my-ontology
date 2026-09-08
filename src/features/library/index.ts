@@ -24,7 +24,7 @@ export { FindDocumentsDialog } from "./ui/FindDocumentsDialog";
 export { buildAskBrief } from "./lib/ask-brief";
 export type { AskQuestionId } from "./lib/ask-brief";
 export { buildAnswerPage } from "./lib/answer-page";
-export { deleteWikiFile, writeWikiFile } from "./lib/write-wiki-file";
+export { createWikiFile, deleteWikiFile, writeWikiFile } from "./lib/write-wiki-file";
 export { buildHumanPage } from "./lib/human-page";
 export {
   EMPTY_LIBRARY_WORK_ACTIVITY,

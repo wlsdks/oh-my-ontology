@@ -95,7 +95,7 @@
       },
       "headings": [],
       "excerpt": "2026-07-27 update — the current architecture is a local-first, git-backed meaning layer: a folder of markdown files that records what each part of the product is, who owns it, what it depends on, and what proves it. People and AI coding agents read and write that same folder. Round 10 permanently removed every login an",
-      "wordCount": 5212,
+      "wordCount": 5305,
       "updatedAt": "2026-09-09",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -824,8 +824,8 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "The meaning, source contract, and usage rules for the pixel mascot identity. The 2026-08-28 record in DECISIONS.md owns the replacement decision; the committed PNG masters own the pixels. The pixel mascot is the primary and only shipping brand mark. It replaces the nested-hex compatibility mark in browser, PWA, Open Gr",
-      "wordCount": 975,
-      "updatedAt": "2026-08-29",
+      "wordCount": 1104,
+      "updatedAt": "2026-09-09",
       "linksOut": [
         "DECISIONS"
       ]
@@ -838,7 +838,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed, for a person who uses the product. Newest at the top. One entry per release, named by its tag; the single Unreleased entry at the top collects what has merged since the last tag, and the release cut renames it. v1.0.0",
-      "wordCount": 29927,
+      "wordCount": 29993,
       "updatedAt": "2026-09-09",
       "linksOut": []
     },
@@ -874,8 +874,8 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 120813,
-      "updatedAt": "2026-09-08",
+      "wordCount": 121337,
+      "updatedAt": "2026-09-09",
       "linksOut": [
         "wiki/…",
         "wiki/<slug>",
@@ -941,8 +941,8 @@
       },
       "headings": [],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from ontology-map has become the standard for page rollout (gateway → docs/ontology hub → projects/ins",
-      "wordCount": 44050,
-      "updatedAt": "2026-09-08",
+      "wordCount": 43402,
+      "updatedAt": "2026-09-09",
       "linksOut": [
         "design-references/DESIGN-linear",
         "ONTOLOGY-MAP-DESIGN",
@@ -982,7 +982,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 39647,
+      "wordCount": 39761,
       "updatedAt": "2026-09-09",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -1462,7 +1462,7 @@
       },
       "headings": [],
       "excerpt": "The ability for humans to read in one flow the AI agent's product name, verified current stage, work goals and targets, and next actions from the map. Only when there is a fresh heartbeat does it speak of plan/edit/verify/approval waits in present tense; if only write logs are recent, it does not infer \"in progress\" bu",
-      "wordCount": 872,
+      "wordCount": 963,
       "updatedAt": "2026-09-09",
       "linksOut": []
     },
@@ -4030,9 +4030,9 @@
         }
       },
       "headings": [],
-      "excerpt": "A local-first codebase ontology workbench that records what a codebase builds, why it is structured that way, and what a change will affect. It links product domains and capabilities to implementation evidence, dependencies, and impact in a computable Markdown graph that people and AI agents maintain together. README.m",
-      "wordCount": 808,
-      "updatedAt": "2026-09-08",
+      "excerpt": "A local-first codebase ontology workbench that records what a codebase builds, why it is structured that way, and what a change will affect. It links product domains and capabilities to implementation evidence, dependencies, and impact in a computable Markdown graph that people and AI agents maintain together. Library ",
+      "wordCount": 913,
+      "updatedAt": "2026-09-09",
       "linksOut": []
     },
     {
@@ -4117,7 +4117,7 @@
       },
       "headings": [],
       "excerpt": "This temporary register measures the 2026-09-01 Atlas product-decision system. It is not a second decision archive. Significant rationale stays in DECISIONS.md; this file keeps only the typed facts needed to decide whether the gate earns, narrows, or loses its place. Run pnpm po:pilot for the current report and pnpm po",
-      "wordCount": 2786,
+      "wordCount": 2934,
       "updatedAt": "2026-09-09",
       "linksOut": [
         "DECISIONS"
@@ -4447,7 +4447,7 @@
       },
       {
         "fromSlug": "FEATURES",
-        "context": "rites the last answer as a page under `wiki/answers/`: the question is the title and summary, every answer line with a `**[src:…]**` citation becomes a fact, the cited files become `sources:` with the hashes the Library measured, and uncited lines go",
+        "context": "rites the last answer as a page under `wiki/answers/`: the question is the title and summary, every answer line with a `**[src:…]**` citation becomes a fact, the cited files become `sources:` with `unmeasured` receipts, and uncited lines go under \"Not",
         "linkText": "src:…"
       }
     ],

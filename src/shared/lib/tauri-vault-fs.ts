@@ -458,6 +458,15 @@ export function getTauriVaultRootPath(handle: FileSystemDirectoryHandle): string
   return (handle as unknown as { rootPath?: string }).rootPath;
 }
 
+/** Complete native publication that never replaces an existing destination. */
+export async function createTauriVaultTextFile(rootPath: string, relativePath: string, content: string): Promise<boolean> {
+  const invoke = getInvoke();
+  if (!invoke) throw new Error('Exclusive file creation requires the installed app.');
+  const result = await invoke<unknown>('create_vault_text_file', { rootPath, relativePath, content });
+  if (typeof result !== 'boolean') throw new Error('The app did not confirm exclusive file creation.');
+  return result;
+}
+
 export async function openTauriVaultInFinder(rootPath: string): Promise<void> {
   const invoke = getInvoke();
   if (!invoke) {

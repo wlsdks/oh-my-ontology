@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { BrandWaitingMark } from './brand-waiting-mark';
 
 /**
  * The surface that states one fact: the screen has not arrived yet.
@@ -13,9 +14,8 @@ import { useTranslations } from 'next-intl';
  * 120ms and invisible; under CPU or network pressure it stretches into seconds, and for that
  * whole time "broken", "empty vault" and "loading" look identical.
  *
- * **What it does not do.** No spinner, no progress bar, no percentage — it does not pretend
- * to know progress it cannot measure. Exactly one fact is known and exactly one sentence is
- * written.
+ * The waiting character accompanies that sentence without claiming a read, completion,
+ * percentage or measured progress. The entire group keeps the same anti-flash delay.
  *
  * **Why it appears only after 400ms.** Most entries finish sooner, and rendering immediately
  * would flash a caption on every normal entry — worse than the problem being fixed. The
@@ -38,12 +38,13 @@ export function RouteLoadingFallback() {
       // Viewport height belongs to the shell; a page root only fills its slot.
       className="flex h-full min-h-full flex-1 items-center justify-center bg-[color:var(--color-canvas)] p-6"
     >
-      <p
+      <div
         role="status"
-        className="route-loading-in text-label text-[color:var(--color-text-quaternary)]"
+        className="route-loading-in flex flex-col items-center gap-3 text-label text-[color:var(--color-text-quaternary)]"
       >
-        {t('surfaceLoading')}
-      </p>
+        <BrandWaitingMark active initialVisibility="visible" />
+        <p>{t('surfaceLoading')}</p>
+      </div>
     </main>
   );
 }

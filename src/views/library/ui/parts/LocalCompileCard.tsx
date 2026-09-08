@@ -1,12 +1,13 @@
 "use client";
 
 import type { useTranslations } from "next-intl";
-import { AlertTriangle, FileText, Loader2 } from "lucide-react";
+import { AlertTriangle, FileText } from "lucide-react";
 
 import type { CompileCardRow, LocalCompileSession } from "@/features/vault-agent";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
+import { BrandWaitingMark } from '@/shared/ui/brand-waiting-mark';
 
 /**
  * **The card the local Compile turn ends at**, seated under step two.
@@ -39,11 +40,7 @@ export function LocalCompileCard({
         data-testid="library-local-compile-running"
         className="flex items-center gap-2 rounded-panel border border-[color:var(--color-indigo-line-a35)] bg-[color:var(--color-indigo-a08)] p-[var(--card-pad)]"
       >
-        <Loader2
-          size={ICON_SIZE.sm}
-          aria-hidden
-          className="flex-none animate-spin text-[color:var(--color-indigo-accent)] motion-reduce:animate-none"
-        />
+        <BrandWaitingMark active />
         <p className="min-w-0 flex-1 text-label leading-body text-[color:var(--color-text-secondary)] [word-break:keep-all]">
           {t("localCompile.runningWith", { model, count: session.targets.length })}{" "}
           {t("localCompile.running")}

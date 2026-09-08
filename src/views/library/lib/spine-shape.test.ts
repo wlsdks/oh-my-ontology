@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { LibraryWriteUpLink } from "@/entities/docs-vault";
 
-import { spineFreshness, spineWidthStep } from "./spine-shape";
+import { spineFreshness } from "./spine-shape";
 
 /**
  * The shelf's whole claim is that a person can read a page's freshness **before** opening
@@ -91,18 +91,5 @@ describe("a spine's freshness", () => {
         writeUpsBySource: links({}),
       }),
     ).toBe("unverified");
-  });
-});
-
-describe("a spine's width", () => {
-  it("climbs the four steps with the page's length", () => {
-    expect(spineWidthStep(400)).toBe("xs");
-    expect(spineWidthStep(2_000)).toBe("sm");
-    expect(spineWidthStep(5_000)).toBe("md");
-    expect(spineWidthStep(20_000)).toBe("lg");
-  });
-
-  it("does not draw an unread page as the shortest one on the shelf", () => {
-    expect(spineWidthStep(null)).toBe("sm");
   });
 });

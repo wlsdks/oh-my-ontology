@@ -4143,6 +4143,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-09 · Unreleased: clearer Library reading and safer answer filing",
+      "slug": "2026-09-09-unreleased-clearer-library-reading-and-safer-answer-filing"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list",
       "slug": "2026-09-09-v110-a-lit-gateway-a-library-graph-that-stays-beside-the-page-and-connectors-added-from-one-list"
     },
@@ -9376,6 +9381,16 @@
       "depth": 2,
       "text": "2026-09-06 — A folder says what it holds; the rail reads the files, and creation asks once",
       "slug": "2026-09-06-a-folder-says-what-it-holds-the-rail-reads-the-files-and-creation-asks-once"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — General knowledge belongs in Library; the ontology retains its codebase scope",
+      "slug": "2026-09-09-general-knowledge-belongs-in-library-the-ontology-retains-its-codebase-scope"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — Filing an answer does not borrow a later source hash",
+      "slug": "2026-09-09-filing-an-answer-does-not-borrow-a-later-source-hash"
     }
   ],
   "DEMO-SCENARIO": [
@@ -10027,33 +10042,8 @@
     },
     {
       "depth": 2,
-      "text": "Library shelf — a wiki page is a spine (new, 2026-09-08)",
-      "slug": "library-shelf-a-wiki-page-is-a-spine-new-2026-09-08"
-    },
-    {
-      "depth": 3,
-      "text": "The problem this shape exists for",
-      "slug": "the-problem-this-shape-exists-for"
-    },
-    {
-      "depth": 3,
-      "text": "The marks, and the fact each one carries",
-      "slug": "the-marks-and-the-fact-each-one-carries"
-    },
-    {
-      "depth": 3,
-      "text": "Values",
-      "slug": "values"
-    },
-    {
-      "depth": 3,
-      "text": "Motion",
-      "slug": "motion"
-    },
-    {
-      "depth": 3,
-      "text": "What the shelf is not",
-      "slug": "what-the-shelf-is-not"
+      "text": "Library index — readable page titles",
+      "slug": "library-index-readable-page-titles"
     },
     {
       "depth": 2,
@@ -13363,6 +13353,11 @@
       "depth": 2,
       "text": "Library work projection",
       "slug": "library-work-projection"
+    },
+    {
+      "depth": 2,
+      "text": "Pending-operation presentation",
+      "slug": "pending-operation-presentation"
     }
   ],
   "ontology/capabilities/ai-analysis-review": [

@@ -12,6 +12,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 import {
   createTauriVaultHandle,
+  createTauriVaultTextFile,
   ensureDefaultVaultParentDir,
   ensureTauriChildDirectory,
   getTauriVaultRootPath,
@@ -46,6 +47,27 @@ afterEach(() => {
 });
 
 describe('tauri vault file-system shim', () => {
+  it('uses the exclusive native command and preserves an existing-target verdict without falling back', async () => {
+    let created = true;
+    const calls = installInvoke(({ command }) => {
+      if (command !== 'create_vault_text_file') throw new Error(`unexpected command: ${command}`);
+      return created;
+    });
+    expect(await createTauriVaultTextFile('/vault', 'wiki/answer.md', 'complete')).toBe(true);
+    created = false;
+    expect(await createTauriVaultTextFile('/vault', 'wiki/answer.md', 'replacement')).toBe(false);
+    expect(calls).toEqual([
+      { command: 'create_vault_text_file', args: { rootPath: '/vault', relativePath: 'wiki/answer.md', content: 'complete' } },
+      { command: 'create_vault_text_file', args: { rootPath: '/vault', relativePath: 'wiki/answer.md', content: 'replacement' } },
+    ]);
+  });
+
+  it('fails closed when exclusive native creation is unavailable or unconfirmed', async () => {
+    await expect(createTauriVaultTextFile('/vault', 'wiki/answer.md', 'text')).rejects.toThrow('installed app');
+    installInvoke(() => undefined);
+    await expect(createTauriVaultTextFile('/vault', 'wiki/answer.md', 'text')).rejects.toThrow('did not confirm');
+  });
+
   it('detects the Tauri invoke runtime at call time', () => {
     expect(isTauriVaultRuntime()).toBe(false);
     installInvoke(() => null);

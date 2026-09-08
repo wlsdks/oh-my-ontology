@@ -5263,3 +5263,21 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: a stored preference would let a person hide a part they still have; rejected because the screen would then disagree with the folder a teammate pulls, and vault Markdown wins every such disagreement. A per-tab toggle was rejected for the same reason.
 **Falsifier**: a wiki-only folder whose first screen is the map or whose rail shows an empty Architecture tab; a shape that two teammates see differently from the same commit; a person who cannot add the other part later.
 **Owner**: jinan
+
+## 2026-09-09 — General knowledge belongs in Library; the ontology retains its codebase scope
+
+**Why**: the owner explicitly chose a general-knowledge Library with code ontology preserved, including people who have documents and no code. The existing documents-only landing, linked wiki pages, passage questions and explicit answer filing support that use; the README still excluded unrelated knowledge management and said the product was not a wiki.
+**Prior**: extends 2026-09-06 “One vault folder with a fixed inside; `atlas/` by default in a repository, and a documents-only scaffold” and “A folder of pages and no nodes opens on the Library”. Narrows the codebase-only product exclusion to ontology nodes. The 2026-09-05 three-file-kind boundary and source precedence stand; wiki pages are not automatically promoted into ontology meaning.
+**Decision**: describe Library through its current actions: retain original documents, read linked write-ups, ask about a passage, and explicitly file a cited answer for later review. These actions may be used without code nodes or alongside the codebase ontology in the same folder. Keep ontology kinds and review authority unchanged. This does not claim autonomous maintained synthesis, verified answers, superior recall, or demonstrated demand; broader synthesis needs its own implemented and measured workflow.
+**Dissent**: a broader Library invitation may imply a complete second-brain product before synthesis and later-reader handoff are demonstrated. Retain concrete capability wording and remove blanket wiki exclusions; do not market the unmeasured outcomes.
+**Falsifier**: a documents-only reader must create a code node to retain a cited page, or a Library save silently accepts ontology meaning. Revisit stronger knowledge-maintenance claims only after a source-hidden later-reader task can recover both the saved answer and its unresolved evidence.
+**Owner**: jinan
+
+## 2026-09-09 — Filing an answer does not borrow a later source hash
+
+**Why**: a retained answer saying 24 participants could be filed after its source changed to 18, with the Library's latest passive hash attached to the older answer. The resulting page appeared current and could remove an outstanding source revision despite lacking answer-bound read evidence.
+**Prior**: narrows 2026-09-07 “The Library column is an index; the check's answer is a page, the answer's filing stands beside the answer, the write setting is a setting”. The explicit File action, cited facts, uncited section, related-page links and Undo remain standing.
+**Decision**: filed answers record `unmeasured` for cited sources. Current passive file hashes are not inputs to the answer writer. Keep answer text and citations without asserting that the cited statements are supported; preserve the original sources and existing write-ups. File's success notification retains Undo, and the vault's existing self-write ledger suppresses a duplicate polling notification for that write while preserving later external changes.
+**Dissent**: even a correct just-read answer remains unverified and may keep source work queued. Accept that limitation because the current retained-answer contract carries no verified receipt binding full source bytes to this answer. A later receipt-based improvement must establish that binding rather than reuse a path or a later hash.
+**Falsifier**: filing an older answer adopts current passive hashes, clears the demonstrated outstanding revision, changes the source, or loses its explicit Undo. Revisit if the supported answer protocol supplies validated same-byte read receipts with partialness and turn identity.
+**Owner**: jinan
