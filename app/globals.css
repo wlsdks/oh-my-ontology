@@ -3740,6 +3740,14 @@ primary colors reference global monochrome/single indigo ladder (`--color-indigo
          32px while the comment claimed promotion, and abolished that token so GlobalSearch
          now reads --overlay-close-size. */
       --overlay-close-size: var(--touch-target-min);
+      /* Library spines (2026-09-08): a 26px book is under the 44px floor on a coarse pointer, and
+         `touch-hit-expand` cannot help because a 3px gap would make neighbouring hit areas
+         overlap and open the wrong book. So the spine itself widens to the floor; the four
+         steps keep their order (every step is at least the floor, longer pages stay wider). */
+      --library-spine-width-xs: max(26px, var(--touch-target-min));
+      --library-spine-width-sm: max(32px, var(--touch-target-min));
+      --library-spine-width-md: max(38px, var(--touch-target-min));
+      --library-spine-width-lg: max(46px, var(--touch-target-min));
       /*
        * (Promotion of `--docs-header-tile-size` here on 2026-07-29 became **unnecessary** on 2026-08-03
        * — document hub header tiles directly read the above `--chrome-tile-size`,

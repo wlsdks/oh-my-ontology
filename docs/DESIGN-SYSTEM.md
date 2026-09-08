@@ -1691,7 +1691,7 @@ every state (11.4 fresh, 5.9 unverified, 14.3 selected).
 | Token | Value | Derivation |
 |---|---|---|
 | `--library-spine-height` | 164px | one height for every spine; fits ~22 characters of `text-label` set vertically, which covered 5 of 6 titles whole on the measured folder |
-| `--library-spine-width-xs` | 26px | shortest page; four steps because an eye compares books without a legend and a continuous width claims a precision nobody can read |
+| `--library-spine-width-xs` | 26px (coarse pointer: `max(26px, --touch-target-min)`, and the same promotion on the three wider steps, in the `@media (pointer: coarse)` block) | shortest page; four steps because an eye compares books without a legend and a continuous width claims a precision nobody can read |
 | `--library-spine-width-sm` | 32px | also the step an **unread** page takes — never the shortest, which would be a fact nothing established |
 | `--library-spine-width-md` | 38px | |
 | `--library-spine-width-lg` | 46px | six `lg` spines plus gaps still wrap inside the 264px the column leaves |
