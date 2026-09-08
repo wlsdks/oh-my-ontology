@@ -2089,6 +2089,21 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     // out on deselect) — retained `colorEgoState` so the shrink survives the
     // deselect fade.
     if (colorEgoState === "center") effRadius *= 1 + 0.12 * Math.min(1, Math.max(0, focusRamp));
+    /*
+     * Hover-out. The press bump is 0.16·r and the ripple bump is 0.08·r, so handing a
+     * released node straight back to the ripple halved its bump in one frame — a ~1.4px
+     * hard cut on the one mark the hand had just been on, while everything around it
+     * eased (design council, 2026-09-08). The node the press left keeps the press
+     * coefficient AND its bloom and rides its own emphasis decay to 0 (the bloom used to
+     * be keyed to the live hover alone, so the re-recording after the council still
+     * stepped 25.5 → 22.0 px in one frame at hover-out). It gives both up the moment it
+     * becomes a neighbour of the NEW hover, because then it is a ripple member and 0.08
+     * is what it is.
+     */
+    const releasedPress =
+      node.id === hoverReleasedNodeId &&
+      node.id !== hoveredNodeId &&
+      !(hoveredNodeId !== null && (world.neighborMap.get(hoveredNodeId) ?? EMPTY_NEIGHBOR_SET).has(node.id));
     if (!focusedNodeId) {
       if (node.id === hoveredNodeId && !reducedMotion && hoverStartedAt !== null) {
         // Press: the underdamped step from the hover's first instant — it swells past
@@ -2098,19 +2113,6 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         const press = pressResponse((now - hoverStartedAt) / 1000, { omega: tokens.pressAngFreq, zeta: tokens.pressZeta });
         effRadius += Math.max(0, press) * baseRadius * 0.16;
       } else {
-        /*
-         * Hover-out. The press bump is 0.16·r and the ripple bump is 0.08·r, so handing
-         * a released node straight back to the ripple halved its bump in one frame — a
-         * ~1.4px hard cut on the one mark the hand had just been on, while everything
-         * around it eased (design council, 2026-09-08). The node the press left keeps
-         * the press coefficient and rides its own emphasis decay to 0. It gives that up
-         * the moment it becomes a neighbour of the NEW hover, because then it is a
-         * ripple member and 0.08 is what it is.
-         */
-        const releasedPress =
-          node.id === hoverReleasedNodeId &&
-          node.id !== hoveredNodeId &&
-          !(hoveredNodeId !== null && (world.neighborMap.get(hoveredNodeId) ?? EMPTY_NEIGHBOR_SET).has(node.id));
         effRadius +=
           emphasis * (node.id === hoveredNodeId || releasedPress ? baseRadius * 0.16 : baseRadius * 0.08);
       }
@@ -2289,7 +2291,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
       const bloomRamp =
         colorEgoState === "center"
           ? egoGlowRamp
-          : !focusedNodeId && node.id === hoveredNodeId
+          : !focusedNodeId && (node.id === hoveredNodeId || releasedPress)
             ? Math.min(1, Math.max(0, emphasis))
             : 0;
       drawNodeBloom(ctx, { x: screen.x, y: screen.y, r: screenRadius }, bloomRamp, tokens);
