@@ -1549,17 +1549,23 @@ plane *n-1*'s bottom edge along a single line.
 
 | Token | Value | Role |
 |---|---|---|
-| `--architecture-plane-fill` | `rgba(255, 255, 255, 0.02)` | the layer's glass face at full depth strength |
+| `--architecture-plane-fill` | `var(--color-overlay-1)` | every layer's face, one value for the whole stack |
 | `--architecture-plane-edge` | `rgba(255, 255, 255, 0.07)` | its lit top edge, the same one-flat-line device a raised node uses |
-| `--architecture-plane-near` | `1` | the depth ramp's nearest end, applied as opacity to the whole plane |
-| `--architecture-plane-far` | `0.28` | the same ramp's deepest end |
-| `--architecture-plane-climb-halo` | `0.22` | the halo a climbing import carries at rest |
-| `--architecture-plane-climb-halo-raised` | `0.55` | the same halo once its role is chosen |
+| `--architecture-plane-climb-halo` | `0.34` | the halo a climbing import carries at rest |
+| `--architecture-plane-climb-halo-raised` | `0.7` | the same halo once its role is chosen |
+
+**There is no lightness ramp down the stack** (design council, 2026-09-08). The first build
+faded the planes by depth; measured at 1512 they rendered `rgb 13 · 12 · 11 · 10`, so every
+adjacent pair was `1.00:1` — an order no eye can read — and the same opacity took the deepest
+plane's lit edge down to `1.02:1` against the canvas, costing the bottom layers their only
+surface mark to claim the top ones were nearer. Depth is the shear (one `PLANE_STEP` per
+layer), the rank numeral and the arrows. With one fill the under-face cap is structural
+rather than gated: no ramp end exists that could pass `--color-panel`.
 
 **The fill is capped under `--color-panel`, and the cap is the point.** A role's face is `#0f1011`
 = `rgb(15 16 17)`; white at `0.02` over `--color-canvas` `#08090a` lands on `rgb(13 14 15)`.
-Measured 2026-09-08 at 1512 the ramp renders `13 · 12 · 11 · 10` against a canvas of `8`, so every
-reviewed face stays at or above the plane it stands on. Anything stronger would put the nearest
+Measured 2026-09-08 at 1512 every plane renders `13` against a canvas of `8`, so every
+reviewed face stays above the plane it stands on. Anything stronger would put the nearest
 plane over its own card — a higher surface darker than a lower one, which is the reversed-depth
 defect the Don'ts name, on the one surface whose entire subject is which layer is above which.
 
@@ -1567,9 +1573,9 @@ The lit edge may be brighter than the fill because it is a line rather than a su
 under `--architecture-node-lit-edge` (`rgb 25` against `rgb 46`). At `0.1` it was the brightest mark
 on the canvas and the planes read as four rules instead of four surfaces.
 
-Only the layer's normalised depth (`1` nearest, `0` deepest) crosses into the DOM, on
-`--architecture-plane-depth`; both ends of the ramp stay in the tokens above, so no interpolated
-colour is ever written in TypeScript.
+The layer's normalised depth (`1` nearest, `0` deepest) still crosses into the DOM as
+`data-layer-depth`, because it is a fact about the stack a reader may want. Nothing paints from
+it, and no colour is interpolated in TypeScript.
 
 **Geometry.** The step is `14px` per layer and the plane keeps `16px` of ground beyond the
 outermost face, so the stack asks for `16 + (layers − 1) × 14 + lean` on each side — 70px for four

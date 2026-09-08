@@ -1,7 +1,6 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
 
 import { listboxBottomIsHidden, listboxTopIsHidden } from '@/shared/ui/select-growth';
 
@@ -1391,11 +1390,16 @@ export function ArchitectureSketch({
             >
               {contractTrackLabel}
             </text>
+            {/* The three lane headings are one row of chrome, so they take one ink. The delta
+                heading was the only indigo word on the stage while the column under it held
+                nothing but "unknown" markers — a hue with no fact under it, and the loudest
+                label on a screen whose winner is the climbing arc (design council,
+                2026-09-08). State colour belongs to the markers, which carry it. */}
             <text
               x={PAD_X + layoutLeadRoom + contractBoxW + PAIRED_GUTTER_W / 2}
               y={padY + 14}
               textAnchor="middle"
-              className="fill-[color:var(--color-indigo-text-soft)] text-label font-[var(--font-weight-emphasis)] uppercase tracking-[var(--tracking-label)]"
+              className="fill-[color:var(--color-text-quaternary)] text-label font-[var(--font-weight-emphasis)] uppercase tracking-[var(--tracking-label)]"
             >
               {deltaTrackLabel}
             </text>
@@ -1420,14 +1424,17 @@ export function ArchitectureSketch({
           ⚠️ **The layer planes: import direction, drawn as depth** (Direction B, 2026-09-08).
           Every plane is the same parallelogram translated by one `PLANE_STEP` per layer, so the
           stack shears along one line and the reader sees a solid rather than four bands. The
-          nearest layer is the one nothing may import *into* from below; it is the lightest and it
-          overhangs the furthest, because on this ground the design system already states depth as
-          face lightness (`docs/DESIGN-SYSTEM.md`, "Depth is face lightness, not shadow"). The
-          fill is capped under `--color-panel` so a role's own face can never be darker than the
-          plane it rests on — the reversed-depth defect the Don'ts name.
+          nearest layer is the one nothing may import *into* from below, and it overhangs the
+          furthest. Its fill is capped under `--color-panel` so a role's own face can never be
+          darker than the plane it rests on — the reversed-depth defect the Don'ts name.
 
-          The ramp itself is a token pair; only the layer's normalised depth (a derived fact,
-          nearest = 1) crosses into the DOM, so no interpolated colour is written in TypeScript.
+          **Every plane takes the same fill.** The first build ramped it by depth; measured at
+          1512 the planes came out `rgb 13 · 12 · 11 · 10`, adjacent pairs at 1.00:1, so the ramp
+          asserted an order nobody could see and faded the deepest plane's lit edge to 1.02:1
+          against the canvas — the bottom of the stack lost its surface to say the top of it was
+          nearer (design council, 2026-09-08). Depth is the shear, the rank numeral and the
+          arrows. `data-layer-depth` still carries the normalised fact for a reader that wants
+          it; nothing paints from it.
         */}
         {usesLayerPlanes ? (
           <g
@@ -1455,11 +1462,6 @@ export function ArchitectureSketch({
                 <g
                   key={`plane-${box.id}`}
                   className="architecture-layer-plane architecture-role-reveal"
-                  style={
-                    {
-                      '--architecture-plane-depth': depth,
-                    } as CSSProperties
-                  }
                   data-testid={`architecture-layer-plane-${box.id}`}
                   data-layer-rank={box.column}
                   data-layer-depth={Math.round(depth * 100) / 100}
