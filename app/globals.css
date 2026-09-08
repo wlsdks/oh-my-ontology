@@ -1382,8 +1382,8 @@
   --architecture-plane-far: 0.28;
   /* A violated import climbs the stack. The halo says so at rest and doubles when its role is
      chosen; both ends are tokens so the raise can never become a one-off brightness. */
-  --architecture-plane-climb-halo: 0.22;
-  --architecture-plane-climb-halo-raised: 0.55;
+  --architecture-plane-climb-halo: 0.34;
+  --architecture-plane-climb-halo-raised: 0.7;
 }
 
 /*
