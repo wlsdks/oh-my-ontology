@@ -19,6 +19,7 @@ import { SegmentedControl } from '@/shared/ui/segmented-control';
 import { Input } from '@/shared/ui/input';
 import { controlClass } from '@/shared/ui/control-class';
 import { cn } from '@/shared/lib/cn';
+import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
 import {
   connectorProblems,
@@ -251,6 +252,7 @@ export function AddConnectorDialog({
   testIdPrefix: string;
 }) {
   const t = useTranslations('connectors');
+  const reducedMotion = usePrefersReducedMotion();
   const [query, setQuery] = useState('');
   const [failure, setFailure] = useState<AddFailureReason | null>(null);
   const [prefill, setPrefill] = useState<CustomPrefill>(EMPTY_PREFILL);
@@ -322,9 +324,9 @@ export function AddConnectorDialog({
     const node = customRef.current;
     // jsdom has no `scrollIntoView`; the form is still unfolded, which is the contract.
     if (node && typeof node.scrollIntoView === 'function') {
-      node.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      node.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
     }
-  }, [customOpen, prefillTick]);
+  }, [customOpen, prefillTick, reducedMotion]);
 
   const attempt = useCallback(
     async (write: () => Promise<ConnectorWriteResult | null>) => {

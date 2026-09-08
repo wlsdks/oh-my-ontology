@@ -14,6 +14,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
+import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
 import { ChevronDown } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { fieldClass, fieldLabel } from "@/shared/ui/control-class";
@@ -208,6 +209,7 @@ export function ProjectForm({
   openVaultAction,
 }: Props) {
   const t = useTranslations("settings.projectForm");
+  const reducedMotion = usePrefersReducedMotion();
   // The freshness model returns a grade only; the screen chooses the words.
   const tFreshness = useTranslations("projectFreshness");
   const { categories, statuses, getCategory, getStatus, categoryLabel, statusLabel } =
@@ -478,7 +480,7 @@ export function ProjectForm({
         target.focus();
     // jsdom does not implement `scrollIntoView`. Focus is the point and scrolling is
     // secondary, so its absence is skipped silently.
-        target.scrollIntoView?.({ behavior: "smooth", block: "center" });
+        target.scrollIntoView?.({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
       }
     });
   };
@@ -1174,9 +1176,9 @@ export function ProjectForm({
     if (!node) return;
     // jsdom does not implement `scrollIntoView`. Focus is the point and scrolling is
     // secondary, so its absence is skipped silently (same discipline as `focusField`).
-    node.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    node.scrollIntoView?.({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
     node.focus();
-  }, [globalError]);
+  }, [globalError, reducedMotion]);
 
   const errorBanner =
     globalError || Object.keys(errors).length > 0 ? (

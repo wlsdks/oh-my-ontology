@@ -77,6 +77,7 @@ import {
   type LibraryIndexSegment,
 } from "@/shared/lib/appearance-preferences";
 import { cn } from "@/shared/lib/cn";
+import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
 import { RIGHT_DOCK_WIDTH_VAR } from "@/shared/lib/right-dock-reserve";
 import { getTauriVaultRootPath, revealTauriVaultFile } from "@/shared/lib/tauri-vault-fs";
 import { controlClass } from "@/shared/ui/control-class";
@@ -208,6 +209,7 @@ const GRAPH_COLUMN_RELEASE_PX = 40;
  */
 
 export function LibraryPage() {
+  const reducedMotion = usePrefersReducedMotion();
   const t = useTranslations("library");
   const locale = useLocale();
   const toast = useToast();
@@ -345,10 +347,13 @@ export function LibraryPage() {
   const reportBackToTop = useBackToTop(reportSpy.articleScrollRef, opened?.kind === "report" ? "library:report" : null);
   const handleReportHeadingNavigate = useCallback(
     (slug: string) => {
-      document.getElementById(slug)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(slug)?.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
       reportSpy.setActiveHeadingSlug(slug);
     },
-    [reportSpy],
+    [reducedMotion, reportSpy],
   );
   const outlineHeadings = useMemo(() => {
     const headings = (selectedWikiDoc?.headings ?? []).filter(
@@ -365,10 +370,13 @@ export function LibraryPage() {
   }, [selectedWikiDoc]);
   const handleHeadingNavigate = useCallback(
     (slug: string) => {
-      document.getElementById(slug)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(slug)?.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
       setActiveHeadingSlug(slug);
     },
-    [setActiveHeadingSlug],
+    [reducedMotion, setActiveHeadingSlug],
   );
 
   const vaultSlugs = useMemo(
