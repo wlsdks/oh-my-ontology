@@ -217,7 +217,13 @@ const BASELINE_HARD_CUTS = 0;
  * static browser sweep cannot open it; `SelectionAsk.test.tsx` carries its named aside,
  * its Escape path and the sent question, and the installed app carries the real press.
  */
-const BASELINE_APPEARING_SURFACES = 39;
+/*
+ * 39 → 40 (2026-09-08): the gateway's Mac download menu. A browser cannot tell which chip a
+ * Mac has, so the hero's winner opens a two-row `Surface` with `transientSurface("menu")`
+ * holding Apple Silicon and Intel. It needs no folder and no desktop runtime, so its open path
+ * is measured directly — it is an entry in `a11y-open-surfaces.spec.ts`'s `OPENERS`.
+ */
+const BASELINE_APPEARING_SURFACES = 40;
 
 const SELF = 'tests/contract/surface-motion-ratchet.contract.test.ts';
 const FIXTURES = 'tests/fixtures/surface-motion';

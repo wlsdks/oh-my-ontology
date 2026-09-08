@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — The gateway hero is a lit three.js atlas of the real vault, and its 2D engine stays as the fallback
+
+**Why**: the owner, on the rebuilt download page: *"if anything make it in three.js, not a disc, cooler and prettier"*, after rejecting an ASCII card row and, later, the typed ASCII mascot (*"this should go, not needed"*). The 2D plane could show depth only as a fog ramp; the same graph as a lit cone with real depth, halos and travelling beads reads as an object, not a diagram.
+**Prior**: 2026-07-28 "the map is the page" stands (the stage still draws the real dogfood vault and no chrome); 2026-09-03 "the hero rises inside half a second" stands (the typing echo, hover caption and view-angle handoff are unchanged). Narrows 2026-09-02's "the object is the stage behind the whole first screen" below the split: there the object is the ground under the facts strip, not behind the type.
+**Decision**: `three` (0.185.1) enters the app for the gateway hero only, loaded on demand after a WebGL probe; the 2D `HeroObject` draws the same graph while the chunk loads and wherever WebGL is missing, so the stage is never empty. The hero and the sections below it are the same real things: the map, a capture of Architecture, a capture of the Library, then the demo. No ASCII art of any kind ships. Every colour comes from a token; the mascot palette stays out of the scene.
+**Dissent**: keep the 2D engine as the only hero, because a second renderer is a second thing to maintain. Lost because the gates that guard the stage (ink under the type, the echo contract, the split widths) measure the canvas, not the engine, and they pass against both.
+**Falsifier**: a visitor without WebGL who sees an empty stage; the hero chunk on the first paint's critical path; ink under the decision block above 6% at any split width; a map screen that imports the hero scene.
+**Owner**: jinan
+
 ## 2026-09-08 — The map widget is named for what it draws: `ontology-map`, tokens `--map-*`
 
 **Why**: the owner, reading the branch: *"topology-map-v2 is a bad name; the v2 alone…"*. The suffix dated a rewrite that retired its predecessor on 2026-07 and has carried no meaning since; the product vocabulary rule (2026-08-25) already says the ontology is the thing and the map is the view of it.

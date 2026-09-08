@@ -326,19 +326,16 @@ function assertGrid(m: Awaited<ReturnType<typeof measure>>, label: string) {
       "한 절에 격자가 둘이면 눈에는 기둥이 끊겨 보인다",
   ).toBeLessThanOrEqual(2);
   /*
-   * **The agent scene shares the evidence section's grid, not the demo's stage** (2026-09-02).
-   *
-   * Until then the scene stood at the stage width and this line held it to the demo's width —
-   * "this much is the stage" said once. Measured at 1512 that left a third of the column empty
-   * beside a 768px card. The scene now sits in the same 11/20 column as the evidence map, with
-   * the three still cards stacked in the other 9/20, so the relation to keep is with the map
-   * frame: two sections, one grid. The demo stays the page's single centred stage.
+   * **The map frame is the column** (2026-09-08). Until then the map stood in an 11/20 column
+   * beside the file and the agent scene was held to that same width ("two sections, one grid",
+   * 2026-09-02). Now the map is the section's stage across the whole column and the file is a
+   * card standing on it at `lg`, so the relation to keep is with the column itself. The agent
+   * scene keeps its 11/20 beside its three cards; the demo stays the page's single centred stage.
    */
   expect(
-    stage.agentW,
-    `${label}: 에이전트 장면(${stage.agentW})과 근거 지도 프레임(${stage.mapW})의 폭이 갈렸다 — ` +
-      "두 절은 같은 11/20 격자에 서야 한다",
-  ).toBe(stage.mapW);
+    stage.mapW,
+    `${label}: 근거 지도 프레임(${stage.mapW})이 기둥(${stage.colW})을 채우지 않는다 — 지도는 이 절의 무대다`,
+  ).toBe(stage.colW);
 }
 
 test.describe("관문 다운로드의 그리드", () => {
@@ -605,18 +602,39 @@ test.describe("the decision block reads over the stage at every split width", ()
   /* 1280 and 1366 sit below the 90rem split (the plinth), 1440 is its first band, 1512 the owner's
      laptop. The council measured 8–16% lit under the type at 1280–1366 while the split opened at
      80rem; the split moved and these widths now guard it. */
+  /* Both engines draw this stage: the 2D engine is what a software renderer (this headless
+     browser) gets, and `?hero=three` forces the WebGL object a hardware-backed browser gets
+     (`HeroAtlas`). The type must stay clear of either. */
+  for (const engine of ["2d", "three"] as const) {
   for (const width of [1024, 1100, 1280, 1366, 1440, 1512]) {
-    test(`${width}px — every destination keeps its row, and the type stays clear of the ink`, async ({ page }) => {
+    test(`${width}px (${engine}) — every destination keeps its row, and the type stays clear of the ink`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await seedFirstRunSeen(page);
-      await page.goto("/en/download/", { waitUntil: "load" });
+      await page.goto(engine === "three" ? "/en/download/?hero=three" : "/en/download/", { waitUntil: "load" });
+      if (engine === "three") {
+        await page.waitForFunction(
+          () => document.querySelector('[data-testid="gateway-hero-object"]')?.getAttribute("data-hero-engine") === "three",
+        );
+      }
       await page.evaluate(() => document.fonts.ready);
       /* The echo lights the last dot with the last character (~2.5s); measure the settled stage. */
       await page.waitForTimeout(3200);
       const m = await page.evaluate(() => {
         const stage = document.querySelector('[data-testid="gateway-hero-object"]')!.getBoundingClientRect();
         const canvas = document.querySelector<HTMLCanvasElement>('[data-testid="gateway-hero-object"] canvas')!;
-        const ctx = canvas.getContext("2d")!;
+        // The hero is a WebGL canvas since 2026-09-08 (the 2D engine stays as its fallback), and a
+        // WebGL canvas has no 2D context to read; copy its last frame into one (the renderer keeps
+        // its drawing buffer so the copy is the frame just drawn).
+        const ctx =
+          canvas.getContext("2d") ??
+          (() => {
+            const copy = document.createElement("canvas");
+            copy.width = canvas.width;
+            copy.height = canvas.height;
+            const c2 = copy.getContext("2d")!;
+            c2.drawImage(canvas, 0, 0);
+            return c2;
+          })();
         const dpr = canvas.width / Math.max(1, canvas.getBoundingClientRect().width);
         const litShare = (el: Element): number => {
           const r = el.getBoundingClientRect();
@@ -660,5 +678,6 @@ test.describe("the decision block reads over the stage at every split width", ()
       expect(m.inkUnderHeadline, `ink under the headline at ${width}`).toBeLessThanOrEqual(0.03);
       expect(m.inkUnderBlock, `ink under the decision block at ${width}`).toBeLessThanOrEqual(0.06);
     });
+  }
   }
 });

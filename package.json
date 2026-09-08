@@ -237,6 +237,7 @@
     "smol-toml": "1.7.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
+    "three": "^0.185.1",
     "usehooks-ts": "^3.1.1",
     "zod": "^4.4.3"
   },
@@ -249,6 +250,7 @@
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19",
+    "@types/three": "^0.185.4",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.4",
     "axe-core": "^4.12.1",

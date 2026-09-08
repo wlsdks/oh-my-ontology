@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-08 — The gateway hero is a lit three.js atlas of the real vault, and its 2D engine stays as the fallback",
+      "slug": "2026-09-08-the-gateway-hero-is-a-lit-threejs-atlas-of-the-real-vault-and-its-2d-engine-stays-as-the-fallback"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — The map widget is named for what it draws: `ontology-map`, tokens `--map-*`",
       "slug": "2026-09-08-the-map-widget-is-named-for-what-it-draws-ontology-map-tokens---map-"
     },
@@ -9386,8 +9391,8 @@
     },
     {
       "depth": 2,
-      "text": "3. Download-page take — 44 seconds",
-      "slug": "3-download-page-take-44-seconds"
+      "text": "3. Download-page take — 55 seconds",
+      "slug": "3-download-page-take-55-seconds"
     },
     {
       "depth": 2,
