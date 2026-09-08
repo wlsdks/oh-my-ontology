@@ -107,6 +107,7 @@ import { worldToScreen } from "./topology-camera-math";
 const EDGE_CULL_MARGIN_PX = 24;
 const NODE_CULL_SLACK = 3;
 import { isSpineNode, radiusForKind, type TopologyWorld, type WorldEdge, type WorldNode } from "./topology-world";
+import { pressResponse } from "../model/mass-spring";
 
 /**
  * Dashed aura ring that tells an expanded parent apart from a collapsed one. The
@@ -232,6 +233,15 @@ const labelScreenScratch = { x: 0, y: 0 };
  * Token arguments are frame-invariant too, hence one per frame
  * (`traceTokensFrame`/`nodeShapeTokensFrame`).
  */
+/** `#rrggbb` → `rgba(r,g,b,a)` for a `CanvasGradient` stop, which cannot take a `var()`. */
+function hexWithAlpha(hex: string, alpha: number): string {
+  const h = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
+  const r = parseInt(h.slice(1, 3), 16);
+  const g = parseInt(h.slice(3, 5), 16);
+  const b = parseInt(h.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${Math.min(1, Math.max(0, alpha)).toFixed(3)})`;
+}
+
 const edgeHaloScratch = { color: "", px: 0, alpha: 0 };
 
 /** `lerpColorHex(fill, sheenTint, blend)` cache — constant per fill; invalidated wholesale when tokens change. */
@@ -526,6 +536,13 @@ export interface FrameDrawParams {
   tokens: TopologyV2Tokens;
   focusedNodeId: string | null;
   hoveredNodeId: string | null;
+  /**
+   * Press (2026-09-08, direction B): the ms clock at which the current hover began, or
+   * null. The hovered node's swell runs the underdamped step response
+   * (`model/mass-spring.ts#pressResponse`) from that instant instead of the critical
+   * emphasis ramp, so a hover reads as a press that gives. Omitted keeps the ramp.
+   */
+  hoverStartedAt?: number | null;
   /**
    * Under focus, the one neighbor whose detail-panel row the user is hovering.
    * Its node + the ego edge that connects it to the focused node get an extra
@@ -869,6 +886,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     tokens,
     focusedNodeId,
     hoveredNodeId,
+    hoverStartedAt = null,
     emphasizedNeighborId,
     hoveredEdge,
     selectedEdge,
@@ -1154,6 +1172,39 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     out.control.y = (controlY - camY) * camScale + halfH;
     return out;
   };
+  // Reach (2026-09-08, direction B "Weighted graph"): the focused node's neighbourhood sits
+  // on an indigo ground halo whose radius is the farthest 1-hop neighbour plus a pad, so
+  // hop depth is drawn as light on the ground rather than only as un-dimmed marks. Rides
+  // the same focus ramp as the dim, so it arrives with the dive and leaves with the
+  // deselect fade; under reduced motion the ramp snaps and the halo simply is. Drawn under
+  // the edges. 2D only — the 3D views carry their own depth grammar.
+  if (!domeOn && colorFocusedNodeId !== null && tokens.egoHaloAlpha > 0) {
+    const centerRamp = Math.min(1, Math.max(0, focusRampById.get(colorFocusedNodeId) ?? 0));
+    const center = world.nodeById.get(colorFocusedNodeId);
+    if (center && centerRamp > 0.001) {
+      const cx = (center.x - camX) * camScale + halfW;
+      const cy = (center.y - camY) * camScale + halfH;
+      let reach = radiusForKind(center.kind, tokens) * center.magnitudeScale * camScale;
+      for (const id of world.neighborMap.get(colorFocusedNodeId) ?? EMPTY_NEIGHBOR_SET) {
+        const n = world.nodeById.get(id);
+        if (!n) continue;
+        const d =
+          Math.hypot((n.x - center.x) * camScale, (n.y - center.y) * camScale) +
+          radiusForKind(n.kind, tokens) * n.magnitudeScale * camScale;
+        if (d > reach) reach = d;
+      }
+      const r = (reach + tokens.egoHaloPad) * (0.72 + 0.28 * centerRamp);
+      const a = tokens.egoHaloAlpha * centerRamp;
+      const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      halo.addColorStop(0, hexWithAlpha(tokens.indigo, a));
+      halo.addColorStop(0.55, hexWithAlpha(tokens.indigo, a * 0.45));
+      halo.addColorStop(1, hexWithAlpha(tokens.indigo, 0));
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
   const neighborsOfFocusedRaw = focusedNodeId ? world.neighborMap.get(focusedNodeId) ?? EMPTY_NEIGHBOR_SET : EMPTY_NEIGHBOR_SET;
   /*
    * Dome ancestry (2026-08-23, `docs/DECISIONS.md` (107)). In the dome, height IS the containment
@@ -2059,7 +2110,16 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     // deselect fade.
     if (colorEgoState === "center") effRadius *= 1 + 0.12 * Math.min(1, Math.max(0, focusRamp));
     if (!focusedNodeId) {
-      effRadius += emphasis * (node.id === hoveredNodeId ? baseRadius * 0.16 : baseRadius * 0.08);
+      if (node.id === hoveredNodeId && !reducedMotion && hoverStartedAt !== null) {
+        // Press: the underdamped step from the hover's first instant — it swells past
+        // its rest (peak ≈ 1.31× at ζ 0.35) and settles, a press that gives. Hover-out
+        // hands the node back to the emphasis decay, which starts at the same rest
+        // value, so the two curves meet without a step.
+        const press = pressResponse((now - hoverStartedAt) / 1000, { omega: tokens.pressAngFreq, zeta: tokens.pressZeta });
+        effRadius += Math.max(0, press) * baseRadius * 0.16;
+      } else {
+        effRadius += emphasis * (node.id === hoveredNodeId ? baseRadius * 0.16 : baseRadius * 0.08);
+      }
     } else if (isEmphasizedNeighbor) {
       effRadius += emphasis * baseRadius * 0.12;
     }

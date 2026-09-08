@@ -3288,6 +3288,18 @@
     --topology-v2-drag-tug-2hop: 0.15;
     /* Tug influence radius (world units). Hop count alone cannot determine "closeness" — in a hub-spoke vault all nodes are within 2 hops, so hop rules alone caused the entire map to move together. Clusters of nodes enclosing the layout ring (domain 250 + competency 145 ≈ 395) retain elasticity, while those outside stop exactly at 0. */
     --topology-v2-drag-tug-radius: 600;
+    /* Mass · drop · press (2026-09-08, direction B "Weighted graph", after the overshoot ban was lifted). A node's mass is its degree on a smoothstep up to `-heavy-degree`; a light node's release spring is critical (`-light-angfreq`, ζ=1, snaps), a heavy one is underdamped (`-heavy-angfreq` / `-heavy-zeta`: one overshoot under a radius step, ~450 ms to sit). Every `*-angfreq` token rides `tests/contract/spring-stability.contract.test.ts`, whose proven bound at the 50 ms frame clamp is 16, so mass lives in ζ rather than ω. A released node carries the hand's velocity past the drop point, capped to `-drop-max-px` world units (`model/mass-spring.ts`). */
+    --topology-v2-mass-heavy-degree: 12;
+    --topology-v2-mass-light-angfreq: 16;
+    --topology-v2-mass-heavy-angfreq: 16;
+    --topology-v2-mass-heavy-zeta: 0.55;
+    --topology-v2-mass-drop-max-px: 14;
+    /* Reach — the ego halo under a focused node reaches to its farthest 1-hop neighbour plus this pad (screen px), at this alpha of the indigo, on the focus ramp. The halo's size is the neighbourhood's size: hop depth drawn as ground light. */
+    --topology-v2-ego-halo-alpha: 0.16;
+    --topology-v2-ego-halo-pad: 28;
+    /* Press — the hovered node swells on an underdamped unit step (peak ≈ 1.31 of the rest swell at ζ=0.35, measured on the sample vault: rest 28.1 px, peak 34.7, settled 34.2) instead of the critical hover ramp, so a hover reads as a press that gives. Reduced motion keeps the ramp. */
+    --topology-v2-press-angfreq: 16;
+    --topology-v2-press-zeta: 0.35;
 
     /* 2.5 Safe area (fixed chrome inset — px, consumed as numbers by canvas 2D)
 Left ReaderLens analysis panel + right popover rail + top utility lane +

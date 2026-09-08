@@ -25,6 +25,7 @@ import type { CameraAxes, CameraTarget } from "../engine/camera";
 import { MAX_FRAME_DELTA_SECONDS } from "../engine/spring";
 import { CAMERA_TRANSITION_MIN_MS, cameraTransitionDurationMs, easeCameraKeyframe, easeInOutCubic, type CameraKeyframe, type CameraTween } from "../model/camera-easing";
 import { stepTugAxis, tugFactorForHop, tugFalloffForDistance } from "../interaction/drag-tug";
+import { clampDropVelocity, massForDegree, releaseSpringForMass, springAtRest, stepDampedSpring } from "../model/mass-spring";
 import { isCameraUnsettled, isCanvasActive, isDomeSpinAnimating, isEgoTailAnimating, shouldSkipFrame } from "../model/idle-gate";
 import { ambientSleepFactor, isAmbientAsleep } from "../model/ambient-sleep";
 import { NAVIGATION_INTENT_EVENT, NAVIGATION_YIELD_MS } from "@/shared/lib/navigation-intent";
@@ -719,8 +720,22 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
   const dragAffectedSetRef = useRef<{ draggedId: string; oneHop: ReadonlySet<string>; twoHop: ReadonlySet<string> } | null>(null);
   /** The dragged node's world position at grab time, for this drag's total displacement Δ. */
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
-  /** Each tug-affected neighbour's current eased offset (world units), added on top of its natural position. */
-  const dragTugOffsetsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+  /**
+   * Each tug-affected neighbour's current offset (world units) plus its velocity, added on
+   * top of its natural position. While the drag is live the offset lags on the exponential
+   * (`stepTugAxis`); after release it is a damped spring whose ζ and ω come from the node's
+   * mass (`model/mass-spring.ts`, 2026-09-08), so a hub rings once and a leaf snaps. The
+   * dragged node's own entry is its **drop**: seeded with the hand's velocity on release.
+   */
+  const dragTugOffsetsRef = useRef<Map<string, { x: number; y: number; vx: number; vy: number }>>(new Map());
+  /** The dragged node's smoothed world velocity while pinned — what its drop carries on release. */
+  const dragVelRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  /** The dragged node's position last frame, for the velocity above. */
+  const dragPrevPosRef = useRef<{ x: number; y: number } | null>(null);
+  /** True once this release's drop has been seeded, so it is seeded exactly once. */
+  const dropSeededRef = useRef(false);
+  /** When the current hover began (ms), for the press response in the draw. */
+  const hoverStartRef = useRef<{ id: string | null; at: number }>({ id: null, at: 0 });
   /**
    * Coordinate snapshot from the **start** of a sim frame (in node-array
    * order). Comparing against it at the end of the frame yields the nodes that
@@ -3918,6 +3933,38 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
           const dragStart = dragStartPosRef.current;
           const factors = { oneHop: tokens.dragTug1Hop, twoHop: tokens.dragTug2Hop };
           const tugIds = new Set<string>([...affected.oneHop, ...affected.twoHop]);
+          // Mass (2026-09-08, direction B): a node's release spring comes from its degree.
+          const massTokens = {
+            heavyDegree: tokens.massHeavyDegree,
+            lightAngFreq: tokens.massLightAngFreq,
+            heavyAngFreq: tokens.massHeavyAngFreq,
+            heavyZeta: tokens.massHeavyZeta,
+          };
+          const springFor = (id: string) =>
+            releaseSpringForMass(massForDegree(world.neighborMap.get(id)?.size ?? 0, massTokens.heavyDegree), massTokens);
+          if (pinned && draggedNode) {
+            // Remember the hand's velocity (world units/s, lightly smoothed) so the drop
+            // can carry it. Reset the drop latch: every release seeds once.
+            const prev = dragPrevPosRef.current;
+            if (prev && dt > 0) {
+              const vx = (draggedNode.x - prev.x) / dt;
+              const vy = (draggedNode.y - prev.y) / dt;
+              dragVelRef.current = { x: dragVelRef.current.x * 0.5 + vx * 0.5, y: dragVelRef.current.y * 0.5 + vy * 0.5 };
+            }
+            dragPrevPosRef.current = { x: draggedNode.x, y: draggedNode.y };
+            dropSeededRef.current = false;
+          } else if (draggedNode && !dropSeededRef.current) {
+            // Drop: the released node keeps going a little past the drop point on its
+            // mass spring, capped to one radius step. Reduced motion: it stops where the
+            // hand left it.
+            dropSeededRef.current = true;
+            if (!reducedMotionRef.current) {
+              const v = clampDropVelocity(dragVelRef.current.x, dragVelRef.current.y, springFor(affected.draggedId), tokens.massDropMaxPx);
+              dragTugOffsetsRef.current.set(affected.draggedId, { x: 0, y: 0, vx: v.vx, vy: v.vy });
+            }
+            dragVelRef.current = { x: 0, y: 0 };
+            dragPrevPosRef.current = null;
+          }
           for (const id of tugIds) {
             const hop = affected.oneHop.has(id) ? 1 : 2;
             const tugged = world.nodeById.get(id);
@@ -3938,19 +3985,44 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
               targetX = (draggedNode.x - dragStart.x) * factor;
               targetY = (draggedNode.y - dragStart.y) * factor;
             }
-            const prevOffset = dragTugOffsetsRef.current.get(id) ?? { x: 0, y: 0 };
-            // Under reduced motion the neighbor offset tracks the pointer
-            // 1:1 (user-driven position, no animated lag/catch-up easing).
-            const nextOffset = reducedMotionRef.current
-              ? { x: targetX, y: targetY }
-              : {
-                  x: stepTugAxis(prevOffset.x, targetX, dt, DRAG_TUG_EASE_TAU),
-                  y: stepTugAxis(prevOffset.y, targetY, dt, DRAG_TUG_EASE_TAU),
-                };
+            const prevOffset = dragTugOffsetsRef.current.get(id) ?? { x: 0, y: 0, vx: 0, vy: 0 };
+            let nextOffset: { x: number; y: number; vx: number; vy: number };
+            if (reducedMotionRef.current) {
+              // Under reduced motion the neighbor offset tracks the pointer
+              // 1:1 (user-driven position, no animated lag/catch-up easing).
+              nextOffset = { x: targetX, y: targetY, vx: 0, vy: 0 };
+            } else if (pinned) {
+              // Live drag: the exponential lag as before. Velocity is kept by finite
+              // difference so the release spring starts continuous with the lag.
+              const x = stepTugAxis(prevOffset.x, targetX, dt, DRAG_TUG_EASE_TAU);
+              const y = stepTugAxis(prevOffset.y, targetY, dt, DRAG_TUG_EASE_TAU);
+              nextOffset = { x, y, vx: dt > 0 ? (x - prevOffset.x) / dt : 0, vy: dt > 0 ? (y - prevOffset.y) / dt : 0 };
+            } else {
+              // Release: a damped spring home, ζ and ω by this neighbour's own mass.
+              const spring = springFor(id);
+              const sx = stepDampedSpring(prevOffset.x, prevOffset.vx, 0, dt, spring);
+              const sy = stepDampedSpring(prevOffset.y, prevOffset.vy, 0, dt, spring);
+              nextOffset = { x: sx.value, y: sy.value, vx: sx.velocity, vy: sy.velocity };
+            }
             dragTugOffsetsRef.current.set(id, nextOffset);
             if (tugged) {
               tugged.x += nextOffset.x;
               tugged.y += nextOffset.y;
+            }
+          }
+          // The drop itself: step the released node's spring and add its excursion on
+          // top of the sim's position, until it is at rest.
+          const drop = !pinned && draggedNode ? dragTugOffsetsRef.current.get(affected.draggedId) : undefined;
+          if (drop && draggedNode) {
+            const spring = springFor(affected.draggedId);
+            const sx = stepDampedSpring(drop.x, drop.vx, 0, dt, spring);
+            const sy = stepDampedSpring(drop.y, drop.vy, 0, dt, spring);
+            if (springAtRest(sx.value, sx.velocity, 0) && springAtRest(sy.value, sy.velocity, 0)) {
+              dragTugOffsetsRef.current.delete(affected.draggedId);
+            } else {
+              dragTugOffsetsRef.current.set(affected.draggedId, { x: sx.value, y: sy.value, vx: sx.velocity, vy: sy.velocity });
+              draggedNode.x += sx.value;
+              draggedNode.y += sy.value;
             }
           }
         }
@@ -4035,6 +4107,8 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
           // drop any residual (by-now-decayed-near-0) tug offsets.
           dragAffectedSetRef.current = null;
           dragTugOffsetsRef.current.clear();
+          dropSeededRef.current = false;
+          dragPrevPosRef.current = null;
           sepDisplacedIdsRef.current.clear();
           // During a drag the bbox only ever grew, because it feeds the pan
           // clamp and erring generous is the safe direction. This one frame,
@@ -5135,6 +5209,12 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         tokens,
         focusedNodeId,
         hoveredNodeId,
+        // Press (2026-09-08): when this hover began, so the draw can run the
+        // underdamped step response from that instant.
+        hoverStartedAt: (() => {
+          if (hoverStartRef.current.id !== hoveredNodeId) hoverStartRef.current = { id: hoveredNodeId, at: now };
+          return hoveredNodeId === null ? null : hoverStartRef.current.at;
+        })(),
         emphasizedNeighborId: panelEmphasisNodeId,
         hoveredEdge: hoveredEdgeRef.current,
         selectedEdge: selectedEdgeRef.current,

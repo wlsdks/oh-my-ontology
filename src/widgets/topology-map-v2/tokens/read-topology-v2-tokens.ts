@@ -229,6 +229,24 @@ export interface TopologyV2Tokens {
   dragTug2Hop: number;
   /** `--topology-v2-drag-tug-radius` — world-space radius past which drag tug is exactly 0 (`interaction/drag-tug.ts#tugFalloffForDistance`). */
   dragTugRadius: number;
+  /** `--topology-v2-mass-heavy-degree` — degree at which a node is fully heavy (`model/mass-spring.ts`). */
+  massHeavyDegree: number;
+  /** `--topology-v2-mass-light-angfreq` — release spring ω for a weightless node (ζ=1). */
+  massLightAngFreq: number;
+  /** `--topology-v2-mass-heavy-angfreq` — release spring ω for a fully heavy node. */
+  massHeavyAngFreq: number;
+  /** `--topology-v2-mass-heavy-zeta` — release spring ζ for a fully heavy node (below 1: one overshoot). */
+  massHeavyZeta: number;
+  /** `--topology-v2-mass-drop-max-px` — the farthest a released node may carry past its drop point (world units). */
+  massDropMaxPx: number;
+  /** `--topology-v2-ego-halo-alpha` — alpha of the indigo ground halo under a focused node's neighbourhood. */
+  egoHaloAlpha: number;
+  /** `--topology-v2-ego-halo-pad` — screen px the ego halo reaches past the farthest 1-hop neighbour. */
+  egoHaloPad: number;
+  /** `--topology-v2-press-angfreq` — ω of the hover press step response. */
+  pressAngFreq: number;
+  /** `--topology-v2-press-zeta` — ζ of the hover press (below 1 overshoots). */
+  pressZeta: number;
   /** `--topology-v2-select-pulse-scale-delta` — commit-pulse max ring growth as a fraction of the ring radius (A3: 0.15 was sub-perceptual on element nodes). */
   selectPulseScaleDelta: number;
   /** `--topology-v2-node-release-settle-ms` — drag-release settle budget in ms, replacing the refresh-rate-dependent 90-frame countdown (A4). */
@@ -383,6 +401,15 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "dragTug1Hop", cssVar: "--topology-v2-drag-tug-1hop", kind: "number" },
   { key: "dragTug2Hop", cssVar: "--topology-v2-drag-tug-2hop", kind: "number" },
   { key: "dragTugRadius", cssVar: "--topology-v2-drag-tug-radius", kind: "number" },
+  { key: "massHeavyDegree", cssVar: "--topology-v2-mass-heavy-degree", kind: "number" },
+  { key: "massLightAngFreq", cssVar: "--topology-v2-mass-light-angfreq", kind: "number" },
+  { key: "massHeavyAngFreq", cssVar: "--topology-v2-mass-heavy-angfreq", kind: "number" },
+  { key: "massHeavyZeta", cssVar: "--topology-v2-mass-heavy-zeta", kind: "number" },
+  { key: "massDropMaxPx", cssVar: "--topology-v2-mass-drop-max-px", kind: "number" },
+  { key: "egoHaloAlpha", cssVar: "--topology-v2-ego-halo-alpha", kind: "number" },
+  { key: "egoHaloPad", cssVar: "--topology-v2-ego-halo-pad", kind: "number" },
+  { key: "pressAngFreq", cssVar: "--topology-v2-press-angfreq", kind: "number" },
+  { key: "pressZeta", cssVar: "--topology-v2-press-zeta", kind: "number" },
   { key: "selectPulseScaleDelta", cssVar: "--topology-v2-select-pulse-scale-delta", kind: "number" },
   { key: "nodeReleaseSettleMs", cssVar: "--topology-v2-node-release-settle-ms", kind: "number" },
   { key: "nodeHomeSpringAngFreq", cssVar: "--topology-v2-node-home-spring-angfreq", kind: "number" },
