@@ -29,7 +29,7 @@ import {
 } from '../lib/release-state';
 import { StageMap, useStageGraph, type StageScriptedFocus } from './StageMap';
 import { GatewayFx } from './GatewayFx';
-import { HeroObject } from './HeroObject';
+import { HeroAtlas } from './HeroAtlas';
 import { AcpChatScene } from './AcpChatScene';
 import { useInViewOnce } from '../lib/use-in-view-once';
 import { useVisitorDesktopPlatform } from '../lib/visitor-platform';
@@ -428,7 +428,7 @@ function HeroSection({
       {/* The stage — the dome is the ground of the whole first screen (2026-09-02, owner: *"I
           wanted cool motion or a background effect"*). It sits behind the type at every width;
           the monument, the decision band, and the strip stack above it on `z-[1]`. */}
-      <HeroObject graph={graph} typed={typing.typed} total={typing.total} />
+      <HeroAtlas graph={graph} typed={typing.typed} total={typing.total} />
 
       {/* `pointer-events-none` on the two wrappers, `pointer-events-auto` on what they hold: the
           wrappers span the whole column, and the stage behind them takes the hand wherever the
