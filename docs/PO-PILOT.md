@@ -106,6 +106,8 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 
 | 39 | 2026-09-08 | Show exact Library tool work and observed file changes without reading the conversation | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
 
+| 40 | 2026-09-09 | Restore modal and skip-link keyboard navigation, and preserve tab and scroll transition intent | two-way | solo | orient | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -162,3 +164,4 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 37 | 2026-09-06 | pass | yes | no | held |
 | 38 | 2026-09-06 | pass | pending | no | pending |
 | 39 | 2026-09-08 | pending | yes | no | pending |
+| 40 | 2026-09-09 | pass | yes | no | pending |

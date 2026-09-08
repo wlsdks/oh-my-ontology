@@ -13,6 +13,11 @@ const bridge = vi.hoisted(() => ({
   secretDeletes: [] as string[],
   stored: new Map<string, string>(),
 }));
+const motion = vi.hoisted(() => ({ reduced: false }));
+
+vi.mock('@/shared/lib/use-prefers-reduced-motion', () => ({
+  usePrefersReducedMotion: () => motion.reduced,
+}));
 
 vi.mock('@/shared/lib/tauri-connectors', async () => {
   const actual = await vi.importActual<typeof import('@/shared/lib/tauri-connectors')>(
@@ -177,6 +182,7 @@ function seeded(...connectors: unknown[]) {
 }
 
 beforeEach(() => {
+  motion.reduced = false;
   bridge.discoveryAvailable = true;
   bridge.secretsAvailable = true;
   bridge.discovered = null;
@@ -871,6 +877,28 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     fireEvent.click(screen.getByTestId('connectors-catalogue-ask-edit'));
     await waitFor(() => expect(screen.getByTestId('connectors-custom-name')).toHaveValue('notion'));
     expect(screen.getByTestId('connectors-custom-provenance')).toBeInTheDocument();
+  });
+
+  it('reduced motion brings an edited catalogue prefill into view without smooth scrolling', async () => {
+    motion.reduced = true;
+    const scrollSpy = vi.fn();
+    Element.prototype.scrollIntoView = scrollSpy;
+    bridge.discoveryAvailable = false;
+    bridge.secretsAvailable = false;
+    const vault = fakeVault();
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-empty')).toBeInTheDocument());
+    openAdd();
+    const notion = document.querySelector(
+      '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
+    ) as HTMLElement;
+    fireEvent.click(notion.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement);
+    await screen.findByTestId('connectors-catalogue-ask');
+    fireEvent.click(screen.getByTestId('connectors-catalogue-ask-edit'));
+
+    await screen.findByTestId('connectors-custom-name');
+    await waitFor(() => expect(scrollSpy).toHaveBeenCalled());
+    expect(scrollSpy).toHaveBeenLastCalledWith({ block: 'start', behavior: 'auto' });
   });
 
   it('이미 붙어 있는 서비스는 버튼 대신 붙어 있다고 적는다', async () => {

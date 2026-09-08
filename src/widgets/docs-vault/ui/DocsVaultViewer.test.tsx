@@ -1,10 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import type React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import enMessages from "../../../../messages/en.json";
 import type { VaultDoc } from "@/entities/docs-vault";
 import { DocsVaultViewer } from "./DocsVaultViewer";
+
+const motion = vi.hoisted(() => ({ reduced: false }));
+
+vi.mock('@/shared/lib/use-prefers-reduced-motion', () => ({
+  usePrefersReducedMotion: () => motion.reduced,
+}));
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, children, ...props }: React.ComponentProps<"a">) => (
@@ -26,6 +32,10 @@ const doc: VaultDoc = {
   updatedAt: "2026-06-01",
   linksOut: [],
 };
+
+beforeEach(() => {
+  motion.reduced = false;
+});
 
 function renderViewer(
   markdown: string,
@@ -144,6 +154,20 @@ describe("DocsVaultViewer", () => {
       });
       expect(mark).toBeInTheDocument();
       await vi.waitFor(() => expect(scrollSpy).toHaveBeenCalled());
+      expect(scrollSpy).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'center' });
+    });
+
+    it('reduced motion lands on the same match without JavaScript smooth scrolling', async () => {
+      motion.reduced = true;
+      const scrollSpy = vi.fn();
+      Element.prototype.scrollIntoView = scrollSpy;
+      renderViewer('Intro line.\n\nThe deterministic compile phrase lives here.', {
+        highlightQuery: 'deterministic compile',
+      });
+
+      await screen.findByText('deterministic compile', { selector: 'mark.docs-match' });
+      await vi.waitFor(() => expect(scrollSpy).toHaveBeenCalled());
+      expect(scrollSpy).toHaveBeenLastCalledWith({ behavior: 'auto', block: 'center' });
     });
 
     // Reproducing a measured regression: it must land even in a real vault document

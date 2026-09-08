@@ -190,7 +190,15 @@ export function useSwapHeight<T>(token: T) {
     host.style.transition = "height var(--motion-base) var(--motion-ease)";
     host.style.height = `${to}px`;
     let done = false;
-    const settle = () => {
+    const settle = (event?: Event) => {
+      // `transitionend` bubbles. A child fading or the host's own color/opacity
+      // transition must not clear this host's in-flight height early.
+      if (
+        event &&
+        (event.target !== host || (event as TransitionEvent).propertyName !== 'height')
+      ) {
+        return;
+      }
       if (done) return;
       done = true;
       host.style.height = "";

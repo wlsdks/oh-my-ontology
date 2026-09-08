@@ -28,6 +28,14 @@ test.describe("가이드 장 끝 이전/다음", () => {
     // A middle chapter has both.
     await expect(page.getByTestId("guide-pager-prev")).toBeVisible();
     await expect(page.getByTestId("guide-pager-next")).toBeVisible();
+
+    // Client navigation must keep the arrived chapter's address while the global skip
+    // link moves keyboard focus into that chapter's reading landmark.
+    const skip = page.locator('a[href="#main"]');
+    await skip.focus();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/guide\/first-five-minutes\/?(?:\?[^#]*)?#main$/);
+    await expect(page.locator('main#main')).toBeFocused();
   });
 
   test("마지막 장은 이전만 갖는다", async ({ page }) => {

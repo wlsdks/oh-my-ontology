@@ -17,6 +17,7 @@ import { IconButton } from '@/shared/ui';
 import { splitHighlightSegments } from '@/shared/lib/highlight-match';
 import { useCopyFeedback } from '@/shared/lib/use-copy-feedback';
 import { useDelayedVisible } from '@/shared/lib/use-presence';
+import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
 import { fetchServerDocContent } from '../lib/server-doc-content';
 import { resolveDocLink } from '../lib/resolve-doc-link';
 import { getTopologyProjectHref } from '@/entities/project';
@@ -76,6 +77,7 @@ export function DocsVaultViewer({
   vaultRepoRoot,
 }: Props) {
   const t = useTranslations('vaultWidgets.viewer');
+  const reducedMotion = usePrefersReducedMotion();
   const [raw, setRaw] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   /*
@@ -100,10 +102,13 @@ export function DocsVaultViewer({
       const el = document.querySelector<HTMLElement>(
         '[data-docs-viewer] mark.docs-match',
       );
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el?.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'center',
+      });
     });
     return () => cancelAnimationFrame(handle);
-  }, [raw, highlightQuery]);
+  }, [raw, highlightQuery, reducedMotion]);
 
   // This component remounts through key={doc.slug} in the parent, so state resets to a
   // fresh null on a slug change. No reset is needed in the effect.
@@ -269,7 +274,7 @@ export function DocsVaultViewer({
                     requestAnimationFrame(() => {
                       document
                         .getElementById(anchor)
-                        ?.scrollIntoView({ behavior: 'smooth' });
+                        ?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
                     });
                   }
                 }}
@@ -333,7 +338,7 @@ export function DocsVaultViewer({
                   requestAnimationFrame(() => {
                     document
                       .getElementById(anchor)
-                      ?.scrollIntoView({ behavior: 'smooth' });
+                      ?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
                   });
                 }
               }}

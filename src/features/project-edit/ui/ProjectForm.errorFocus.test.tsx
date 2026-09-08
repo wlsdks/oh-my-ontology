@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 
@@ -7,6 +7,12 @@ import { TaxonomyProvider } from "@/features/taxonomy";
 import type { Project } from "@/entities/project";
 
 import { ProjectForm } from "./ProjectForm";
+
+const motion = vi.hoisted(() => ({ reduced: false }));
+
+vi.mock('@/shared/lib/use-prefers-reduced-motion', () => ({
+  usePrefersReducedMotion: () => motion.reduced,
+}));
 
 /**
  * When a save is rejected, **the reason must reach the eye of the person who pressed it.**
@@ -62,8 +68,14 @@ function renderEdit(onSubmit: () => Promise<void>) {
   );
 }
 
+beforeEach(() => {
+  motion.reduced = false;
+});
+
 describe("ProjectForm — 저장 거절은 눌린 사람에게 도착한다", () => {
   it("저장이 실패하면 초점이 오류 배너로 간다", async () => {
+    const scrollSpy = vi.fn();
+    Element.prototype.scrollIntoView = scrollSpy;
     const onSubmit = vi.fn(async () => {
       throw new Error("데모 모드에서는 저장할 수 없습니다. 먼저 폴더를 열어 주세요.");
     });
@@ -84,6 +96,25 @@ describe("ProjectForm — 저장 거절은 눌린 사람에게 도착한다", ()
       document.activeElement,
       "저장이 거절됐는데 초점이 그대로다 — 긴 폼·짧은 화면에서는 이유가 화면 밖에 뜬다",
     ).toBe(banner);
+    expect(scrollSpy).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'center' });
+  });
+
+  it('reduced motion uses an instant scroll while preserving error focus', async () => {
+    motion.reduced = true;
+    const scrollSpy = vi.fn();
+    Element.prototype.scrollIntoView = scrollSpy;
+    const onSubmit = vi.fn(async () => {
+      throw new Error('저장 실패');
+    });
+    renderEdit(onSubmit);
+
+    await act(async () => {
+      fireEvent.click(screen.getAllByTestId('project-save-return')[0]);
+    });
+
+    const banner = await screen.findByTestId('project-error-banner');
+    expect(document.activeElement).toBe(banner);
+    expect(scrollSpy).toHaveBeenLastCalledWith({ behavior: 'auto', block: 'center' });
   });
 
   it("성공하면 초점을 빼앗지 않는다", async () => {

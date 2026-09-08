@@ -51,6 +51,7 @@ import { cn } from '@/shared/lib/cn';
 import { useDocumentTitle } from '@/shared/lib/use-document-title';
 import { isDesktopShell } from '@/shared/lib/desktop-shell';
 import { useHydrated } from '@/shared/lib/use-hydrated';
+import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
 import {
   createTauriVaultHandle,
   getTauriVaultRootPath,
@@ -190,6 +191,7 @@ import {
 } from "@/entities/knowledge-graph";
 
 function DocsVaultContent() {
+  const reducedMotion = usePrefersReducedMotion();
   const t = useTranslations('docsVault');
   const locale = useLocale();
   const siteT = useTranslations('metadata');
@@ -1786,7 +1788,10 @@ function DocsVaultContent() {
     (slug: string) => {
       document
         .getElementById(slug)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        ?.scrollIntoView({
+          behavior: reducedMotion ? 'auto' : 'smooth',
+          block: 'start',
+        });
       setActiveHeadingSlug(slug);
       if (typeof window !== 'undefined') {
         window.history.replaceState(
@@ -1796,7 +1801,7 @@ function DocsVaultContent() {
         );
       }
     },
-    [setActiveHeadingSlug],
+    [reducedMotion, setActiveHeadingSlug],
   );
 
   // The full command list for the ⌘⇧P palette. Visibility is computed dynamically from selection,

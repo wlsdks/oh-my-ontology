@@ -11,6 +11,8 @@ import {
   type ProjectFrontmatterPatch,
   useProjectMutations,
 } from "@/features/project-data-source";
+import { useBodyScrollLock } from '@/shared/lib/use-body-scroll-lock';
+import { useDialogFocusTrap } from '@/shared/lib/use-dialog-focus-trap';
 import { Button, Surface, controlClass } from "@/shared/ui";
 import { fieldClass } from '@/shared/ui/control-class';
 
@@ -64,6 +66,50 @@ function FieldLabel({
   );
 }
 
+function QuickEditDrawerFrame({
+  open,
+  onClose,
+  ariaCloseOverlay,
+  ariaDialog,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  ariaCloseOverlay: string;
+  ariaDialog: string;
+  children: React.ReactNode;
+}) {
+  // This frame mounts only after Surface has mounted, so the focus hook can always
+  // bind to the actual drawer rather than seeing its ref as null in the parent.
+  useBodyScrollLock(open);
+  const dialogRef = useDialogFocusTrap<HTMLElement>({
+    open,
+    onEscape: onClose,
+    initialFocus: 'first',
+  });
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={ariaCloseOverlay}
+        className="absolute inset-0 bg-[var(--color-scrim-a58)]"
+        onClick={onClose}
+      />
+      <section
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={ariaDialog}
+        tabIndex={-1}
+        className="absolute right-0 top-0 flex h-full w-full max-w-[30rem] flex-col border-l border-[color:var(--color-divider)] bg-[color:var(--color-surface-deep-a98)] shadow-[var(--shadow-elevation-dock-side)] focus:outline-none"
+      >
+        {children}
+      </section>
+    </>
+  );
+}
+
 function toQuickEditValues(project: Project): QuickEditValues {
   return {
     name: project.name,
@@ -107,7 +153,6 @@ export function ProjectQuickEditPanel({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const { patchProject } = useProjectMutations();
-  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   /*
    * Re-seed on a real subject change only (bug sweep 2026-09-01). The Project
@@ -135,17 +180,6 @@ export function ProjectQuickEditPanel({
       baselineRef.current = next;
     });
   }, [project]);
-
-  // The same a11y pattern as the other modals — capture the trigger on open and restore
-  // on close, so a keyboard user toggling the button, working inside the drawer, and
-  // closing with Esc or save returns focus to the original trigger.
-  useEffect(() => {
-    if (!open) return;
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    return () => {
-      previousFocusRef.current?.focus?.();
-    };
-  }, [open]);
 
   const hasChanges = useMemo(
     () =>
@@ -224,7 +258,12 @@ export function ProjectQuickEditPanel({
         variant={open ? "outline" : "ghost"}
         size="sm"
         data-testid="public-quick-edit-toggle"
-        onClick={() => setOpen((current) => !current)}
+        onClick={(event) => {
+          // Pointer activation does not focus the button in WebKit, but the modal
+          // contract restores its captured opener after Escape or close.
+          event.currentTarget.focus({ preventScroll: true });
+          setOpen((current) => !current);
+        }}
       >
         <PencilLine size={ICON_SIZE.md} aria-hidden="true" />
         {open ? t("closeLabel") : t("openLabel")}
@@ -251,17 +290,11 @@ export function ProjectQuickEditPanel({
         data-testid="public-quick-edit-surface"
         className="fixed inset-0 z-50"
       >
-        <button
-          type="button"
-          aria-label={t("ariaCloseOverlay")}
-          className="absolute inset-0 bg-[var(--color-scrim-a58)]"
-          onClick={() => setOpen(false)}
-        />
-        <section
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("ariaDialog")}
-          className="absolute right-0 top-0 flex h-full w-full max-w-[30rem] flex-col border-l border-[color:var(--color-divider)] bg-[color:var(--color-surface-deep-a98)] shadow-[var(--shadow-elevation-dock-side)]"
+        <QuickEditDrawerFrame
+          open={open}
+          onClose={() => setOpen(false)}
+          ariaCloseOverlay={t("ariaCloseOverlay")}
+          ariaDialog={t("ariaDialog")}
         >
           <div className="flex items-start justify-between gap-4 border-b border-[color:var(--color-border-soft)] px-5 py-5">
             <div>
@@ -276,6 +309,7 @@ export function ProjectQuickEditPanel({
               type="button"
               variant="ghost"
               size="sm"
+              aria-label={t("closeLabel")}
               className="h-9 w-9 px-0"
               onClick={() => setOpen(false)}
             >
@@ -386,7 +420,7 @@ export function ProjectQuickEditPanel({
               </div>
             ) : null}
           </div>
-        </section>
+        </QuickEditDrawerFrame>
       </Surface>
     </>
   );

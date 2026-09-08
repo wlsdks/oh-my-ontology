@@ -186,6 +186,8 @@ export function GatewayDocPage({
        * and a logo standing at a different x per page would be worse.
        */}
       <main
+        id="main"
+        tabIndex={-1}
         className={cn(
           PAGE_GUTTER,
           'w-full flex-1 pt-10 md:pt-16',
