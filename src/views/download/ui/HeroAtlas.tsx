@@ -99,9 +99,9 @@ export function HeroAtlas({ graph, typed, total }: { graph: StageGraph; typed: n
         },
         {
           onHover: setHover,
-          anchor: wide ? { x: 0.72, y: 0.56 } : { x: 0.5, y: 0.5 },
-          dim: wide ? 0.85 : 1,
-          distance: wide ? 5.6 : phone ? 5.8 : 5.2,
+          anchor: wide ? { x: 0.72, y: 0.52 } : { x: 0.5, y: 0.5 },
+          dim: wide ? 0.9 : 1,
+          distance: wide ? 6.1 : phone ? 6.2 : 5.6,
         },
       );
       if (!handle) {
@@ -146,6 +146,9 @@ export function HeroAtlas({ graph, typed, total }: { graph: StageGraph; typed: n
 
   return (
     <div aria-hidden="true" data-testid="gateway-hero-object" className="gateway-hero-stage absolute inset-0 min-w-0 overflow-hidden">
+      {/* The spotlight: a soft pool of the accent behind the object's anchor, so the tree stands
+          in light rather than on black. Tokens only (`.gateway-hero-atlas-wash`); it does not move. */}
+      <div className={cn('gateway-hero-atlas-wash absolute inset-0', wide ? 'is-wide' : undefined)} />
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full touch-pan-y" />
       <p
         data-testid="gateway-hero-caption"

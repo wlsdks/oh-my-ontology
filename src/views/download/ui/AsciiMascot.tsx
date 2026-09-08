@@ -47,7 +47,22 @@ export function AsciiMascot({ start, className }: { start: boolean; className?: 
         className,
       )}
     >
-      {rows.map((row, i) => `${i < shown ? row : ''}${i < rows.length - 1 ? '\n' : ''}`).join('')}
+      {rows.map((row, i) => (
+        <span key={i} className="block">
+          {i < shown
+            ? row.split(/(\*+)/).map((part, j) =>
+                part.startsWith('*') ? (
+                  // The signal pixels: the one indigo in the figure, the same accent the page uses.
+                  <span key={j} className="text-[color:var(--color-indigo-accent)]">
+                    {part}
+                  </span>
+                ) : (
+                  <span key={j}>{part}</span>
+                ),
+              )
+            : ''}
+        </span>
+      ))}
     </pre>
   );
 }

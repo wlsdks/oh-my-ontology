@@ -71,7 +71,7 @@ const PERIOD_MS = 64_000;
 const ECHO_TAU_MS = 110;
 const TILT_TAU_MS = 220;
 
-const RADIUS: Record<DomeViewKind, number> = { project: 0.062, domain: 0.04, capability: 0.022, element: 0.011 };
+const RADIUS: Record<DomeViewKind, number> = { project: 0.07, domain: 0.046, capability: 0.024, element: 0.012 };
 
 function cssVar(el: Element, name: string, fallback: string): string {
   const v = getComputedStyle(el).getPropertyValue(name).trim();
@@ -154,6 +154,13 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
 
   // ── scene ───────────────────────────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
+  // Depth is a fact of the object, so the far side sinks toward the page's own ground colour —
+  // the same fog ramp the 2D engine used (near 1.0, far dimmer), here as real scene fog.
+  const ground = new THREE.Color(cssVar(rootEl, '--gateway-fx-deep', '#050506'));
+  // Measured off the camera distance: the near side keeps its full ink, the far side loses about
+  // half by the object's back edge, never all of it (the 2D engine's floor was 0.22).
+  const camDistance = opts.distance ?? 3.4;
+  scene.fog = new THREE.Fog(ground, camDistance - 0.2, camDistance + 2.4);
   const group = new THREE.Group();
   scene.add(group);
   scene.add(new THREE.HemisphereLight(0xdfe1ff, 0x0b0b10, 1.1));
@@ -169,8 +176,8 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
   // Nodes: one instanced mesh per kind, lit solids that occlude.
   const sphere = new THREE.SphereGeometry(1, 20, 14);
   const materials: Record<DomeViewKind, THREE.MeshStandardMaterial> = {
-    project: new THREE.MeshStandardMaterial({ color: accent, emissive: accentBright, emissiveIntensity: 0.9, roughness: 0.3, metalness: 0.15 }),
-    domain: new THREE.MeshStandardMaterial({ color: ink, emissive: accent, emissiveIntensity: 0.22, roughness: 0.42, metalness: 0.1 }),
+    project: new THREE.MeshStandardMaterial({ color: accent, emissive: accentBright, emissiveIntensity: 1.3, roughness: 0.28, metalness: 0.15 }),
+    domain: new THREE.MeshStandardMaterial({ color: ink, emissive: accentBright, emissiveIntensity: 0.34, roughness: 0.38, metalness: 0.12 }),
     capability: new THREE.MeshStandardMaterial({ color: inkSoft, emissive: accent, emissiveIntensity: 0.06, roughness: 0.55, metalness: 0.05 }),
     element: new THREE.MeshStandardMaterial({ color: inkDim, roughness: 0.7, metalness: 0 }),
   };
@@ -200,15 +207,27 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
     haloSprites.push({ s: n.s, sprite, base });
   }
 
-  // Lines: contains as thin fat-lines, the spine heavier, depends as accent arcs.
+  // The floor: one wide additive pool of the accent under the object, so the tree stands in
+  // its own light instead of floating on nothing. Flat on the ground plane, no rim, no edge.
+  const floorMat = new THREE.SpriteMaterial({ map: halo, color: accent, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 });
+  const floor = new THREE.Sprite(floorMat);
+  floor.scale.set(3.2, 1.1, 1);
+  floor.position.set(0, minY === Infinity ? -0.6 : (minY - midY) / maxR - 0.08, 0);
+  group.add(floor);
+
+  // Lines: contains as thin fat-lines, the spine heavier, depends as accent arcs — and each
+  // depends arc twice: a wide faint pass under a thin bright one, which is a glow without a
+  // post-process.
   const lineRes = new THREE.Vector2(1, 1);
   const containsMat = new LineMaterial({ color: inkSoft.getHex(), linewidth: 1.1, transparent: true, opacity: 0.42, depthWrite: false });
   const spineMat = new LineMaterial({ color: ink.getHex(), linewidth: 1.8, transparent: true, opacity: 0.55, depthWrite: false });
-  const dependsMat = new LineMaterial({ color: accentBright.getHex(), linewidth: 1.5, transparent: true, opacity: 0.85, depthWrite: false });
-  for (const m of [containsMat, spineMat, dependsMat]) m.resolution = lineRes;
+  const dependsMat = new LineMaterial({ color: accentBright.getHex(), linewidth: 1.5, transparent: true, opacity: 0.9, depthWrite: false });
+  const dependsGlowMat = new LineMaterial({ color: accent.getHex(), linewidth: 7, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending });
+  for (const m of [containsMat, spineMat, dependsMat, dependsGlowMat]) m.resolution = lineRes;
   let containsLine: LineSegments2 | null = null;
   let spineLine: LineSegments2 | null = null;
   let dependsLine: LineSegments2 | null = null;
+  let dependsGlow: LineSegments2 | null = null;
 
   const containsEdges = data.edges.filter((e) => e.y === 'contains' && pos.has(e.a) && pos.has(e.b));
   const dependsEdges = data.edges.filter((e) => e.y === 'depends' && pos.has(e.a) && pos.has(e.b));
@@ -259,6 +278,7 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
     };
     containsLine = swap(containsLine, rest, containsMat);
     spineLine = swap(spineLine, spine, spineMat);
+    dependsGlow = swap(dependsGlow, dep, dependsGlowMat);
     dependsLine = swap(dependsLine, dep, dependsMat);
   };
 
@@ -379,7 +399,14 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
     }
     containsMat.opacity = 0.42 * dim;
     spineMat.opacity = 0.55 * dim;
-    dependsMat.opacity = 0.85 * dim;
+    dependsMat.opacity = 0.9 * dim;
+    dependsGlowMat.opacity = 0.16 * dim;
+    // The floor arrives with the object: its light is the sum of what is lit.
+    let litShare = 0;
+    for (const v of vis.values()) litShare += v;
+    floorMat.opacity = 0.28 * dim * (nodes.length ? litShare / nodes.length : 0);
+    // A slow bob — a body at rest still breathes; 14 s, 0.02 of the radius, none under reduced motion.
+    group.position.y = reduced ? 0 : Math.sin((clock / 14_000) * Math.PI * 2) * 0.02;
 
     // Currents along the lit depends arcs.
     if (!reduced) {
@@ -477,8 +504,8 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
       halo.dispose();
       for (const m of Object.values(materials)) m.dispose();
       for (const h of haloSprites) (h.sprite.material as THREE.Material).dispose();
-      for (const m of [containsMat, spineMat, dependsMat, beadMat]) m.dispose();
-      for (const l of [containsLine, spineLine, dependsLine]) l?.geometry.dispose();
+      for (const m of [containsMat, spineMat, dependsMat, dependsGlowMat, beadMat, floorMat]) m.dispose();
+      for (const l of [containsLine, spineLine, dependsLine, dependsGlow]) l?.geometry.dispose();
       renderer.dispose();
     },
   };
