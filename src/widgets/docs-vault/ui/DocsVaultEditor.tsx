@@ -36,7 +36,7 @@ import {
   RELATION_LABEL_KEY,
   type MentionRelationId,
 } from '../lib/mention-relation';
-import { Chip, IconButton, RowButton, Surface, TopologyV2KindGlyph } from '@/shared/ui';
+import { Chip, IconButton, RowButton, Surface, OntologyMapKindGlyph } from '@/shared/ui';
 
 interface Props {
   doc: VaultDoc;
@@ -1056,7 +1056,7 @@ export function DocsVaultEditor({
                           alone cannot say whether something is a domain, a capability
                           or an element, and without that you cannot decide which
                           relation to use. Same glyphs as the map and the studio. */}
-                      <TopologyV2KindGlyph
+                      <OntologyMapKindGlyph
                         kind={String(d.frontmatter?.kind ?? 'unknown')}
                         size={12}
                       />

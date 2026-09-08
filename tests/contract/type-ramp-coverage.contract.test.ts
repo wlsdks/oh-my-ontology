@@ -251,7 +251,6 @@ describe("램프 부채 예외 장부", () => {
       const config = await eslint.calculateConfigForFile(exemptions[0]);
       const applied = new Set(selectorsFor(config));
       expect(rampSelectors.some((selector) => applied.has(selector))).toBe(false);
-      expect(applied.has('MemberExpression[property.name="shadowBlur"]')).toBe(true);
       return;
     }
     for (const file of FORMERLY_EXEMPT) {

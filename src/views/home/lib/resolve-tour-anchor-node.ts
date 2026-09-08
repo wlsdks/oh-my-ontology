@@ -2,7 +2,7 @@
  * Resolves the guided tour's canvas-node anchor to a real graph node id. The
  * feature layer must not know the widget's graph types (FSD forbids
  * feature -> widgets), so the view layer resolves it and passes only the id down
- * as `TopologyMapV2Props.tourAnchorNodeId`.
+ * as `OntologyMapProps.tourAnchorNodeId`.
  *
  * - `target: "project"` — the first project node, else the first domain node.
  * - `target: "domain"` — the first domain node, falling back to a project.

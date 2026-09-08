@@ -13,7 +13,7 @@ import { useDogfoodSample } from "./sample-source";
  * failed waiting for markup that no longer renders — no product defect, just
  * e2e rot. They were deleted rather than repaired because the surface itself
  * is gone; equivalent current-surface coverage lives in
- * `topology-v2-smoke.spec.ts`.
+ * `map-smoke.spec.ts`.
  *
  * One more test ("detail panel is not exposed when there is no data") was dropped even
  * though it still reported green: it asserted zero `ontology-node-detail`
@@ -246,8 +246,8 @@ test.describe("ontology view UI", () => {
       "expanded",
     );
     await expect(page.getByTestId("topology-index-panel")).toBeVisible();
-    await expect(page.getByTestId("topology-v2-detail-panel")).toBeVisible();
-    await expect(page.getByTestId("topology-v2-detail-panel")).toHaveAttribute(
+    await expect(page.getByTestId("map-detail-panel")).toBeVisible();
+    await expect(page.getByTestId("map-detail-panel")).toHaveAttribute(
       "data-selected-node-id",
       "capability:mcp-server",
     );

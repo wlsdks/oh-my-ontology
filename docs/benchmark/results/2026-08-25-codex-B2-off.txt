@@ -117,7 +117,7 @@ tests/e2e/local-vault-picker.spec.ts
 tests/e2e/responsive-overflow-audit.spec.ts
 tests/e2e/map-trail.spec.ts
 tests/e2e/page-frame.spec.ts
-tests/e2e/topology-v2-smoke.spec.ts
+tests/e2e/map-smoke.spec.ts
 tests/e2e/dense-row-target-size.spec.ts
 tests/e2e/a11y-structure.spec.ts
 tests/e2e/web-surface-smoke.spec.ts

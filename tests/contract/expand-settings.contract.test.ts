@@ -25,20 +25,20 @@ import {
   type ClusterBarLabels,
   type ClusterChipColors,
   type ClusterChipRect,
-} from "@/widgets/topology-map-v2/render/cluster-chips";
+} from "@/widgets/ontology-map/render/cluster-chips";
 import {
   EGO_NEIGHBOR_LIMIT,
   selectiveEgoNeighbors,
-} from "@/widgets/topology-map-v2/model/focus-state";
+} from "@/widgets/ontology-map/model/focus-state";
 import {
   DISC_LABEL_TOP_K,
   selectDiscLabelEligible,
-} from "@/widgets/topology-map-v2/model/label-lod";
+} from "@/widgets/ontology-map/model/label-lod";
 import {
   computeConcentricLayout,
   type LayoutGraphNode,
   type LayoutRings,
-} from "@/widgets/topology-map-v2/model/layout";
+} from "@/widgets/ontology-map/model/layout";
 import {
   MAX_EXPANDED_PARENTS,
   limitExpandedParents,
@@ -665,7 +665,7 @@ describe("노드 컨트롤 방위 — 막대·배지·궤도 버튼이 자리를
    * overlaps again — so this also checks that the consumer calls the function.
    */
   it("궤도 버튼 DOM 배치가 같은 함수를 쓴다", () => {
-    const source = readFileSync("src/widgets/topology-map-v2/ui/use-topology-loop.ts", "utf8");
+    const source = readFileSync("src/widgets/ontology-map/ui/use-topology-loop.ts", "utf8");
     expect(source).toContain("orbitButtonRect(");
     expect(source, "45° 인라인 계산이 되살아났다").not.toContain("Math.cos(-Math.PI / 4)");
   });

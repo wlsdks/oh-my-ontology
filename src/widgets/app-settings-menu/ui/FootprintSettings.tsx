@@ -75,7 +75,7 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
     const n = parsed ? parseInt(parsed[1], 16) : 0xe8c47a;
     const ink = [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const;
 
-    ctx.fillStyle = read('--topology-v2-canvas-bg-near', '#0a0a0d');
+    ctx.fillStyle = read('--map-canvas-bg-near', '#0a0a0d');
     ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);
 
     // Two nodes plus one relation line — both places a footprint sits on the map.
@@ -83,7 +83,7 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
     const inset = 76;
     const a = { x: inset, y: PREVIEW_H / 2 };
     const b = { x: PREVIEW_W - inset, y: PREVIEW_H / 2 };
-    ctx.strokeStyle = read('--topology-v2-edge-dim', 'rgba(255,255,255,0.11)');
+    ctx.strokeStyle = read('--map-edge-dim', 'rgba(255,255,255,0.11)');
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
@@ -110,7 +110,7 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
       data-testid="app-settings-footprint-preview"
       aria-hidden="true"
       style={{ height: PREVIEW_H }}
-      className="w-full rounded-card border border-[color:var(--color-border-soft)] bg-[color:var(--topology-v2-canvas-bg-near)]"
+      className="w-full rounded-card border border-[color:var(--color-border-soft)] bg-[color:var(--map-canvas-bg-near)]"
     />
   );
 }

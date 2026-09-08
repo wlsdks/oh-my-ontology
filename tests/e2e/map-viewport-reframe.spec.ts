@@ -47,7 +47,7 @@ test("짧은 선택 인스펙터도 실제 자유 영역으로 카메라를 민�
     { waitUntil: "domcontentloaded" },
   );
 
-  await expect(page.getByTestId("topology-v2-detail-panel")).toBeVisible({
+  await expect(page.getByTestId("map-detail-panel")).toBeVisible({
     timeout: 20_000,
   });
   await settleCamera(page);
@@ -55,7 +55,7 @@ test("짧은 선택 인스펙터도 실제 자유 영역으로 카메라를 민�
   const measured = await page.evaluate(() => {
     const probe = window.__atlasMap;
     const canvas = document.querySelector<HTMLElement>(
-      '[data-testid="topology-map-v2-canvas"]',
+      '[data-testid="ontology-map-canvas"]',
     );
     const panel = document.querySelector<HTMLElement>(
       '[data-testid="topology-node-popover-positioner"]',
@@ -112,7 +112,7 @@ test("390px의 넓은 하단 시트는 수평 카메라 인셋으로 오인되�
   expect(withWideSheet).not.toBeNull();
 
   const geometry = await page.evaluate(() => {
-    const canvas = document.querySelector<HTMLElement>('[data-testid="topology-map-v2-canvas"]');
+    const canvas = document.querySelector<HTMLElement>('[data-testid="ontology-map-canvas"]');
     const obstacle = document.querySelector<HTMLElement>('[data-testid="topology-node-popover-positioner"]');
     if (!canvas || !obstacle) return null;
     const canvasRect = canvas.getBoundingClientRect();
@@ -332,7 +332,7 @@ test("노드 인스펙터를 닫으면 퇴장 중 패널 폭을 남기지 않고
   await settleCamera(page);
 
   const target = await page.evaluate(() => {
-    const canvas = document.querySelector<HTMLElement>('[data-testid="topology-map-v2-canvas"]');
+    const canvas = document.querySelector<HTMLElement>('[data-testid="ontology-map-canvas"]');
     const node = window.__atlasMap
       ?.nodes()
       .find((candidate) => candidate.kind === "domain" && !candidate.hidden);
@@ -342,11 +342,11 @@ test("노드 인스펙터를 닫으면 퇴장 중 패널 폭을 남기지 않고
   });
   expect(target, "클릭할 도메인 노드를 지도에서 찾지 못했다").not.toBeNull();
   await page.mouse.click(target!.x, target!.y);
-  await expect(page.getByTestId("topology-v2-detail-panel")).toBeVisible();
+  await expect(page.getByTestId("map-detail-panel")).toBeVisible();
   await settleCamera(page);
 
-  await page.getByTestId("topology-v2-detail-panel-close").click();
-  await expect(page.getByTestId("topology-v2-detail-panel")).toHaveCount(0, { timeout: 10_000 });
+  await page.getByTestId("map-detail-panel-close").click();
+  await expect(page.getByTestId("map-detail-panel")).toHaveCount(0, { timeout: 10_000 });
   await settleCamera(page);
   const automatic = await readCamera(page);
   expect(automatic).not.toBeNull();

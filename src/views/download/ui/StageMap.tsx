@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useDogfoodInsight } from '@/features/vault-ontology';
-import { TopologyMapV2, clearTopologyV2TokensCache } from '@/widgets/topology-map-v2';
-import type { TierRevealConfig } from '@/widgets/topology-map-v2';
+import { OntologyMap, clearOntologyMapTokensCache } from '@/widgets/ontology-map';
+import type { TierRevealConfig } from '@/widgets/ontology-map';
 import { buildStageGraph, type StageGraph } from '../lib/stage-graph';
 
 /**
@@ -170,7 +170,7 @@ export function StageMap({
      * is no width to reserve. `tests/e2e/download-gateway-grid.spec.ts` measures the
      * impossibility of overlap by rect.
      */
-    clearTopologyV2TokensCache();
+    clearOntologyMapTokensCache();
     // This setState **is** the ordering contract. Drawing the map in the same render lets React
     // run the child effect first, reading tokens **before the attribute is set** and freezing
     // them into the global cache (measured 2026-07-28: only the camera ceiling kept its old
@@ -181,7 +181,7 @@ export function StageMap({
 
     return () => {
       root.removeAttribute('data-gateway-stage');
-      clearTopologyV2TokensCache();
+      clearOntologyMapTokensCache();
     };
   }, []);
 
@@ -238,7 +238,7 @@ export function StageMap({
 
   return (
     <div ref={frameRef} className="download-stage-map absolute inset-0" data-testid="download-stage-map">
-      <TopologyMapV2
+      <OntologyMap
         nodes={graph.nodes}
         edges={graph.edges}
         focus={{ selectedSlug: scripted ? scripted.selectedSlug : selected }}

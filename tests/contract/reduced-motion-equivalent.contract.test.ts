@@ -57,7 +57,7 @@ const INTENTIONALLY_STILL: Readonly<Record<string, string>> = {
   // gateway choreography (rise, headline, caption, hero stage) is transition-based
   // and therefore not a candidate for this scanner (which reads `animation:`); the
   // base-layer carve-out gives it the "always visible" equivalent —
-  // gateway-fx-exception.contract.test.ts locks that carve-out's existence.
+  // gateway-fx-reduced-motion.contract.test.ts locks that carve-out's existence.
   "gateway-term-caret":
     "끝없는 캐럿 blink — 감속의 뜻이 이걸 멈추는 것이다. 줄 내용은 감속에서 전부 즉시 보인다.",
   // ── Two scroll timelines (2026-08-22) ───────────────────────────────────
@@ -389,13 +389,13 @@ describe('reduced-motion 동등물 계약', () => {
    * keeps its time, and only what the app takes you to arrives instantly.
    */
   it('캔버스 카메라의 reduced-motion 스냅은 앱 개시 이동에만 걸린다', () => {
-    const step = TS('src/widgets/topology-map-v2/ui/topology-physics-step.ts');
+    const step = TS('src/widgets/ontology-map/ui/topology-physics-step.ts');
     expect(
       /if \(!freezeCamera && reducedMotion && !userDrivenCamera\)/.test(step),
       '카메라 스냅이 사용자 개시 이동까지 자른다 (WCAG 2.3.3 예외 침범)',
     ).toBe(true);
 
-    const handlers = TS('src/widgets/topology-map-v2/ui/topology-pointer-handlers.ts');
+    const handlers = TS('src/widgets/ontology-map/ui/topology-pointer-handlers.ts');
     expect(
       handlers.includes('userDrivenCameraRef'),
       '포인터 제스처가 사용자 개시 표시를 남기지 않는다',

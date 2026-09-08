@@ -119,7 +119,7 @@ import { describe, expect, it } from 'vitest';
  * | Hole | Last measurement | What's missing |
  * |---|---:|---|
  * | **Size ramp bundles inset and type in one step** | 9 | "Large inset + small text" exists (mono micro CTA 5 · success tint action 2 · settings notification chip · `MarkdownField` tab). Moving changes type — not an axis but a "system" task of deciding **which is the spec**. |
- * | **`scope: 'panel'` opens only ink** | 7 | Border/indigo still outside: `--topology-v2-panel-border`(#2a2a30) · `--topology-v2-panel-divider`(#23232a) · `--topology-v2-indigo-bright`(#8890e0 ≠ global #7170ff). Value layer comment asserts *"panel ramp has no indigo"* but **it does**. |
+ * | **`scope: 'panel'` opens only ink** | 7 | Border/indigo still outside: `--map-panel-border`(#2a2a30) · `--map-panel-divider`(#23232a) · `--map-indigo-bright`(#8890e0 ≠ global #7170ff). Value layer comment asserts *"panel ramp has no indigo"* but **it does**. |
  * | **No circular icon control** | 6 | `icon` is fixed to `rounded-chip`. Changing 24px circle to 6px square is not normalization but **identity change**, so it wasn't decided alone without "system" convening. |
  * | **Auxiliary controls in dense rows/wrap** | 5 + 1 | Applying `link`'s `min-h-11`(WCAG 2.5.8) makes rows 2~3x taller. The `inline` axis exempts only "**within sentences**" but cannot speak of "within dense rows." |
  * | **3-column grid row** | 3 | `STEP_ROW`(visual/name/why). `row` is flex-only. |
@@ -495,7 +495,7 @@ const OUTSIDE_VALUE_LAYER: readonly OutsideEntry[] = [
       '값 층이 `atlas-touch-floor`(globals.css, coarse 에서 44px)를 chip/segment base 에 ' +
       '실으면서 그 조건은 발화했고, 이 자리의 손 변형은 이제 값 층이 낼 수 있는 것이다. ' +
       '남은 진짜 blocker 는 높이가 아니라 셋이다: `min-w-12` **균일폭**(값 층에 축 없음) · ' +
-      '`--topology-v2-panel-*` **패널 스코프 잉크**(무채색 램프가 아니다) · ' +
+      '`--map-panel-*` **패널 스코프 잉크**(무채색 램프가 아니다) · ' +
       '`rounded-[var(--chrome-radius-inner)]` **크롬 반경**(칩 램프의 `rounded-chip` 이 아니다). ' +
       '게다가 이 치수(24 · 11px · 48px 균일)는 소유자가 두 번 고쳐 확정한 것이라 ' +
       '(2026-08-02 *“버튼이 너무 작고”* → *“비율이나 그런게 맞아야하는데”*), 램프로 끌어당기면 ' +

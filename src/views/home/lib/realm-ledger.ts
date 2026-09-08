@@ -7,7 +7,7 @@
  *
  * All pure over graph input, so they test without render logic. This is the one
  * source for realm data inside views/home, derived without touching
- * topology-map-v2.
+ * ontology-map.
  */
 
 import type { KnowledgeGraphEdge, KnowledgeGraphNode, OntologyTreeNode } from "@/entities/knowledge-graph";

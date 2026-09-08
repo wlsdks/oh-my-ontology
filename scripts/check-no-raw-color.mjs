@@ -136,15 +136,15 @@ export const ALLOWLIST = new Set([
   // fold them either. Both are very close to achromatic but not exactly r=g=b
   // (stars 236,236,240 · vignette 3,3,4), so the automatic exemption does not apply.
   // The same reason is in each file's doc-block.
-  "widgets/topology-map-v2/render/starfield.ts",
-  "widgets/topology-map-v2/render/grid.ts",
+  "widgets/ontology-map/render/starfield.ts",
+  "widgets/ontology-map/render/grid.ts",
 ]);
 
 /**
  * **Directory-wide exemption is not this repository's spec** — an exemption is one
  * file plus a reason comment, and that is `ALLOWLIST`.
  *
- * This used to skip all of `topology-map-v2` (the canvas engine). The reason was
+ * This used to skip all of `ontology-map` (the canvas engine). The reason was
  * legitimate: canvas `fillStyle` cannot take `var()`. But **exempting a whole
  * directory means nobody knows what grows inside it** — 59 files had never once
  * been checked, and there was no way to tell a 0 that means "clean" from a 0 that

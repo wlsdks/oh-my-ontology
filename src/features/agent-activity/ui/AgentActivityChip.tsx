@@ -394,7 +394,7 @@ export function AgentActivityChip({
         data-agent-activity-panel={openSurface ?? undefined}
         style={{ right: 'calc(var(--chrome-tile-size) + 8px)' }}
         className={cn(
-          'absolute z-30 w-[var(--topology-v2-panel-width)] overflow-hidden whitespace-normal rounded-[var(--topology-v2-panel-radius)] border border-[color:var(--topology-floating-panel-border)] bg-[color:var(--topology-floating-panel-surface)] shadow-[var(--topology-floating-panel-shadow)]',
+          'absolute z-30 w-[var(--map-panel-width)] overflow-hidden whitespace-normal rounded-[var(--map-panel-radius)] border border-[color:var(--topology-floating-panel-border)] bg-[color:var(--topology-floating-panel-surface)] shadow-[var(--topology-floating-panel-shadow)]',
           openSurface === 'status' || showStatus
             ? 'top-[calc(100%+52px)]'
             : 'top-[calc(100%+8px)]',

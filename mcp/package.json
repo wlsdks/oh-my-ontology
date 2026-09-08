@@ -22,6 +22,7 @@
   "files": [
     "src/index.js",
     "src/server-version.mjs",
+    "src/source-text.mjs",
     "src/tool-inventory.mjs",
     "src/backlink-key-shape.mjs",
     "src/parser.mjs",

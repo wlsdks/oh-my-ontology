@@ -309,7 +309,7 @@ export function LibraryGraph({
           data-labels={standingLabels ? "standing" : "hover"}
           data-active-kind={activeNode?.kind ?? ""}
           /*
-           * `group`, not `application`. `TopologyMapV2` decided this for the identical
+           * `group`, not `application`. `OntologyMap` decided this for the identical
            * shape — a hit-tested canvas graph with arrow traversal — and named the one
            * condition that reopens it: a measured screen reader whose browse mode
            * claims the arrows first. Taking every key away pre-emptively, without that

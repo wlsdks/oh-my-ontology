@@ -61,7 +61,7 @@ import { transientSurface } from "@/shared/ui/transient-surface";
 /**
  * The single settings surface (settings consolidation 2026-07-24, owner
  * instruction). Settings used to be scattered across two places: ① the nav
- * rail gear's "map settings" popover (TopologyV2SettingsGear — language, view
+ * rail gear's "map settings" popover (OntologyMapSettingsGear — language, view
  * mode, INDEX default state, switch vault) and ② each page header's "settings"
  * pill opening a five-tab "app settings" modal (three of the tabs were
  * effectively one link plus a large empty area). This widget is now settings'
@@ -350,7 +350,7 @@ export interface AppSettingsMenuProps {
    * "settings" pill. `rail-tile` = the nav rail's lower utility tile (the same
    * `--app-nav-rail-tile-*` geometry as activity and trail). `chrome-tile` = the
    * `--chrome-tile-size` tile in the `<lg` top utility lane. It inherits the old
-   * TopologyV2SettingsGear's trigger grammar exactly — the only difference is that
+   * OntologyMapSettingsGear's trigger grammar exactly — the only difference is that
    * this sheet opens instead of a popover.
    */
   triggerVariant?: SettingsTriggerVariant;

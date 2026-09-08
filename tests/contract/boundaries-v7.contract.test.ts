@@ -5,7 +5,7 @@ const ROOT = process.cwd();
 
 const ALLOWED_VALUE_DIRECTIONS = [
   ["src/app/__boundaries-probe__.ts", "import '@/views/home';"],
-  ["src/views/__boundaries-probe__.ts", "import '@/widgets/topology-map-v2';"],
+  ["src/views/__boundaries-probe__.ts", "import '@/widgets/ontology-map';"],
   ["src/widgets/__boundaries-probe__.ts", "import '@/features/ontology-blocks';"],
   ["src/features/__boundaries-probe__.ts", "import '@/entities/knowledge-graph';"],
   ["src/entities/__boundaries-probe__.ts", "import '@/shared/lib/cn';"],

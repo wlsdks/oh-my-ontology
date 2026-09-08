@@ -135,14 +135,14 @@ test.describe("coarse 포인터", () => {
     test.setTimeout(90_000);
     await openMap(page, 390, 844);
     await page.getByTestId("topology-index-row").first().click();
-    await expect(page.getByTestId("topology-v2-detail-panel")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("map-detail-panel")).toBeVisible({ timeout: 20_000 });
     // The sheet arrives on a scale transition; measuring the frame it becomes visible
     // reads 43.52 for a 44px box and turns this gate into a coin flip.
     await page.waitForTimeout(800);
 
     const measured = await page.evaluate(() => {
       const el = document.querySelector<HTMLElement>(
-        '[data-testid^="topology-v2-group-more-"]',
+        '[data-testid^="map-group-more-"]',
       );
       if (!el) return null;
       const box = el.getBoundingClientRect();

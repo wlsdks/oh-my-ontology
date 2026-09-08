@@ -29,8 +29,9 @@ builder implements.
 
 ## A direction is structural, not a palette
 
-Atlas already fixes dark-only, achromatic-plus-indigo, and no gradients/glow/
-glass. Do not copy example colours, fonts, or assets from reference documents.
+Atlas already fixes dark-only and tokens-on-ramps; since 2026-09-08 gradients,
+glow, glass and further hues are open, so a direction may spend them, but a
+direction is still a structure, not a coat of effects. Do not copy example colours, fonts, or assets from reference documents.
 
 Directions differ on at least one axis:
 

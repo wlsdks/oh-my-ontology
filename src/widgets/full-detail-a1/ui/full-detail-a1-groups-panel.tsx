@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  TopologyV2KindGlyph,
-  TopologyV2TraceMark,
-} from "@/shared/ui/topology-v2-kind-glyph";
+  OntologyMapKindGlyph,
+  OntologyMapTraceMark,
+} from "@/shared/ui/map-kind-glyph";
 import type { FullDetailConnectionRow, FullDetailGroups } from "../lib/full-detail-groups";
 import { controlClass } from '@/shared/ui/control-class';
 
@@ -43,17 +43,17 @@ function Row({
       type="button"
       onClick={() => onSelectNode(row.id)}
       data-fulldetail-row={row.id}
-      className={controlClass({ shape: "chip", className: "flex min-w-0 gap-2 border-transparent px-1.5 py-1 text-left text-body text-[color:var(--topology-v2-panel-text-secondary)] hover:border-[color:var(--topology-v2-panel-text-quaternary)] hover:text-[color:var(--topology-v2-panel-text-primary)]" })}
+      className={controlClass({ shape: "chip", className: "flex min-w-0 gap-2 border-transparent px-1.5 py-1 text-left text-body text-[color:var(--map-panel-text-secondary)] hover:border-[color:var(--map-panel-text-quaternary)] hover:text-[color:var(--map-panel-text-primary)]" })}
     >
-      <TopologyV2TraceMark containment={row.containment} />
-      <TopologyV2KindGlyph kind={row.kind} size={14} />
+      <OntologyMapTraceMark containment={row.containment} />
+      <OntologyMapKindGlyph kind={row.kind} size={14} />
       <span className="min-w-0 flex-1 truncate">{row.title}</span>
       {row.fresh ? (
         <span
           aria-hidden="true"
           title={freshDotTitle}
           className="h-[5px] w-[5px] shrink-0 rounded-full"
-          style={{ backgroundColor: "var(--topology-v2-panel-power-on)" }}
+          style={{ backgroundColor: "var(--map-panel-power-on)" }}
         />
       ) : null}
       {row.childCount > 0 ? (
@@ -89,13 +89,13 @@ function GroupCard({
   return (
     <section
       data-fulldetail-group={dataGroup}
-      className="rounded-card border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-surface)] p-3"
+      className="rounded-card border border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-surface)] p-3"
     >
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-body font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--topology-v2-panel-text-primary)]">
+        <span className="text-body font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--map-panel-text-primary)]">
           {title}
         </span>
-        <span className="font-mono text-caption uppercase tracking-[var(--tracking-caps-12)] text-[color:var(--topology-v2-panel-text-quaternary)]">
+        <span className="font-mono text-caption uppercase tracking-[var(--tracking-caps-12)] text-[color:var(--map-panel-text-quaternary)]">
           {caption}
         </span>
         <span
@@ -106,7 +106,7 @@ function GroupCard({
         </span>
       </div>
       {rows.length === 0 ? (
-        <p className="text-label text-[color:var(--topology-v2-panel-text-tertiary)]">
+        <p className="text-label text-[color:var(--map-panel-text-tertiary)]">
           {emptyLabel}
         </p>
       ) : (

@@ -83,7 +83,7 @@ docs/ontology/elements/docs-vault-view.md
 docs/ontology/elements/native-vault-filesystem-bridge.md
 docs/ontology/elements/first-run.md
 docs/ontology/elements/app-nav-rail.md
-docs/ontology/elements/topology-map-v2.md
+docs/ontology/elements/ontology-map.md
 docs/ontology/elements/ontology-change-review.md
 docs/ontology/elements/private-vault-sidecar-boundary.md
 docs/ontology/elements/bottom-tab-bar.md
@@ -821,7 +821,7 @@ Change proposals are volatile pre-write states, not separate approval ledgers or
 - src/features/ontology-meaning-editor (relation editor for the same anchor as the selection node inspector)
 - src/entities/knowledge-graph/lib/ontology-change-set.ts (preserving all review items in batch protocol order)\n- src/features/ontology-change-review (manual/ACP common typed change review and selected item accordion)
 - src/entities/knowledge-graph/lib/ontology-relation-edit.ts (frontmatter before/after plan)
-- src/widgets/topology-map-v2/render/preview-edge.ts (directional preview that does not alter the force graph)
+- src/widgets/ontology-map/render/preview-edge.ts (directional preview that does not alter the force graph)
 - src/features/acp-session/model/atlas-tool-policy.ts (read/write classification aligned with generated MCP surface)
 - src/widgets/acp-chat-panel/ui/AcpPermissionCard.tsx (ACP write pause, allow-once/reject-once)
 - src/widgets/acp-chat-panel/ui/AcpChatPanel.tsx (draft/committing map handoff for single relation change set)
@@ -892,8 +892,8 @@ kind: capability
 title: "Topology Map Rendering & Search"
 display_ko: 지도 그리기와 검색
 domain: domains/topology-navigation
-elements: [elements/global-search, elements/search-palette, elements/topology-controls, elements/topology-index-panel, elements/topology-map-v2]
-path: src/widgets/topology-map-v2
+elements: [elements/global-search, elements/search-palette, elements/topology-controls, elements/topology-index-panel, elements/ontology-map]
+path: src/widgets/ontology-map
 created_by: "agent:unknown"
 dependencies: [capabilities/design-token-ramps, capabilities/vault-ontology]
 relation_notes: { capabilities/vault-ontology: "The map renderer and search consume the compiled node kinds and typed relation vocabulary; changing the vault ontology schema changes what topology can render, filter, and explain.", capabilities/design-token-ramps: "The topology canvas and panels consume the shared topology, motion, radius, and color ramps from app/globals.css; changing those ramps changes map readability and interaction geometry." }
@@ -903,8 +903,8 @@ relation_notes: { capabilities/vault-ontology: "The map renderer and search cons
 The capability to render, pan/zoom, and search the entire vault graph on a custom canvas-2D engine. There is no dedicated folder in src/features/, but it is proposed via widget evidence + documentation description (review-required).
 
 ## Evidence
-- src/widgets/topology-map-v2, topology-controls, global-search (implementation evidence)
-- AGENTS.md: Tech stack ("The graph renderer is ours: a custom canvas-2D engine (topology-map-v2)")
+- src/widgets/ontology-map, topology-controls, global-search (implementation evidence)
+- AGENTS.md: Tech stack ("The graph renderer is ours: a custom canvas-2D engine (ontology-map)")
 
 ## View Modes
 - **3D View (dome view, 2026-08-18)**: An opt-in mode that repositions the map as a dome of kind concentric rings (project vertex →
@@ -913,7 +913,7 @@ The capability to render, pan/zoom, and search the entire vault graph on a custo
   full angle before reaching the poles) · In-plane node drag · Wheel zoom · "Reset to Origin" · Selection
   reframe (selecting a node aligns yaw and camera in one clock to frame that node on the front,
   reframing based on visible area even when panels are open/closed). Default is 2D (cross-verified evidence,
-  `docs/DECISIONS.md` 2026-08-18). Implementation: `src/widgets/topology-map-v2/model/dome-view.ts`,
+  `docs/DECISIONS.md` 2026-08-18). Implementation: `src/widgets/ontology-map/model/dome-view.ts`,
   config key `atlas.appearance.view3d`.
 - **3D Representation Layers (2026-08-18 3rd iteration)**: Five rendering devices that make the dome read as a dome.
   ① **Meridian relationship lines** riding on the convex hull (control points are on the hull, not the chord,
@@ -1023,8 +1023,8 @@ hook: PreToolUse Completed
 exec
 /bin/zsh -lc 'for f in $(rg --files docs/ontology | sort); do awk '"'BEGIN{fm=0} /"'^---$/{fm++; next} fm==1 && (/''^slug:/ || /''^kind:/ || /''^elements:/){print FILENAME ":" $0}'"' \""'$f"; done' in /Users/stark/orca/workspaces/oh-my-ontology/main-2
  succeeded in 4ms:
-docs/ontology/elements/topology-map-v2.md:slug: elements/topology-map-v2
-docs/ontology/elements/topology-map-v2.md:kind: element
+docs/ontology/elements/ontology-map.md:slug: elements/ontology-map
+docs/ontology/elements/ontology-map.md:kind: element
 docs/ontology/elements/vault-agent-panel.md:slug: elements/vault-agent-panel
 docs/ontology/elements/vault-agent-panel.md:kind: element
 docs/ontology/ontology-atlas.md:slug: ontology-atlas

@@ -1189,7 +1189,7 @@ right beside it.
 ### Element slug — flat only (R15's "two valid patterns" is retired)
 
 A slug is the node's **name**, flat under its kind folder: `elements/<role-name>`
-(`elements/jwt-token`, `elements/topology-map-v2`). The file's location lives in
+(`elements/jwt-token`, `elements/ontology-map`). The file's location lives in
 `path:`, never in the slug. Path-style slugs (`elements/src/features/auth`) are
 **rejected at every write door** (`add_concept` / `add_concepts` /
 `rename_concept` / `reclassify_concept` / CLI `add`) by `flatSlugIssue()` in

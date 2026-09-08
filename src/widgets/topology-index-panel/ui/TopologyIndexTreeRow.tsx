@@ -6,7 +6,7 @@ import { useRowDisclosure } from "@/shared/lib/use-row-disclosure";
 import { ChevronRight } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import type { DomainCensusRow, OntologyTreeNode } from "@/entities/knowledge-graph";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import {
   computeCapacityRatio,
   computeDomainSubcounts,
@@ -187,8 +187,8 @@ export function TopologyIndexTreeRow({
         // outer height takes.
         className={`grid min-h-9 grid-cols-[22px_15px_1fr_auto] items-center gap-x-2 rounded-chip border py-1 pl-1 pr-2 text-body transition-colors ${
           selected
-            ? "border-[color:var(--color-indigo-a55)] bg-[color:var(--topology-v2-panel-metric-surface)] text-[color:var(--topology-v2-panel-text-primary)]"
-            : "border-transparent text-[color:var(--topology-v2-panel-text-secondary)] hover:border-[color:var(--topology-v2-panel-action-border)] hover:text-[color:var(--topology-v2-panel-text-primary)]"
+            ? "border-[color:var(--color-indigo-a55)] bg-[color:var(--map-panel-metric-surface)] text-[color:var(--map-panel-text-primary)]"
+            : "border-transparent text-[color:var(--map-panel-text-secondary)] hover:border-[color:var(--map-panel-action-border)] hover:text-[color:var(--map-panel-text-primary)]"
         }`}
       >
         <button
@@ -211,13 +211,13 @@ export function TopologyIndexTreeRow({
           // and 47.5 with a subcount, so a fixed number was the full row height in
           // neither case (measured 22×34 in both, 2026-09-05) and it was off the height
           // ladder besides. Stretching says what the comment above already promised.
-          className={`-my-1 flex w-full items-center justify-center self-stretch text-[color:var(--topology-v2-panel-text-quaternary)] transition-transform ${
+          className={`-my-1 flex w-full items-center justify-center self-stretch text-[color:var(--map-panel-text-quaternary)] transition-transform ${
             hasChildren ? "" : "invisible"
           } ${open ? "rotate-90" : ""}`}
         >
           <ChevronRight size={ICON_SIZE.sm} aria-hidden="true" />
         </button>
-        <TopologyV2KindGlyph kind={node.kind} size={13} className="justify-self-center" />
+        <OntologyMapKindGlyph kind={node.kind} size={13} className="justify-self-center" />
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-1.5">
             <span className="min-w-0 flex-1 truncate">{node.display ?? node.title}</span>
@@ -225,7 +225,7 @@ export function TopologyIndexTreeRow({
               <span
                 data-testid="topology-index-agent-badge"
                 // 「An agent, just now」 (an agent, just now) — a Korean sentence, so the eyebrow treatment is dropped.
-                className={`shrink-0 text-caption text-[color:var(--topology-v2-panel-text-tertiary)] ${eyebrow}`}
+                className={`shrink-0 text-caption text-[color:var(--map-panel-text-tertiary)] ${eyebrow}`}
               >
                 {labels.agentBadge}
               </span>
@@ -233,7 +233,7 @@ export function TopologyIndexTreeRow({
             {fresh ? (
               <span
                 title={labels.freshTitle}
-                className="h-[5px] w-[5px] shrink-0 rounded-full bg-[color:var(--topology-v2-panel-power-on)]"
+                className="h-[5px] w-[5px] shrink-0 rounded-full bg-[color:var(--map-panel-power-on)]"
               />
             ) : null}
           </div>
@@ -242,7 +242,7 @@ export function TopologyIndexTreeRow({
               <span
                 title={labels.subcountsTitle}
                 data-testid="topology-index-subcounts"
-                className="shrink-0 font-mono text-caption text-[color:var(--topology-v2-panel-text-quaternary)]"
+                className="shrink-0 font-mono text-caption text-[color:var(--map-panel-text-quaternary)]"
               >
                 {labels.capabilitiesShort} {subcounts.capabilityCount} · {labels.elementsShort}{" "}
                 {subcounts.elementCount}
@@ -274,7 +274,7 @@ export function TopologyIndexTreeRow({
                   : labels.domainCountTitle
                 : undefined
             }
-            className="justify-self-end font-mono text-label text-[color:var(--topology-v2-numeral-face)] [text-shadow:0_1px_0_var(--topology-v2-numeral-shadow)]"
+            className="justify-self-end font-mono text-label text-[color:var(--map-numeral-face)] [text-shadow:0_1px_0_var(--map-numeral-shadow)]"
           >
             {count}
           </span>

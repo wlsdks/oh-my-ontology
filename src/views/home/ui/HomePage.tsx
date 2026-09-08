@@ -277,23 +277,23 @@ import { restoreTopologyFocusAfterDatasheetClose } from "../lib/topology-focus-r
 import { CreateNodeForm, type CreateNodeKind } from "./CreateNodeForm";
 import { OntologyBootstrapForm } from "./OntologyBootstrapForm";
 import {
-  TopologyV2EdgePanel,
+  OntologyMapEdgePanel,
   PLAIN_TIER_REVEAL,
-  TopologyMapV2,
-  TopologyV2ContextMenu,
-  TopologyV2DetailPanel,
-  TopologyV2EdgeHoverCard,
-  TopologyV2ClusterHoverCard,
+  OntologyMap,
+  OntologyMapContextMenu,
+  OntologyMapDetailPanel,
+  OntologyMapEdgeHoverCard,
+  OntologyMapClusterHoverCard,
   buildV2Connections,
   buildV2ConnectionGroups,
   buildV2EvidenceRows,
   formatV2HandoffText,
   refreshIndexDependentTokens,
-} from "@/widgets/topology-map-v2";
+} from "@/widgets/ontology-map";
 import { parseFrontmatter } from "@/shared/lib/parse-frontmatter";
 import { replaceVaultBody } from "@/shared/lib/replace-vault-body";
 import { AppSettingsMenu } from "@/widgets/app-settings-menu";
-import { buildTopologyV2Graph } from "../lib/topology-v2-adapter";
+import { buildOntologyMapGraph } from "../lib/map-adapter";
 import { deriveDustySlugs } from "../lib/topology-dusty";
 import { resolveContextualIndexState } from "../lib/resolve-contextual-index-state";
 import { clampSynthSize, synthesizeVaultGraph } from "../lib/synth-vault";
@@ -743,10 +743,10 @@ function HomePageImpl() {
     [setIndexPreference],
   );
   // The map's safe-inset-left assumes INDEX's width by default
-  // (`--topology-v2-safe-inset-left: 344` = 18 inset + 300 width + 26 gap).
+  // (`--map-safe-inset-left: 344` = 18 inset + 300 width + 26 gap).
   // Collapsing INDEX narrows that reserved space — flip the DOM attribute
   // `app/globals.css` keys off of, invalidate the cached token read (canvas
-  // reads CSS vars once per `read-topology-v2-tokens.ts`'s own contract),
+  // reads CSS vars once per `read-map-tokens.ts`'s own contract),
   // then force a re-fit via the existing fit-view token so the camera actually
   // re-centres against the new width instead of only changing CSS. The dataset and
   // fit effects live below the selection-aware `renderedIndexState` derivation.
@@ -1788,13 +1788,13 @@ function HomePageImpl() {
   // there is one source.
   const spotlightIds = spotlightOn ? recentChanges.recentNodeIds : null;
   const freshChannelSlugs = spotlightOn ? recentChanges.recentNodeIds : changedSlugs;
-  const topologyV2Graph = useMemo(() => {
+  const ontologyMapGraph = useMemo(() => {
     if (synthSize != null) {
       const synth = synthesizeVaultGraph(synthSize);
-      return buildTopologyV2Graph(synth.nodes, synth.edges, { changedSlugs: freshChannelSlugs });
+      return buildOntologyMapGraph(synth.nodes, synth.edges, { changedSlugs: freshChannelSlugs });
     }
     return ontologyInsight
-      ? buildTopologyV2Graph(ontologyInsight.nodes, ontologyInsight.edges, {
+      ? buildOntologyMapGraph(ontologyInsight.nodes, ontologyInsight.edges, {
           changedSlugs: freshChannelSlugs,
           dustySlugs,
         })
@@ -1809,8 +1809,8 @@ function HomePageImpl() {
 // deterministically from `?recent=`, so shared links stay reproducible and turning
 // the lens off returns to the user's own expansion with no contamination.
   const spotlightExpandedParents = useMemo(() => {
-    if (!spotlightIds || spotlightIds.size === 0 || topologyV2Graph.edges.length === 0) return null;
-    const parentOf = buildContainmentParentMap(topologyV2Graph.edges);
+    if (!spotlightIds || spotlightIds.size === 0 || ontologyMapGraph.edges.length === 0) return null;
+    const parentOf = buildContainmentParentMap(ontologyMapGraph.edges);
     const merged = new Set(expandedParentSet);
     for (const id of spotlightIds) {
       for (const ancestor of deriveDeeplinkAncestorExpansion(id, parentOf, [])) {
@@ -1818,7 +1818,7 @@ function HomePageImpl() {
       }
     }
     return merged;
-  }, [spotlightIds, topologyV2Graph, expandedParentSet]);
+  }, [spotlightIds, ontologyMapGraph, expandedParentSet]);
 
   /*
    * ⚠️ **The canvas wants a graph node id, not a slug** (found from an owner report,
@@ -1891,8 +1891,8 @@ function HomePageImpl() {
   // `ontologyInsight`.
   const realmTitle = useMemo(() => {
     if (!resolvedRealmSlug) return null;
-    return topologyV2Graph.nodes.find((n) => n.id === resolvedRealmSlug)?.label ?? resolvedRealmSlug;
-  }, [resolvedRealmSlug, topologyV2Graph]);
+    return ontologyMapGraph.nodes.find((n) => n.id === resolvedRealmSlug)?.label ?? resolvedRealmSlug;
+  }, [resolvedRealmSlug, ontologyMapGraph]);
 
   // Deep-link ancestor expansion. When a `?p=slug` target sits inside a parent
   // subtree the density gate (`model/density-gate.ts`) has collapsed, its `contains`
@@ -1905,8 +1905,8 @@ function HomePageImpl() {
   useEffect(() => {
     if (!canvasSelectedSlug) return;
     if (deeplinkExpandedForRef.current === canvasSelectedSlug) return;
-    if (topologyV2Graph.edges.length === 0) return;
-    const parentOf = buildContainmentParentMap(topologyV2Graph.edges);
+    if (ontologyMapGraph.edges.length === 0) return;
+    const parentOf = buildContainmentParentMap(ontologyMapGraph.edges);
     deeplinkExpandedForRef.current = canvasSelectedSlug;
     // `replace`, because this write normalises the deep link the user arrived on
     // rather than navigating. A push would add a history entry the user never made,
@@ -1920,7 +1920,7 @@ function HomePageImpl() {
       if (nextExpanded.length === current.expandedParents.length) return current;
       return { ...current, expandedParents: nextExpanded };
     }, { replace: true });
-  }, [canvasSelectedSlug, topologyV2Graph, setRouteState]);
+  }, [canvasSelectedSlug, ontologyMapGraph, setRouteState]);
 
   const {
     setFootprintTrail,
@@ -1937,7 +1937,7 @@ function HomePageImpl() {
     handleFootprintBrush,
   } = useFootprintTrail({
     canvasSelectedSlug,
-    graphNodes: topologyV2Graph.nodes,
+    graphNodes: ontologyMapGraph.nodes,
     insightNodes: ontologyInsight?.nodes,
     dustySlugs,
     // The walked pairs are read back against the vault's own edges, so the trail can
@@ -2041,7 +2041,7 @@ function HomePageImpl() {
   // popover with no effect needed.
   const [fullDetailSlug, setFullDetailSlug] = useState<string | null>(null);
   // Node right-click context menu. `slug` here is the CANVAS graph
-  // node id (`TopologyV2Node.id`, same id space `onSelect`/`handleSelect`
+  // node id (`OntologyMapNode.id`, same id space `onSelect`/`handleSelect`
   // use), reported by `use-topology-loop.ts`'s tier-aware hit test; `x`/`y`
   // are viewport-space cursor coordinates the menu anchors to.
   const [contextMenuNode, setContextMenuNode] = useState<
@@ -2641,7 +2641,7 @@ function HomePageImpl() {
     // runs when a node is selected, because INDEX demotes to the rail. Discarding the
     // whole token cache forces a style recalculation on the next frame — 115
     // `getPropertyValue` calls, 58 ms burnt on every click. The only token
-    // `data-topology-index` actually changes is `--topology-v2-safe-inset-left`, so
+    // `data-topology-index` actually changes is `--map-safe-inset-left`, so
     // only that one is refreshed.
     refreshIndexDependentTokens(root);
     let cancelled = false;
@@ -2951,7 +2951,7 @@ function HomePageImpl() {
   // model is still unavailable.
   //
   // 2026-08-03: **the exit window now belongs to the panel** (the `<Surface>` inside
-  // `TopologyV2DetailPanel`). The old `usePanelPresence` + `presence` prop pairing kept
+  // `OntologyMapDetailPanel`). The old `usePanelPresence` + `presence` prop pairing kept
   // the window in the parent and only told the child which class to wear, which made
   // "does this surface have a way out" a fact living outside the panel's own file —
   // somewhere the hard-cut ratchet's detector cannot see. All that remains here is
@@ -3041,9 +3041,9 @@ function HomePageImpl() {
       focusedKind: selectedOntologyNode?.kind ?? null,
       lenses: spotlightOn ? ["recent-changes"] : [],
       projectTitle: realmTitle ?? null,
-      visibleNodeCount: topologyV2Graph.nodes.length,
+      visibleNodeCount: ontologyMapGraph.nodes.length,
     };
-  }, [selectedOntologyNode, spotlightOn, realmTitle, topologyV2Graph.nodes.length]);
+  }, [selectedOntologyNode, spotlightOn, realmTitle, ontologyMapGraph.nodes.length]);
 
   /**
    * **One chat panel** (owner decision, 2026-08-16).
@@ -3527,11 +3527,11 @@ function HomePageImpl() {
     (anchor: TourAnchor) => {
       if (anchor === null) return true;
       if (anchor.type === "canvas-node") {
-        return resolveTourAnchorNodeId(topologyV2Graph.nodes, anchor.target) !== null;
+        return resolveTourAnchorNodeId(ontologyMapGraph.nodes, anchor.target) !== null;
       }
       return resolveAnchorRect(anchor.value) !== null;
     },
-    [topologyV2Graph],
+    [ontologyMapGraph],
   );
   const tour = useGuidedTour({
     hasSelection: canvasSelectedSlug != null,
@@ -3545,7 +3545,7 @@ function HomePageImpl() {
   const tourAnchorRef = useRef<HTMLDivElement | null>(null);
   const tourAnchorNodeId =
     tour.open && tour.step && tour.step.anchor !== null && tour.step.anchor.type === "canvas-node"
-      ? resolveTourAnchorNodeId(topologyV2Graph.nodes, tour.step.anchor.target)
+      ? resolveTourAnchorNodeId(ontologyMapGraph.nodes, tour.step.anchor.target)
       : null;
   const activateTourAnchor = useCallback(() => {
     if (!tourAnchorNodeId) return;
@@ -3714,7 +3714,7 @@ function HomePageImpl() {
       case "close-edge-popover":
         // With the edge popover open, the first Escape closes that — the highest
         // consumer after leaving a realm, the same contract as the node popover. The
-        // popover returns focus to its trigger itself (`TopologyV2EdgePanel`).
+        // popover returns focus to its trigger itself (`OntologyMapEdgePanel`).
         setSelectedEdge(null);
         break;
       case "close-context-menu":
@@ -3862,10 +3862,10 @@ function HomePageImpl() {
     return computeTopologyShortestPath(
       pathSourceSlug,
       pathTargetSlug,
-      topologyV2Graph.nodes,
+      ontologyMapGraph.nodes,
       ontologyInsight.edges,
     );
-  }, [pathSourceSlug, pathTargetSlug, ontologyInsight, topologyV2Graph.nodes]);
+  }, [pathSourceSlug, pathTargetSlug, ontologyInsight, ontologyMapGraph.nodes]);
   const pathHopCount = pathResult?.hops ?? null;
   const pathLensNodeIds = useMemo(
     () => (pathResult ? new Set(pathResult.nodeIds) : null),
@@ -3876,17 +3876,17 @@ function HomePageImpl() {
     [pathResult],
   );
   const allMapNodeIds = useMemo(
-    () => new Set(topologyV2Graph.nodes.map((node) => node.id)),
-    [topologyV2Graph.nodes],
+    () => new Set(ontologyMapGraph.nodes.map((node) => node.id)),
+    [ontologyMapGraph.nodes],
   );
   const allExpandedParentIds = useMemo(
     () =>
       new Set(
-        topologyV2Graph.edges
+        ontologyMapGraph.edges
           .filter((edge) => edge.kind === "contains")
           .map((edge) => edge.source),
       ),
-    [topologyV2Graph.edges],
+    [ontologyMapGraph.edges],
   );
   const mapLensIds =
     analysisMode === "path"
@@ -3897,8 +3897,8 @@ function HomePageImpl() {
   const mapLensKind =
     analysisMode === "path" ? "path" as const : expandAllActive ? "all" as const : "recent" as const;
   const pathExpandedParents = useMemo(() => {
-    if (!pathLensNodeIds || topologyV2Graph.edges.length === 0) return null;
-    const parentOf = buildContainmentParentMap(topologyV2Graph.edges);
+    if (!pathLensNodeIds || ontologyMapGraph.edges.length === 0) return null;
+    const parentOf = buildContainmentParentMap(ontologyMapGraph.edges);
     const merged = new Set(expandedParentSet);
     for (const id of pathLensNodeIds) {
       for (const ancestor of deriveDeeplinkAncestorExpansion(id, parentOf, [])) {
@@ -3906,7 +3906,7 @@ function HomePageImpl() {
       }
     }
     return merged;
-  }, [pathLensNodeIds, topologyV2Graph.edges, expandedParentSet]);
+  }, [pathLensNodeIds, ontologyMapGraph.edges, expandedParentSet]);
   // Top-center status line of the path chip — "Path: X → Target selected" / "X → Y · N hops" /
 // No path / **Endpoint not in this vault**. Compresses what the old path panel did in the left slot into a single top chip (analysis panel complete elimination phase 2 §b). Determination is extracted as a pure function — evidence and old lies are in `../lib/topology-path-chip-state.ts`.
   const pathChipState = useMemo(
@@ -4098,7 +4098,7 @@ function HomePageImpl() {
   // Derivations for the realm ledger: what the left panel shows when a realm is
   // active and it presents only this node's world instead of the global content. All
   // of it comes from the graph and tree through a pure lib
-  // (`../lib/realm-ledger.ts`), so nothing here touches `topology-map-v2`.
+  // (`../lib/realm-ledger.ts`), so nothing here touches `ontology-map`.
   const realmNodeById = useMemo(
     () => new Map((ontologyInsight?.nodes ?? []).map((n) => [n.id, n] as const)),
     [ontologyInsight],
@@ -5596,10 +5596,10 @@ function HomePageImpl() {
                   />
                 ) : null}
                 {topologyRenderState.renderCanvas && mapMountTaskReady ? (
-                  // `topology-map-v2` (`docs/TOPOLOGY-V2-DESIGN.md`) unifies the map tab,
+                  // `ontology-map` (`docs/ONTOLOGY-MAP-DESIGN.md`) unifies the map tab,
                   // the graph tab, and the project-detail neighbour map into one engine;
                   // this call site is wired once for all three. `nodes`/`edges` come from
-                  // `topologyV2Graph` (`topology-v2-adapter.ts`), derived from
+                  // `ontologyMapGraph` (`map-adapter.ts`), derived from
                   // `ontologyInsight`. The older engine branches this ternary used to
                   // hold were deleted outright once v2 became the default — owner
                   // directive: *"Delete all the old canvas code."* (delete all the old
@@ -5620,9 +5620,9 @@ function HomePageImpl() {
                       />
                     )}
                   >
-                    <TopologyMapV2
-                      nodes={topologyV2Graph.nodes}
-                      edges={topologyV2Graph.edges}
+                    <OntologyMap
+                      nodes={ontologyMapGraph.nodes}
+                      edges={ontologyMapGraph.edges}
                       relationCaptions={mapRelationCaptions}
                       reviewQuestionIds={mapReviewQuestionIds}
                       /* Say so when an arrow key has nowhere to walk (owner, 2026-08-10).
@@ -5854,7 +5854,7 @@ function HomePageImpl() {
               )}
               {/* Growth replay (2026-09-02): the fourth slot of the right rail rhythm, one row
                   below the "?" tile. Replays the ontology appearing in containment order
-                  (`topology-map-v2/model/growth-replay.ts`); desktop only like the tour. A
+                  (`ontology-map/model/growth-replay.ts`); desktop only like the tour. A
                   `ChromeTile`, not a hand-written button — the control ratchet only falls. */}
               {createNodeOpen ||
               selectedRelationActive ||
@@ -6133,12 +6133,12 @@ function HomePageImpl() {
              *    of the canvas with 93 of 125 nodes under it, and at taller content it
              *    ran 41px past the bottom tab bar and took its own primary action out
              *    of reach. Anchored to the bottom above
-             *    `--topology-v2-panel-bottom-reserve` (which already carries the tab
+             *    `--map-panel-bottom-reserve` (which already carries the tab
              *    bar plus safe area below `lg`) the footer cannot reach the bar, and
-             *    the height cap on `--topology-v2-inspector-max-height` decides the
+             *    the height cap on `--map-inspector-max-height` decides the
              *    top edge, so the ego graph stays on screen above it. That cap is the
              *    inspector's alone — the meaning editor shares this positioner and
-             *    keeps the full `--topology-v2-panel-max-height`, because a form must
+             *    keeps the full `--map-panel-max-height`, because a form must
              *    be able to show its own submit row.
              * ② `pointer-events-none` here with `pointer-events-auto` on the painted
              *    child. This element is a positioning wrapper: at 834 it measured
@@ -6149,11 +6149,11 @@ function HomePageImpl() {
              *    it is, so the same attribute means «right panel» at `lg` and «bottom
              *    sheet» below it without a second marker.
              */
-            className="topology-ui-scale pointer-events-none fixed inset-x-3 bottom-[var(--topology-v2-panel-bottom-reserve)] z-30 flex justify-center lg:inset-x-auto lg:bottom-auto lg:right-[var(--topology-node-popover-right-inset)] lg:top-[var(--topology-node-popover-top)] lg:block"
+            className="topology-ui-scale pointer-events-none fixed inset-x-3 bottom-[var(--map-panel-bottom-reserve)] z-30 flex justify-center lg:inset-x-auto lg:bottom-auto lg:right-[var(--topology-node-popover-right-inset)] lg:top-[var(--topology-node-popover-top)] lg:block"
           >
             <div className="pointer-events-auto grid">
             {panelDatasheetModel ? (
-              <TopologyV2DetailPanel
+              <OntologyMapDetailPanel
                 key={panelDatasheetModel.slug}
                 open={panelOpen}
                 onExited={() => {
@@ -6375,7 +6375,7 @@ function HomePageImpl() {
             with the edge popover only, since that would be two surfaces for the same
             meaning. */}
         {hoverEdgeCardModel && !selectedEdge && !createNodeOpen ? (
-          <TopologyV2EdgeHoverCard
+          <OntologyMapEdgeHoverCard
             sentence={hoverEdgeCardModel.sentence}
             typeLabel={hoverEdgeCardModel.typeLabel}
             why={hoverEdgeCardModel.why}
@@ -6388,7 +6388,7 @@ function HomePageImpl() {
             create composer. (The pointer handler already clears the edge hover when a
             chip is hovered; this is belt and braces.) */}
         {clusterHoverCardModel && !hoverEdgeCardModel && !createNodeOpen ? (
-          <TopologyV2ClusterHoverCard
+          <OntologyMapClusterHoverCard
             sentence={clusterHoverCardModel.sentence}
             x={clusterHoverCardModel.x}
             y={clusterHoverCardModel.y}
@@ -6407,7 +6407,7 @@ function HomePageImpl() {
             data-fixed-surface-role="selected-node-inspector"
             className="topology-ui-scale fixed inset-x-3 top-[72px] z-30 flex justify-center lg:inset-x-auto lg:right-[var(--topology-node-popover-right-inset)] lg:top-[var(--topology-node-popover-top)] lg:block"
           >
-            <TopologyV2EdgePanel
+            <OntologyMapEdgePanel
               sentence={heldEdgePanelModel.sentence}
               typeLabel={heldEdgePanelModel.typeLabel}
               fromId={heldEdgePanelModel.fromId}
@@ -6457,7 +6457,7 @@ function HomePageImpl() {
             cost is zero). A separate mount flag would mean calling setState inside an
             effect, which is a cascading render. */}
         {heldContextMenu ? (
-          <TopologyV2ContextMenu
+          <OntologyMapContextMenu
             open={Boolean(contextMenuNode && contextMenuModel)}
             position={heldContextMenu.anchor}
             documentHref={heldContextMenu.model.documentHref}

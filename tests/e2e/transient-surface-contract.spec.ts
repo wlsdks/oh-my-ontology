@@ -298,7 +298,7 @@ test.describe("잠깐 뜨는 표면 3계약", () => {
       }
     }, FIRST_RUN_STARTER_DISMISSED_KEY);
     await page.goto("/ko/topology/?e2e=1&guides=off");
-    const canvas = page.getByTestId("topology-map-v2-canvas");
+    const canvas = page.getByTestId("ontology-map-canvas");
     await canvas.waitFor({ state: "visible", timeout: 20_000 });
     await canvas.focus();
     await page.keyboard.press("ArrowRight");
@@ -347,7 +347,7 @@ test.describe("잠깐 뜨는 표면 3계약", () => {
     await page.setViewportSize({ width: 1512, height: 900 });
     await seedFirstRunSeen(page);
     await page.goto("/ko/topology/?e2e=1&guides=off");
-    const canvas = page.getByTestId("topology-map-v2-canvas");
+    const canvas = page.getByTestId("ontology-map-canvas");
     await canvas.waitFor({ state: "visible", timeout: 20_000 });
     await expect
       .poll(() => page.evaluate(() => window.__atlasMap?.nodes().length ?? 0), { timeout: 20_000 })

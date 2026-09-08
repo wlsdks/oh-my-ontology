@@ -650,19 +650,19 @@ export function buildWebviewEvidencePayload(
   const topologyRenderProof =
     markers.topologyMapEngine === "v2"
       ? {
-        proof: "topology-map-v2-canvas-render",
+        proof: "ontology-map-canvas-render",
         status:
           markers.topologySigmaViewportVisible === true &&
           markerNumber(markers, "topologySigmaCanvasCount") >= 1 &&
           markers.topologySigmaBootError !== true &&
-          markerNumber(markers, "topologyV2CanvasInkPixels") > 0
+          markerNumber(markers, "ontologyMapCanvasInkPixels") > 0
             ? "proved"
             : "incomplete",
         route: evidenceRoute(payload?.href),
         engine: markers.topologyMapEngine,
         viewportVisible: markers.topologySigmaViewportVisible === true,
         canvasCount: markerNumber(markers, "topologySigmaCanvasCount"),
-        inkPixels: markerNumber(markers, "topologyV2CanvasInkPixels"),
+        inkPixels: markerNumber(markers, "ontologyMapCanvasInkPixels"),
         agentNextAction:
           "use visual evidence for node-level rendering; do not infer DOM-card counts from the canvas engine",
       }

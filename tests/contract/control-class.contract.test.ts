@@ -49,7 +49,7 @@ const SCOPES = ['app', 'panel'] as const;
  * justified; if the values converge the test turns red and **tells you to shrink
  * this list**.
  */
-const TOKEN_NAMESPACES = ['--color-', '--topology-v2-panel-text-'];
+const TOKEN_NAMESPACES = ['--color-', '--map-panel-text-'];
 
 /** The 4 steps of the radius ramp in `app/globals.css`. Any radius not here is off-ramp. */
 const RADIUS_STEPS = ['micro', 'chip', 'card', 'panel'];
@@ -352,9 +352,9 @@ describe('controlClass — 여덟째 모양과 세 축', () => {
     const pairs: Array<[string, string]> = [];
     for (const step of DIVERGING_STEPS) {
       const app = cssVar(`--color-text-${step}`);
-      const panel = cssVar(`--topology-v2-panel-text-${step}`);
+      const panel = cssVar(`--map-panel-text-${step}`);
       expect(app, `--color-text-${step} 를 못 읽었다`).toBeTruthy();
-      expect(panel, `--topology-v2-panel-text-${step} 를 못 읽었다`).toBeTruthy();
+      expect(panel, `--map-panel-text-${step} 를 못 읽었다`).toBeTruthy();
       pairs.push([app as string, panel as string]);
     }
     // Idling guard — if all three steps were not read, the assertion below passes on an empty set.
@@ -391,9 +391,9 @@ describe('controlClass — 여덟째 모양과 세 축', () => {
      * is resurrected without evidence. Both turn red here.
      */
     const app = cssVar('--color-text-quaternary');
-    const panel = cssVar('--topology-v2-panel-text-quaternary');
+    const panel = cssVar('--map-panel-text-quaternary');
     expect(app, '--color-text-quaternary 를 못 읽었다').toBeTruthy();
-    expect(panel, '--topology-v2-panel-text-quaternary 를 못 읽었다').toBeTruthy();
+    expect(panel, '--map-panel-text-quaternary 를 못 읽었다').toBeTruthy();
     expect(
       panel,
       `quaternary 가 두 램프에서 다시 갈라졌다(전역 ${app} · 패널 ${panel}) — ` +
@@ -402,7 +402,7 @@ describe('controlClass — 여덟째 모양과 세 축', () => {
     // The compound really is absent — `muted` emits one global token regardless of scope.
     const onPanel = controlClass({ shape: 'chip', size: 'md', tone: 'muted', scope: 'panel' });
     expect(
-      onPanel.includes('--topology-v2-panel-text-quaternary'),
+      onPanel.includes('--map-panel-text-quaternary'),
       '수렴 상태인데 panel 컴파운드가 되살아나 있다 — 같은 값을 내는 무노동 분기다. 지워라.',
     ).toBe(false);
     expect(onPanel).toContain('text-[color:var(--color-text-quaternary)]');
@@ -417,7 +417,7 @@ describe('controlClass — 여덟째 모양과 세 축', () => {
     const offenders: string[] = [];
     allScoped((cls, label) => {
       for (const c of cls.split(' ')) {
-        if (!c.includes('--topology-v2-panel-text-')) continue;
+        if (!c.includes('--map-panel-text-')) continue;
         if (!/^text-\[color:/.test(c)) offenders.push(`${label}: ${c}`);
       }
     });
@@ -824,10 +824,10 @@ describe('호버 축 — 값 층이 내는 결과 문자열', () => {
       'hover:text-[color:var(--color-text-secondary)]',
     );
     expect(controlClass({ hoverInk: 'strong', scope: 'panel' })).toContain(
-      'hover:text-[color:var(--topology-v2-panel-text-primary)]',
+      'hover:text-[color:var(--map-panel-text-primary)]',
     );
     expect(controlClass({ hoverInk: 'secondary', scope: 'panel' })).toContain(
-      'hover:text-[color:var(--topology-v2-panel-text-secondary)]',
+      'hover:text-[color:var(--map-panel-text-secondary)]',
     );
   });
 
@@ -842,7 +842,7 @@ describe('호버 축 — 값 층이 내는 결과 문자열', () => {
       );
     }
     expect(controlClass({ shape: 'row', hoverSurface: 'lift', scope: 'panel' })).toContain(
-      'hover:bg-[color:var(--topology-v2-panel-row-hover)]',
+      'hover:bg-[color:var(--map-panel-row-hover)]',
     );
   });
 

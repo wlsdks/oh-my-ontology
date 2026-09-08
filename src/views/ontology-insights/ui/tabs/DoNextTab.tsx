@@ -5,7 +5,7 @@ import { AlertTriangle, ChevronRight, FileWarning, MessageCircle } from "lucide-
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { Link } from "@/i18n/navigation";
 import { EvidenceOnlyBadge } from "@/shared/ui/evidence-only-badge";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import type { MeaningGapKind, OntologyHealthActionTarget } from "@/entities/knowledge-graph";
 import type { VaultDocumentIssue } from "@/shared/lib/validate-vault-document";
 import type { DoNextQueue, DoNextRow } from "../../lib/do-next-queue";
@@ -453,7 +453,7 @@ export function DoNextTab({
           <FixRow
             key={`duplicate:${pair.id}`}
             kind="duplicate"
-            glyph={<TopologyV2KindGlyph kind={pair.kind ?? "unknown"} size={13} />}
+            glyph={<OntologyMapKindGlyph kind={pair.kind ?? "unknown"} size={13} />}
             title={
               <>
                 {pair.keepTitle}
@@ -546,7 +546,7 @@ export function DoNextTab({
               kind={group}
               active={isActive(row.id)}
               rowRef={(element) => registerReviewRow(row.id, element)}
-              glyph={<TopologyV2KindGlyph kind={row.nodeKind} size={13} />}
+              glyph={<OntologyMapKindGlyph kind={row.nodeKind} size={13} />}
               title={row.title}
               badge={
                 row.evidenceOnly ? (
@@ -755,7 +755,7 @@ function FixGroup({
           </span>
           <span
             data-testid="do-next-group-count"
-            className="shrink-0 font-mono tabular-nums text-[color:var(--topology-v2-numeral-face)]"
+            className="shrink-0 font-mono tabular-nums text-[color:var(--map-numeral-face)]"
           >
             {count}
           </span>

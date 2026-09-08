@@ -3,7 +3,7 @@ import { pickLastEditSubject, type LastEditSubjectFact } from "@/shared/lib/last
 import { hasUnaccountedMtimeChange } from "@/shared/lib/mtime-conflict";
 
 /**
- * Resolves the "last edited by human/AI" fact for `TopologyV2DetailPanel` and
+ * Resolves the "last edited by human/AI" fact for `OntologyMapDetailPanel` and
  * `FullDetailA1`, the graph-node counterparts of `resolveDocLastEditSubject`
  * (docs-vault). Same two real sources, adapted to the graph's own id shape:
  *

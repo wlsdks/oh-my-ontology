@@ -21,7 +21,7 @@ import { describe, expect, it } from 'vitest';
  * likewise caught **by measuring the static export in a browser**.
  *
  * It had already **split within a single file**: of the 8 engraved-numeral `<b>`
- * elements in `TopologyV2DetailPanel`, 4 stated `strong` (650) and 4 did not.
+ * elements in `OntologyMapDetailPanel`, 4 stated `strong` (650) and 4 did not.
  * Siblings in the same role diverged at 650 and 700 and nobody saw it.
  *
  * ## Why "must state" rather than "700 forbidden"

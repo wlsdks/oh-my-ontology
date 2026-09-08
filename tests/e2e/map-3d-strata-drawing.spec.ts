@@ -97,7 +97,7 @@ async function readStrata(page: Page) {
         };
       }
     ).__atlasMap;
-    const canvas = document.querySelector('[data-testid="topology-map-v2-canvas"]');
+    const canvas = document.querySelector('[data-testid="ontology-map-canvas"]');
     if (!probe || !canvas) return null;
     const box = canvas.getBoundingClientRect();
     const nodes = probe.nodes().filter((n) => !n.hidden);
@@ -293,7 +293,7 @@ async function drawnNodes(page: Page): Promise<DrawnNode[]> {
 /** A canvas point with no drawn disc within 40 px — clicking it clears the focus. */
 async function emptyPoint(page: Page): Promise<{ x: number; y: number }> {
   return page.evaluate(() => {
-    const canvas = document.querySelector('[data-testid="topology-map-v2-canvas"]')!.getBoundingClientRect();
+    const canvas = document.querySelector('[data-testid="ontology-map-canvas"]')!.getBoundingClientRect();
     const nodes = (
       window as unknown as {
         __atlasMap: { nodes: () => Array<{ x: number; y: number; radius: number; hidden: boolean }> };
@@ -317,7 +317,7 @@ for (const screen of SCREENS) {
     test.setTimeout(180_000);
     await openStrata(page, screen.width, screen.height);
     const canvas = await page.evaluate(() => {
-      const box = document.querySelector('[data-testid="topology-map-v2-canvas"]')!.getBoundingClientRect();
+      const box = document.querySelector('[data-testid="ontology-map-canvas"]')!.getBoundingClientRect();
       return { x: box.x, y: box.y };
     });
 
@@ -400,7 +400,7 @@ for (const screen of SCREENS) {
         selection.nodeId,
         `clicking ${node!.id} at its drawn centre${offset ? ` ${offset > 0 ? "+" : ""}${offset}px` : ""} selected ${selection.nodeId ?? "nothing"}${selection.edge ? " (a relation)" : ""}`,
       ).toBe(node!.id);
-      await expect(page.locator('[data-testid="topology-v2-detail-panel"]').first()).toContainText(node!.label);
+      await expect(page.locator('[data-testid="map-detail-panel"]').first()).toContainText(node!.label);
     }
   });
 }
@@ -432,7 +432,7 @@ test(`Strata ${legend.width}x${legend.height} — the tier legend names four pla
 
   const read = async () =>
     page.evaluate(() => {
-      const canvas = document.querySelector('[data-testid="topology-map-v2-canvas"]')!;
+      const canvas = document.querySelector('[data-testid="ontology-map-canvas"]')!;
       const cb = canvas.getBoundingClientRect();
       const local = (element: Element | null) => {
         if (!element) return null;
@@ -448,7 +448,7 @@ test(`Strata ${legend.width}x${legend.height} — the tier legend names four pla
         "topology-tour-button",
         "topology-shortcuts-help-button",
         "topology-replay-growth",
-        "topology-v2-detail-panel",
+        "map-detail-panel",
         "first-run-readout",
       ]
         .map((id) => ({ id, rect: local(document.querySelector(`[data-testid="${id}"]`)) }))
@@ -488,7 +488,7 @@ test(`Strata ${legend.width}x${legend.height} — the tier legend names four pla
         rows,
         hits,
         placement: rail?.dataset.tierLegendPlacement ?? null,
-        selectedPanel: chrome.some((c) => c.id === "topology-v2-detail-panel"),
+        selectedPanel: chrome.some((c) => c.id === "map-detail-panel"),
       };
     });
 
@@ -508,7 +508,7 @@ test(`Strata ${legend.width}x${legend.height} — the tier legend names four pla
   // …and the same holds once the inspector is docked at the same edge.
   const target = (await drawnNodes(page)).sort((a, b) => b.radius - a.radius)[0];
   const canvasBox = await page.evaluate(() => {
-    const box = document.querySelector('[data-testid="topology-map-v2-canvas"]')!.getBoundingClientRect();
+    const box = document.querySelector('[data-testid="ontology-map-canvas"]')!.getBoundingClientRect();
     return { x: box.x, y: box.y };
   });
   await page.mouse.click(canvasBox.x + target.x, canvasBox.y + target.y);

@@ -30,7 +30,7 @@ export interface TopologyEscLadderInput {
    */
   realmActive?: boolean;
   /**
-   * The edge popover (`TopologyV2EdgePanel`, role=dialog) is open. It is
+   * The edge popover (`OntologyMapEdgePanel`, role=dialog) is open. It is
    * consumed after the realm and before every other overlay, under the same
    * "most recently opened transient surface first" contract as the node popover.
    * This decision used to be inline in `HomePage`'s keydown effect, where the

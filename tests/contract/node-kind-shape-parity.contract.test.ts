@@ -2,8 +2,8 @@ import { createElement } from "react";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { bodyPoints } from "@/widgets/topology-map-v2/render/node-shapes";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { bodyPoints } from "@/widgets/ontology-map/render/node-shapes";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 
 /**
  * Verifies the kind → silhouette mapping is identical across both render facades
@@ -12,9 +12,9 @@ import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
  * **Why a contract test.** The "node spec" section of `docs/DESIGN-SYSTEM.md`
  * records "project=hex · domain=square · capability=circle · element=square +
  * via-hole" as a **hard invariant**, and two facades — `render/node-shapes.ts`
- * (canvas) and `shared/ui/topology-v2-kind-glyph.tsx` (DOM) — each keep that rule
+ * (canvas) and `shared/ui/map-kind-glyph.tsx` (DOM) — each keep that rule
  * independently. But each file's own unit test (`node-shapes.test.ts`,
- * `topology-v2-kind-glyph.test.tsx`) checks consistency **within its own file
+ * `map-kind-glyph.test.tsx`) checks consistency **within its own file
  * only**, so a kind mapping changed on one side is invisible to the other's test.
  * lint sees AST selectors within one file, so it cannot catch this divergence in
  * principle (the classification rule in .claude/rules/design.md: if the verdict
@@ -45,7 +45,7 @@ function canvasShapeFamily(kind: (typeof KINDS)[number]): ShapeFamily {
 
 /** DOM facade — classify by the rendered silhouette's SVG tag (element is a <rect> body + a via-hole <circle>). */
 function domShapeFamily(kind: (typeof KINDS)[number]): ShapeFamily {
-  const { container, unmount } = render(createElement(TopologyV2KindGlyph, { kind }));
+  const { container, unmount } = render(createElement(OntologyMapKindGlyph, { kind }));
   const svg = container.querySelector("svg")!;
   const tag = svg.querySelector("polygon, rect, circle")?.tagName.toLowerCase();
   unmount();

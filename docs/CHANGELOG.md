@@ -47,11 +47,11 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: an MCP screen; Connectors filled by Notion, GitHub, Context7, Playwright, or an ontology-atlas:// link. The Library graph pulls apart by hand; an empty-folder stage, a stepper, a door for outside notes, a local model card; Check the wiki proposes nodes and logs them; a partly read source says so. Meaning asks reasons; Strata names planes.
+**Added**: an MCP screen; Connectors from Notion, GitHub, Context7, Playwright or an atlas link. The Library graph pulls apart by hand; an empty stage, a stepper, an outside-notes door, a local model card; Check proposes nodes; a partly read source says so. Meaning asks reasons; Strata names planes. The map has weight and light; Architecture stacks planes; the wiki index is a shelf of spines.
 
-**Changed**: the Library index switches between Sources and Wiki, the column folds, the graph fits. Connectors add from one list; Agents lists what it confirmed. Insights opens on four measures. The growth replay is a toggle. Codex chat runs the newest adapter.
+**Changed**: the Library index switches Sources and Wiki, folds, the graph fits. Connectors add from one list; Agents lists confirmations. Insights opens on four measures. Growth replay is a toggle. Codex chat runs the newest adapter. Glow, gradients and overshoot are allowed on tokens.
 
-**Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name tool and mode; loose files ring the cluster; the Docs head fits 280px. Closing the 3D picker no longer walks the map.
+**Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name the tool; loose files ring the cluster; the Docs head fits 280px; the 3D picker closes cleanly.
 
 
 ## 2026-09-05 · v1.0.6: the in-app Claude chat keeps its permission gate
@@ -968,7 +968,7 @@
 
 ## 2026-07-27 · Docs and the ontology vault describe the current app, not retired screens
 
-**Changed**: Documentation and the ontology vault now describe the app as it currently works, a single `topology-map-v2` canvas, neutral kind coloring, a relation-line legend, and Topology, INDEX, Workshop, and Insights, instead of retired features they previously referenced.
+**Changed**: Documentation and the ontology vault now describe the app as it currently works, a single `ontology-map` canvas, neutral kind coloring, a relation-line legend, and Topology, INDEX, Workshop, and Insights, instead of retired features they previously referenced.
 
 ## 2026-07-27 · The app no longer offers to connect an unpublished agent package
 

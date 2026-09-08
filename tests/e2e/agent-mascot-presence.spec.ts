@@ -207,7 +207,7 @@ test('every opaque mascot frame stays clear of dense-map node ink', async ({ pag
     samples.push(await page.evaluate(async () => {
       type NodeInk = { id: string; x: number; y: number; radius: number; hidden: boolean };
       const map = (window as unknown as { __atlasMap?: { nodes: () => NodeInk[] } }).__atlasMap;
-      const canvas = document.querySelector<HTMLElement>('[data-testid="topology-map-v2-canvas"]');
+      const canvas = document.querySelector<HTMLElement>('[data-testid="ontology-map-canvas"]');
       if (!map || !canvas) return null;
       const canvasRect = canvas.getBoundingClientRect();
       const inset = Number.parseFloat(

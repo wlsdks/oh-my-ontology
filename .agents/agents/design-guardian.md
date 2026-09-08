@@ -19,7 +19,8 @@ assets, wording, layout signature, styling, or palette.
 
 ## Reject the generic AI look
 
-- purple/pink gradients, glow/neon/halo, glass, or scale hover;
+- gradients, glow, glass, or scale hover that mark no state (allowed since
+  2026-09-08 only when they carry a fact through a token);
 - equally weighted rounded-box catalogs;
 - decoration heavier than content;
 - contradictory depth: reversed shadows, lower surfaces casting larger shadows,

@@ -4,10 +4,10 @@ import { markerNumber, selectedRelationRouteRailTextLeak } from "./relation-mark
 import { validateTopologyFocusCommandSpineContract, validateTopologyFocusRightControlsContract, validateTopologyFocusSearchLaneContract, validateTopologyFocusUtilityLaneContract, validateTopologyNodePopoverScrollFooterContract, validateTopologyNodePopoverTokenContract, validateTopologySelectedCardRelationSummaryContract } from "./topology-panel-contracts.mjs";
 import { TOPOLOGY_DIM_ANCHOR_MIN_OPACITY, TOPOLOGY_DIM_CONTEXT_MIN_OPACITY, TOPOLOGY_DIM_OPACITY_CONTRACT, normalizeTopologySelectedParam, webviewWorkbenchMarkersForPath } from "./webview-env.mjs";
 
-export function validateTopologyMapV2CanvasEvidence(markers) {
+export function validateOntologyMapCanvasEvidence(markers) {
   if (markers?.topologyMapEngine !== "v2") return null;
-  if (markerNumber(markers, "topologyV2CanvasInkPixels") <= 0) {
-    return "WebView did not report rendered pixels for the topology-map-v2 canvas";
+  if (markerNumber(markers, "ontologyMapCanvasInkPixels") <= 0) {
+    return "WebView did not report rendered pixels for the ontology-map canvas";
   }
   return null;
 }
@@ -102,7 +102,7 @@ export function validateWebviewVerifyPayload(payload, {
   }
   if (
     requireWebviewReducedMotion &&
-    payload.markers.topologyV2PrefersReducedMotion !== true
+    payload.markers.ontologyMapPrefersReducedMotion !== true
   ) {
     return "WebView did not report reduced motion from the installed macOS preference";
   }
@@ -152,16 +152,16 @@ export function validateWebviewVerifyPayload(payload, {
   // map-canvas contract instead of the Sigma/skeleton one. Used as a gate
   // throughout this function.
   const topologyMapEngine = payload?.markers?.topologyMapEngine ?? "";
-  // "canvas" = the old map-canvas engine, "v2" = topology-map-v2 (today's default
+  // "canvas" = the old map-canvas engine, "v2" = ontology-map (today's default
   // map). Both take the canvas contract rather than Sigma/skeleton.
   const topologyMapCanvasActive =
     topologyMapEngine === "canvas" || topologyMapEngine === "v2";
-  const topologyMapV2Active = topologyMapEngine === "v2";
-  const topologyMapV2CanvasEvidenceError = validateTopologyMapV2CanvasEvidence(payload.markers);
-  if (topologyMapV2CanvasEvidenceError) return topologyMapV2CanvasEvidenceError;
-  const topologyMapV2SelectedContextVisible =
-    topologyMapV2Active &&
-    payload.markers.topologyV2DetailPanelVisible === true;
+  const ontologyMapActive = topologyMapEngine === "v2";
+  const ontologyMapCanvasEvidenceError = validateOntologyMapCanvasEvidence(payload.markers);
+  if (ontologyMapCanvasEvidenceError) return ontologyMapCanvasEvidenceError;
+  const ontologyMapSelectedContextVisible =
+    ontologyMapActive &&
+    payload.markers.ontologyMapDetailPanelVisible === true;
   const topologyAnalysisMode =
     typeof payload.markers.topologyAnalysisPanelMode === "string"
       ? payload.markers.topologyAnalysisPanelMode.trim() || webviewUrl.searchParams.get("mode") || ""
@@ -180,12 +180,12 @@ export function validateWebviewVerifyPayload(payload, {
     );
     const canvasV2RelationOwnsTransientRoute =
       false && // Retired 2026-08-11: the selected-relation check waited on card-era DOM
-      topologyMapV2Active &&
+      ontologyMapActive &&
       payload.markers.topologySelectedRelationVerifySelected === true &&
       webviewPath === expectedUrl.pathname &&
       Boolean(expectedTopologySelectedParam) &&
-      (payload.markers.topologyV2SelectedRelationSource === expectedTopologySelectedParam ||
-        payload.markers.topologyV2SelectedRelationTarget === expectedTopologySelectedParam);
+      (payload.markers.ontologyMapSelectedRelationSource === expectedTopologySelectedParam ||
+        payload.markers.ontologyMapSelectedRelationTarget === expectedTopologySelectedParam);
     if (actualRoute !== expectedRoute && !canvasV2RelationOwnsTransientRoute) {
       return `WebView reported route ${actualRoute}, expected ${expectedRoute}`;
     }
@@ -239,13 +239,13 @@ export function validateWebviewVerifyPayload(payload, {
     Boolean(topologySelectedParam) &&
     (selectedRelationSource === topologySelectedParam ||
       selectedRelationTarget === topologySelectedParam);
-  const topologyMapV2SelectedRelationContextVisible =
-    topologyMapV2Active &&
-    payload.markers.topologyV2EdgePanelVisible === true &&
+  const ontologyMapSelectedRelationContextVisible =
+    ontologyMapActive &&
+    payload.markers.ontologyMapEdgePanelVisible === true &&
     payload.markers.topologySelectedRelationVerifySelected === true &&
     Boolean(topologyVerificationSelectedParam) &&
-    (payload.markers.topologyV2SelectedRelationSource === topologyVerificationSelectedParam ||
-      payload.markers.topologyV2SelectedRelationTarget === topologyVerificationSelectedParam);
+    (payload.markers.ontologyMapSelectedRelationSource === topologyVerificationSelectedParam ||
+      payload.markers.ontologyMapSelectedRelationTarget === topologyVerificationSelectedParam);
   /*
  * One entry per question, and this file cannot import the TypeScript that owns
  * the list. `insights-tab-count-parity.contract.test.ts` keeps the two in step,
@@ -740,8 +740,8 @@ const INSIGHTS_TAB_COUNT = 7;
       payload.markers.topologySelectedFocusContextRailZoomActive === true;
     if (
       payload.markers.topologySelectedNodePopoverVisible !== true &&
-      !topologyMapV2SelectedContextVisible &&
-      !topologyMapV2SelectedRelationContextVisible &&
+      !ontologyMapSelectedContextVisible &&
+      !ontologyMapSelectedRelationContextVisible &&
       !selectedRelationContextVisible &&
       !selectedFocusNoopContextVisible &&
       !selectedFocusZoomContextVisible &&
@@ -749,15 +749,15 @@ const INSIGHTS_TAB_COUNT = 7;
     ) {
       return `WebView did not report a visible Relief selected node context for ${topologySelectedParam}`;
     }
-    if (topologyMapV2SelectedContextVisible) {
+    if (ontologyMapSelectedContextVisible) {
       const v2SelectedNodeId = String(
-        payload.markers.topologyV2DetailPanelNodeId || "",
+        payload.markers.ontologyMapDetailPanelNodeId || "",
       ).trim();
       const v2SelectedNodeKind = String(
-        payload.markers.topologyV2DetailPanelNodeKind || "",
+        payload.markers.ontologyMapDetailPanelNodeKind || "",
       ).trim();
       const v2SelectedNodeTitle = String(
-        payload.markers.topologyV2DetailPanelNodeTitle || "",
+        payload.markers.ontologyMapDetailPanelNodeTitle || "",
       ).trim();
       if (v2SelectedNodeId !== topologySelectedParam) {
         return `WebView reported canvas-v2 selected node ${v2SelectedNodeId || "unknown"}, expected ${topologySelectedParam}`;
@@ -776,51 +776,51 @@ const INSIGHTS_TAB_COUNT = 7;
       }
       if (
         v2SelectedNodeKind === "project" &&
-        payload.markers.topologyV2ProjectSourceReceiptVisible !== true
+        payload.markers.ontologyMapProjectSourceReceiptVisible !== true
       ) {
         return "WebView selected project did not expose a project source receipt";
       }
-      if (payload.markers.topologyV2ProjectSourceReceiptVisible === true) {
+      if (payload.markers.ontologyMapProjectSourceReceiptVisible === true) {
         if (v2SelectedNodeKind !== "project") {
           return "WebView project source receipt was visible for a non-project node";
         }
         if (
-          payload.markers.topologyV2ProjectSourceLayout !==
+          payload.markers.ontologyMapProjectSourceLayout !==
           "status-action-separated"
         ) {
-          return `WebView project source layout was ${payload.markers.topologyV2ProjectSourceLayout || "missing"}`;
+          return `WebView project source layout was ${payload.markers.ontologyMapProjectSourceLayout || "missing"}`;
         }
         if (
-          payload.markers.topologyV2ProjectSourceTopGap === "none" &&
-          payload.markers.topologyV2ProjectSourceGapVisible === true
+          payload.markers.ontologyMapProjectSourceTopGap === "none" &&
+          payload.markers.ontologyMapProjectSourceGapVisible === true
         ) {
           return "WebView project source receipt rendered a healthy no-gap row";
         }
         const declaredActionCount = Number(
-          payload.markers.topologyV2ProjectSourceInlineActionCount || 0,
+          payload.markers.ontologyMapProjectSourceInlineActionCount || 0,
         );
         const renderedActionCount = Number(
-          payload.markers.topologyV2ProjectSourceRenderedActionCount || 0,
+          payload.markers.ontologyMapProjectSourceRenderedActionCount || 0,
         );
         if (declaredActionCount !== renderedActionCount) {
           return `WebView project source inline action count drifted (${declaredActionCount} declared / ${renderedActionCount} rendered)`;
         }
         if (
-          payload.markers.topologyV2ProjectSourceAction === "use_current_evidence" &&
+          payload.markers.ontologyMapProjectSourceAction === "use_current_evidence" &&
           renderedActionCount !== 4
         ) {
           return `WebView current project source receipt rendered ${renderedActionCount} inline actions, expected 4`;
         }
         if (
           renderedActionCount > 0 &&
-          Number(payload.markers.topologyV2ProjectSourceInlineActionMinWidth || 0) < 56
+          Number(payload.markers.ontologyMapProjectSourceInlineActionMinWidth || 0) < 56
         ) {
-          return `WebView project source inline action minimum width was ${payload.markers.topologyV2ProjectSourceInlineActionMinWidth || "missing"}px`;
+          return `WebView project source inline action minimum width was ${payload.markers.ontologyMapProjectSourceInlineActionMinWidth || "missing"}px`;
         }
         for (const [label, value] of [
-          ["receipt/actions", payload.markers.topologyV2ProjectSourceReceiptActionOverlap],
-          ["receipt/footer", payload.markers.topologyV2ProjectSourceReceiptFooterOverlap],
-          ["actions/footer", payload.markers.topologyV2ProjectSourceActionFooterOverlap],
+          ["receipt/actions", payload.markers.ontologyMapProjectSourceReceiptActionOverlap],
+          ["receipt/footer", payload.markers.ontologyMapProjectSourceReceiptFooterOverlap],
+          ["actions/footer", payload.markers.ontologyMapProjectSourceActionFooterOverlap],
         ]) {
           if (Number(value || 0) > 0.5) {
             return `WebView project source ${label} overlap was ${value}px²`;
@@ -1577,10 +1577,10 @@ const INSIGHTS_TAB_COUNT = 7;
     if (!topologyMapCanvasActive && payload.markers.topologySigmaReady === false) {
       return "WebView reported Relief before the Sigma renderer was ready";
     }
-    // The v2 canvas click-cancel threshold is `--topology-v2-hysteresis-px` = 7
+    // The v2 canvas click-cancel threshold is `--map-hysteresis-px` = 7
     // (the value approved on the B2+ prototype) — the old Relief floor of 12px is
     // stale for v2.
-    const stagePanFloor = topologyMapV2Active ? 6 : 12;
+    const stagePanFloor = ontologyMapActive ? 6 : 12;
     if (!(Number(payload.markers.topologyStagePanClickCancelPx) >= stagePanFloor)) {
       return `WebView reported an over-sensitive stage pan threshold (${payload.markers.topologyStagePanClickCancelPx ?? "missing"}px, floor ${stagePanFloor}px)`;
     }

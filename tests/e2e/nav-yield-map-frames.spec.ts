@@ -105,7 +105,7 @@ test("이동 신호가 오면 지도가 그리기를 멈추고, 손이 움직이
   });
 
   await page.goto("/ko/topology/?synth=1500&guides=off&e2e=1");
-  await expect(page.getByTestId("topology-map-v2-canvas")).toBeVisible();
+  await expect(page.getByTestId("ontology-map-canvas")).toBeVisible();
 
   /** {working, total} counts for samples after `fromT` (and optionally before `untilT`). */
   const framesBetween = (fromT: number, untilT?: number) =>
@@ -170,7 +170,7 @@ test("이동 신호가 오면 지도가 그리기를 멈추고, 손이 움직이
     return framesBetween(t0 + SIGNAL_SETTLE_MS, t0 + YIELD_WINDOW_END_MS);
   };
 
-  const canvas = page.getByTestId("topology-map-v2-canvas");
+  const canvas = page.getByTestId("ontology-map-canvas");
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();
   const cx = box!.x + box!.width / 2;

@@ -2,7 +2,7 @@
  * The canvas ink, resolved from CSS once.
  *
  * Canvas 2D cannot read a `var()`, so the tokens have to be resolved to strings — the
- * same adapter the map's `read-topology-v2-tokens.ts` is, and for the same reason. Two
+ * same adapter the map's `read-map-tokens.ts` is, and for the same reason. Two
  * of its rules are kept deliberately:
  *
  * 1. **`app/globals.css` stays the only source.** Nothing here invents a colour, and a

@@ -79,7 +79,7 @@
 - 상태: 수정·정적 계약·fresh 설치 앱 재검증 완료
 - 흐름: maintainer/agent가 AGENTS·설계 문서·dogfood ontology를 읽고 현재
   Topology, live update, agent handoff 구현을 판단
-- 관측 현상: 현재 코드는 `topology-map-v2`, Workshop, adaptive polling과
+- 관측 현상: 현재 코드는 `ontology-map`, Workshop, adaptive polling과
   shared changeset을 쓰지만 활성 문서 일부는 Sigma kind 범례/owner tint/edge
   reducer, ERD Builder 공유 layout, 고정 5초 recent TTL, 분석 rail을 살아 있는
   구현처럼 말했다.
@@ -286,7 +286,7 @@
 - 재측정: 최신 `/Applications/Ontology Atlas.app`에서 같은
   `직접 눌러보세요 → 카드 = 문서의 앞면` 흐름을 외부 27-inch wide와
   1920×1080 창에서 반복했다. 두 폭 모두 오른쪽
-  `topology-v2-detail-panel` 전체가 직사각형 컷아웃으로 밝게 유지됐고,
+  `map-detail-panel` 전체가 직사각형 컷아웃으로 밝게 유지됐고,
   지도·INDEX·utility chrome은 같은 scrim 아래로 내려갔다.
 - 포인터 분리 증거: 5/7을 그대로 둔 채 Computer Use 포인터를 화면 좌하단
   비정보 영역으로 옮기자 푸른 광점도 포인터와 함께 이동했다. 데이터 카드
@@ -294,7 +294,7 @@
   highlight가 아니라 Computer Use 포인터 피드백을 주의 계층으로 오인한
   측정 오류였다.
 - 코드 계약: `TOUR_STEPS`의 `datasheet` 단계는
-  `topology-v2-detail-panel`을 직접 앵커로 삼고,
+  `map-detail-panel`을 직접 앵커로 삼고,
   `GuidedTourOverlay`는 그 실제 rect 사방 8px에 컷아웃을 만든 뒤 바깥만
   `--topology-tour-scrim-surface`로 감광한다. 기존 guided-tour e2e도
   노드 선택 뒤 `data-tour-step="datasheet"`와 resolvable cutout을 요구한다.
@@ -339,7 +339,7 @@
 - 수정: 모든 패킷에 `source`를 추가했다. `read-only-sample`은
   `get_concept / patch_concept / add_relation` 실행 금지와 실제 vault를 연 뒤
   다시 복사하라는 다음 행동을 싣고, `loaded-vault`만 기존 MCP 다음 행동을 싣는다.
-- 회귀 증거: `topology-v2-datasheet.test.ts` 33개 통과, TypeScript 통과.
+- 회귀 증거: `map-datasheet.test.ts` 33개 통과, TypeScript 통과.
 - 설치 앱 증거: 온라인 쇼핑몰의 `capabilities/product-register`에서 복사한
   패킷이 `source: read-only-sample`과 `write_guard`를 포함하고 해당 노드의
   `get_concept(...)` 명령을 더는 포함하지 않았다. 이어 실제
@@ -912,7 +912,7 @@
   재배치 → 프로젝트 노드 선택 → macOS `동작 줄이기` ON/OFF → 동일 선택
   동작 녹화·검증
 - 관측 현상: 현재 한국어 셸은 제품 이름을 `Atlas`로 표시하고
-  canvas-v2는 `TopologyV2DetailPanel`을 선택 노드의 읽기 표면으로 쓰지만,
+  canvas-v2는 `OntologyMapDetailPanel`을 선택 노드의 읽기 표면으로 쓰지만,
   검증기는 `온톨로지|Ontology` 브랜드와 폐기된
   `topology-node-popover`만 인정했다. 실제 최신 화면·선택 맥락이 정상이어도
   설치 앱 증거가 실패했고, OS의 reduced-motion 상태도 payload에서 판정할
@@ -954,8 +954,8 @@
   연속 카메라 이동과 축소 모션의 즉시 정착이 각각 확인됐다.
 - fail-closed 증거: macOS `동작 줄이기` OFF에서 새 검증 플래그는
   `WebView did not report reduced motion from the installed macOS preference`로
-  실패했다. ON에서는 `topologyV2PrefersReducedMotion: true`,
-  `topologyV2DetailPanelNodeId: "project:project"`, visible detail,
+  실패했다. ON에서는 `ontologyMapPrefersReducedMotion: true`,
+  `ontologyMapDetailPanelNodeId: "project:project"`, visible detail,
   `focus-state`, `selected-node-inspector`, overlap/clipping `0`으로 통과했다.
   감사 뒤 시스템 설정은 OFF로 원복했다.
 - 회귀 증거: 설치 앱 payload/CLI 계약 `9개`, v2 detail panel 계약 `52개`,

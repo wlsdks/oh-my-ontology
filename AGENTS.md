@@ -45,7 +45,7 @@ Start verification with `pnpm checks:changed`; `-- --run` runs every
 recommendation and stops at the first failure. Do not hand-pick its list.
 
 Read versions from `package.json`. The graph renderer is the custom
-canvas-2D `topology-map-v2` engine; Graphology supplies ForceAtlas2 only.
+canvas-2D `ontology-map` engine; Graphology supplies ForceAtlas2 only.
 Do not reintroduce xyflow, Sigma, or another renderer without a decision.
 State is React/URL/in-memory with IndexedDB only for the vault handle.
 
@@ -115,7 +115,7 @@ only: when to open a gate, not how it runs.
   the MCP read/write contract could change vault quality, `/parallel-brief`
   before parallel work.
 
-The design system permits neutrals and one indigo; consult
+The design system rests on neutrals and indigo, with effects and further hues allowed on tokens since 2026-09-08; consult
 `.claude/rules/design.md`, `docs/DESIGN-SYSTEM.md`, and
 `.claude/rules/design-gates.md` when applicable. Follow
 `.claude/rules/architecture.md`, `testing.md`, `local-first.md`,

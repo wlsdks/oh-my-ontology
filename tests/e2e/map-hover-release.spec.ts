@@ -53,7 +53,7 @@ test("커서가 캔버스를 벗어나면 지도가 프레임을 그만 그린�
   });
   await page.goto("/ko/topology?synth=800&guides=off&e2e=1");
 
-  const canvas = page.getByTestId("topology-map-v2-canvas");
+  const canvas = page.getByTestId("ontology-map-canvas");
   await expect(canvas).toBeVisible();
   await page.waitForTimeout(3000);
 

@@ -100,7 +100,7 @@ async function openSeededVault(page: import('@playwright/test').Page) {
   await page.goto('/en/topology/?e2e=1&guides=off', { waitUntil: 'domcontentloaded' });
   await page.getByTestId('first-run-starter-open').click();
   await page.getByTestId('vault-guide-pick-existing').click();
-  await expect(page.getByTestId('topology-map-v2-canvas').first()).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId('ontology-map-canvas').first()).toBeVisible({ timeout: 60_000 });
   /* Until the picked vault is the source — the sample answers the same selectors otherwise. */
   await expect
     .poll(() => page.evaluate(() => !document.body.innerText.includes('SAMPLE FOR NOW')), {

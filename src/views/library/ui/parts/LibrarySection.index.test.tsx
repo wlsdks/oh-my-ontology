@@ -21,6 +21,8 @@ const MODEL = {
   hashes: new Map(),
   pageTexts: new Map(),
   log: { lastCompile: null, lastLint: null },
+  /* The shelf reads its freshness from the pairing, so a model without one is not a model. */
+  pairing: { originalsByWiki: new Map(), writeUpsBySource: new Map() },
 } as unknown as LibraryUiModel;
 
 function Harness({ onNewPage = null, report = null }: { onNewPage?: ((title: string) => void) | null; report?: { count: number; open: boolean; onOpen: () => void } | null }) {
@@ -106,7 +108,7 @@ describe("the wiki half of the column is an index: search, three doors, the list
     expect(list.contains(screen.getByTestId("library-new-page"))).toBe(true);
   });
 
-  it("names the writer only on the rows that are the exception", () => {
+  it("names the writer only on the pages that are the exception", () => {
     const withPerson = {
       ...MODEL,
       wikiPages: [
@@ -115,6 +117,19 @@ describe("the wiki half of the column is an index: search, three doors, the list
       ],
     } as unknown as LibraryUiModel;
     mount(<HarnessWith model={withPerson} />);
+    /*
+     * The rule is unchanged and its carrier moved with the list's shape: a 26px spine has
+     * no room for a caption, so the exception is named in the accessible name the spine
+     * already has to carry (the whole title truncates there too). The majority writer
+     * stays silent either way — nine identical labels are texture, and the one that says
+     * a person is the fact (design-lead, council 2026-09-07).
+     */
+    const named = ["wiki/a", "wiki/b", "wiki/c"].filter((slug) =>
+      screen.getByTestId(`library-wiki-${slug}`).getAttribute("aria-label")?.includes("a person"),
+    );
+    expect(named).toEqual(["wiki/c"]);
+    // And on the row shape a search puts back, it is the caption it always was.
+    fireEvent.change(screen.getByTestId("library-search"), { target: { value: "c" } });
     const labels = screen.getAllByTestId("library-wiki-writer");
     expect(labels).toHaveLength(1);
     expect(labels[0]!.textContent).toContain("a person");

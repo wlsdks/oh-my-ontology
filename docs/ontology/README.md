@@ -42,8 +42,8 @@ node cli/src/index.mjs overview        # from the repo root
   readable `slug` address. Relations stay slug-based; exact agent handoff and
   `urn:uuid:<uid>` export identity use UID. Never hand-patch UID or
   merge-owned `merged_uids`.
-- Slugs are flat identifiers under their kind folder (`elements/topology-map-v2`,
-  never `elements/src/widgets/topology-map-v2`): path-style slugs collide on
+- Slugs are flat identifiers under their kind folder (`elements/ontology-map`,
+  never `elements/src/widgets/ontology-map`): path-style slugs collide on
   tail aliases and are rejected at every write door.
 - Every node carries `created_by:`: `human` for nodes that exist only because
   a person judged them (project definition, domain boundaries, the charter

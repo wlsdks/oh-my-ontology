@@ -25,6 +25,6 @@ Kind/category classification data entity. Implementation evidence for capabiliti
 
 ## Excludes
 
-- Rendering the cluster box on the map canvas, owned by elements/topology-map-v2.
+- Rendering the cluster box on the map canvas, owned by elements/ontology-map.
 - Status lifecycle values, a separate taxonomy entity (elements/status).
 - Choosing colours beyond the fixed four border-style presets; the design system reserves indigo for hub nodes.

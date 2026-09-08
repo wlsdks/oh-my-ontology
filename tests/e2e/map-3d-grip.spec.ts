@@ -49,7 +49,7 @@ async function domeScreenBox(page: import("@playwright/test").Page) {
         __atlasMap?: { nodes: () => Array<{ hidden: boolean; x: number; y: number; radius: number }> };
       }
     ).__atlasMap;
-    const box = document.querySelector('[data-testid="topology-map-v2-canvas"]')?.getBoundingClientRect();
+    const box = document.querySelector('[data-testid="ontology-map-canvas"]')?.getBoundingClientRect();
     const nodes = (m?.nodes() ?? []).filter((n) => !n.hidden);
     if (!box || nodes.length === 0) return null;
     const xs = nodes.map((n) => n.x);
@@ -189,7 +189,7 @@ test("3D — 커서가 두 구역을 말한다 (돔 위 grab · 바깥 move)", a
   const b = box!;
   const cursor = () =>
     page.evaluate(() => {
-      const el = document.querySelector('[data-testid="topology-map-v2-canvas"]') as HTMLElement | null;
+      const el = document.querySelector('[data-testid="ontology-map-canvas"]') as HTMLElement | null;
       return el ? getComputedStyle(el).cursor : null;
     });
 
@@ -210,7 +210,7 @@ test("3D — 커서가 두 구역을 말한다 (돔 위 grab · 바깥 move)", a
     const m = (
       window as unknown as { __atlasMap?: { nodes: () => Array<{ hidden: boolean; x: number; y: number }> } }
     ).__atlasMap;
-    const el = document.querySelector('[data-testid="topology-map-v2-canvas"]');
+    const el = document.querySelector('[data-testid="ontology-map-canvas"]');
     const rect = el?.getBoundingClientRect();
     const nodes = (m?.nodes() ?? []).filter((n) => !n.hidden);
     if (!rect || nodes.length === 0) return null;

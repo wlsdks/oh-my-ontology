@@ -42,7 +42,7 @@ and everything-at-once.
 ## Decision (implemented)
 
 The current mechanism is: **click → durable ego focus, camera framing, compact
-`TopologyV2DetailPanel`, and dimmed unrelated graph.** The default map is a
+`OntologyMapDetailPanel`, and dimmed unrelated graph.** The default map is a
 semantic-zoom overview, not the full graph. Full detail is an explicit
 `FullDetailA1` drill-down.
 
@@ -60,12 +60,12 @@ demand). See [References](#references).
 | **Overview (default)** | Project/domain/hub spine is visible first; semantic-zoom tier and density gates reveal more only when useful. |
 | **Hover** | Hover emphasis/ripple lights the hovered ego set, and since 2026-09-02 the hovered node's own lines rise toward the ego ink while every other line recedes a step, both on the same 90 ms ramp — without changing durable focus or camera. |
 | **Focus (click)** | `focus-state` keeps the node and bounded direct-neighbor ego readable, dims unrelated nodes/edges, and the camera reframes through the canvas layer. |
-| **Detail (opt-in)** | `TopologyV2DetailPanel` is the compact current datasheet; its explicit action opens `FullDetailA1` for deeper detail. |
+| **Detail (opt-in)** | `OntologyMapDetailPanel` is the compact current datasheet; its explicit action opens `FullDetailA1` for deeper detail. |
 | **Clear** | The pointer state machine clears focus on the selected node again or empty-canvas interaction; the page Escape ladder closes one active layer at a time. |
 
 ### Current compact detail panel
 
-`TopologyV2DetailPanel` is the current compact DOM layer coordinated with the
+`OntologyMapDetailPanel` is the current compact DOM layer coordinated with the
 canvas. It keeps the selected ontology fact legible without replacing the map,
 groups direct connections and evidence, exposes current document/relation/edit
 or handoff actions where available, and offers an explicit full-detail drill.
@@ -106,7 +106,7 @@ not a claim about a Sigma-era `NodeDetailPanel` API:
 
 ### Current performance layers
 
-`topology-map-v2` is a canvas-2D renderer, not Sigma/WebGL. Its current layers
+`ontology-map` is a canvas-2D renderer, not Sigma/WebGL. Its current layers
 are explicit and measured before a renderer change:
 
 1. **Force/layout** — Graphology-backed ForceAtlas2 starts from deterministic
@@ -164,7 +164,7 @@ Node-detail / ego-on-click patterns in shipping tools:
 
 Current implementation:
 
-- `src/widgets/topology-map-v2/` — custom canvas-2D renderer, camera, focus,
+- `src/widgets/ontology-map/` — custom canvas-2D renderer, camera, focus,
   attention layers, pointer handling, and DOM overlay coordination.
 - Graphology + ForceAtlas2 — graph data and layout inputs only.
 - The Sigma.js note from the initial spec is historical; Sigma has no current

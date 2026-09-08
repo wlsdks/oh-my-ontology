@@ -134,9 +134,9 @@ before citing a ban:
 - **Is it actually a ban, or a proxy for a measurable rule that already exists?** The gradient ban
   is a blunt proxy for "background never beats data", which this repository already states as a
   number (`--canvas-bg-ink-max: 0.08`). Where the measurable rule exists, use it.
-- **Does the lint actually match what you are about to write?** The gradient selector here matches
-  Tailwind's `from-purple-* … to-pink-*` and nothing else; a CSS `radial-gradient` painting a dot
-  field was never blocked. Read the selector before you decide you are stuck.
+- **Does the lint actually match what you are about to write?** Read the selector before you
+  decide you are stuck; the gradient selector that once lived here matched only Tailwind's
+  `from-purple-* … to-pink-*`, and it was lifted on 2026-09-08 anyway.
 
 ## A screen that claims a number has to be checked against its source
 
@@ -237,7 +237,7 @@ for a dark product, and it is what this repository's own elevated surfaces alrea
 
 ### The constraint that makes any of this safe here
 
-This product's palette is neutrals plus one indigo, dark only, with no gradients, glow, or glass.
+This product rests on neutrals plus indigo, dark only; gradients, glow and glass are allowed since 2026-09-08 but still the weakest depth cue.
 That rules out most of the ways depth is usually faked, and leaves the ones above — which is
 convenient, because the ones above are the ones that survive being printed in one colour. If a
 drawing needs a gradient to read as deep, it was relying on the weakest cue.

@@ -88,7 +88,7 @@ export const OVERLAY_SPRING = { type: "spring", duration: 0.3, bounce: 0 } as co
 /**
  * Overlay transition for reduced-motion users — opacity cross-fade only, no translate or
  * transform, 120ms. Same duration as `.overlay-fade-only` and
- * `--topology-v2-tip-fade-ms` (120) in globals.css; that token is scoped to topology-v2,
+ * `--map-tip-fade-ms` (120) in globals.css; that token is scoped to ontology-map,
  * so it cannot be referenced via var() here — only the value is matched.
  */
 export const OVERLAY_SPRING_REDUCED = { duration: 0.12, ease: "linear" } as const;

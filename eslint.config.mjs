@@ -7,61 +7,14 @@ import boundaries from 'eslint-plugin-boundaries';
 // `boundaries/dependencies` + v7 entity selectors/policies (2026~).
 //   Docs: https://www.jsboundaries.dev/docs/rules/dependencies/
 
-// ── Design Charter §11 (existing): prohibit scale hover · purple-pink gradient ──────
-// The selector array below is reused across multiple config objects. In flat config, declaring the same
-// rule multiple times results in the last one "overwriting" (not array merging), so any config adding a size ramp
-// rule must also include this selector to ensure the scale/gradient guard is not lost
-// in that file.
-const scaleGradientSelectors = [
-  /*
-   * **Glassmorphism prohibited — documented but no rule existed** (audit before 2026-08-17 release).
-   *
-   * Both the "Design" section of `forbidden.md` and the absolute prohibition list in `DESIGN-SYSTEM.md`
-   * pinned down `backdrop-blur-*`, but there was no rule to catch it. When enabled, there were 0 live
-   * violations (the three caught by code were all **comments** stating "this is prohibited").
-   * So enabling it now produces zero noise and only blocks future intrusions.
-   */
-  {
-    selector: "Literal[value=/(^|\\s|:)backdrop-blur/]",
-    message:
-      '디자인 헌장 — glassmorphism 금지. 뒤를 흐리는 대신 불투명 표면 토큰(--color-panel/elevated)이나 색 알파(--color-overlay-*)를 쓴다.',
-  },
-  {
-    selector: "TemplateElement[value.raw=/(^|\\s|:)backdrop-blur/]",
-    message:
-      '디자인 헌장 — glassmorphism 금지 (template literal). 불투명 표면 토큰 또는 색 알파로.',
-  },
-  {
-    selector: "Literal[value=/(^|\\s)(hover|active|focus|group-hover):scale-/]",
-    message: '디자인 헌장 §11 — scale hover 금지. bg/border 변경 또는 색 alpha 로 대체.',
-  },
-  {
-    selector:
-      "TemplateElement[value.raw=/(^|\\s)(hover|active|focus|group-hover):scale-/]",
-    message: '디자인 헌장 §11 — scale hover 금지 (template literal). bg/border 변경으로 대체.',
-  },
-  {
-    selector: "Literal[value=/from-(purple|fuchsia|pink)-\\d+.*to-(pink|fuchsia|purple)-\\d+/]",
-    message: '디자인 헌장 §11 — 보라핑크 그라디언트 금지. 단일 인디고 또는 무채색만.',
-  },
-  {
-    selector:
-      "TemplateElement[value.raw=/from-(purple|fuchsia|pink)-\\d+.*to-(pink|fuchsia|purple)-\\d+/]",
-    message: '디자인 헌장 §11 — 보라핑크 그라디언트 금지 (template literal).',
-  },
-  {
-    // Canvas 2D glow — `ctx.shadowBlur = n`. The charter (forbidden.md) prohibits
-    // glow/neon/halo globally in the app, with only **one exception** (static · opt-in · default 0 · max 6px)
-    // for footprint trail blur. That single case lives only in
-    // `shared/lib/footprint-glyph.ts`, and this selector enforces that fact.
-    //
-    // Why a rule is needed: Canvas glow uses **API calls, not class strings**, so it falls
-    // outside the view of existing value rules (the `shadow-[…]` geometric allowlist). If a new canvas surface
-    // writes one line of shadowBlur, no gate catches it and it enters quietly.
-    selector: 'MemberExpression[property.name="shadowBlur"]',
-    message:
-      'canvas 글로우 금지 (forbidden.md). 유일한 예외는 발자국 트레일 번짐이고 shared/lib/footprint-glyph.ts 안에서만 산다.',
-  },
+// ── Checkbox accent selectors ────────────────────────────────────────────────
+// The expression bans that used to live in this array (glassmorphism, scale hover, the
+// purple-pink gradient, canvas `shadowBlur`) were lifted by the owner on 2026-09-08
+// (`docs/DECISIONS.md`, "The expression bans are lifted"). What remains is the checkbox
+// accent, which is a token-discipline rule, not a taste rule. The array is reused across
+// several config objects: in flat config a later `no-restricted-syntax` replaces, never
+// merges, so every block that adds a ramp rule must spread this too.
+const checkboxAccentSelectors = [
   /*
    * Checkbox accent — the canonical brand is the only one (approved in the "System" section on 2026-08-15).
    *
@@ -123,7 +76,7 @@ const scaleGradientSelectors = [
  * The 8 cases were converged first before enabling.
  */
 const ALLOWED_SHADOW_TOKEN =
-  'var\\(--shadow-elevation-|var\\(--shadow-control-press|var\\(--topology|var\\(--chrome|var\\(--git|inset';
+  'var\\(--shadow-elevation-|var\\(--shadow-control-press|var\\(--topology|var\\(--map-|var\\(--chrome|var\\(--git|inset';
 
 /**
  * Allowance judgment is done **per layer** (2026-08-06).
@@ -496,36 +449,13 @@ const accentTintPairingSelectors = [
   },
 ];
 
-/*
- * ── Gateway FX namespace seal (2026-08-18, gateway landing remake) ──────────────
- *
- * `--gateway-fx-*` tokens and `gateway-fx-*` classes are the surface of **the one explicit exception** to the charter's "no moving gradient background" ban (`.claude/rules/forbidden.md`).
- * The way to prevent exceptions from becoming convention is like footprint spread — lock consumption points by file path: `src/views/download/** Only ` and `app/globals.css` (token definitions).
- *
- * This selector is loaded in all scope blocks, and only the gateway view's own scope block (below)
- * excludes this while reloading all others. The value layer gate is
- * `tests/contract/gateway-fx-exception.contract.test.ts` — it scans the filesystem directly,
- * so even if this selector dies, that test catches it.
- */
-const gatewayFxScopeSelectors = [
-  {
-    selector: 'Literal[value=/gateway-fx/]',
-    message:
-      '관문 FX(전류장·그레인·커서 링)는 관문 랜딩 한정 예외다 — --gateway-fx-* / gateway-fx-* 는 src/views/download/** 밖에서 쓰지 않는다. 근거: forbidden.md 「움직이는 그라디언트 배경」 예외 · tests/contract/gateway-fx-exception.contract.test.ts',
-  },
-  {
-    selector: 'TemplateElement[value.raw=/gateway-fx/]',
-    message:
-      '관문 FX 는 관문 랜딩 한정 예외다 (template literal) — src/views/download/** 밖 사용 금지.',
-  },
-];
 
 // ── Geometry & Type Codex (R5) Blockade ─────────────────────────────────
 // Arbitrary classes like text-[Npx] / rounded-[Npx] are prohibited — docs/DESIGN-SYSTEM.md
 // Express only via the "Geometry & Type Codex" ramp (text-caption…text-hero / rounded-chip…panel).
 // Intentional exceptions outside the ramp must be explicitly marked with `// eslint-disable-next-line
 // no-restricted-syntax -- <reason>`. Migrated directories = error,
-// incomplete (topology-map-v2 · views/home) = warn.
+// incomplete (ontology-map · views/home) = warn.
 /*
  * Colour literals outside the token layer (2026-09-08).
  *
@@ -814,23 +744,6 @@ export const arbitrarySizeSelectors = [
     selector: 'TemplateElement[value.raw=/(?:^|[^-\\w])shadow-(?:2xs|xs|sm|md|lg|xl|2xl)(?![-\\w])/]',
     message:
       '고도 사다리 이탈 (template literal) — --shadow-elevation-* 토큰을 var() 로 참조한다.',
-  },
-  // 2026-07-28 colored halos — `design.md` banned "glow-like boxShadow `0 0 ...` ring" by name, but the shadow rule exempted values with `var(` entirely,
-  // so the active indicator on the bottom tab bar lived with an indigo halo of `0 0 12px`.
-  // **The reason the exemption was justified works in reverse here** — the exception meant to save normal token references also saved glows used as tokens.
-  //
-  // Discrimination is by color: monochrome shadow tokens (`--color-shadow-*`) `0 0` spread are justified ambient shadows for large surfaces like side drawers (measurement: 2 instances, both drawers).
-  // Other color tokens' `0 0` are halos around marks — banned targets (measurement: 1 instance, replacement complete). Narrowed after, 0 violations · lint total unchanged.
-  // ⚠️ Ban literal utility syntax in messages — Tailwind v4 scanner scans this file.
-  {
-    selector: 'Literal[value=/shadow-\\[0_0_(?!0[_\\]])[^\\]]*var\\(--color-(?!shadow-)/]',
-    message:
-      '디자인 헌장 — 마크 둘레의 색 있는 헤일로 금지 (glow ring). 대비가 부족하면 헤일로가 아니라 선/면의 값을 올린다. 무채색 그림자 토큰의 확산 그림자는 예외.',
-  },
-  {
-    selector: 'TemplateElement[value.raw=/shadow-\\[0_0_(?!0[_\\]])[^\\]]*var\\(--color-(?!shadow-)/]',
-    message:
-      '디자인 헌장 — 마크 둘레의 색 있는 헤일로 금지 (template literal). 무채색 그림자 토큰의 확산 그림자는 예외.',
   },
   {
     selector: 'TemplateElement[value.raw=/(?:^|[^-\\w])duration-\\d/]',
@@ -1214,17 +1127,14 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // Design Charter §11 (CLAUDE.md) automatic blocking.
-  // - Prohibit scale hover (`hover:scale-*` `active:scale-*` etc)
-  // - Prohibit purple-pink gradients (`from-purple-*` `to-pink-*` combinations)
-  // - Glassmorphism: handled separately (current code usage 0).
-  // Violations cause lint error — code PR cannot pass.
+  // Token-discipline block for every source file: checkbox accent, accent/tint ink pairing,
+  // inline shadow and size, cursor and disabled affordance. Violations are lint errors.
   {
     files: ['src/**/*.{ts,tsx,jsx,js}', 'app/**/*.{ts,tsx,jsx,js}'],
     rules: {
       'no-restricted-syntax': [
         'error',
-        ...scaleGradientSelectors,
+        ...checkboxAccentSelectors,
         ...accentTintPairingSelectors,
         // Ramp debt files also receive this block — inline shadows are a ladder issue, not
         // ramp issue, so they must not be exempted along with debt exemption.
@@ -1232,28 +1142,26 @@ const eslintConfig = defineConfig([
         ...inlineSizeSelectors,
         ...cursorAffordanceSelectors,
         ...disabledAffordanceSelectors,
-        ...gatewayFxScopeSelectors,
       ],
     },
   },
   // Ramp blockade — `src/**` + `app/**` **all** error, except legacy debt files.
-  // Also load scale/gradient selectors to prevent their guard from being overwritten by flat config.
+  // Also reload the checkbox accent selectors so flat-config replacement cannot drop them.
   //
-  // Excluded files are not defenseless — the scale/gradient · accent tint guards from the global block above (`src/**`+`app/**`) still apply. What is excluded is only the ramp (type/radius/line-height/motion/shadow) selectors, and that debt is held by the `tests/contract/type-ramp-coverage.contract.test.ts` ratchet.
+  // Excluded files are not defenseless — the checkbox accent · accent tint guards from the global block above (`src/**`+`app/**`) still apply. What is excluded is only the ramp (type/radius/line-height/motion/shadow) selectors, and that debt is held by the `tests/contract/type-ramp-coverage.contract.test.ts` ratchet.
   {
     files: rampCoveredGlobs,
     ignores: [...codexTestIgnores, ...rampDebtExemptions],
     rules: {
       'no-restricted-syntax': [
         'error',
-        ...scaleGradientSelectors,
+        ...checkboxAccentSelectors,
         ...arbitrarySizeSelectors,
         ...accentTintPairingSelectors,
         ...inlineShadowSelectors,
         ...inlineSizeSelectors,
         ...cursorAffordanceSelectors,
         ...disabledAffordanceSelectors,
-        ...gatewayFxScopeSelectors,
         ...typographyAxisSelectors,
         ...layerSelectors,
         ...colorLiteralSelectors,
@@ -1271,71 +1179,27 @@ const eslintConfig = defineConfig([
   //   - `src/shared/config/indigo-tokens.ts` — the documented JS mirror of `--color-indigo-*`.
   //   - `src/views/docs-vault/lib/popout-template.ts` — a standalone HTML document with no
   //     stylesheet of ours to read.
-  //   - `src/widgets/topology-map-v2/render/**` — canvas paint, which reads its tokens through
-  //     `read-topology-v2-tokens` and keeps a literal only as the fallback for a missing one.
+  //   - `src/widgets/ontology-map/render/**` — canvas paint, which reads its tokens through
+  //     `read-map-tokens` and keeps a literal only as the fallback for a missing one.
   // A new file here is a new exception and needs the same sentence.
   {
     files: [
       'src/entities/ontology-class/model/tone.ts',
       'src/shared/config/indigo-tokens.ts',
       'src/views/docs-vault/lib/popout-template.ts',
-      'src/widgets/topology-map-v2/render/**/*.{ts,tsx}',
+      'src/widgets/ontology-map/render/**/*.{ts,tsx}',
     ],
     ignores: codexTestIgnores,
     rules: {
       'no-restricted-syntax': [
         'error',
-        ...scaleGradientSelectors,
+        ...checkboxAccentSelectors,
         ...arbitrarySizeSelectors,
         ...accentTintPairingSelectors,
         ...inlineShadowSelectors,
         ...inlineSizeSelectors,
         ...cursorAffordanceSelectors,
         ...disabledAffordanceSelectors,
-        ...gatewayFxScopeSelectors,
-        ...typographyAxisSelectors,
-        ...layerSelectors,
-      ],
-    },
-  },
-  // One charter exception — footprint trail smearing (static · opt-in · default 0 · cap 6px).
-  //
-  // ⚠️ **This block must come after the two ramp blocks above.** The flat config does not
-  // merge rule
-  // option arrays but replaces them, so placing it earlier would reactivate the shadowBlur selector via `rampCoveredGlobs`(which
-  // includes this file), nullifying the exception — empirically,
-  // we found one additional warning.
-  //
-  // By narrowing the exception to **a single file**, lint will alert first
-  // the moment a second consumer appears. This arrangement prevents the corruption of exceptions spreading by convention.
-  {
-    files: ['src/shared/lib/footprint-glyph.ts'],
-    rules: {
-      'no-restricted-syntax': [
-        /*
-         * ⚠️ **It is `error` — previously it was `warn`, and that was not a gate.**
-         *
-         * Exceptions are precisely output by the single line `.filter(…shadowBlur)` below. However,
-         * if the level is also lowered to `warn`, **all remaining selectors** (arbitrary size ·
-         * accent tint · scale/gradient) become powerless only in this file. Moreover,
-         * `pnpm lint` has no `--max-warnings`, so exit 0 regardless of warning count.
-         *
-         * 2026-08-04 audit measurement: planting `text-[13px] rounded-[7px]` in this file and
-         * running `pnpm lint` resulted in «94 problems (0 errors, 94 warnings)», **passing**. We left the entire gate open for one exception.
-         *
-         * Pre-enable census: violations in this file are **0**, so promotion cost is 0.
-         */
-        'error',
-        ...scaleGradientSelectors.filter((rule) => !rule.selector.includes('shadowBlur')),
-        ...arbitrarySizeSelectors,
-        ...accentTintPairingSelectors,
-        // 2026-08-05: The four below were missing — this block itself was stepping in the trap warned about in the comment above.
-        // Exceptions should be only the `shadowBlur` line, but type axis · layer · inline shadow · cursor were all turned off. Census 0, so enabling cost is 0.
-        ...inlineShadowSelectors,
-        ...inlineSizeSelectors,
-        ...cursorAffordanceSelectors,
-        ...disabledAffordanceSelectors,
-        ...gatewayFxScopeSelectors,
         ...typographyAxisSelectors,
         ...layerSelectors,
       ],
@@ -1354,13 +1218,12 @@ const eslintConfig = defineConfig([
     rules: {
       'no-restricted-syntax': [
         'error',
-        ...scaleGradientSelectors,
+        ...checkboxAccentSelectors,
         ...arbitrarySizeSelectors,
         ...accentTintPairingSelectors,
         ...inlineShadowSelectors,
         ...cursorAffordanceSelectors,
         ...disabledAffordanceSelectors,
-        ...gatewayFxScopeSelectors,
         ...typographyAxisSelectors,
         ...layerSelectors,
       ],
@@ -1384,7 +1247,7 @@ const eslintConfig = defineConfig([
     rules: {
       'no-restricted-syntax': [
         'error',
-        ...scaleGradientSelectors,
+        ...checkboxAccentSelectors,
         ...arbitrarySizeSelectors,
         ...accentTintPairingSelectors,
         // 2026-08-05: This block was also stepping in the same trap. The comment above correctly warned to «reload ramp selectors» but only loaded `arbitrarySize`, so weight/spacing/palette/layer were **never enforced** in this directory (including the three axes enabled by #940). Confirmed via probe:
@@ -1393,7 +1256,6 @@ const eslintConfig = defineConfig([
         ...inlineSizeSelectors,
         ...cursorAffordanceSelectors,
         ...disabledAffordanceSelectors,
-        ...gatewayFxScopeSelectors,
         ...typographyAxisSelectors,
         ...layerSelectors,
         {
@@ -1406,31 +1268,6 @@ const eslintConfig = defineConfig([
           message:
             '설정 시트에서 docs 표면 장식용 quarantine 앰버를 쓰지 않는다 (template literal). --color-amber-source-* / --color-amber-source-text-* 사다리를 쓴다.',
         },
-      ],
-    },
-  },
-  /*
-   * **Sole consumer** of gateway FX exceptions — `src/views/download/**` (2026-08-18).
-   *
-   // Exclude only gatewayFxScopeSelectors and **reload all others** — flat config
-   // does not merge rule option arrays, so missed selectors quietly die in this
-   // directory (same discipline as footprint-glyph · Satori block). It must come after the ramp blocks above.
-   */
-  {
-    files: ['src/views/download/**/*.{ts,tsx}'],
-    ignores: codexTestIgnores,
-    rules: {
-      'no-restricted-syntax': [
-        'error',
-        ...scaleGradientSelectors,
-        ...arbitrarySizeSelectors,
-        ...accentTintPairingSelectors,
-        ...inlineShadowSelectors,
-        ...inlineSizeSelectors,
-        ...cursorAffordanceSelectors,
-        ...disabledAffordanceSelectors,
-        ...typographyAxisSelectors,
-        ...layerSelectors,
       ],
     },
   },

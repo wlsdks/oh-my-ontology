@@ -12,7 +12,7 @@ import { composite, contrastRatio, parseColor } from '../../scripts/lib/contrast
  *
  * ## Why this contract exists (2026-08-06 design system audit)
  *
- * Live measurement found `--topology-v2-panel-*` running a **parallel system that
+ * Live measurement found `--map-panel-*` running a **parallel system that
  * differs from the global neutrals by a few steps each**. There were 0 hard-coded
  * values, so every value rule passed and `check-no-raw-color` was doing its job.
  * What was missing is a different question: **nobody was measuring whether a
@@ -70,7 +70,7 @@ function resolve(token: string, depth = 0): string | null {
   return raw;
 }
 
-const SURFACE_TOKEN = '--topology-v2-panel-surface';
+const SURFACE_TOKEN = '--map-panel-surface';
 
 /**
  * The declared ledger — **the measured contrast of each ink on that surface**.
@@ -80,11 +80,11 @@ const SURFACE_TOKEN = '--topology-v2-panel-surface';
  * **silently**.
  */
 const INK_LEDGER: ReadonlyArray<readonly [token: string, ratio: number]> = [
-  ['--topology-v2-panel-text-primary', 15.16],
-  ['--topology-v2-panel-metric-text', 8.88],
-  ['--topology-v2-panel-text-secondary', 7.14],
-  ['--topology-v2-panel-text-tertiary', 4.96],
-  ['--topology-v2-panel-text-quaternary', 4.69],
+  ['--map-panel-text-primary', 15.16],
+  ['--map-panel-metric-text', 8.88],
+  ['--map-panel-text-secondary', 7.14],
+  ['--map-panel-text-tertiary', 4.96],
+  ['--map-panel-text-quaternary', 4.69],
 ];
 
 /** The WCAG 1.4.3 body-text floor. Every ink in this panel is used at body size. */
@@ -119,7 +119,7 @@ describe('지도 패널 잉크 램프 (표면 전용 두 번째 램프)', () => 
      * ⚠️ Fixed twice (2026-08-07 review).
      *
      * ① The first pattern, `text-[a-z]+`, could not cross a **hyphen** in the name and
-     * missed inks such as `--topology-v2-panel-text-on-accent` — the assertion claiming
+     * missed inks such as `--map-panel-text-on-accent` — the assertion claiming
      * "a new ink fires here first" was passing silently, repeating design-gates.md's
      * "a scanner that sees one notation misses everything else" exactly.
      *
@@ -135,7 +135,7 @@ describe('지도 패널 잉크 램프 (표면 전용 두 번째 램프)', () => 
      * the ledger. A new neutral ink still fires here.
      */
     const allInks = [
-      ...CSS.matchAll(/^\s*(--topology-v2-panel-[a-z0-9-]*text[a-z0-9-]*)\s*:/gm),
+      ...CSS.matchAll(/^\s*(--map-panel-[a-z0-9-]*text[a-z0-9-]*)\s*:/gm),
     ].map((m) => m[1]);
     const isAccentInk = (token: string): boolean =>
       /--color-indigo/.test(declaredValue(token) ?? '');
@@ -186,7 +186,7 @@ describe('지도 패널 잉크 램프 (표면 전용 두 번째 램프)', () => 
      * fact is pinned here: **how far** the divergent ramp diverges is this contract's
      * information, and a converged place quietly diverging again is a regression.
      */
-    expect(resolve('--topology-v2-panel-text-quaternary')?.toLowerCase()).toBe(
+    expect(resolve('--map-panel-text-quaternary')?.toLowerCase()).toBe(
       resolve('--color-text-quaternary')?.toLowerCase(),
     );
   });

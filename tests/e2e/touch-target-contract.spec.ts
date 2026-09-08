@@ -65,7 +65,7 @@ test.describe("터치 타깃 계약 (pointer: coarse)", () => {
       "/ko/topology/?guides=off&p=element%3Acart-session&open=capability%3Acart%2Cdomain%3Aorder%2Cproject%3Astorefront",
       { waitUntil: "domcontentloaded" },
     );
-    const panel = page.getByTestId("topology-v2-detail-panel");
+    const panel = page.getByTestId("map-detail-panel");
     await expect(panel).toBeVisible({ timeout: 20_000 });
 
     const measured = await panel.evaluate((element, min) => {

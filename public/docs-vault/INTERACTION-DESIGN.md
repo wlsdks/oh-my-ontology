@@ -2,7 +2,7 @@
 
 > A record of decisions applying open principles from the Apple *Designing Fluid Interfaces* (WWDC18) lineage to this project's design charter
 > (`DESIGN-SYSTEM.md` · `.claude/rules/design.md`).
-> **If in conflict with the charter, the charter wins** — see "Conflict Resolution" below. This is a design gate input document for topology-map-v2 (Slice 2), and design-guardian verification is performed via screenshot evidence at implementation time.
+> **If in conflict with the charter, the charter wins** — see "Conflict Resolution" below. This is a design gate input document for ontology-map (Slice 2), and design-guardian verification is performed via screenshot evidence at implementation time.
 
 ## 0. Boundary Between Two Worlds (Core Decision)
 
@@ -15,7 +15,7 @@ Divide the app into two areas and apply different motion disciplines:
 
 This boundary prevents the situation where "they overlap weirdly and stutter": chrome stays quiet, canvas stays alive. Do not mix the two disciplines on one surface.
 
-## 1. Canvas Fluid Discipline (topology-map-v2)
+## 1. Canvas Fluid Discipline (ontology-map)
 
 - **Respond on pointer-down**: immediate visual feedback on node press (selection ring). No feedback waiting for click(up). Click=commit contract — down is only feedback, commit (focus switch) happens on up, cancellable via drag escape (~10px hysteresis).
 - **1:1 tracking**: during drag, nodes/camera stick to the pointer. Respect offset of grab point (no center snap). Use `setPointerCapture`, calculate release velocity from position/visual history of last few frames.

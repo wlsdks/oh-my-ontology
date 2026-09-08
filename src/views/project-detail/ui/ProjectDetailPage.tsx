@@ -22,8 +22,8 @@ import {
   Button,
   EmptyState,
   InlineEditable,
-  TopologyV2KindGlyph,
-  TopologyV2TraceMark,
+  OntologyMapKindGlyph,
+  OntologyMapTraceMark,
   controlClass,
   useToast,
 } from "@/shared/ui";
@@ -492,7 +492,7 @@ export function ProjectDetailPage({
       <header className="mt-6 flex flex-col gap-6 rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] p-[18px_20px] shadow-[inset_0_1px_0_var(--color-overlay-1)] lg:p-[18px_26px]">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-start gap-3.5 sm:flex-nowrap">
-            <TopologyV2KindGlyph kind="project" size={30} className="mt-1 shrink-0" />
+            <OntologyMapKindGlyph kind="project" size={30} className="mt-1 shrink-0" />
             <div className="min-w-0 flex-1">
               <InlineEditable
                 as="h1"
@@ -824,7 +824,7 @@ export function ProjectDetailPage({
         <aside data-testid="project-detail-connected" className="flex flex-col gap-[var(--card-gap)]">
           <section className="rounded-card border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] p-[var(--card-pad)] shadow-[inset_0_1px_0_var(--color-overlay-1)] md:p-[16px_18px]">
             <div className="mb-2.5 flex items-baseline gap-2">
-              <TopologyV2TraceMark containment={false} />
+              <OntologyMapTraceMark containment={false} />
               <span className="text-body-lg font-[var(--font-weight-emphasis)] text-[color:var(--color-text-primary)]">
                 {t("connectedTitle")}
               </span>

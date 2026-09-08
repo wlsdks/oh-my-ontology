@@ -4,7 +4,7 @@ import {
   HITTABLE_MIN_TIER_ALPHA,
   isNodeHittable,
   type HittableNodeInput,
-} from "@/widgets/topology-map-v2/model/tier-visibility";
+} from "@/widgets/ontology-map/model/tier-visibility";
 
 /**
  * The contract that **draw and hit read the same value**.

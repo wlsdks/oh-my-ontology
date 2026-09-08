@@ -209,7 +209,7 @@ export function MeaningEditorPanel({
     <Surface
       open={open}
       onExited={onExited}
-      className={["w-[var(--topology-v2-panel-width)]", className ?? ""].join(" ")}
+      className={["w-[var(--map-panel-width)]", className ?? ""].join(" ")}
     >
       <section
         role="group"
@@ -217,17 +217,17 @@ export function MeaningEditorPanel({
         data-testid="meaning-editor-panel"
         data-meaning-editor-step={plan ? 'review' : 'edit'}
         onKeyDown={handleKeyDown}
-        className="flex max-h-[var(--topology-v2-panel-max-height)] w-full flex-col overflow-y-auto rounded-[var(--topology-v2-panel-radius)] border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-surface)] shadow-[var(--topology-v2-panel-shadow)]"
+        className="flex max-h-[var(--map-panel-max-height)] w-full flex-col overflow-y-auto rounded-[var(--map-panel-radius)] border border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-surface)] shadow-[var(--map-panel-shadow)]"
       >
-        <header className="flex items-start gap-2 px-[var(--topology-v2-panel-pad)] pb-3 pt-[15px]">
+        <header className="flex items-start gap-2 px-[var(--map-panel-pad)] pb-3 pt-[15px]">
           <span className="mt-0.5 text-[color:var(--color-indigo-accent)]">
             <GitBranch size={ICON_SIZE.md} aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
-            <h2 className="truncate text-title font-[var(--font-weight-strong)] leading-title text-[color:var(--topology-v2-panel-text-primary)]">
+            <h2 className="truncate text-title font-[var(--font-weight-strong)] leading-title text-[color:var(--map-panel-text-primary)]">
               {source.title}
             </h2>
-            <p className="mt-1 text-label leading-label text-[color:var(--topology-v2-panel-text-tertiary)]">
+            <p className="mt-1 text-label leading-label text-[color:var(--map-panel-text-tertiary)]">
               {plan ? t('reviewBody') : t('editBody')}
             </p>
           </span>
@@ -236,7 +236,7 @@ export function MeaningEditorPanel({
           </IconButton>
         </header>
 
-        <div className="grid gap-3 border-t border-[color:var(--topology-v2-panel-divider)] px-[var(--topology-v2-panel-pad)] py-4">
+        <div className="grid gap-3 border-t border-[color:var(--map-panel-divider)] px-[var(--map-panel-pad)] py-4">
           {plan ? (
             <OntologyChangeReview
               changeSet={plan.changeSet}
@@ -324,7 +324,7 @@ export function MeaningEditorPanel({
           ) : null}
         </div>
 
-        <footer className="sticky bottom-0 flex justify-end gap-2 border-t border-[color:var(--topology-v2-panel-divider)] bg-[color:var(--topology-v2-panel-surface)] px-[var(--topology-v2-panel-pad)] py-3">
+        <footer className="sticky bottom-0 flex justify-end gap-2 border-t border-[color:var(--map-panel-divider)] bg-[color:var(--map-panel-surface)] px-[var(--map-panel-pad)] py-3">
           {!plan && originalTarget ? (
             <Button
               variant="ghost"

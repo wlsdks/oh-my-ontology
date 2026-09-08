@@ -67,7 +67,7 @@ export function BuildFromCodeDoor({ build, variant, disabled = false }: BuildFro
           size: variant === 'card' ? 'md' : 'sm',
           hoverBorder: 'strong',
           hoverInk: 'strong',
-          className: `touch-hit-expand w-full justify-center border-[color:var(--color-indigo-line-a35)] text-[color:var(--topology-v2-panel-text-secondary)]${
+          className: `touch-hit-expand w-full justify-center border-[color:var(--color-indigo-line-a35)] text-[color:var(--map-panel-text-secondary)]${
             variant === 'card' ? ' mt-2' : ''
           }`,
         })}
@@ -105,7 +105,7 @@ export function BuildFromCodeDoor({ build, variant, disabled = false }: BuildFro
         </p>
       ) : variant === 'card' ? (
         /* What will actually happen, before it happens — including that it asks before writing. */
-        <p className="mt-1 break-keep text-caption leading-caption text-[color:var(--topology-v2-panel-text-quaternary)]">
+        <p className="mt-1 break-keep text-caption leading-caption text-[color:var(--map-panel-text-quaternary)]">
           {t('buildFromCodeHint')}
         </p>
       ) : null}

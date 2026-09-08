@@ -8,15 +8,15 @@ import { describe, expect, it } from "vitest";
  * The current contract is one primary action + two edit/overflow menu items. The long CJK label of the primary action
  * is truncated in one line, and the full meaning remains in the aria-label.
  */
-const FILE = "src/widgets/topology-map-v2/ui/TopologyV2DetailPanel.tsx";
+const FILE = "src/widgets/ontology-map/ui/OntologyMapDetailPanel.tsx";
 
 describe("노드 상세 행동 단순화", () => {
   const source = readFileSync(FILE, "utf8");
 
   it("주 행동과 두 disclosure 메뉴가 모두 실재한다", () => {
     expect(source).toContain('data-action-role="primary"');
-    expect(source).toContain('triggerTestId="topology-v2-detail-panel-edit-menu-trigger"');
-    expect(source).toContain('triggerTestId="topology-v2-detail-panel-more-menu-trigger"');
+    expect(source).toContain('triggerTestId="map-detail-panel-edit-menu-trigger"');
+    expect(source).toContain('triggerTestId="map-detail-panel-more-menu-trigger"');
   });
 
   it("옛 액션 타일 잉크와 tile grid를 되살리지 않는다", () => {

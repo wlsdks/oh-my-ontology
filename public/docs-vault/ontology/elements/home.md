@@ -28,6 +28,6 @@ relation_notes: { elements/knowledge-graph: "The topology view renders the graph
 
 ## Excludes
 
-- Rendering the canvas graph itself, owned by elements/topology-map-v2.
+- Rendering the canvas graph itself, owned by elements/ontology-map.
 - The root `/` branch decision between gateway/first-run/home, owned by elements/root-entry.
 - The knowledge-graph model this page renders, owned by elements/knowledge-graph.

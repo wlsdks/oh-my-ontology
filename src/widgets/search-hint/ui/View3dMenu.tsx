@@ -64,7 +64,7 @@ const CHOICES: readonly View3dChoice[] = ['flat', 'ownership', 'strata', 'coupli
  * Is this press on the map itself? The picker floats over the canvas, so the
  * canvas is the one surface a dismissing press must not also act on. Matched by
  * element type rather than by importing the map widget — `search-hint` and
- * `topology-map-v2` are siblings, and a DOM shape is not a dependency.
+ * `ontology-map` are siblings, and a DOM shape is not a dependency.
  */
 function isMapCanvas(target: Node): boolean {
   const element = target instanceof Element ? target : target.parentElement;
@@ -205,8 +205,8 @@ export function View3dMenu({
         // column; from `xl` up the lane is centred in the map and the menu centres
         // under the chip as before.
         'absolute right-0 top-full z-40 mt-2 w-60 xl:left-1/2 xl:right-auto xl:-translate-x-1/2',
-        'rounded-[var(--topology-v2-panel-radius)] border border-[color:var(--topology-v2-panel-border)]',
-        'bg-[color:var(--topology-v2-panel-surface)] p-1.5 shadow-[var(--topology-v2-panel-shadow)]',
+        'rounded-[var(--map-panel-radius)] border border-[color:var(--map-panel-border)]',
+        'bg-[color:var(--map-panel-surface)] p-1.5 shadow-[var(--map-panel-shadow)]',
       )}
     >
       <div {...group.groupProps} aria-label={t('view3dAriaLabel')} className="flex flex-col gap-1">
@@ -233,14 +233,14 @@ export function View3dMenu({
                   'text-body',
                   active
                     ? 'text-[color:var(--color-indigo-text-soft)]'
-                    : 'text-[color:var(--topology-v2-panel-text-primary)]',
+                    : 'text-[color:var(--map-panel-text-primary)]',
                 )}
               >
                 {t(`view3dChoice.${choice}`)}
               </span>
               {/* One line for what that row answers. The name alone does not convey
                   «what is different» — which is why 「Ownership/Combination」 failed. */}
-              <span className="break-keep text-label text-[color:var(--topology-v2-panel-text-secondary)]">
+              <span className="break-keep text-label text-[color:var(--map-panel-text-secondary)]">
                 {t(`view3dChoiceHint.${choice}`)}
               </span>
             </button>

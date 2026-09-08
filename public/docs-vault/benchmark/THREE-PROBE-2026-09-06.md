@@ -21,7 +21,7 @@ open "http://127.0.0.1:5540/en/topology/?e2e=1&guides=off&three=1"
 `?three=1` plus the map's own 3D switch (`atlas.appearance.view3d`) is the only
 door. The probe puts a WebGL canvas over the map area and a four-button toolbar
 top-left, Cone · Strata · Shells · Cloud, offset by
-`--topology-v2-safe-inset-left` so the INDEX panel does not cover it. Add
+`--map-safe-inset-left` so the INDEX panel does not cover it. Add
 `&synth=1000` (or up to 10000) for the synthetic vault.
 
 ## What was built
@@ -34,13 +34,13 @@ top-left, Cone · Strata · Shells · Cloud, offset by
 | The one mount | `src/views/home/ui/HomePage.tsx` (10 lines beside the map) |
 
 **Cone and Cloud are not re-derived.** They call `buildDomeModel` from
-`topology-map-v2`, the same placement the 2D loop uses, so the twin draws the
+`ontology-map`, the same placement the 2D loop uses, so the twin draws the
 arrangement the engine computes rather than a lookalike. That required naming
-the placement in `topology-map-v2/index.ts`'s public API (the ESLint slice rule
+the placement in `ontology-map/index.ts`'s public API (the ESLint slice rule
 forbids reaching inside a slice). It is a widget→widget edge the architecture
 rules discourage and
 `tests/contract/same-layer-cross-import-ratchet.contract.test.ts` counts, so
-**that contract test now fails on one new row** (`widgets:topology-three-probe->topology-map-v2: 2 (ledger 0)`), deliberately left
+**that contract test now fails on one new row** (`widgets:topology-three-probe->ontology-map: 2 (ledger 0)`), deliberately left
 failing rather than edited, because a shipped version should move `dome-view`'s
 placement down a layer instead of buying a ledger entry. `pnpm exec tsc
 --noEmit`, `pnpm lint` and `pnpm build` are green.
@@ -80,7 +80,7 @@ kept so the difference is checkable rather than claimed:
 Node shapes and colour are the Node Spec and nothing else: project hexagonal
 prism, domain cube, capability sphere, element small cube, radii in the
 30/17/11/7 ratio; matte Lambert under one hemisphere light plus a low ambient;
-the neutral tier ramp (`--topology-v2-ink-depth-*`) read from the app's own
+the neutral tier ramp (`--map-ink-depth-*`) read from the app's own
 tokens at runtime; the selection and its edges in the one indigo
 (`--color-indigo-accent`); containment solid, dependency dashed and paler.
 

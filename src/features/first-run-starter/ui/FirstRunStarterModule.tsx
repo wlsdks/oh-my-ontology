@@ -219,7 +219,7 @@ export function FirstRunStarterModule({
    * the value actually changes.
    *
    * ⚠️ The container stays in place — an inactive segment carries hover ink
-   * (`--topology-v2-panel-text-primary`) that is not in the value layer.
+   * (`--map-panel-text-primary`) that is not in the value layer.
    * Migrating away loses that feedback.
    */
   const sampleSourceGroup = useRovingRadioGroup<"storefront" | "dogfood">({
@@ -321,7 +321,7 @@ export function FirstRunStarterModule({
    * the card used. One screen does not state one fact in two grammars.
    */
   const reopenRow = (
-    <div className="flex shrink-0 items-center gap-2 border-b border-[color:var(--topology-v2-panel-divider)] px-4 py-2">
+    <div className="flex shrink-0 items-center gap-2 border-b border-[color:var(--map-panel-divider)] px-4 py-2">
       <button
         type="button"
         data-testid="first-run-starter-reopen"
@@ -333,7 +333,7 @@ export function FirstRunStarterModule({
           shape: "link",
           scope: "panel",
           className:
-            "touch-hit-expand min-w-0 hover:text-[color:var(--topology-v2-panel-text-primary)]",
+            "touch-hit-expand min-w-0 hover:text-[color:var(--map-panel-text-primary)]",
         })}
       >
         <ChevronRight size={ICON_SIZE.sm} aria-hidden className="shrink-0 -rotate-180" />
@@ -370,7 +370,7 @@ export function FirstRunStarterModule({
     !visible && mapUnbuilt && canBuildFromCode && agentAvailable && !fsaUnsupported ? (
       <div
         data-testid="index-build-from-code-row"
-        className="border-b border-[color:var(--topology-v2-panel-border)] px-4 pb-3 pt-3"
+        className="border-b border-[color:var(--map-panel-border)] px-4 pb-3 pt-3"
       >
         <BuildFromCodeDoor build={build} variant="row" disabled={busy} />
       </div>
@@ -423,7 +423,7 @@ export function FirstRunStarterModule({
           a map, so a separate half-sentence of mission would be redundant. */}
       <p
         data-testid="first-run-starter-brand"
-        className="mb-1 text-caption font-[var(--font-weight-signature)] tracking-[var(--tracking-label)] text-[color:var(--topology-v2-panel-text-quaternary)]"
+        className="mb-1 text-caption font-[var(--font-weight-signature)] tracking-[var(--tracking-label)] text-[color:var(--map-panel-text-quaternary)]"
       >
         {t("brand")}
       </p>
@@ -433,7 +433,7 @@ export function FirstRunStarterModule({
           its own sentence binds them into **one cluster** — the colour and the
           words point at the same thing. */}
       <p
-        className={`mb-3 flex items-center gap-2 text-caption text-[color:var(--topology-v2-panel-text-secondary)] ${eyebrowWide}`}
+        className={`mb-3 flex items-center gap-2 text-caption text-[color:var(--map-panel-text-secondary)] ${eyebrowWide}`}
       >
         {t("caption")}
         <span
@@ -449,7 +449,7 @@ export function FirstRunStarterModule({
 
       <p
         data-testid="first-run-starter-context"
-        className="mb-4 text-body leading-body text-[color:var(--topology-v2-panel-text-tertiary)]"
+        className="mb-4 text-body leading-body text-[color:var(--map-panel-text-tertiary)]"
       >
         {/* Demoting the instrument block leaves the card's largest type **tied**
             between the lead and the CTA labels (both 12.5px semibold). There
@@ -465,7 +465,7 @@ export function FirstRunStarterModule({
             ("…map you see / o. Open my markdown folder..."). That is a spot where two
             sizes and two line-heights overlap within one line. A size change may
             happen only at a line boundary. */}
-        <b className="mb-1.5 block text-body-lg font-[var(--font-weight-strong)] leading-body-lg text-[color:var(--topology-v2-panel-text-primary)]">
+        <b className="mb-1.5 block text-body-lg font-[var(--font-weight-strong)] leading-body-lg text-[color:var(--map-panel-text-primary)]">
           {t(sampleSource === "storefront" ? "contextStorefrontBold" : "contextBold")}
         </b>
         {t(sampleSource === "storefront" ? "contextStorefrontRest" : "contextRest")}{" "}
@@ -493,7 +493,7 @@ export function FirstRunStarterModule({
         {...sampleSourceGroup.groupProps}
         aria-label={t("sampleSourceAria")}
         data-testid="first-run-starter-sample-source"
-        className="mb-2 grid shrink-0 grid-cols-2 gap-1 rounded-[var(--chrome-radius-inner)] border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--color-overlay-1)] p-1"
+        className="mb-2 grid shrink-0 grid-cols-2 gap-1 rounded-[var(--chrome-radius-inner)] border border-[color:var(--map-panel-border)] bg-[color:var(--color-overlay-1)] p-1"
       >
         {/* Order is the default — a newcomer reads the left one first. Hence the
             example business first and this app's own code second. The two
@@ -522,7 +522,7 @@ export function FirstRunStarterModule({
               className: `touch-hit-expand min-w-0 ${
                 sampleSource === source
                   ? ""
-                  : "hover:text-[color:var(--topology-v2-panel-text-primary)]"
+                  : "hover:text-[color:var(--map-panel-text-primary)]"
               }`,
             })}
           >
@@ -542,7 +542,7 @@ export function FirstRunStarterModule({
           hardcoded numbers (2026-08-01 ledger) still holds. */}
       <p
         data-testid="first-run-starter-sample-scale"
-        className="mb-4 text-label leading-label text-[color:var(--topology-v2-panel-text-tertiary)]"
+        className="mb-4 text-label leading-label text-[color:var(--map-panel-text-tertiary)]"
       >
         {t("sampleScale", { concepts, relations, domains })}
         {/* One real edge teaches "relation" better than three aggregates. It does
@@ -551,7 +551,7 @@ export function FirstRunStarterModule({
             does have `domains/order` relates `domains/fulfillment`. The dogfood
             vault is left empty rather than forcing a symmetry. */}
         {sampleSource === "storefront" ? (
-          <span className="block text-[color:var(--topology-v2-panel-text-quaternary)]">
+          <span className="block text-[color:var(--map-panel-text-quaternary)]">
             {t("sampleRelationExample")}
           </span>
         ) : null}
@@ -565,15 +565,15 @@ export function FirstRunStarterModule({
            plus a link to the macOS app (/download). */
         <div
           data-testid="first-run-starter-unsupported"
-          className="rounded-card border border-[color:var(--topology-v2-panel-divider)] bg-[color:var(--topology-v2-panel-recess-a45)] px-3 py-2.5"
+          className="rounded-card border border-[color:var(--map-panel-divider)] bg-[color:var(--map-panel-recess-a45)] px-3 py-2.5"
         >
-          <p className="text-label leading-label text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <p className="text-label leading-label text-[color:var(--map-panel-text-tertiary)]">
             {t("unsupportedNotice")}
           </p>
           <Link
             href="/download/"
             data-testid="first-run-starter-unsupported-cta"
-            className={controlClass({ shape: "link", tone: "accentOnTint", className: "mt-2 gap-1.5 text-body font-[var(--font-weight-signature)] hover:text-[color:var(--topology-v2-panel-text-primary)]" })}
+            className={controlClass({ shape: "link", tone: "accentOnTint", className: "mt-2 gap-1.5 text-body font-[var(--font-weight-signature)] hover:text-[color:var(--map-panel-text-primary)]" })}
           >
             {t("unsupportedCta")}
           </Link>
@@ -635,7 +635,7 @@ export function FirstRunStarterModule({
           type="button"
           data-testid="first-run-tour-cta"
           onClick={onStartTour}
-          className={controlClass({ shape: "card", className: "touch-hit-expand mt-2 inline-flex h-8 w-full justify-center gap-1.5 border-[color:var(--topology-v2-panel-divider)] text-body text-[color:var(--topology-v2-panel-text-secondary)] hover:border-[color:var(--color-indigo-line-a35)] hover:text-[color:var(--topology-v2-panel-text-primary)]" })}
+          className={controlClass({ shape: "card", className: "touch-hit-expand mt-2 inline-flex h-8 w-full justify-center gap-1.5 border-[color:var(--map-panel-divider)] text-body text-[color:var(--map-panel-text-secondary)] hover:border-[color:var(--color-indigo-line-a35)] hover:text-[color:var(--map-panel-text-primary)]" })}
         >
           {t("tourCta")}
         </button>
@@ -654,7 +654,7 @@ export function FirstRunStarterModule({
               shape: "link",
               scope: "panel",
               className:
-                "touch-hit-expand border-b border-transparent pb-px hover:border-[color:var(--topology-v2-panel-divider)] hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+                "touch-hit-expand border-b border-transparent pb-px hover:border-[color:var(--map-panel-divider)] hover:text-[color:var(--map-panel-text-secondary)]",
             })}
           >
             {scaffolding ? t("createBusy") : t("createLabel")}
@@ -668,7 +668,7 @@ export function FirstRunStarterModule({
             shape: "link",
             scope: "panel",
             className:
-              "touch-hit-expand border-b border-transparent pb-px hover:border-[color:var(--topology-v2-panel-divider)] hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+              "touch-hit-expand border-b border-transparent pb-px hover:border-[color:var(--map-panel-divider)] hover:text-[color:var(--map-panel-text-secondary)]",
           })}
         >
           {t("dismissLabel")}
@@ -700,7 +700,7 @@ export function FirstRunStarterModule({
       ) : (
         <p
           data-testid="first-run-starter-plain-mode-hint"
-          className="mt-1 text-label leading-label text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="mt-1 text-label leading-label text-[color:var(--map-panel-text-quaternary)]"
         >
           {t("plainModeHint")}
         </p>
@@ -722,7 +722,7 @@ export function FirstRunStarterModule({
           {errorText ? (
             <p
               data-testid="first-run-starter-error-detail"
-              className="mt-0.5 break-words text-label leading-label text-[color:var(--topology-v2-panel-text-quaternary)]"
+              className="mt-0.5 break-words text-label leading-label text-[color:var(--map-panel-text-quaternary)]"
             >
               {errorText}
             </p>
@@ -741,9 +741,9 @@ export function FirstRunStarterModule({
           always-visible lines rather than hidden behind a disclosure — this is
           the surface where a complete beginner must learn what the three words
           mean the moment they first open the map, so it is not something to fold. */}
-      <div className="mt-4 border-t border-[color:var(--topology-v2-panel-divider)] pt-3">
+      <div className="mt-4 border-t border-[color:var(--map-panel-divider)] pt-3">
         <p
-          className={`mb-1.5 text-caption text-[color:var(--topology-v2-panel-text-quaternary)] ${eyebrow}`}
+          className={`mb-1.5 text-caption text-[color:var(--map-panel-text-quaternary)] ${eyebrow}`}
         >
           {glossary("title")}
         </p>
@@ -791,16 +791,16 @@ export function FirstRunStarterModule({
         >
           {GLOSSARY_TERMS.map((term) => (
             <Fragment key={term}>
-              <dt className="font-[var(--font-weight-signature)] text-[color:var(--topology-v2-panel-text-secondary)]">
+              <dt className="font-[var(--font-weight-signature)] text-[color:var(--map-panel-text-secondary)]">
                 {glossary(`${term}Term`)}
               </dt>
               <span
                 aria-hidden="true"
-                className="text-[color:var(--topology-v2-panel-text-quaternary)]"
+                className="text-[color:var(--map-panel-text-quaternary)]"
               >
                 =
               </span>
-              <dd className="text-[color:var(--topology-v2-panel-text-tertiary)]">
+              <dd className="text-[color:var(--map-panel-text-tertiary)]">
                 {glossary(`${term}Definition`)}
               </dd>
             </Fragment>
@@ -833,7 +833,7 @@ export function FirstRunStarterModule({
             scope: "panel",
             tone: "muted",
             className:
-              "touch-hit-expand hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+              "touch-hit-expand hover:text-[color:var(--map-panel-text-secondary)]",
           })}
         >
           <ChevronRight
@@ -854,10 +854,10 @@ export function FirstRunStarterModule({
           <div
             id="first-run-starter-cli-bridge"
             data-testid="first-run-starter-cli-bridge"
-            className="mt-2 rounded-chip border border-[color:var(--topology-v2-panel-divider)] bg-[color:var(--topology-v2-panel-recess-a35)] px-2.5 py-2"
+            className="mt-2 rounded-chip border border-[color:var(--map-panel-divider)] bg-[color:var(--map-panel-recess-a35)] px-2.5 py-2"
           >
             <div className="flex items-center justify-between gap-2">
-              <p className="min-w-0 break-keep text-caption leading-display-tight text-[color:var(--topology-v2-panel-text-quaternary)]">
+              <p className="min-w-0 break-keep text-caption leading-display-tight text-[color:var(--map-panel-text-quaternary)]">
                 {t("cliBridgeLabel")}
               </p>
               <CompactCopyButton
@@ -875,7 +875,7 @@ export function FirstRunStarterModule({
             >
               {t("cliBridgeSourceOnly")}
             </p>
-            <code className="mt-1 block whitespace-pre-wrap break-words font-mono text-label leading-label text-[color:var(--topology-v2-panel-text-secondary)]">
+            <code className="mt-1 block whitespace-pre-wrap break-words font-mono text-label leading-label text-[color:var(--map-panel-text-secondary)]">
               {CLI_BOOTSTRAP_COMMAND}
             </code>
           </div>

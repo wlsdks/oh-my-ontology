@@ -1,6 +1,6 @@
 "use client";
 
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { EGO_BEARINGS, type ConceptEgo, type EgoBearing } from "../model/build-concept-ego";
 import { ConceptEgoGraph } from "./ConceptEgoGraph";
 import { controlClass } from '@/shared/ui/control-class';
@@ -70,7 +70,7 @@ export function ConceptEgoCard({
     >
       <div className="flex flex-col gap-1.5 border-b border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 py-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <TopologyV2KindGlyph kind={ego.kind} size={15} />
+          <OntologyMapKindGlyph kind={ego.kind} size={15} />
           <b className="truncate text-body-lg font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
             {ego.label}
           </b>
@@ -139,9 +139,9 @@ export function ConceptEgoCard({
                     row.bearing === "dependsOn" || row.bearing === "usedBy"
                       ? {
                           borderTopStyle: "dashed",
-                          borderTopColor: "var(--topology-v2-edge-depends)",
+                          borderTopColor: "var(--map-edge-depends)",
                         }
-                      : { borderTopColor: "var(--topology-v2-edge-contains)" }
+                      : { borderTopColor: "var(--map-edge-contains)" }
                   }
                 />
                 {bearingLabel(t, row.bearing)}
@@ -157,7 +157,7 @@ export function ConceptEgoCard({
                     disabled={!onSelect}
                     className={controlClass({ hoverInk: 'strong', shape: "link", tone: "secondary", className: "min-w-0 gap-1.5 text-label enabled: disabled:cursor-default" })}
                   >
-                    <TopologyV2KindGlyph kind={neighbor.kind} size={11} />
+                    <OntologyMapKindGlyph kind={neighbor.kind} size={11} />
                     <span className="truncate">{neighbor.label}</span>
                   </button>
                 ))}

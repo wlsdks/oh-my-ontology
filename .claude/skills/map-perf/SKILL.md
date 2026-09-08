@@ -43,7 +43,7 @@ window.__atlasMap.backing()
 
 It also exposes `edges()`, `edgeAt()`, `camera()`, `selection()`, and `chips()`.
 Implementation: the final effect in
-`src/widgets/topology-map-v2/ui/use-topology-loop.ts`.
+`src/widgets/ontology-map/ui/use-topology-loop.ts`.
 
 ## Procedure
 

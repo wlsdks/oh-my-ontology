@@ -26,6 +26,6 @@ Graph node/edge data structure entity. Evidence of implementation for capabiliti
 
 ## Excludes
 
-- Rendering the graph on canvas, owned by elements/topology-map-v2.
+- Rendering the graph on canvas, owned by elements/ontology-map.
 - Parsing raw Markdown frontmatter into fields, owned by the shared `parse-frontmatter` library.
 - Ontology class/kind labeling and iconography, owned by elements/ontology-class.

@@ -5,8 +5,8 @@ kind: capability
 title: "Topology Map Rendering & Search"
 display_ko: 지도 그리기와 검색
 domain: domains/topology-navigation
-elements: [elements/full-detail-a1, elements/global-search, elements/search-palette, elements/topology-controls, elements/topology-index-panel, elements/topology-map-v2]
-path: src/widgets/topology-map-v2
+elements: [elements/full-detail-a1, elements/global-search, elements/ontology-map, elements/search-palette, elements/topology-controls, elements/topology-index-panel]
+path: src/widgets/ontology-map
 created_by: "agent:unknown"
 dependencies: [capabilities/design-token-ramps, capabilities/vault-ontology]
 relation_notes: { capabilities/vault-ontology: "The map renderer and search consume the compiled node kinds and typed relation vocabulary; changing the vault ontology schema changes what topology can render, filter, and explain.", capabilities/design-token-ramps: "The topology canvas and panels consume the shared topology, motion, radius, and color ramps from app/globals.css; changing those ramps changes map readability and interaction geometry." }
@@ -21,8 +21,8 @@ The capability to render, pan/zoom, and search the entire vault graph on a custo
 - The INDEX panel, search palette, and map controls that surround the canvas, as the same browsing surface.
 
 ## Evidence
-- src/widgets/topology-map-v2, topology-controls, global-search (implementation evidence)
-- AGENTS.md: Tech stack ("The graph renderer is ours: a custom canvas-2D engine (topology-map-v2)")
+- src/widgets/ontology-map, topology-controls, global-search (implementation evidence)
+- AGENTS.md: Tech stack ("The graph renderer is ours: a custom canvas-2D engine (ontology-map)")
 
 ## View Modes
 - **3D View (2026-08-18; cone tree since 2026-09-02)**: An opt-in mode that lifts the map into depth. The
@@ -36,7 +36,7 @@ The capability to render, pan/zoom, and search the entire vault graph on a custo
   In-plane node drag · Wheel zoom · "Reset to Origin" · Selection reframe (selecting a node aligns yaw and camera
   in one clock to frame that node on the front, reframing based on visible area even when panels are open/closed).
   Default is 2D (cross-verified evidence, `docs/DECISIONS.md` 2026-08-18). Implementation:
-  `src/widgets/topology-map-v2/model/dome-view.ts`, config key `atlas.appearance.view3d`.
+  `src/widgets/ontology-map/model/dome-view.ts`, config key `atlas.appearance.view3d`.
 - **3D Representation Layers (2026-08-18 3rd iteration, re-based on the cone tree 2026-09-02)**: Five rendering
   devices. ① **Straight cone edges for containment, bowed meridians for relations** (`domeEdgeControl` takes the
   edge kind; only `depends` rides the shell), ② **Depth halo** (thickly drawing the same geometry in the
@@ -44,7 +44,7 @@ The capability to render, pan/zoom, and search the entire vault graph on a custo
   (farthest first), ④ **Cone-base rings** (the project's domain ring plus one base per parent with two or more
   children, sampled in proportion to radius, each arc with its own depth ink. `DomeModel.circles`,
   `render/dome-rings.ts`), ⑤ **Node 3D shading** (assuming a light source slightly upper-left, Sun & Perona 1998).
-  All values are derived from `model/dome-view.ts` and the single token `--topology-v2-dome-ring`.
+  All values are derived from `model/dome-view.ts` and the single token `--map-dome-ring`.
 - **3D Manipulation & Motion (2026-08-18 4th iteration)**: Dragging empty space behaves differently depending on location.
   Inside the dome silhouette (an ellipse inscribed in the bbox of drawn nodes, with 1.08 padding) is orbit rotation,
   outside it is camera panning same as 2D (`isInsideDomeGrip`). The check happens only once on pointerdown, and the cursor indicates two zones (`grab` / `move`). Tier twisting

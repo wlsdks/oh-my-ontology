@@ -49,7 +49,7 @@ describe("「이어서 새로 만들기」 — 어포던스 계약", () => {
   });
 
   it("타일은 핸들러가 있을 때만 그려진다 — 라벨만 있고 문이 없으면 안 된다", () => {
-    const panel = read("src/widgets/topology-map-v2/ui/TopologyV2DetailPanel.tsx");
+    const panel = read("src/widgets/ontology-map/ui/OntologyMapDetailPanel.tsx");
     expect(panel).toMatch(/onCreateLinked && labels\.actionCreateLinked/);
   });
 });

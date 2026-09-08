@@ -27,21 +27,21 @@ export function TopologyIndexTab({ onExpand, labels, className }: TopologyIndexT
       onClick={onExpand}
       aria-label={labels.expandAria}
       data-testid="topology-index-tab"
-      className={`flex flex-col items-center gap-2.5 rounded-r-chip border border-l-0 border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-surface)] py-2.5 shadow-[var(--topology-v2-panel-shadow)] ${className ?? ""}`}
+      className={`flex flex-col items-center gap-2.5 rounded-r-chip border border-l-0 border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-surface)] py-2.5 shadow-[var(--map-panel-shadow)] ${className ?? ""}`}
       style={{ width: "var(--topology-index-tab-width)" }}
     >
       <span
         title={labels.agentSyncTitle}
-        className="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--topology-v2-panel-power-on)]"
+        className="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--map-panel-power-on)]"
       />
       <span
-        className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--topology-v2-panel-text-tertiary)]"
+        className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--map-panel-text-tertiary)]"
         style={{ writingMode: "vertical-rl" }}
       >
         Index
       </span>
       {/* ChevronRight 13 rather than 9px `›` text — the symmetric pair of the expanded `‹`. */}
-      <span aria-hidden="true" className="inline-flex text-[color:var(--topology-v2-panel-text-quaternary)]">
+      <span aria-hidden="true" className="inline-flex text-[color:var(--map-panel-text-quaternary)]">
         <ChevronRight size={ICON_SIZE.sm} aria-hidden="true" />
       </span>
     </button>

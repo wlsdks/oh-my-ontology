@@ -74,7 +74,7 @@ P1 에이전트는 세션마다 프로젝트를 재학습한다 (20,574 상호�
 **코어 트랙**
 - **Slice 0 — 흡수** (Build and verify): CLAUDE.md/AGENTS.md → typed 노드 흡수 도구 (단일 스파인) + `init --quick-start` + 인젝션 Tier 1 + 매직 모먼트 계측. 검증: 테크리드 3명 — 무수정 수용 ≥70% AND 수동 편집 ≤10분 AND 시간 절감 진술 AND adversarial 통과 AND 모먼트 ≤5분.
 - **Slice 1 — 신선도** (Build and verify): drift 감지 + 승인 3계층 + Decision Gate + 10x 실측 + dbt 테스트 케이스 (kind 레지스트리 부채 노출).
-- **Slice 2 — 그래프를 도구로** (Shape a slice): topology-map-v2 strangler 재구축 (기판정 6페이즈, Sigma v3 유지, WebGL 저알파 불변식) + Fitness Hook + 신선도 오버레이. kill: "그래프가 실제 결정을 바꾼 사례" 관찰 실패 시. ship 게이트 = 설치 macOS 앱 검증.
+- **Slice 2 — 그래프를 도구로** (Shape a slice): ontology-map strangler 재구축 (기판정 6페이즈, Sigma v3 유지, WebGL 저알파 불변식) + Fitness Hook + 신선도 오버레이. kill: "그래프가 실제 결정을 바꾼 사례" 관찰 실패 시. ship 게이트 = 설치 macOS 앱 검증.
 - **Slice 3 — 답 배달** (Investigate first): 개발자 5명 자발 생성 관찰 + 거절 사유 3분류 + 2주.
 - **Slice 4 — 확산** (Shape a slice): 빌드-인-퍼블릭 격주 블로그 + 0-click 브라우저 플레이그라운드 + OSS 갤러리 + 기여자 에이전트 데모 + 보안 투명성 포스트. 지표: 베타 팀 3곳 (정직 명명).
 
@@ -120,7 +120,7 @@ P1 에이전트는 세션마다 프로젝트를 재학습한다 (20,574 상호�
 2. **Slice 0 구현 (sonnet)**: TDD — 흡수 도구(cli/mcp) + 인젝션 Tier 1 + 계측. 기존 계약 테스트 무변경 통과 유지.
 3. **N0 (병렬)**: SPEC v1.0 문서 승격.
 4. **dogfood 실측 3종** → 증거팩 공개 → 렌즈 재채점 (아모데이·베이조스 9 돌파 시도).
-5. topology-map-v2 (Slice 2)는 Slice 0·1 통과 후 기판정 6페이즈로.
+5. ontology-map (Slice 2)는 Slice 0·1 통과 후 기판정 6페이즈로.
 
 ---
 
