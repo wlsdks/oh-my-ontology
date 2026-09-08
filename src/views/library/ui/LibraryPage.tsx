@@ -1761,6 +1761,9 @@ export function LibraryPage() {
         */}
         <LibraryWorkActivityStrip
           activity={libraryWorkActivity}
+          /* The lane belongs to an open conversation, not to the folder: see the prop's
+             own note for the 112px an idle Library was paying without one. */
+          reserved={dockOpen}
           onSelect={(target) =>
             choose(
               target.kind === "wiki"

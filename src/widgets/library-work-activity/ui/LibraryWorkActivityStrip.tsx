@@ -16,15 +16,29 @@ const INK = {
 };
 
 /** Ephemeral observations, not an audit log or a claim that an agent is idle. */
-export function LibraryWorkActivityStrip({ activity, onSelect }: {
+export function LibraryWorkActivityStrip({ activity, onSelect, reserved = false }: {
   activity: LibraryWorkActivity;
   onSelect: (target: LibraryWorkTarget) => void;
+  /**
+   * Whether a session is open to report on. The lane holds its height so a receipt never
+   * resizes the canvas, but holding it *always* charged every folder 112px of the picture
+   * for work that was not happening: measured 2026-09-08 at 1920x1080, an idle Library
+   * rendered `library-work-lane` at y 0..112 with no text and no `Surface` inside it, and
+   * the canvas began at 160 instead of 48. So the reservation follows the session that
+   * causes the receipts, and standing it up costs one shift at a moment the person asked
+   * for by opening the conversation — never on the arriving receipt itself.
+   */
+  reserved?: boolean;
 }) {
   const t = useTranslations("library.workActivity");
   const current = activity.current;
   const headline = current ?? activity.recent[0] ?? null;
   const Icon = headline ? ICONS[headline.kind] : BookOpen;
   const label = (event: LibraryWorkEvent) => t(`${event.phase}.${event.kind}`);
+  // Nothing to report and no session that could report: the picture keeps the height.
+  // A receipt still outlives its conversation, which is the whole point of a receipt, so
+  // the lane stands for one that is already there even after the dock is closed.
+  if (!reserved && headline === null) return null;
   return (
     // Reserve the activity lane before the first event: mounting a receipt must not
     // resize the canvas and move the very marks whose work it is explaining.
