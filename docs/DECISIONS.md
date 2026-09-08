@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — Light and depth stay only where a fact stays with them
+
+**Why**: the expressive slice drew three marks that outran their data. The map's ground halo, sized by the farthest 1-hop neighbour, enclosed 410 nodes over 36 focus states of which 290 (70.7%) were not neighbours, and gave a degree-3 node the same radius as a degree-15 one; measured on the rendered canvas it lifted blue across the whole field (mean B−R 9.82 against 3.55 without it). The architecture planes' depth ramp rendered rgb 13·12·11·10 — every adjacent pair 1.00:1 — while dimming the deepest plane's lit edge to 1.02:1. The library's Compile light rested on one spine at 1.29:1 against the open page's own fill.
+**Prior**: upholds 2026-09-08 "The expression bans are lifted" and applies its falsifier for the first time; the bans stay lifted, the bloom, edge glow, press, drop, spines and rims stand.
+**Decision**: the halo is deleted (2 tokens), every plane takes one fill (the ramp's 2 tokens go, and the under-face cap becomes structural), the sweep is deleted with its clock and token. Kept smaller than any seat asked: mass ω becomes one token at the same 16, the bloom's blur is named, a released hover and an orphaned drag offset ease instead of cutting, the delta heading takes the chrome ink, and coarse spine widths become a ramp above the 44px floor instead of collapsing onto it.
+**Dissent**: the system seat — a downward well token (planes rgb 13 → 5, gated by an under-face contract) reads more depth than a flat fill, and a fixed-radius halo (infoviz) would have satisfied the falsifier without removing the mark; both were refused as adding a second light where the bloom already stands.
+**Falsifier**: a walkthrough where the layer order cannot be read from the shear and the numerals, or where a reader cannot tell which node is focused without the halo, reopens this.
+**Owner**: jinan
+
 ## 2026-09-08 — The expression bans are lifted; discipline stays on the token, not on the taste
 
 **Why**: the owner, after the three.js examples: *"map, architecture and library all feel lacking, nothing springy"*, then, told that glow, gradients, glass and moving backgrounds were what the charter forbade: *"lift everything the design rules forbid; the bans stop me trying anything."* The three.js probe two days earlier found the feeling is not a renderer's.
