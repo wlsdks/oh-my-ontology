@@ -48,6 +48,7 @@ The criterion for separation is not the topic, but **"when it is read."** All fo
 - [Topology node focus & scale (ego popover)](#topology-node-focus-scale-ego-popover)
 - [Anti-AI Design Criteria](#anti-ai-design-criteria)
 - [Architecture canvas — the flow surface (new, 2026-08-28)](#architecture-canvas-the-flow-surface-new-2026-08-28)
+- [Library shelf — a wiki page is a spine (new, 2026-09-08)](#library-shelf-a-wiki-page-is-a-spine-new-2026-09-08)
 - [Absolute rules (Don'ts)](#absolute-rules-donts)
 - [Arrows carry information or they don't ship](#arrows-carry-information-or-they-dont-ship)
 - [Dimensional regularity — when content length varies](#dimensional-regularity-when-content-length-varies)
@@ -1578,6 +1579,89 @@ came from its *metaphor*, not from the extra axis, and the follow-up work naming
 occlusion, selection and text readability as open problems is why that win has not generalised.
 The metaphor this surface already has is the owner's own: a building X-ray, which is drawn in 2D
 for the same reason architectural drawings are.
+
+## Library shelf — a wiki page is a spine (new, 2026-09-08)
+
+> The wiki half of the Library's 280px index column. Registered here because it adds a
+> token family and a mark vocabulary, not because it adds a screen.
+
+### The problem this shape exists for
+
+The wiki list drew every page as an identical row: same glyph, same ink, same height. So
+*"which of these has fallen behind the file it was written from"* — the question a wiki
+over a folder of documents keeps asking — could only be answered by opening pages one at a
+time. The fact was already in the folder: `source_hash` records what a page was written
+from, and `vault-library.ts` has derived per-page freshness since the pairing shipped.
+Nothing on screen spent it. The shelf spends it.
+
+### The marks, and the fact each one carries
+
+| Mark | Fact | Token |
+|---|---|---|
+| every spine one height | none — a shelf, so nothing reads as a bar chart | `--library-spine-height` |
+| a wider spine | the page is longer (four steps, `spine-shape.ts` owns the thresholds) | `--library-spine-width-xs/-sm/-md/-lg` |
+| amber rim on the head | a cited source changed after this page was written | `--library-spine-rim`, `--color-amber-source-a90` |
+| amber rim on the foot | the page's own shape misses the wiki template | `--library-spine-rim`, `--color-amber-source-a90` |
+| body unfilled, label a step back | **nothing has ever checked this page against a file** | no fill; `controlClass` `tone: 'default'` |
+| solid accent edge, indigo body | the page open in the reader beside it | `--color-indigo-accent`, `--color-indigo-a22` |
+| a light resting on one spine | Compile is running; the shelf is what the turn is about | `--library-spine-sweep-dwell`, `--color-indigo-a40` |
+| the book comes off the shelf under the pointer | this is the one you are about to pull | `--library-spine-lift`, `--library-spine-lift-scale` |
+
+**Two ambers, two ends, and they are not one state drawn twice.** The head is about the
+*source* and the cure is Compile; the foot is about the page's *own bytes* and the cure is
+an edit. Colour is never the only carrier: the spine's accessible name says which is
+which, in words, along with the whole title — a 26px spine truncates, so `title` and
+`aria-label` carry it.
+
+**The spine is a `controlClass({ shape: 'tile' })`.** `tile` is the one vertical shape
+in the value layer, and it gives the spine its border, radius, focus ring, disabled state
+and the three-rung ink ladder (`tone: strong | secondary | default`). What the shape
+cannot know is the geometry of a book, so the width ramp, the single height and the square
+foot come from the tokens below and override the tile's own padding — the established
+surface-token path this document already licenses under "Panel Width · Measurement Width".
+
+**Selected and stale must not be confusable.** Measured at 1512 on `--color-panel`
+(#0f1011): the open page's edge is the solid `--color-indigo-accent` at **4.96:1**, which
+clears WCAG 1.4.11's 3:1 for a mark identifying a state; the stale head rim is **8.7:1**;
+between the two edges ΔE(CIE76) is **109.9**. An earlier build used
+`--color-indigo-line-a35` for that edge and measured 1.4:1 — the page a person had open
+was the quietest thing on its own shelf. Title ink stays over the 4.5:1 text floor in
+every state (11.4 fresh, 5.9 unverified, 14.3 selected).
+
+### Values
+
+| Token | Value | Derivation |
+|---|---|---|
+| `--library-spine-height` | 164px | one height for every spine; fits ~22 characters of `text-label` set vertically, which covered 5 of 6 titles whole on the measured folder |
+| `--library-spine-width-xs` | 26px | shortest page; four steps because an eye compares books without a legend and a continuous width claims a precision nobody can read |
+| `--library-spine-width-sm` | 32px | also the step an **unread** page takes — never the shortest, which would be a fact nothing established |
+| `--library-spine-width-md` | 38px | |
+| `--library-spine-width-lg` | 46px | six `lg` spines plus gaps still wrap inside the 264px the column leaves |
+| `--library-spine-gap` | 3px | books touch on a shelf; enough to keep two edges from reading as one |
+| `--library-spine-rim` | 2px | the head and foot marks |
+| `--library-spine-lift` | 4px | hover; the shadow under it is `--shadow-control-press`, the smallest geometry on the elevation ladder, so a 4px lift is not lit by a 18px shadow |
+| `--library-spine-lift-scale` | 1.02 | hover, with the lift, over `--motion-fast` |
+| — | — | there is deliberately **no** dim/opacity token: an unverified spine is unfilled and takes `controlClass`'s `tone: 'default'`, because dimming the label instead put its ink under the 4.5:1 floor |
+| `--library-spine-sweep-dwell` | 240ms | how long Compile's light rests on one spine; `--motion-settle`'s value, read from the token by `readSpineSweepDwellMs()` rather than transcribed |
+
+### Motion
+
+Hover is the only resting motion: 4px up and 1.02 over `--motion-fast`, `origin-bottom`,
+with `--shadow-control-press` under it — a lifted surface that casts no shadow is the
+contradictory depth this document already refuses. The Compile sweep runs on a JS clock
+because the number of spines is a property of the folder and a CSS keyframe cannot hold a
+per-folder cycle without writing the duration twice; it starts and stops with the turn and
+never runs at rest. **Reduced-motion equivalent:** nothing travels — the interval is not
+started at all — while the indigo board under the shelf and the sentence *Compile is
+re-reading the shelf* stay, so the state is still stated. It adds no CSS `animation`, so
+it is outside `reduced-motion-equivalent.contract.test.ts`'s roster by construction rather
+than by exemption; `LibraryShelf.test.tsx` owns the proof.
+
+### What the shelf is not
+
+A search result. A shelf is a resting state — a picture of a folder, comparable across. A
+search is a ranked answer to a question just typed, and an answer reads down a column, so
+a non-empty query puts the rows back, pill and writer caption included.
 
 ## Absolute rules (Don'ts)
 

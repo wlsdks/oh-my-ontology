@@ -275,7 +275,7 @@ test.describe("the Library destination", () => {
     await expect(footer).not.toContainText("not written up yet");
   });
 
-  test("lists wiki pages and names the first problem of one that is off-template", async ({
+  test("shelves the wiki pages with their freshness on them, before any of them is opened", async ({
     page,
   }) => {
     await openLibrary(page);
@@ -283,22 +283,56 @@ test.describe("the Library destination", () => {
     await page.getByTestId("library-index-segment-wiki").click();
 
     const wiki = page.getByTestId("library-wiki-list");
-    // Two page rows; the list's own last row is New page (council 2026-09-07), not a page.
+    // Two spines; New page is the list's own last control (council 2026-09-07), not a page.
     await expect(wiki.locator('[data-testid^="library-wiki-wiki/"]')).toHaveCount(2);
     await expect(wiki.getByTestId("library-new-page")).toBeVisible();
     await expect(wiki).toContainText("Quarter plan");
     await expect(wiki).toContainText("Handover notes");
-    // The pill says one fixed word. A badge carrying the code changed shape row by row
-    // and asked a reader to learn a vocabulary just to scan the list, so the code moved
-    // off it — and this asserts that it stays off.
-    await expect(page.getByTestId("library-wiki-off-template")).toHaveText("off-template");
-    // Which rule the page missed is a different fact, announced with the row rather than
-    // reachable only by a pointer that hovers. `handover.md` has no `## Not in sources`.
+
+    /*
+     * **The state is on the shelf, not behind a press.** `quarter-plan.md` records a hash
+     * these bytes cannot match, so its spine wears the amber head rim; `handover.md`
+     * cites nothing, so nothing has ever checked it against a file. Both are derived from
+     * the folder, so this measures the derivation as well as the drawing.
+     */
+    const plan = page.getByTestId("library-wiki-wiki/quarter-plan");
+    await expect(plan).toHaveAttribute("data-freshness", "stale");
+    await expect(plan.getByTestId("library-spine-stale-rim")).toBeAttached();
     await expect(page.getByTestId("library-wiki-wiki/handover")).toHaveAttribute(
-      "aria-description",
-      /section-order/,
+      "data-freshness",
+      "unverified",
     );
+
+    /*
+     * Every spine is one height — the shelf is a shelf, not a bar chart — and the only
+     * thing that varies is width, which is how long the page is.
+     */
+    const boxes = await wiki.locator('[data-testid^="library-wiki-wiki/"]').evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return { w: Math.round(rect.width), h: Math.round(rect.height) };
+      }),
+    );
+    expect(new Set(boxes.map((box) => box.h)).size).toBe(1);
+
+    /*
+     * A spine truncates, so the whole title and every mark it draws are in its accessible
+     * name — the reason the page missed the template included. `handover.md` has no
+     * `## Not in sources`, and its foot carries that separately from the head's freshness.
+     */
+    const handover = page.getByTestId("library-wiki-wiki/handover");
+    await expect(handover).toHaveAttribute("aria-label", /Handover notes/);
+    await expect(handover).toHaveAttribute("aria-label", /section-order/);
+    await expect(handover.getByTestId("library-spine-off-template-rim")).toBeAttached();
     await expect(page.getByTestId("library-off-template-count")).toBeVisible();
+
+    /*
+     * A search is an answer to a question, so the rows come back — and with them the pill
+     * that says one fixed word, which is the shape a row has always used.
+     */
+    await page.getByTestId("library-search").fill("handover");
+    await expect(page.getByTestId("library-wiki-shelf")).toHaveCount(0);
+    await expect(page.getByTestId("library-wiki-off-template")).toHaveText("off-template");
   });
 
   test("a wiki page opens in the reader, because it is ordinary Markdown", async ({ page }) => {

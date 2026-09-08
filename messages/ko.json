@@ -4581,6 +4581,15 @@
       "undone": "{page} 를 지웠습니다.",
       "undoFailed": "되돌리지 못했습니다. 파일이 이미 없거나 폴더에 쓸 수 없습니다."
     },
+    "shelf": {
+      "listAria": "위키 페이지 선반. 책등마다 최신 여부가 표시된다",
+      "freshness": {
+        "fresh": "작성 근거가 된 파일과 아직 일치한다",
+        "stale": "이 페이지를 쓴 뒤 원본 파일이 바뀌었다",
+        "unverified": "이 페이지를 파일과 대조한 적이 없다"
+      },
+      "compiling": "Compile 이 선반을 다시 읽는 중이다."
+    },
     "graph": {
       "title": "그래프",
       "counts": "원문 {sources}개 · 위키 문서 {pages}개 · 개념 {concepts}개 · 인용 {cites} · 언급 {mentions}",
