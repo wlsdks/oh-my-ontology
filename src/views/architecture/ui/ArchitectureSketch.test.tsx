@@ -22,6 +22,7 @@ function draw(
   violatedPairs = new Set<string>(),
   traffic: readonly ArchitectureRoleEdge[] = [],
   profileFrontmatter: unknown = HEXAGONAL_PROFILE_FRONTMATTER,
+  selected: string | null = null,
 ) {
   const graph = buildArchitectureGraph(
     buildArchitectureLayout(parseArchitectureProfile(profileFrontmatter as never)),
@@ -46,7 +47,7 @@ function draw(
       observationTrackLabel="Observation"
       deltaTrackLabel="Delta"
       observationMissingLabel="Not inspected"
-      selected={null}
+      selected={selected}
       roleInspectorOpen={false}
       onSelect={() => {}}
       roleLabel={(id) => id}
@@ -174,11 +175,13 @@ describe('the evidence split plane', () => {
       const graph = screen.getByTestId('architecture-graph');
       expect(graph).toHaveAttribute('data-architecture-axis', 'down');
       expect(graph).toHaveAttribute('data-evidence-layout', 'paired-ladder');
-      /* 56 + 280 + 72 + 240 faces, a 48px contract lane (no declared skip needs more), and the
-         360px observation lane that carries the measured arcs and their sentences. */
-      expect(graph).toHaveAttribute('width', '1056');
-      /* 8 + 20 + 7×72 + 6×24 + 8: the row gap carries the rule sentence beside its arrow. */
-      expect(graph).toHaveAttribute('height', '684');
+      /* 56 + 280 + 72 + 240 faces, and the two side lanes. The contract lane no longer sits at
+         its 48px floor: seven layer planes drift 6×14 and lean 11 more, so the stack claims 112
+         on each side and the observation lane keeps its 360px cap (Direction B, 2026-09-08). */
+      expect(graph).toHaveAttribute('width', '1120');
+      /* 8 + 20 + 7×72 + 6×24 + 8, plus the 8px head room the top plane's lit edge needs to stop
+         reading as a rule under the lane headings and the 3px ledge under the last role. */
+      expect(graph).toHaveAttribute('height', '695');
       expect(screen.getByTestId('architecture-paired-lane-headings')).toHaveTextContent(
         'ContractDeltaObservation',
       );
@@ -302,8 +305,9 @@ describe('the evidence split plane', () => {
       expect(graph).toHaveAttribute('data-architecture-axis', 'down');
       expect(graph).toHaveAttribute('data-evidence-layout', 'paired-ladder');
       expect(graph).toHaveAttribute('data-ladder-density', 'tight');
-      /* 4 + 20 + 7x58 + 6x22 + 4: one summary line per role, and the gap the sentence needs. */
-      expect(graph).toHaveAttribute('height', '566');
+      /* 4 + 20 + 7x58 + 6x22 + 4: one summary line per role, and the gap the sentence needs,
+         plus the layer stack's 8px head room and its 3px bottom ledge. */
+      expect(graph).toHaveAttribute('height', '577');
       const boxes = screen.getAllByTestId(/^architecture-graph-box-/);
       expect(boxes).toHaveLength(7);
       expect(boxes.every((box) => box.getAttribute('data-box-height') === '58')).toBe(true);
@@ -510,5 +514,151 @@ describe('the evidence split plane', () => {
     expect(ports.every((port) => port.getAttribute('stroke') !== 'var(--color-danger-text)')).toBe(
       true,
     );
+  });
+});
+
+/**
+ * **Direction B, 2026-09-08 — the import direction is drawn as depth.**
+ *
+ * `app → views → widgets → features → entities → shared` is a rule about what may reach what, and
+ * the ladder stated it only as row order. Seven stacked rows of one surface say "these came in
+ * this sequence"; a stack of planes says "this one is under that one", which is the actual rule.
+ * These gates hold the three facts the drawing now depends on: the stack is ordered and steps by
+ * one constant, every role sits inside its own layer's plane, and the one import that travels *up*
+ * the stack carries a halo that answers when its role is chosen.
+ */
+describe('the layer planes', () => {
+  const LADDER_GEOMETRY: Record<string, number> = {
+    clientWidth: 1200,
+    scrollWidth: 1200,
+    clientHeight: 700,
+    scrollHeight: 700,
+  };
+
+  function withLadderCanvas(body: () => void) {
+    const originals = Object.fromEntries(
+      Object.keys(LADDER_GEOMETRY).map((key) => [
+        key,
+        Object.getOwnPropertyDescriptor(HTMLElement.prototype, key),
+      ]),
+    );
+    try {
+      for (const [key, value] of Object.entries(LADDER_GEOMETRY)) {
+        Object.defineProperty(HTMLElement.prototype, key, {
+          configurable: true,
+          get: () => value,
+        });
+      }
+      body();
+    } finally {
+      for (const [key, descriptor] of Object.entries(originals)) {
+        if (descriptor) Object.defineProperty(HTMLElement.prototype, key, descriptor);
+        else delete (HTMLElement.prototype as unknown as Record<string, unknown>)[key];
+      }
+    }
+  }
+
+  /** The x the plane's parallelogram starts from: `M <x> <y> H …`. */
+  function planeOriginX(plane: Element): number {
+    const d = plane.querySelector('path')?.getAttribute('d') ?? '';
+    return Number(/^M ([\d.-]+) /.exec(d)?.[1]);
+  }
+
+  it('stacks one plane per layer, ordered nearest to deepest and stepping by one constant', () => {
+    withLadderCanvas(() => {
+      draw({}, new Set(), [], FSD_PROFILE_FRONTMATTER);
+      const planes = [...document.querySelectorAll('[data-testid^="architecture-layer-plane-"]')];
+      expect(planes).toHaveLength(7);
+      expect(planes.map((plane) => plane.getAttribute('data-layer-rank'))).toEqual([
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+      ]);
+      /* Depth is the fact the DOM carries; the two ends of the ramp stay in CSS tokens. */
+      const depths = planes.map((plane) => Number(plane.getAttribute('data-layer-depth')));
+      expect(depths[0]).toBe(1);
+      expect(depths[depths.length - 1]).toBe(0);
+      expect(depths.every((depth, index) => index === 0 || depth < depths[index - 1])).toBe(true);
+      /* One step per layer, so the whole stack shears along a single line. */
+      const origins = planes.map(planeOriginX);
+      const steps = origins.slice(1).map((x, index) => origins[index] - x);
+      expect(new Set(steps)).toEqual(new Set([14]));
+    });
+  });
+
+  it('gives every role ground to stand on, and adds nothing an assistive reader must hear', () => {
+    withLadderCanvas(() => {
+      const { container } = draw({}, new Set(), [], FSD_PROFILE_FRONTMATTER);
+      const group = container.querySelector('[data-testid="architecture-layer-planes"]');
+      expect(group).toHaveAttribute('aria-hidden', 'true');
+      expect(group).toHaveAttribute('pointer-events', 'none');
+      expect(group?.querySelectorAll('text')).toHaveLength(0);
+      /* The nearest layer's plane is the one shifted furthest along the stack, so it is the
+         tightest containment case: its ground still starts left of the reviewed face. */
+      const faceX = Number(
+        container
+          .querySelector('[data-testid="architecture-graph-box-app"] rect')
+          ?.getAttribute('x'),
+      );
+      const nearest = container.querySelector('[data-testid="architecture-layer-plane-app"]');
+      expect(nearest).not.toBeNull();
+      expect(planeOriginX(nearest as Element)).toBeLessThan(faceX);
+    });
+  });
+
+  it('a violation climbs the stack, and choosing its role raises the halo with the stroke', () => {
+    withLadderCanvas(() => {
+      const { container, unmount } = draw(
+        {},
+        new Set(['adapter>application']),
+        OBSERVED_TRAFFIC,
+        HEXAGONAL_PROFILE_FRONTMATTER,
+      );
+      const halo = container.querySelector(
+        '[data-testid="architecture-violation-halo-adapter-application"]',
+      );
+      expect(halo).toHaveAttribute('filter', 'url(#architecture-violation-halo)');
+      expect(halo).toHaveAttribute('stroke', 'var(--color-danger-text)');
+      expect(halo).toHaveAttribute('data-edge-raised', 'false');
+      expect(halo).toHaveAttribute('stroke-width', '4');
+      /* The halo is a second painted pass, never a second crossing: a gate that counts strokes
+         by `data-edge-from` must still see one path per crossing. */
+      expect(halo).not.toHaveAttribute('data-edge-from');
+      const restStrokeWidth = Number(
+        container
+          .querySelector(
+            '[data-edge-kind="traffic"][data-edge-from="adapter"][data-edge-to="application"]',
+          )
+          ?.getAttribute('stroke-width'),
+      );
+      unmount();
+
+      const raised = draw(
+        {},
+        new Set(['adapter>application']),
+        OBSERVED_TRAFFIC,
+        HEXAGONAL_PROFILE_FRONTMATTER,
+        'adapter',
+      ).container;
+      const raisedHalo = raised.querySelector(
+        '[data-testid="architecture-violation-halo-adapter-application"]',
+      );
+      expect(raisedHalo).toHaveAttribute('data-edge-raised', 'true');
+      expect(raisedHalo).toHaveAttribute('stroke-width', '7');
+      /* Its own stroke rises with it, so the raise is one event rather than a lit outline. */
+      expect(
+        Number(
+          raised
+            .querySelector(
+              '[data-edge-kind="traffic"][data-edge-from="adapter"][data-edge-to="application"]',
+            )
+            ?.getAttribute('stroke-width'),
+        ),
+      ).toBeGreaterThan(restStrokeWidth);
+    });
   });
 });

@@ -1354,6 +1354,36 @@
   /* The pencil. A drawn outline sits above the node's own face and under its label, so it reads
      as a line somebody made rather than as a border the layout emitted. */
   --color-architecture-sketch-ink: #6d7080;
+
+  /*
+   * ## Layer planes — the import direction, drawn as depth (2026-09-08)
+   *
+   * `app → views → widgets → features → entities → shared` is a depth rule, and the ladder stated
+   * it only as row order. Each layer now gets a sheared plane its role rests on, so a permitted
+   * edge visibly runs *down* onto a lower plane and a violation is the stroke that climbs.
+   *
+   * ⚠️ **The fill is capped under `--color-panel`.** A role's face is `#0f1011` = `rgb(15 16 17)`;
+   * white at `0.02` over `--color-canvas` `#08090a` lands on `rgb(13 14 15)`, two steps under it.
+   * Measured 2026-09-08 the ramp renders `13 · 12 · 11 · 10` against a canvas of `8`. Any stronger
+   * and the nearest plane would close on the face standing on it — the reversed-depth defect the
+   * Don'ts name, on the one surface whose whole subject is which layer is above which. The lit
+   * top edge carries the rest of the reading: it is a line, not a surface, so it may be brighter
+   * (`rgb 25`), and it stays under a node's own lit edge `--architecture-node-lit-edge` (`rgb 46`).
+   * Measured 2026-09-08 at 1512: at `0.1` that line was the brightest mark on the canvas and the
+   * planes read as four rules rather than as surfaces.
+   *
+   * `--architecture-plane-near` / `-far` are the two ends of the depth ramp, applied as opacity to
+   * the whole plane. Only the layer's normalised depth crosses into the DOM, so no interpolated
+   * colour is ever written in TypeScript.
+   */
+  --architecture-plane-fill: rgba(255, 255, 255, 0.02);
+  --architecture-plane-edge: rgba(255, 255, 255, 0.07);
+  --architecture-plane-near: 1;
+  --architecture-plane-far: 0.28;
+  /* A violated import climbs the stack. The halo says so at rest and doubles when its role is
+     chosen; both ends are tokens so the raise can never become a one-off brightness. */
+  --architecture-plane-climb-halo: 0.22;
+  --architecture-plane-climb-halo-raised: 0.55;
 }
 
 /*
@@ -1388,6 +1418,39 @@
 
 .architecture-canvas-node {
   box-shadow: inset 0 1px 0 var(--architecture-node-lit-edge);
+}
+
+/*
+ * One layer's plane. The nearest layer is painted at full strength and the deepest at
+ * `--architecture-plane-far`; every layer between reads the same ramp, so the stack can never
+ * invert. `--architecture-plane-depth` is set per plane by `ArchitectureSketch` and is a fact
+ * (1 = nothing may import into this layer from below), not a styling knob.
+ */
+.architecture-layer-plane {
+  /* Declared here so the ramp has a floor even if a plane arrives without its depth: the deepest
+     layer is the safe default, never the nearest. `ArchitectureSketch` overrides it per plane. */
+  --architecture-plane-depth: 0;
+  opacity: calc(
+    var(--architecture-plane-far) +
+      (var(--architecture-plane-near) - var(--architecture-plane-far)) *
+      var(--architecture-plane-depth)
+  );
+}
+
+/*
+ * The halo on a climbing import. It is static: nothing about it moves while nothing is selected.
+ * Choosing either end of the crossing raises it — intensity and width together, one duration, one
+ * start — and reduced motion below makes that raise instant rather than removing it.
+ */
+.architecture-violation-halo {
+  opacity: var(--architecture-plane-climb-halo);
+  transition:
+    opacity var(--motion-base) var(--motion-ease),
+    stroke-width var(--motion-base) var(--motion-ease);
+}
+
+.architecture-violation-halo[data-edge-raised='true'] {
+  opacity: var(--architecture-plane-climb-halo-raised);
 }
 
 /*
@@ -1441,7 +1504,10 @@
  * transition, so the still frame is the settled one.
  */
 .architecture-stroke {
-  transition: opacity var(--motion-base) var(--motion-ease);
+  transition:
+    opacity var(--motion-base) var(--motion-ease),
+    /* The raise a selected violation gets, on the same duration and start as its halo. */
+    stroke-width var(--motion-base) var(--motion-ease);
 }
 
 .architecture-recede {
@@ -1527,6 +1593,15 @@
   .architecture-selection-trace {
     transition: none !important;
     transform: none;
+  }
+
+  /* The halo stays; only its raise stops being a journey — the raise lands whole and instantly,
+     and the fact travels with it. Removing the halo would take the fact out with the motion,
+     which is the substitution reduced motion exists to avoid. Its own stroke rises on
+     `.architecture-stroke`, which the base-layer rule already zeroes, so the pair still starts and
+     ends together. */
+  .architecture-violation-halo {
+    transition: none !important;
   }
 
   .architecture-workbench-grid {
