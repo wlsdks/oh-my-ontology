@@ -165,7 +165,7 @@ const SECTIONS: ShortcutSection[] = [
     ],
   },
   {
-    // W2-C — rewritten against ACTUAL topology-map-v2 canvas behavior
+    // W2-C — rewritten against ACTUAL ontology-map canvas behavior
     // (`use-topology-loop.ts` / `topology-pointer-handlers.ts`). The previous rows
     // (double-click local · Shift+click path · Tab neighbours · / search · 0 depth)
     // described interactions the v2 canvas never implemented — stale carryover from an

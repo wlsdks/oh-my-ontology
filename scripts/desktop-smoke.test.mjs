@@ -174,7 +174,7 @@ test("desktop smoke chunks prove current route meaning", () => {
       "sourceContract.agentLabel",
     ],
     "/ontology": ["/topology/?", "index", "expanded"],
-    "/topology": ["topology-map-v2-canvas", "topology-concept-search"],
+    "/topology": ["ontology-map-canvas", "topology-concept-search"],
     "/ontology/edit": ["/topology/?p=", "/topology/?workbench=create"],
     "/ontology/insights": [
       "maintenance-board",

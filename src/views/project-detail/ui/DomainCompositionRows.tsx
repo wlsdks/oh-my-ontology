@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { getTopologyFocusHref } from "@/entities/project";
-import { TopologyV2KindGlyph } from "@/shared/ui";
+import { OntologyMapKindGlyph } from "@/shared/ui";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { controlClass } from "@/shared/ui/control-class";
 import { useRowDisclosure } from "@/shared/lib/use-row-disclosure";
@@ -182,7 +182,7 @@ function DomainRow({
                           "-mx-1.5 h-full w-[calc(100%+0.75rem)] gap-1.5 px-1.5 py-0 text-body text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]",
                       })}
                     >
-                      <TopologyV2KindGlyph kind="capability" size={13} />
+                      <OntologyMapKindGlyph kind="capability" size={13} />
                       <span className="min-w-0 flex-1 truncate">{capability.title}</span>
                     </Link>
                   </li>

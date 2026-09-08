@@ -28,7 +28,7 @@ test.beforeEach(async ({ page }) => {
 test('a selected concept opens meaning and draws bounded directional relation captions', async ({ page }) => {
   await page.setViewportSize({ width: 1512, height: 945 });
   await page.goto('/en/topology/?e2e=1&guides=off&p=capability%3Acart&open=domain%3Aorder%2Cproject%3Astorefront');
-  await page.getByTestId('topology-v2-detail-panel-action-meaning').click();
+  await page.getByTestId('map-detail-panel-action-meaning').click();
   const workbench = page.getByTestId('analysis-workbench');
   await expect(workbench).toBeVisible();
   await expect(workbench.getByRole('checkbox')).toBeChecked();
@@ -66,7 +66,7 @@ for (const width of [390, 744, 1023, 1024, 1040, 1280, 1512, 1920, 2560]) {
       const close = [...element.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.getAttribute('aria-label') === closeLabel)!;
       const button = close.getBoundingClientRect();
       const hit = document.elementFromPoint(button.x + button.width / 2, button.y + button.height / 2);
-      const canvas = document.querySelector('[data-testid="topology-map-v2-canvas"]')!.getBoundingClientRect();
+      const canvas = document.querySelector('[data-testid="ontology-map-canvas"]')!.getBoundingClientRect();
       return { left: box.left, right: box.right, bottom: box.bottom, viewportWidth: innerWidth, viewportHeight: innerHeight, closeReachable: !!hit && close.contains(hit), canvasWidth: canvas.width, canvasRight: canvas.right, panelFont: getComputedStyle(element).fontSize };
     }, closeLabel);
     expect(proof.left).toBeGreaterThanOrEqual(0);
@@ -144,7 +144,7 @@ for (const width of [1040, 1512]) {
   test(`showing a relationship reveals its hidden endpoint at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/en/topology/?e2e=1&guides=off&p=capability%3Acart&open=domain%3Aorder%2Cproject%3Astorefront');
-    await page.getByTestId('topology-v2-detail-panel-action-meaning').click();
+    await page.getByTestId('map-detail-panel-action-meaning').click();
     const relation = page.getByTestId('analysis-workbench').locator('article').filter({ hasText: 'Product Detail Page' });
     await relation.getByRole('button', { name: en.analysisWorkbench.showConnection }).click();
     await expect.poll(() => page.evaluate(() => {

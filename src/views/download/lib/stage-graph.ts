@@ -4,7 +4,7 @@ import {
   domainCensusById,
   isContainmentRelation,
 } from '@/entities/knowledge-graph';
-import type { TopologyV2Edge, TopologyV2Node } from '@/widgets/topology-map-v2';
+import type { OntologyMapEdge, OntologyMapNode } from '@/widgets/ontology-map';
 
 const RENDERABLE_KIND_LIST = ['project', 'domain', 'capability', 'element'] as const;
 const RENDERABLE_KINDS = new Set<string>(RENDERABLE_KIND_LIST);
@@ -13,7 +13,7 @@ type RenderableKind = (typeof RENDERABLE_KIND_LIST)[number];
 /**
  * The adapter that puts the **real map engine** on the `/download` stage.
  *
- * **Why this exists separately** (rather than reusing HomePage's). `buildTopologyV2Graph` does the
+ * **Why this exists separately** (rather than reusing HomePage's). `buildOntologyMapGraph` does the
  * same job in `views/home/lib`, but that is **another view's internals**. Importing it from
  * `views/download` violates FSD's ban on same-layer cross-imports, and the chain it drags in
  * (`topology-ontology-skeleton`, `topology-analysis` → `views/home/model/url-state`) brings home's
@@ -41,8 +41,8 @@ type RenderableKind = (typeof RENDERABLE_KIND_LIST)[number];
  * same as home's adapter.
  */
 export interface StageGraph {
-  nodes: TopologyV2Node[];
-  edges: TopologyV2Edge[];
+  nodes: OntologyMapNode[];
+  edges: OntologyMapEdge[];
 }
 
 export function buildStageGraph(

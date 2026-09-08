@@ -22,7 +22,7 @@ test("+ zooms in a step, - zooms out, 0 returns to the fit, and a modifier leave
   await seedFirstRunSeen(page);
   await page.goto("/ko/topology/?e2e=1&guides=off", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(2500);
-  const canvas = page.locator('[data-testid="topology-map-v2-canvas"]');
+  const canvas = page.locator('[data-testid="ontology-map-canvas"]');
   const box = (await canvas.boundingBox())!;
   // Focus the canvas on empty space near the bottom-right, away from nodes.
   await page.mouse.click(box.x + box.width - 60, box.y + box.height - 60);

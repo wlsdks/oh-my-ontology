@@ -60,7 +60,7 @@ insights·A1·projects·데이터시트가 전부 "모노 숫자 + 텍스트 행
 
 ### 근본 원인 (코드 확정)
 
-`src/widgets/topology-map-v2/ui/topology-camera-math.ts#computeFocusCameraTarget`:
+`src/widgets/ontology-map/ui/topology-camera-math.ts#computeFocusCameraTarget`:
 
 ```
 scale = min(effectiveMax, max(cameraScaleMin, fitScale, revealFloor))
@@ -114,7 +114,7 @@ far-field 장식층)와 **컴팩트 도메인 라벨**이 같은 앵커에 동�
 | 항목 | 현재 | 레퍼런스 | 판정 |
 |---|---|---|---|
 | 노치당 배율 (deltaY 120) | `exp(120×0.0016)` = **1.212×** | d3-zoom 기본 `2^(120×0.002/120·0.24)` ≈ **1.181×** ([d3js.org/d3-zoom](https://d3js.org/d3-zoom)) · Leaflet **2.0×**/노치 (`wheelPxPerZoomLevel: 60`, [leafletjs.com/reference](https://leafletjs.com/reference.html)) · Figma 체감 ≈1.2× | 디자인툴 하한권 — 소폭 상향 여지 |
-| 줌 스프링 응답 | `--topology-v2-camera-spring-angfreq: 2.941`, 임계감쇠 → **95% 도달 1.61 s** (임계감쇠 step response: ωt≈4.74) | Figma/맵류는 휠 줌을 즉시 반영 + ~100 ms 스무딩 | **주범.** 휠 한 틱의 결과가 1.6초에 걸쳐 도착 — "느리다"의 실체 |
+| 줌 스프링 응답 | `--map-camera-spring-angfreq: 2.941`, 임계감쇠 → **95% 도달 1.61 s** (임계감쇠 step response: ωt≈4.74) | Figma/맵류는 휠 줌을 즉시 반영 + ~100 ms 스무딩 | **주범.** 휠 한 틱의 결과가 1.6초에 걸쳐 도착 — "느리다"의 실체 |
 | 전체 줌 범위 | ratio 0.5→3.2 = 6.4×, 1.212×/노치로 **~9.7 노치** | Leaflet 은 동급 범위를 ~3노치 | 부차 요인 |
 
 ### 처방 (숫자)
@@ -123,10 +123,10 @@ far-field 장식층)와 **컴팩트 도메인 라벨**이 같은 앵커에 동�
    디자인툴 상단권). 전범위 횡단 ~7.7 노치. 트랙팩 연속 델타는 선형이라 자동
    비례 — 별도 분기 불요. `0.0024`(1.334×)는 트랙팩 과민 위험이 있어 2차 후보.
 2. **스프링 이원화** — 토큰 분리:
-   - `--topology-v2-camera-spring-angfreq-interactive: 12` — 휠 줌 스케일 축
+   - `--map-camera-spring-angfreq-interactive: 12` — 휠 줌 스케일 축
      전용. 95% 도달 **0.40 s** (ω=12, 임계감쇠). 촉각은 유지하되 지각적으로
      "즉답"에 진입. 14(0.34 s)까지 상향 여지.
-   - `--topology-v2-camera-spring-angfreq: 4.7` — 프로그램 이동(다이브·오버뷰
+   - `--map-camera-spring-angfreq: 4.7` — 프로그램 이동(다이브·오버뷰
      복귀·fit) 전용으로 기존 토큰 재정의. 95% 도달 **1.0 s** — 시네마틱 유지
      (현 2.941 의 1.6 s 는 다이브에서도 늘어진다).
 3. **끝단 상태**(선택): 휠 줌은 스프링 대신 **직접 적용 + τ≈90 ms 지수

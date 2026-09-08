@@ -45,7 +45,7 @@ Start verification with `pnpm checks:changed`; `-- --run` runs every
 recommendation and stops at the first failure. Do not hand-pick its list.
 
 Read versions from `package.json`. The graph renderer is the custom
-canvas-2D `topology-map-v2` engine; Graphology supplies ForceAtlas2 only.
+canvas-2D `ontology-map` engine; Graphology supplies ForceAtlas2 only.
 Do not reintroduce xyflow, Sigma, or another renderer without a decision.
 State is React/URL/in-memory with IndexedDB only for the vault handle.
 

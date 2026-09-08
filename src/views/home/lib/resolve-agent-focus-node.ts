@@ -7,7 +7,7 @@ import { resolveTopologySelectedOntologyNode } from "./resolve-topology-selected
  * (a raw vault slug, e.g. `"capabilities/agent-live-activity-contract"`,
  * `"domains/onboarding-ux"`, or a bare/canonical slug) into the topology
  * graph node id (`"capability:agent-live-activity-contract"`) that
- * `TopologyMapV2`'s render engine keys nodes by.
+ * `OntologyMap`'s render engine keys nodes by.
  *
  * Reuses the SAME two-step resolution `/ontology` deep links already go
  * through (`OntologyRedirectPage` → `/topology?p=`): first normalize the

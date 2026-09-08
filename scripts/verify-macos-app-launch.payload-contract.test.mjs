@@ -10,7 +10,7 @@ import {
   webviewWorkbenchMarkersForPath,
 } from "./lib/verify-macos/webview-env.mjs";
 import {
-  validateTopologyMapV2CanvasEvidence,
+  validateOntologyMapCanvasEvidence,
   validateWindowStatePluginIsolation,
 } from "./lib/verify-macos/payload-contract.mjs";
 
@@ -109,15 +109,15 @@ test("payload contract · 정상 페이로드는 통과한다", () => {
 
 test("payload contract · v2 캔버스 픽셀 증거가 없으면 멈춘다", () => {
   assert.match(
-    validateTopologyMapV2CanvasEvidence({ topologyMapEngine: "v2" }),
+    validateOntologyMapCanvasEvidence({ topologyMapEngine: "v2" }),
     /rendered pixels/,
   );
   assert.match(
-    validateTopologyMapV2CanvasEvidence({ topologyMapEngine: "v2", topologyV2CanvasInkPixels: 0 }),
+    validateOntologyMapCanvasEvidence({ topologyMapEngine: "v2", ontologyMapCanvasInkPixels: 0 }),
     /rendered pixels/,
   );
   assert.equal(
-    validateTopologyMapV2CanvasEvidence({ topologyMapEngine: "v2", topologyV2CanvasInkPixels: 128 }),
+    validateOntologyMapCanvasEvidence({ topologyMapEngine: "v2", ontologyMapCanvasInkPixels: 128 }),
     null,
   );
 });

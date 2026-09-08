@@ -15,36 +15,36 @@
     frame 2 "Folded state"   — INDEX folds to a slim vertical edge tab; the map
                                widens; the datasheet stays. Same selection.
 
-  Datasheet matches the SHIPPED TopologyV2DetailPanel (main f3d673b18):
+  Datasheet matches the SHIPPED OntologyMapDetailPanel (main f3d673b18):
   direction groups used/expected, per-row solid/dashed trace marks,
   one engraved metric line, next action copy + slug footer — plus the approved
   "Full details →" opt-in link to the A1 full-detail view.
 -->
 <style>
   /* Values copied from app/globals.css token families (standalone prototype).
-     Sheet surfaces mirror --topology-v2-panel-*; marks mirror
-     --topology-v2-edge-contains-mark / --topology-v2-edge-depends-mark. */
+     Sheet surfaces mirror --map-panel-*; marks mirror
+     --map-edge-contains-mark / --map-edge-depends-mark. */
   :root {
     --canvas-bg: #0a0a0d;
-    --panel: #17171c;                                /* --topology-v2-panel-surface */
-    --border-soft: #2a2a30;                          /* --topology-v2-panel-border */
+    --panel: #17171c;                                /* --map-panel-surface */
+    --border-soft: #2a2a30;                          /* --map-panel-border */
     --border-strong: #45454d;
-    --divider: #23232a;                              /* --topology-v2-panel-divider */
+    --divider: #23232a;                              /* --map-panel-divider */
     --text-primary: #ececf0;
     --text-secondary: #a3a3ac;
     --text-tertiary: #868690;
     --text-quaternary: #55555d;
     --indigo: #5e6ad2;
     --indigo-bright: #8890e0;
-    --numeral-face: #8c8c94;                         /* --topology-v2-numeral-face */
-    --numeral-shadow: #08080a;                       /* --topology-v2-numeral-shadow */
-    --metric-surface: rgba(255, 255, 255, 0.028);    /* --topology-v2-panel-metric-surface */
-    --row-hover: rgba(255, 255, 255, 0.045);         /* --topology-v2-panel-row-hover */
-    --action-surface: rgba(255, 255, 255, 0.03);     /* --topology-v2-panel-action-surface */
+    --numeral-face: #8c8c94;                         /* --map-numeral-face */
+    --numeral-shadow: #08080a;                       /* --map-numeral-shadow */
+    --metric-surface: rgba(255, 255, 255, 0.028);    /* --map-panel-metric-surface */
+    --row-hover: rgba(255, 255, 255, 0.045);         /* --map-panel-row-hover */
+    --action-surface: rgba(255, 255, 255, 0.03);     /* --map-panel-action-surface */
     --machined-edge: rgba(255, 255, 255, 0.05);
-    --mark-contains: #4a4a54;                        /* --topology-v2-edge-contains-mark */
-    --mark-depends: #5c5c72;                         /* --topology-v2-edge-depends-mark */
-    --sheet-shadow: 0 16px 40px rgba(0, 0, 0, 0.42); /* --topology-v2-panel-shadow */
+    --mark-contains: #4a4a54;                        /* --map-edge-contains-mark */
+    --mark-depends: #5c5c72;                         /* --map-edge-depends-mark */
+    --sheet-shadow: 0 16px 40px rgba(0, 0, 0, 0.42); /* --map-panel-shadow */
     --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   * { box-sizing: border-box; }
@@ -224,15 +224,15 @@
   }
   .index-tab .chev { color: var(--text-quaternary); font-size: 9px; }
 
-  /* ---- right datasheet — the SHIPPED TopologyV2DetailPanel anatomy ------ */
+  /* ---- right datasheet — the SHIPPED OntologyMapDetailPanel anatomy ------ */
   .sheet {
-    position: absolute; right: 18px; top: 18px; width: 288px; /* --topology-v2-panel-width */
+    position: absolute; right: 18px; top: 18px; width: 288px; /* --map-panel-width */
     background: var(--panel);
     border: 1px solid var(--border-soft);
-    border-radius: 9px;                                        /* --topology-v2-panel-radius */
+    border-radius: 9px;                                        /* --map-panel-radius */
     box-shadow: var(--sheet-shadow);
-    padding: 11px;                                             /* --topology-v2-panel-pad */
-    display: flex; flex-direction: column; gap: 10px;          /* --topology-v2-panel-gap */
+    padding: 11px;                                             /* --map-panel-pad */
+    display: flex; flex-direction: column; gap: 10px;          /* --map-panel-gap */
   }
   .sheet .head { display: flex; align-items: flex-start; gap: 8px; }
   .sheet .head .titleblock { min-width: 0; flex: 1; }
@@ -254,7 +254,7 @@
   .sheet .metric {
     border-radius: 5px; background: var(--metric-surface);
     padding: 6px 8px;
-    font-family: var(--mono); font-size: 11.5px; color: #b6b6c0; /* --topology-v2-panel-metric-text */
+    font-family: var(--mono); font-size: 11.5px; color: #b6b6c0; /* --map-panel-metric-text */
   }
   .sheet .metric b { font-weight: 600; color: var(--numeral-face); text-shadow: 0 1px 0 var(--numeral-shadow); }
   .sheet .group { display: flex; flex-direction: column; gap: 3px; }
@@ -330,7 +330,7 @@
     <nav class="tree" id="tree"></nav>
   </aside>
 
-  <!-- datasheet — shipped TopologyV2DetailPanel + full details opt-in -->
+  <!-- datasheet — shipped OntologyMapDetailPanel + full details opt-in -->
   <aside class="sheet" aria-label="선택한 개념">
     <div class="head">
       <span class="glyph" data-glyph="capability" style="margin-top:1px"></span>

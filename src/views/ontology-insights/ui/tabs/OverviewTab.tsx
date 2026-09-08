@@ -1,5 +1,5 @@
 import { Link } from "@/i18n/navigation";
-import { TopologyV2KindGlyph } from "@/shared/ui";
+import { OntologyMapKindGlyph } from "@/shared/ui";
 import { controlClass } from "@/shared/ui/control-class";
 import { getOntologyKindTone } from "@/entities/ontology-class";
 import { DomainCapacityBar, DomainCapacityLegend } from "@/widgets/domain-capacity-bar";
@@ -107,13 +107,13 @@ export function OverviewTab({
               return (
                 <div key={row.kind} className="flex items-center gap-3 py-0.5">
                   <span className="flex w-[var(--insights-row-label-w)] flex-none items-center gap-2 text-body-lg text-[color:var(--color-text-secondary)]">
-                    <TopologyV2KindGlyph kind={row.kind} size={16} />
+                    <OntologyMapKindGlyph kind={row.kind} size={16} />
                     {kindLabel(row.kind)}
                   </span>
                   <span className="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--color-overlay-2)]">
                     <InsightsBar pct={width} color={getOntologyKindTone(row.kind).fill} index={i} />
                   </span>
-                  <span className="w-10 flex-none text-right font-mono text-title tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+                  <span className="w-10 flex-none text-right font-mono text-title tabular-nums text-[color:var(--map-numeral-face)]">
                     {row.count}
                   </span>
                 </div>
@@ -215,7 +215,7 @@ function CardHead({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex items-baseline gap-2.5">
       <InsightsSectionTitle level={2} className="text-body-lg font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--color-text-primary)]">{label}</InsightsSectionTitle>
-      <span className="ml-auto font-mono text-body tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+      <span className="ml-auto font-mono text-body tabular-nums text-[color:var(--map-numeral-face)]">
         {count}
       </span>
     </div>

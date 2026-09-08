@@ -170,7 +170,7 @@ public/docs-vault/ontology/elements/docs-vault-view.md
 public/docs-vault/ontology/elements/native-vault-filesystem-bridge.md
 public/docs-vault/ontology/elements/first-run.md
 public/docs-vault/ontology/elements/app-nav-rail.md
-public/docs-vault/ontology/elements/topology-map-v2.md
+public/docs-vault/ontology/elements/ontology-map.md
 public/docs-vault/ontology/elements/ontology-change-review.md
 public/docs-vault/ontology/elements/private-vault-sidecar-boundary.md
 public/docs-vault/ontology/elements/bottom-tab-bar.md

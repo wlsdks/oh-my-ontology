@@ -37,7 +37,7 @@ test("첫 화면이 노드를 거의 다 보여 준다", async ({ page }) => {
   await expect(page.getByTestId("vault-guide-sheet")).toBeVisible();
   await page.getByTestId("vault-guide-pick-existing").click();
   await expect(page.getByTestId("first-run-starter")).toHaveCount(0, { timeout: 30_000 });
-  await expect(page.getByTestId("topology-map-v2-canvas")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("ontology-map-canvas")).toBeVisible({ timeout: 30_000 });
   /*
    * Waits for layout to settle — counting while things move gives a different number
    * every run.

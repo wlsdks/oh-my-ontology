@@ -105,7 +105,7 @@ print(f"mean={mean:.3f} cv={sd/mean:.2f} min={min(diffs):.3f} stalls={len(stalls
 - `stalls == 0` is the primary pass condition within the declared active interval.
   Do not apply it to an intentional hold or the settled state of a finite transition.
 - Consecutive stalls suggest idle-gate sleep or dropped browser frames; inspect
-  `src/widgets/topology-map-v2/model/idle-gate.ts` activity flags first.
+  `src/widgets/ontology-map/model/idle-gate.ts` activity flags first.
 - `cv <= 0.4` is usually compression noise. Periodic spikes may be another motion;
   identify them in the phase strip.
 - Do not judge pleasing speed from the statistic. Inspect the strip and apply the

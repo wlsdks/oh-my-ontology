@@ -26,6 +26,6 @@ Map pan/zoom/reset control widget. Implementation evidence for capabilities/topo
 
 ## Excludes
 
-- Pan/zoom/reset gesture handling on the canvas itself, owned by elements/topology-map-v2.
+- Pan/zoom/reset gesture handling on the canvas itself, owned by elements/ontology-map.
 - The project list/card surface at `/projects`, a separate route: elements/project-selector.
 - The map toolbar search/relayout controls, a separate widget: elements/search-hint.

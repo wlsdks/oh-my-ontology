@@ -25,7 +25,7 @@ export interface GuidedTourOverlayProps {
   tour: UseGuidedTourResult;
   /**
    * The measurement probe for canvas node anchors (steps 2 and 4) — the same div
-   * `TopologyMapV2` writes its per-frame `worldToScreen` transform into (HomePage
+   * `OntologyMap` writes its per-frame `worldToScreen` transform into (HomePage
    * creates it and passes it to both). The probe itself paints nothing: the scrim
    * and cutout circle are drawn by this overlay at z-70 (2026-07-23 correction —
    * a z-40 scrim inside the widget could not cover outer chrome such as the top

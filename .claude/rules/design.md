@@ -3,7 +3,7 @@ paths:
   - "src/**/*.tsx"
   - "src/**/ui/**"
   - "src/shared/motion/**"
-  - "src/widgets/topology-map-v2/**"
+  - "src/widgets/ontology-map/**"
   - "app/**/*.css"
   - "app/**/*.tsx"
   - "eslint.config.mjs"
@@ -104,7 +104,7 @@ ramp.”
 - Distinguish workflow categories through shape—indigo underline for active,
   dashed for planned—not colour alone.
 - Selection stays within one indigo family: node selection uses the base indigo;
-  edge selection uses `--topology-v2-edge-selected` on both endpoints.
+  edge selection uses `--map-edge-selected` on both endpoints.
 ### One word per thing (owner, 2026-08-25 — overturns the earlier “avoid ontology” rule)
 
 The old rule said to use “ontology” only in the brand and in sentences defining
@@ -169,7 +169,7 @@ Shneiderman's “overview first, zoom and filter, details on demand” (1996).
 
 Shape, radius, magnitude, and embedded-count rules live only in
 `docs/DESIGN-SYSTEM.md`, “Node Spec.” Keep
-`render/node-shapes.ts` and `shared/ui/topology-v2-kind-glyph.tsx` aligned;
+`render/node-shapes.ts` and `shared/ui/map-kind-glyph.tsx` aligned;
 `tests/contract/node-kind-shape-parity.contract.test.ts` catches drift.
 
 Do not invent a visual for bridge nodes before `design-infoviz` decides it. The

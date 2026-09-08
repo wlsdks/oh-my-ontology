@@ -2,7 +2,7 @@
  * Full-detail A1 direction groups — the "expanded datasheet" (expanded datasheet)
  * replaces the rejected badge-soup FROM THIS/CONTAINS rows with FOUR uncapped groups:
  * contains / usedBy / dependsOn / belongsTo. Unlike the compact canvas datasheet
- * (`topology-v2-datasheet.ts`), which demotes containment vs depends to a
+ * (`map-datasheet.ts`), which demotes containment vs depends to a
  * per-row trace mark under a DIRECTION-only split, the full-detail surface
  * elevates containment back into its own two groups (outgoing containment =
  * contains, incoming containment = belongsTo) while non-containment stays

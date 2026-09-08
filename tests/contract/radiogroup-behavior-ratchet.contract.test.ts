@@ -75,7 +75,7 @@ const REGISTERED: ReadonlyArray<readonly [file: string, why: string]> = [
    * axis (inventory: **312 `controlClass` call sites** hand-write hover — chip 88 ·
    * link 74 · row 42 · card 34 · icon 28 · pill 24 · segment 19), and three places use
    * **different ink** for the same "inactive segment hover" role (`text-primary` ·
-   * `text-secondary` · `topology-v2-panel-text-primary`).
+   * `text-secondary` · `map-panel-text-primary`).
    *
    * So container convergence waits **until the hover axis is decided**. The behaviour
    * is fully attached now.

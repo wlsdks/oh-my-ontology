@@ -8,7 +8,7 @@ import type {
   VaultBacklinkEntry,
   VaultDoc,
 } from '@/entities/docs-vault';
-import { TopologyV2KindGlyph, isTopologyV2RenderableKind } from '@/shared/ui/topology-v2-kind-glyph';
+import { OntologyMapKindGlyph, isOntologyMapRenderableKind } from '@/shared/ui/map-kind-glyph';
 import { resolveLocaleDisplayName } from '@/shared/lib/locale-display-name';
 import { Chip, IconButton } from '@/shared/ui';
 import { controlClass } from '@/shared/ui/control-class';
@@ -64,8 +64,8 @@ export function DocsVaultBacklinks({
               onClick={() => onNavigate(doc.slug)}
               className="flex-none hover:border-[color:var(--color-indigo-line-a40)] hover:text-[color:var(--color-text-primary)]"
             >
-              {kindStr && isTopologyV2RenderableKind(kindStr) ? (
-                <TopologyV2KindGlyph kind={kindStr} size={11} />
+              {kindStr && isOntologyMapRenderableKind(kindStr) ? (
+                <OntologyMapKindGlyph kind={kindStr} size={11} />
               ) : (
                 <FileText size={ICON_SIZE.sm} className="opacity-60" aria-hidden />
               )}

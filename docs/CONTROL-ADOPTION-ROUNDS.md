@@ -171,7 +171,7 @@ Each number is the measurement from the last round that counted that hole.
 | Hole | Last measured | What is missing |
 |---|---:|---|
 | **The size ramp binds inset and type into one step** | 9 | "Large inset + small type" really exists (5 mono micro CTAs · 2 success-tint actions · settings notification chip · `MarkdownField` tab). Moving them changes the type — this is not an axis but the Systems seat's call on **which side is the spec** |
-| **`scope: 'panel'` opens ink only** | 7 | Border and indigo are still outside: `--topology-v2-panel-border`(#2a2a30) · `--topology-v2-panel-divider`(#23232a) · `--topology-v2-indigo-bright`(#8890e0 ≠ global #7170ff). The value layer's comment asserts *"There is no indigo in the panel ramp"* — but there is |
+| **`scope: 'panel'` opens ink only** | 7 | Border and indigo are still outside: `--map-panel-border`(#2a2a30) · `--map-panel-divider`(#23232a) · `--map-indigo-bright`(#8890e0 ≠ global #7170ff). The value layer's comment asserts *"There is no indigo in the panel ramp"* — but there is |
 | **No circular icon control** | 6 | `icon` is pinned to `rounded-chip`. Turning a 24px circle into a 6px square is not normalisation but an **identity change**, so it was not decided alone without convening the Systems seat |
 | **Secondary controls inside dense rows / wraps** | 5 + 1 | Loading `link`'s `min-h-11` (WCAG 2.5.8) makes the row 2–3× taller. The `inline` axis exempts "inside a **sentence**" only and cannot say "inside a dense row" |
 | **Three-column grid rows** | 3 | `STEP_ROW` (visual · name · why). `row` is flex-only |

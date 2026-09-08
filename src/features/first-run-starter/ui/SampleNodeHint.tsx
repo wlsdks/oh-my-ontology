@@ -51,14 +51,14 @@ export function SampleNodeHint({ hasSelection, hidden = false }: SampleNodeHintP
        * the readout), and this token was created then. The third time is not a new
        * value but **failing to use one that exists.**
        */
-      className="pointer-events-none absolute bottom-[calc(var(--topology-relation-legend-bottom-inset)+8px)] left-1/2 z-20 hidden -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-[color:var(--topology-v2-panel-divider)] bg-[color:var(--color-panel)] px-3.5 py-1.5 text-label text-[color:var(--topology-v2-panel-text-secondary)] shadow-[var(--chrome-shadow)] md:flex"
+      className="pointer-events-none absolute bottom-[calc(var(--topology-relation-legend-bottom-inset)+8px)] left-1/2 z-20 hidden -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-[color:var(--map-panel-divider)] bg-[color:var(--color-panel)] px-3.5 py-1.5 text-label text-[color:var(--map-panel-text-secondary)] shadow-[var(--chrome-shadow)] md:flex"
     >
       <span
         aria-hidden
         className="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--color-indigo-brand)]"
       />
       <span>
-        <b className="font-[var(--font-weight-signature)] text-[color:var(--topology-v2-panel-text-primary)]">
+        <b className="font-[var(--font-weight-signature)] text-[color:var(--map-panel-text-primary)]">
           {t("action")}
         </b>{" "}
         {t("reason")}

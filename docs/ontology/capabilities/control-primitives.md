@@ -41,7 +41,7 @@ facts:
 - `EvidenceOnlyBadge`: Draws the kind boundary between authoring nodes and evidence-only derived concepts.
 - `MtimeConflictBadge`: Optimistic concurrency contract for `patch_concept`'s `expected_mtime`.
 - `NodeExplanationEdit`: "The node's body is its own explanation."
-- `TopologyV2KindGlyph` · `BrandMark` · `ChromeTile` · `ChromeChip` ·
+- `OntologyMapKindGlyph` · `BrandMark` · `ChromeTile` · `ChromeChip` ·
   `SimilarNodeWarning` · `RouteLoadingFallback`
 
 Additionally, the source 8 files are tightly coupled to `next-intl` / `@/i18n` / `sonner`, so moving them as-is will break in other projects (the portability slice on 2026-08-15 decouples this).
@@ -52,7 +52,7 @@ Good news: `shared/ui` has **never** referenced the upper layers: the FSD bounda
 
 - The value layer (`control-class.ts`): 8 shapes (chip, icon, row, pill, card, link, tile, segment) x size x 9 tone levels, plus `fieldClass` (frame x size x multiline) and `fieldLabel`.
 - The behavior layer components: `Button`, `Chip`, `IconButton`, `RowButton`, `Select`, `Input`/`Textarea`, `Checkbox`, `SegmentedControl`, `Dialog`, `Surface`, `EmptyState`, `TabBar`, `Tooltip`, `Toast`.
-- The Atlas domain components standing in the same barrel that are visual vocabulary for typed ontology facts: `LastEditSubjectRow`, `EvidenceOnlyBadge`, `MtimeConflictBadge`, `NodeExplanationEdit`, `TopologyV2KindGlyph`, `BrandMark`, `ChromeTile`, `ChromeChip`, `SimilarNodeWarning`, `RouteLoadingFallback`.
+- The Atlas domain components standing in the same barrel that are visual vocabulary for typed ontology facts: `LastEditSubjectRow`, `EvidenceOnlyBadge`, `MtimeConflictBadge`, `NodeExplanationEdit`, `OntologyMapKindGlyph`, `BrandMark`, `ChromeTile`, `ChromeChip`, `SimilarNodeWarning`, `RouteLoadingFallback`.
 
 ## Excludes
 

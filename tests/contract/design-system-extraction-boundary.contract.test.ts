@@ -52,7 +52,7 @@ const ATLAS_BOUND: ReadonlyArray<readonly [file: string, why: string]> = [
   ["brand-mark.tsx", "Atlas 브랜드 자산"],
   ["github-mark.tsx", "외부 서비스 마크 — 이 앱의 링크 자산"],
   ["x-mark.tsx", "외부 서비스 마크 — 이 앱의 링크 자산"],
-  ["topology-v2-kind-glyph.tsx", "온톨로지 kind 데이터 마크"],
+  ["map-kind-glyph.tsx", "온톨로지 kind 데이터 마크"],
   ["evidence-only-badge.tsx", "저작 노드 대 근거-전용 파생 개념의 kind 경계"],
   ["last-edit-subject-row.tsx", "agent | human 타입 유니온 — 제품 정체성 명제"],
   ["mtime-conflict-badge.tsx", "patch_concept 의 expected_mtime 동시성 계약"],

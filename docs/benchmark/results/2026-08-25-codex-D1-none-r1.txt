@@ -427,7 +427,7 @@ docs/PRODUCT-OWNER-OPERATING-SYSTEM.md
 docs/README.md
 docs/TECH-STACK.md
 docs/TOPOLOGY-FOCUS-AND-SCALE.md
-docs/TOPOLOGY-V2-DESIGN.md
+docs/ONTOLOGY-MAP-DESIGN.md
 docs/TROUBLESHOOTING.md
 docs/agents/domain.md
 docs/agents/issue-tracker.md
@@ -624,8 +624,8 @@ docs/AGENT-GRAPH-WORKFLOW.md:41:- Claude Code configures MCP servers with `claud
 docs/AGENT-GRAPH-WORKFLOW.md:184:`ontology-atlas` MCP server registered, `tools/list` provides the exact current
 docs/AGENT-GRAPH-WORKFLOW.md:254:node $ATLAS/cli/src/index.mjs all-paths capabilities/cli-developer-entry capabilities/mcp-server docs/ontology --plan --force --max-hops 3 --types depends_on,relates
 docs/AGENT-GRAPH-WORKFLOW.md:255:node $ATLAS/cli/src/index.mjs explain capabilities/cli-developer-entry capabilities/mcp-server docs/ontology --types depends_on,relates
-docs/TOPOLOGY-V2-DESIGN.md:320:| Task | Commit flag default change to `true` · Replace two call sites in `HomePage.tsx`/`ProjectDetailPage.tsx` with single `TopologyMapV2` call (§1.2 unify) · Verify zero remaining references via `codegraph_callers`, then delete `src/widgets/topology-map-sigma/` (~40 files) + `src/widgets/topology-map-canvas/` · Coordinate deletion of `SigmaSkeletonCards.tsx` with a separate PR per Phase 0 §7 checklist (same sprint, separate commit) · Update `docs/FEATURES.md`/`docs/ARCHITECTURE.md`/dogfood vault (`docs/ontology/capabilities/`) |
-docs/TOPOLOGY-V2-DESIGN.md:321:| Gate | Full regression suite (`pnpm test:run`, `pnpm exec playwright test`) green, zero legacy engine references (verified via codegraph), all 3 docs updated |
+docs/ONTOLOGY-MAP-DESIGN.md:320:| Task | Commit flag default change to `true` · Replace two call sites in `HomePage.tsx`/`ProjectDetailPage.tsx` with single `OntologyMap` call (§1.2 unify) · Verify zero remaining references via `codegraph_callers`, then delete `src/widgets/topology-map-sigma/` (~40 files) + `src/widgets/topology-map-canvas/` · Coordinate deletion of `SigmaSkeletonCards.tsx` with a separate PR per Phase 0 §7 checklist (same sprint, separate commit) · Update `docs/FEATURES.md`/`docs/ARCHITECTURE.md`/dogfood vault (`docs/ontology/capabilities/`) |
+docs/ONTOLOGY-MAP-DESIGN.md:321:| Gate | Full regression suite (`pnpm test:run`, `pnpm exec playwright test`) green, zero legacy engine references (verified via codegraph), all 3 docs updated |
 docs/ONTOLOGY-ATLAS-SPEC.md:93:renders the vault) or both levels (e.g. an MCP server or CLI that also
 docs/ONTOLOGY-ATLAS-SPEC.md:315:  "tail" fragment (e.g. `mcp-server` resolving to `capabilities/mcp-server`
 mcp/src/vault.test.mjs:218:      join(suggestRoot, 'capabilities', 'mcp-server.md'),
@@ -929,7 +929,7 @@ exec
  D docs/ontology/elements/status.md
  D docs/ontology/elements/topology-controls.md
  D docs/ontology/elements/topology-index-panel.md
- D docs/ontology/elements/topology-map-v2.md
+ D docs/ontology/elements/ontology-map.md
  D docs/ontology/elements/vault-agent-panel.md
  D docs/ontology/ontology-atlas.md
  D public/docs-vault/AGENT-GRAPH-WORKFLOW.md
@@ -959,7 +959,7 @@ exec
  D public/docs-vault/README.md
  D public/docs-vault/TECH-STACK.md
  D public/docs-vault/TOPOLOGY-FOCUS-AND-SCALE.md
- D public/docs-vault/TOPOLOGY-V2-DESIGN.md
+ D public/docs-vault/ONTOLOGY-MAP-DESIGN.md
  D public/docs-vault/TROUBLESHOOTING.md
  D public/docs-vault/agents/domain.md
  D public/docs-vault/agents/issue-tracker.md
@@ -1088,7 +1088,7 @@ exec
  D public/docs-vault/ontology/elements/status.md
  D public/docs-vault/ontology/elements/topology-controls.md
  D public/docs-vault/ontology/elements/topology-index-panel.md
- D public/docs-vault/ontology/elements/topology-map-v2.md
+ D public/docs-vault/ontology/elements/ontology-map.md
  D public/docs-vault/ontology/elements/vault-agent-panel.md
  D public/docs-vault/ontology/ontology-atlas.md
  D public/docs-vault/plans/DESIGN-OVERHAUL-2026-07-25.md
@@ -1192,7 +1192,7 @@ docs/ontology/elements/shortcut-sheet.md
 docs/ontology/elements/status.md
 docs/ontology/elements/topology-controls.md
 docs/ontology/elements/topology-index-panel.md
-docs/ontology/elements/topology-map-v2.md
+docs/ontology/elements/ontology-map.md
 docs/ontology/elements/vault-agent-panel.md
 docs/ontology/ontology-atlas.md
 f1fcbb207 refactor: separate decisions from descriptions in the dogfood vault
@@ -1515,7 +1515,7 @@ Across its seven domains, Atlas exposes 27 typed capabilities for agent and term
 
 - Concepts: `domains/agent-integration`, `domains/design-system`, `domains/graph-modeling`, `domains/local-vault-management`, `domains/onboarding-and-shell`, `domains/project-portfolio`, `domains/topology-navigation`, `capabilities/acp-runtime`, `capabilities/agent-work-visibility`, `capabilities/app-update`, `capabilities/cli-developer-entry`, `capabilities/construction-review`, `capabilities/control-primitives`, `capabilities/data-source-mode`, `capabilities/design-build-handoff`, `capabilities/design-gate-ratchets`, `capabilities/design-token-ramps`, `capabilities/desktop-download-decision`, `capabilities/docs-vault-local`, `capabilities/first-run-starter`, `capabilities/guided-tour`, `capabilities/locale-switch`, `capabilities/mcp-server`, `capabilities/project-data-source`, `capabilities/project-edit`, `capabilities/project-quick-edit`, `capabilities/project-share`, `capabilities/project-source-evidence`, `capabilities/reviewed-ontology-writing`, `capabilities/taxonomy`, `capabilities/topology-browsing`, `capabilities/vault-agent`, `capabilities/vault-ontology`, `capabilities/vault-sample-source`
 - Relations: `domains/agent-integration` --capabilities--> `capabilities/acp-runtime`, `domains/agent-integration` --capabilities--> `capabilities/agent-work-visibility`, `domains/agent-integration` --capabilities--> `capabilities/cli-developer-entry`, `domains/agent-integration` --capabilities--> `capabilities/mcp-server`, `domains/agent-integration` --capabilities--> `capabilities/vault-agent`, `domains/design-system` --capabilities--> `capabilities/control-primitives`, `domains/design-system` --capabilities--> `capabilities/design-build-handoff`, `domains/design-system` --capabilities--> `capabilities/design-gate-ratchets`, `domains/design-system` --capabilities--> `capabilities/design-token-ramps`, `domains/graph-modeling` --capabilities--> `capabilities/reviewed-ontology-writing`, `domains/graph-modeling` --capabilities--> `capabilities/taxonomy`, `domains/graph-modeling` --capabilities--> `capabilities/vault-ontology`, `domains/local-vault-management` --capabilities--> `capabilities/data-source-mode`, `domains/local-vault-management` --capabilities--> `capabilities/docs-vault-local`, `domains/local-vault-management` --capabilities--> `capabilities/project-data-source`, `domains/local-vault-management` --capabilities--> `capabilities/vault-sample-source`, `domains/onboarding-and-shell` --capabilities--> `capabilities/app-update`, `domains/onboarding-and-shell` --capabilities--> `capabilities/desktop-download-decision`, `domains/onboarding-and-shell` --capabilities--> `capabilities/first-run-starter`, `domains/onboarding-and-shell` --capabilities--> `capabilities/guided-tour`, `domains/onboarding-and-shell` --capabilities--> `capabilities/locale-switch`, `domains/project-portfolio` --capabilities--> `capabilities/construction-review`, `domains/project-portfolio` --capabilities--> `capabilities/project-edit`, `domains/project-portfolio` --capabilities--> `capabilities/project-quick-edit`, `domains/project-portfolio` --capabilities--> `capabilities/project-share`, `domains/project-portfolio` --capabilities--> `capabilities/project-source-evidence`, `domains/topology-navigation` --capabilities--> `capabilities/topology-browsing`
-- Evidence: `src-tauri/src/acp.rs`, `src/features/agent-activity`, `src/features/app-update`, `cli/src`, `src/entities/construction-review`, `src/shared/ui/control-class.ts`, `src/features/data-source-mode`, `.claude/skills/design-build/SKILL.md`, `eslint.config.mjs`, `app/globals.css`, `src/views/download`, `src/features/docs-vault-local`, `src/features/first-run-starter`, `src/features/guided-tour`, `src/features/locale-switch`, `mcp/src`, `src/features/project-data-source`, `src/features/project-edit`, `src/features/project-quick-edit`, `src/features/project-share`, `src/shared/lib/project-source-receipt.ts`, `src/features/ontology-meaning-editor`, `src/features/taxonomy`, `src/widgets/topology-map-v2`, `src/features/vault-agent`, `mcp/src/schema.mjs`, `src/features/vault-sample-source`
+- Evidence: `src-tauri/src/acp.rs`, `src/features/agent-activity`, `src/features/app-update`, `cli/src`, `src/entities/construction-review`, `src/shared/ui/control-class.ts`, `src/features/data-source-mode`, `.claude/skills/design-build/SKILL.md`, `eslint.config.mjs`, `app/globals.css`, `src/views/download`, `src/features/docs-vault-local`, `src/features/first-run-starter`, `src/features/guided-tour`, `src/features/locale-switch`, `mcp/src`, `src/features/project-data-source`, `src/features/project-edit`, `src/features/project-quick-edit`, `src/features/project-share`, `src/shared/lib/project-source-receipt.ts`, `src/features/ontology-meaning-editor`, `src/features/taxonomy`, `src/widgets/ontology-map`, `src/features/vault-agent`, `mcp/src/schema.mjs`, `src/features/vault-sample-source`
 
 ### evidence: answered
 
@@ -1524,8 +1524,8 @@ Which source artifacts provide implementation evidence for each ability?
 All 27 current capabilities have one canonical repository entrypoint in frontmatter, and the current source receipt verifies that every path exists. This proves current implementation entrypoints; it does not by itself claim exhaustive runtime behavior.
 
 - Concepts: `capabilities/acp-runtime`, `capabilities/agent-work-visibility`, `capabilities/app-update`, `capabilities/cli-developer-entry`, `capabilities/construction-review`, `capabilities/control-primitives`, `capabilities/data-source-mode`, `capabilities/design-build-handoff`, `capabilities/design-gate-ratchets`, `capabilities/design-token-ramps`, `capabilities/desktop-download-decision`, `capabilities/docs-vault-local`, `capabilities/first-run-starter`, `capabilities/guided-tour`, `capabilities/locale-switch`, `capabilities/mcp-server`, `capabilities/project-data-source`, `capabilities/project-edit`, `capabilities/project-quick-edit`, `capabilities/project-share`, `capabilities/project-source-evidence`, `capabilities/reviewed-ontology-writing`, `capabilities/taxonomy`, `capabilities/topology-browsing`, `capabilities/vault-agent`, `capabilities/vault-ontology`, `capabilities/vault-sample-source`
-- Evidence: `src-tauri/src/acp.rs`, `src/features/agent-activity`, `src/features/app-update`, `cli/src`, `src/entities/construction-review`, `src/shared/ui/control-class.ts`, `src/features/data-source-mode`, `.claude/skills/design-build/SKILL.md`, `eslint.config.mjs`, `app/globals.css`, `src/views/download`, `src/features/docs-vault-local`, `src/features/first-run-starter`, `src/features/guided-tour`, `src/features/locale-switch`, `mcp/src`, `src/features/project-data-source`, `src/features/project-edit`, `src/features/project-quick-edit`, `src/features/project-share`, `src/shared/lib/project-source-receipt.ts`, `src/features/ontology-meaning-editor`, `src/features/taxonomy`, `src/widgets/topology-map-v2`, `src/features/vault-agent`, `mcp/src/schema.mjs`, `src/features/vault-sample-source`
-- Paths: `src-tauri/src/acp.rs`, `src/features/agent-activity`, `src/features/app-update`, `cli/src`, `src/entities/construction-review`, `src/shared/ui/control-class.ts`, `src/features/data-source-mode`, `.claude/skills/design-build/SKILL.md`, `eslint.config.mjs`, `app/globals.css`, `src/views/download`, `src/features/docs-vault-local`, `src/features/first-run-starter`, `src/features/guided-tour`, `src/features/locale-switch`, `mcp/src`, `src/features/project-data-source`, `src/features/project-edit`, `src/features/project-quick-edit`, `src/features/project-share`, `src/shared/lib/project-source-receipt.ts`, `src/features/ontology-meaning-editor`, `src/features/taxonomy`, `src/widgets/topology-map-v2`, `src/features/vault-agent`, `mcp/src/schema.mjs`, `src/features/vault-sample-source`
+- Evidence: `src-tauri/src/acp.rs`, `src/features/agent-activity`, `src/features/app-update`, `cli/src`, `src/entities/construction-review`, `src/shared/ui/control-class.ts`, `src/features/data-source-mode`, `.claude/skills/design-build/SKILL.md`, `eslint.config.mjs`, `app/globals.css`, `src/views/download`, `src/features/docs-vault-local`, `src/features/first-run-starter`, `src/features/guided-tour`, `src/features/locale-switch`, `mcp/src`, `src/features/project-data-source`, `src/features/project-edit`, `src/features/project-quick-edit`, `src/features/project-share`, `src/shared/lib/project-source-receipt.ts`, `src/features/ontology-meaning-editor`, `src/features/taxonomy`, `src/widgets/ontology-map`, `src/features/vault-agent`, `mcp/src/schema.mjs`, `src/features/vault-sample-source`
+- Paths: `src-tauri/src/acp.rs`, `src/features/agent-activity`, `src/features/app-update`, `cli/src`, `src/entities/construction-review`, `src/shared/ui/control-class.ts`, `src/features/data-source-mode`, `.claude/skills/design-build/SKILL.md`, `eslint.config.mjs`, `app/globals.css`, `src/views/download`, `src/features/docs-vault-local`, `src/features/first-run-starter`, `src/features/guided-tour`, `src/features/locale-switch`, `mcp/src`, `src/features/project-data-source`, `src/features/project-edit`, `src/features/project-quick-edit`, `src/features/project-share`, `src/shared/lib/project-source-receipt.ts`, `src/features/ontology-meaning-editor`, `src/features/taxonomy`, `src/widgets/ontology-map`, `src/features/vault-agent`, `mcp/src/schema.mjs`, `src/features/vault-sample-source`
 
 ### impact: answered
 
@@ -1535,7 +1535,7 @@ Eight reviewed dependencies form the current change-impact spine across agent in
 
 - Concepts: `capabilities/acp-runtime`, `capabilities/cli-developer-entry`, `capabilities/mcp-server`, `capabilities/vault-ontology`, `capabilities/topology-browsing`, `capabilities/design-token-ramps`, `capabilities/first-run-starter`, `capabilities/vault-sample-source`, `capabilities/reviewed-ontology-writing`, `capabilities/docs-vault-local`, `capabilities/project-source-evidence`
 - Relations: `capabilities/acp-runtime` --depends_on--> `capabilities/mcp-server`, `capabilities/cli-developer-entry` --depends_on--> `capabilities/mcp-server`, `capabilities/mcp-server` --depends_on--> `capabilities/vault-ontology`, `capabilities/topology-browsing` --depends_on--> `capabilities/vault-ontology`, `capabilities/topology-browsing` --depends_on--> `capabilities/design-token-ramps`, `capabilities/first-run-starter` --depends_on--> `capabilities/vault-sample-source`, `capabilities/reviewed-ontology-writing` --depends_on--> `capabilities/docs-vault-local`, `capabilities/project-source-evidence` --depends_on--> `capabilities/vault-ontology`
-- Evidence: `src-tauri/src/acp.rs`, `cli/src`, `mcp/src`, `mcp/src/schema.mjs`, `src/widgets/topology-map-v2`, `app/globals.css`, `src/features/first-run-starter`, `src/features/vault-sample-source`, `src/features/ontology-meaning-editor`, `src/features/docs-vault-local`, `src/shared/lib/project-source-receipt.ts`, `mcp/src/project-meaning-inventory.mjs`
+- Evidence: `src-tauri/src/acp.rs`, `cli/src`, `mcp/src`, `mcp/src/schema.mjs`, `src/widgets/ontology-map`, `app/globals.css`, `src/features/first-run-starter`, `src/features/vault-sample-source`, `src/features/ontology-meaning-editor`, `src/features/docs-vault-local`, `src/shared/lib/project-source-receipt.ts`, `mcp/src/project-meaning-inventory.mjs`
 
 hook: PostToolUse
 exec

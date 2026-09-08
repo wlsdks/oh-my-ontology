@@ -135,7 +135,7 @@ test.describe("웹 스모크 ① 관문", () => {
     await gotoSettled(page, "/ko/topology/");
 
     // The map exists as a canvas with real dimensions.
-    const canvas = page.getByTestId("topology-map-v2-canvas");
+    const canvas = page.getByTestId("ontology-map-canvas");
     await expect(canvas).toBeVisible({ timeout: 15_000 });
     const box = await canvas.boundingBox();
     expect(box?.width ?? 0).toBeGreaterThan(0);

@@ -55,7 +55,7 @@ import {
 import { useNativeErrorLookup } from "@/shared/lib/use-native-error-lookup";
 import type { OntologyChangeset, KnowledgeGraphEdge, KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import { gitHostPlatformFrom, gitInstallGuide } from "@/shared/lib/git-install-guide";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { Checkbox, controlClass } from "@/shared/ui";
 import { buildConceptEgo, matchNodeId, type ConceptEgo } from "../model/build-concept-ego";
 import { CommitDetail } from "./CommitDetail";
@@ -1062,7 +1062,7 @@ function ConnectLadder({ t, current }: { t: Translator; current: SetupStep }) {
  * **No data is invented.** There is no vault at this moment, so writing fake
  * concept names here would make the screen lie. Name positions are **redaction
  * bars**; only the positions carrying identity (the chips) use real product
- * vocabulary (the `kinds` namespace) and the real glyph (`TopologyV2KindGlyph`,
+ * vocabulary (the `kinds` namespace) and the real glyph (`OntologyMapKindGlyph`,
  * the single facade). The shapes follow the kind→silhouette contract, so no
  * third source of shapes appears.
  *
@@ -1125,7 +1125,7 @@ function SetupPreview({ t }: { t: Translator }) {
                 )}
               >
                 <span className="h-1.5 w-6 rounded-full bg-[color:var(--color-overlay-2)]" />
-                <TopologyV2KindGlyph kind={kind} size={11} />
+                <OntologyMapKindGlyph kind={kind} size={11} />
                 <span
                   className="h-1.5 rounded-full bg-[color:var(--color-overlay-3)]"
                   style={{ width: `${String(46 + index * 9)}%` }}
@@ -1152,7 +1152,7 @@ function SetupPreview({ t }: { t: Translator }) {
                   key={kind}
                   className="inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] border border-[color:var(--color-border-soft)] px-1.5 py-0.5 text-caption"
                 >
-                  <TopologyV2KindGlyph kind={kind} size={9} />
+                  <OntologyMapKindGlyph kind={kind} size={9} />
                   <span className="h-1.5 w-4 rounded-full bg-[color:var(--color-overlay-3)]" />
                 </span>
               ))}
@@ -1170,14 +1170,14 @@ function SetupPreview({ t }: { t: Translator }) {
                     y1="50"
                     x2={s.x}
                     y2={s.y}
-                    stroke="var(--topology-v2-edge-contains)"
+                    stroke="var(--map-edge-contains)"
                     strokeWidth={1}
                     vectorEffect="non-scaling-stroke"
                   />
                 ))}
               </svg>
               <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--color-canvas)] p-1">
-                <TopologyV2KindGlyph kind="capability" size={17} />
+                <OntologyMapKindGlyph kind="capability" size={17} />
               </span>
               {PREVIEW_SATELLITES.map((s) => (
                 <span
@@ -1185,7 +1185,7 @@ function SetupPreview({ t }: { t: Translator }) {
                   className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--color-canvas)] p-1"
                   style={{ left: `${String(s.x)}%`, top: `${String(s.y)}%` }}
                 >
-                  <TopologyV2KindGlyph kind={s.kind} size={11} />
+                  <OntologyMapKindGlyph kind={s.kind} size={11} />
                 </span>
               ))}
             </div>
@@ -2399,7 +2399,7 @@ function StepList({
                   <>
                     {stepConcepts.slice(0, STEP_CONCEPT_SLOTS).map((concept) => (
                       <span key={concept.id} className="inline-flex min-w-0 shrink items-center gap-1.5">
-                        <TopologyV2KindGlyph kind={concept.kind} size={12} />
+                        <OntologyMapKindGlyph kind={concept.kind} size={12} />
                         <span className="truncate">{concept.label}</span>
                       </span>
                     ))}

@@ -98,7 +98,7 @@ adjacent marks separately for a non-colour separator.
 ### Canvas nodes are not DOM
 
 For node shape, radius, magnitude, or embedded counts, use the canonical Node
-Spec, `node-shapes.test.ts`, `topology-v2-kind-glyph.test.tsx`, and
+Spec, `node-shapes.test.ts`, `map-kind-glyph.test.tsx`, and
 `node-kind-shape-parity.contract.test.ts`. Read live coordinates and kinds from
 `window.__atlasMap.nodes()` under `?e2e=1`.
 

@@ -107,7 +107,7 @@ describe("useGuidedTour", () => {
     const canResolveAnchor = (anchor: TourAnchor) =>
       anchor === null ||
       anchor.type === "canvas-node" ||
-      anchor.value === "topology-v2-detail-panel";
+      anchor.value === "map-detail-panel";
     const { result } = renderHook(() =>
       useGuidedTour({
         hasSelection: true,
@@ -198,7 +198,7 @@ describe("useGuidedTour", () => {
     // flips true right after the `hasSelection` rerender.
     let panelMounted = false;
     const canResolveAnchor = (anchor: TourAnchor) => {
-      if (anchor && anchor.type === "testid" && anchor.value === "topology-v2-detail-panel") {
+      if (anchor && anchor.type === "testid" && anchor.value === "map-detail-panel") {
         return panelMounted;
       }
       return true;

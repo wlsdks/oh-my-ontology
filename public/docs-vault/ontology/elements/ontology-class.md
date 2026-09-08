@@ -27,4 +27,4 @@ Kind-specific schema class definition entity. Evidence of implementation for cap
 
 - Choosing colour for a kind: icons take `currentColor`; the caller decides colour under the single-indigo palette rule.
 - The graph node/edge model itself, owned by elements/knowledge-graph.
-- Rendering the icon on the map canvas, owned by elements/topology-map-v2.
+- Rendering the icon on the map canvas, owned by elements/ontology-map.

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildWebviewEvidencePayload } from "./lib/verify-macos/evidence-payload.mjs";
 
-test("WebView evidence proves the current topology-map-v2 canvas renderer", () => {
+test("WebView evidence proves the current ontology-map canvas renderer", () => {
   const evidence = buildWebviewEvidencePayload({
     href: "tauri://localhost/ko/topology/",
     bodyText: "Atlas 지도 INDEX 74 개념",
@@ -10,13 +10,13 @@ test("WebView evidence proves the current topology-map-v2 canvas renderer", () =
       topologyMapEngine: "v2",
       topologySigmaViewportVisible: true,
       topologySigmaCanvasCount: 1,
-      topologyV2CanvasInkPixels: 128,
+      ontologyMapCanvasInkPixels: 128,
       topologySigmaBootError: false,
     },
   });
 
   assert.deepEqual(evidence.topologyRenderProof, {
-    proof: "topology-map-v2-canvas-render",
+    proof: "ontology-map-canvas-render",
     status: "proved",
     route: "/ko/topology/",
     engine: "v2",
@@ -36,7 +36,7 @@ test("v2 canvas evidence stays incomplete without rendered pixels", () => {
       topologyMapEngine: "v2",
       topologySigmaViewportVisible: true,
       topologySigmaCanvasCount: 1,
-      topologyV2CanvasInkPixels: 0,
+      ontologyMapCanvasInkPixels: 0,
       topologySigmaBootError: false,
     },
   });

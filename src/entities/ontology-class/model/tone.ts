@@ -20,7 +20,7 @@ export interface OntologyKindTone {
 
 /**
  * Qualitative ontology-kind palette for compact chips, legends, summaries, and
- * classification guidance. `topology-map-v2` uses its own neutral engraved
+ * classification guidance. `ontology-map` uses its own neutral engraved
  * canvas tokens; retired Sigma/tree/Builder adapters are not consumers.
  */
 export const ONTOLOGY_KIND_TONE: Record<OntologyVisualKind, OntologyKindTone> = {

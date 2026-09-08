@@ -38,7 +38,7 @@ import type { InsightsVerdict } from "../../lib/insights-verdict";
  * one thing the list cannot say at a glance — **whether the folder is blocked or merely advised**,
  * which is the verdict `node $ATLAS/cli/src/index.mjs health` reports.
  *
- * The numbers use the engraved style, reusing the `--topology-v2-numeral-*` tokens the topology
+ * The numbers use the engraved style, reusing the `--map-numeral-*` tokens the topology
  * canvas uses to engrave node counts, so "the panel and the canvas are one world" holds in the
  * engraved digits too.
  */
@@ -237,8 +237,8 @@ function BigNum({ value, unit, suffix }: { value: number | string; unit?: string
   return (
     <div
       // eslint-disable-next-line no-restricted-syntax -- the census signature's large numeral (40px) deliberately exceeds the top of the type ramp (hero 30px) as a display exception.
-      className="font-mono text-[40px] font-[var(--font-weight-strong)] leading-display-tight tabular-nums tracking-[var(--tracking-label)] text-[color:var(--topology-v2-numeral-face)]"
-      style={{ textShadow: "0 2px 0 var(--topology-v2-numeral-shadow)" }}
+      className="font-mono text-[40px] font-[var(--font-weight-strong)] leading-display-tight tabular-nums tracking-[var(--tracking-label)] text-[color:var(--map-numeral-face)]"
+      style={{ textShadow: "0 2px 0 var(--map-numeral-shadow)" }}
       data-testid="insights-bignum"
     >
       <span aria-hidden="true" data-insights-animated-value>
@@ -308,7 +308,7 @@ function SubStat({ label, value }: { label: string; value: number | string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-label text-[color:var(--color-text-tertiary)]">
       {label}
-      <span className="font-mono text-label tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+      <span className="font-mono text-label tabular-nums text-[color:var(--map-numeral-face)]">
         {value}
       </span>
     </span>
@@ -321,7 +321,7 @@ function SubStrip({ items }: { items: Array<{ key: string; label: string; count:
       {items.map((item) => (
         <span key={item.key} className="inline-flex items-center gap-1.5">
           {item.label}
-          <span className="font-mono text-label tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+          <span className="font-mono text-label tabular-nums text-[color:var(--map-numeral-face)]">
             {item.count}
           </span>
         </span>

@@ -28,17 +28,17 @@ async function openCheckoutEditor(page: import('@playwright/test').Page) {
   const row = page.getByTestId('topology-index-row').filter({ hasText: '결제 승인' }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();
-  await expect(page.getByTestId('topology-v2-detail-panel')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('map-detail-panel')).toBeVisible({ timeout: 15_000 });
   await openRelationEditorFromDetail(page);
   await expect(page.getByTestId('meaning-editor-panel')).toBeVisible({ timeout: 15_000 });
 }
 
 async function openRelationEditorFromDetail(page: import('@playwright/test').Page) {
-  const detailPanel = page.getByTestId('topology-v2-detail-panel');
-  await detailPanel.getByTestId('topology-v2-detail-panel-edit-menu-trigger').click();
+  const detailPanel = page.getByTestId('map-detail-panel');
+  await detailPanel.getByTestId('map-detail-panel-edit-menu-trigger').click();
   await detailPanel
-    .getByTestId('topology-v2-detail-panel-edit-menu')
-    .getByTestId('topology-v2-detail-panel-action-edit')
+    .getByTestId('map-detail-panel-edit-menu')
+    .getByTestId('map-detail-panel-action-edit')
     .click();
 }
 
@@ -59,11 +59,11 @@ test('map relation editor previews, reviews, and writes one relation without lea
   await chooseOption(page, 'meaning-editor-relation', '관련됨 (서로 필요하지는 않음)');
   await chooseOption(page, 'meaning-editor-target', '세금 신고 자료');
   await page.getByTestId('meaning-editor-why').fill('결제 승인과 세금 신고의 의미 경계를 함께 검토한다.');
-  await expect(page.getByTestId('topology-map-v2')).toHaveAttribute(
+  await expect(page.getByTestId('ontology-map')).toHaveAttribute(
     'data-preview-edge',
     'capability:checkout>capability:tax-report:related_to',
   );
-  await expect(page.getByTestId('topology-map-v2')).toHaveAttribute('data-preview-phase', 'draft');
+  await expect(page.getByTestId('ontology-map')).toHaveAttribute('data-preview-phase', 'draft');
 
   await page.getByTestId('meaning-editor-review').click();
   const review = page.getByTestId('meaning-editor-change-review');
@@ -152,13 +152,13 @@ test('map relation editor previews, reviews, and writes one relation without lea
   }
 
   await page.getByTestId('meaning-editor-apply').click();
-  await expect(page.getByTestId('topology-map-v2')).toHaveAttribute(
+  await expect(page.getByTestId('ontology-map')).toHaveAttribute(
     'data-preview-phase',
     'committing',
   );
   await expect(page.getByTestId('meaning-editor-panel')).toHaveCount(0, { timeout: 30_000 });
   await expect(page).not.toHaveURL(/workbench=edit/);
-  await expect(page.getByTestId('topology-map-v2')).not.toHaveAttribute('data-preview-edge');
+  await expect(page.getByTestId('ontology-map')).not.toHaveAttribute('data-preview-edge');
 });
 
 test('contextual editor stays inside the responsive workbench and every control is reachable', async ({ page }) => {
@@ -173,7 +173,7 @@ test('contextual editor stays inside the responsive workbench and every control 
   await expect
     .poll(() => page.evaluate(() => window.__atlasMap?.nodes().length ?? 0), { timeout: 15_000 })
     .toBeGreaterThan(0);
-  await expect(page.getByTestId('topology-v2-detail-panel')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('map-detail-panel')).toBeVisible({ timeout: 15_000 });
   await openRelationEditorFromDetail(page);
   await expect(page.getByTestId('meaning-editor-panel')).toBeVisible({ timeout: 15_000 });
   await chooseOption(page, 'meaning-editor-relation', '관련됨 (서로 필요하지는 않음)');

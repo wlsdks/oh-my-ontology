@@ -35,16 +35,16 @@ describe("agent dock inset surface", () => {
     expect(AGENT_DOCK_INSET_SURFACE_CLASS).toContain("inset-y-3");
     expect(AGENT_DOCK_INSET_SURFACE_CLASS).toContain("right-3");
     expect(AGENT_DOCK_INSET_SURFACE_CLASS).toContain(
-      "rounded-[var(--topology-v2-panel-radius)]",
+      "rounded-[var(--map-panel-radius)]",
     );
     expect(AGENT_DOCK_INSET_SURFACE_CLASS).toContain(
-      "border-[color:var(--topology-v2-panel-border)]",
+      "border-[color:var(--map-panel-border)]",
     );
     expect(AGENT_DOCK_INSET_SURFACE_CLASS).toContain(
       "bg-[color:var(--color-panel)]",
     );
     expect(AGENT_DOCK_INSET_SURFACE_CLASS).toContain(
-      "shadow-[var(--topology-v2-panel-shadow)]",
+      "shadow-[var(--map-panel-shadow)]",
     );
   });
 

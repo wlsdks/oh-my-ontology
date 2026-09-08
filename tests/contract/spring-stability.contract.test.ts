@@ -5,7 +5,7 @@ import {
   MAX_FRAME_DELTA_SECONDS,
   SPRING_STABILITY_LIMIT,
   stepSpring,
-} from "@/widgets/topology-map-v2/engine/spring";
+} from "@/widgets/ontology-map/engine/spring";
 
 /**
  * Measures the spring's **stability margin** — a hole created by the token and the
@@ -33,7 +33,7 @@ const CSS = readFileSync(path.join(process.cwd(), "app/globals.css"), "utf8");
 
 /** Every angular-frequency token declared on the ramp — names are never hand-listed (a missed one is a blind spot). */
 function angularFrequencyTokens(): Array<{ name: string; value: number }> {
-  return [...CSS.matchAll(/(--topology-v2-[a-z0-9-]*angfreq[a-z0-9-]*)\s*:\s*([\d.]+)\s*;/g)]
+  return [...CSS.matchAll(/(--map-[a-z0-9-]*angfreq[a-z0-9-]*)\s*:\s*([\d.]+)\s*;/g)]
     .map((m) => ({ name: m[1], value: Number(m[2]) }))
     // By convention the same token is declared twice, in `@theme` and `:root`, so duplicates are folded.
     .filter((entry, index, all) => all.findIndex((o) => o.name === entry.name) === index);

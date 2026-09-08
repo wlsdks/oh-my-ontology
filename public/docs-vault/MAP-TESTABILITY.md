@@ -33,7 +33,7 @@ a getter that reads refs at that moment, so frame cost is 0.
 http://localhost:4173/ko/topology?synth=3000&t=freeze&guides=off&e2e=1
 ```
 
-Implementation: Last effect in `src/widgets/topology-map-v2/ui/use-topology-loop.ts`.
+Implementation: Last effect in `src/widgets/ontology-map/ui/use-topology-loop.ts`.
 
 ## Interface
 

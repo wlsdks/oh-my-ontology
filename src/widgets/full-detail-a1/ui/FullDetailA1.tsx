@@ -22,7 +22,7 @@ import {
   NodeExplanationEdit,
   type NodeExplanationEditLabels,
 } from "@/shared/ui/node-explanation-edit";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { formatFullDetailHandoffChain } from "../lib/full-detail-handoff";
 import { formatFullDetailMetricLine } from "../lib/full-detail-metric";
 import type { FullDetailGroups } from "../lib/full-detail-groups";
@@ -81,7 +81,7 @@ export interface FullDetailA1Node {
   updatedAtLabel?: string | null;
   /**
    * rank7 (design-council B5) — last-edit provenance, pre-resolved by the
-   * caller (reuses the SAME fact `TopologyV2DetailPanel` shows for this
+   * caller (reuses the SAME fact `OntologyMapDetailPanel` shows for this
    * node, `resolveNodeLastEditSubject`) from real data only. `null`/omitted
    * when neither an agent heartbeat nor a same-session self-write names
    * this node — the row is not rendered.
@@ -176,7 +176,7 @@ export function FullDetailA1({
 }: FullDetailA1Props) {
   const t = useTranslations("fullDetailA1");
   // The same `editProvenance` namespace as DocFrontmatterBlock and
-  // TopologyV2DetailPanel (single source, drift prevention).
+  // OntologyMapDetailPanel (single source, drift prevention).
   const tProvenance = useTranslations("editProvenance");
   const getKindLabel = useOntologyKindLabel();
   const { show } = useToast();
@@ -249,7 +249,7 @@ export function FullDetailA1({
       data-fulldetail-node={node.id}
       className={["full-detail-a1 mx-auto flex max-w-[1240px] flex-col px-6 py-7", className ?? ""].join(" ")}
     >
-      <nav className="mb-6 flex items-center gap-2.5 text-body text-[color:var(--topology-v2-panel-text-tertiary)]">
+      <nav className="mb-6 flex items-center gap-2.5 text-body text-[color:var(--map-panel-text-tertiary)]">
         {onBackToMap ? (
           <button
             type="button"
@@ -259,7 +259,7 @@ export function FullDetailA1({
               scope: "panel",
               tone: "secondary",
               className:
-                "touch-hit-expand hover:text-[color:var(--topology-v2-panel-text-primary)]",
+                "touch-hit-expand hover:text-[color:var(--map-panel-text-primary)]",
             })}
           >
             {t("backToMap")}
@@ -267,13 +267,13 @@ export function FullDetailA1({
         ) : null}
         {breadcrumb?.projectTitle ? (
           <>
-            <span className="text-[color:var(--topology-v2-panel-text-quaternary)]">
+            <span className="text-[color:var(--map-panel-text-quaternary)]">
               {t("breadcrumbSeparator")}
             </span>
             <span>{breadcrumb.projectTitle}</span>
           </>
         ) : null}
-        <span className="text-[color:var(--topology-v2-panel-text-quaternary)]">
+        <span className="text-[color:var(--map-panel-text-quaternary)]">
           {t("breadcrumbSeparator")}
         </span>
         <span>{getKindLabel(node.kind)}</span>
@@ -289,10 +289,10 @@ export function FullDetailA1({
 
       <header className="flex items-start gap-3.5">
         <span className="mt-[5px]">
-          <TopologyV2KindGlyph kind={node.kind} size={22} />
+          <OntologyMapKindGlyph kind={node.kind} size={22} />
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="text-display font-[var(--font-weight-strong)] tracking-[var(--tracking-card)] text-[color:var(--topology-v2-panel-text-primary)]">
+          <h1 className="text-display font-[var(--font-weight-strong)] tracking-[var(--tracking-card)] text-[color:var(--map-panel-text-primary)]">
             {node.title}
           </h1>
           {/* When the display name abbreviates the original title, the full title is
@@ -301,23 +301,23 @@ export function FullDetailA1({
           {node.fullTitle && node.fullTitle !== node.title ? (
             <p
               data-testid="full-detail-a1-full-title"
-              className="mt-0.5 truncate text-body text-[color:var(--topology-v2-panel-text-tertiary)]"
+              className="mt-0.5 truncate text-body text-[color:var(--map-panel-text-tertiary)]"
             >
               {node.fullTitle}
             </p>
           ) : null}
-          <div className="mt-1 flex items-center gap-2 text-body text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <div className="mt-1 flex items-center gap-2 text-body text-[color:var(--map-panel-text-tertiary)]">
             <span
               aria-hidden="true"
               className="h-[6px] w-[6px] shrink-0 rounded-full"
               style={{
                 backgroundColor: node.fresh
-                  ? "var(--topology-v2-panel-power-on)"
-                  : "var(--topology-v2-panel-power-off)",
+                  ? "var(--map-panel-power-on)"
+                  : "var(--map-panel-power-off)",
               }}
             />
             <span>{getKindLabel(node.kind)}</span>
-            <span className="text-[color:var(--topology-v2-panel-text-quaternary)]">·</span>
+            <span className="text-[color:var(--map-panel-text-quaternary)]">·</span>
             <span data-testid="full-detail-freshness">
               {node.updatedAtLabel ?? (node.fresh ? t("freshOn") : t("freshOff"))}
             </span>
@@ -344,7 +344,7 @@ export function FullDetailA1({
           ) : null}
         </div>
         <div className="mt-2.5 flex shrink-0 items-center gap-3">
-          <span className="font-mono text-label text-[color:var(--topology-v2-panel-text-quaternary)]">
+          <span className="font-mono text-label text-[color:var(--map-panel-text-quaternary)]">
             {node.slug}
           </span>
           <button
@@ -358,7 +358,7 @@ export function FullDetailA1({
               size: "sm",
               scope: "panel",
               className:
-                "hover:bg-[color:var(--topology-v2-panel-row-hover)] hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+                "hover:bg-[color:var(--map-panel-row-hover)] hover:text-[color:var(--map-panel-text-secondary)]",
             })}
           >
             <Link2 size={ICON_SIZE.md} />
@@ -373,7 +373,7 @@ export function FullDetailA1({
               size: "sm",
               scope: "panel",
               className:
-                "hover:bg-[color:var(--topology-v2-panel-row-hover)] hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+                "hover:bg-[color:var(--map-panel-row-hover)] hover:text-[color:var(--map-panel-text-secondary)]",
             })}
           >
             <X size={ICON_SIZE.lg} />
@@ -383,7 +383,7 @@ export function FullDetailA1({
 
       <div
         data-fulldetail-metric="engraved"
-        className="mt-4.5 flex flex-wrap items-baseline gap-x-4.5 gap-y-1 rounded-chip border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-metric-surface)] px-3.5 py-2.5 font-mono text-body tracking-[var(--tracking-label)] text-[color:var(--topology-v2-panel-metric-text)]"
+        className="mt-4.5 flex flex-wrap items-baseline gap-x-4.5 gap-y-1 rounded-chip border border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-metric-surface)] px-3.5 py-2.5 font-mono text-body tracking-[var(--tracking-label)] text-[color:var(--map-panel-metric-text)]"
       >
         {metricLine}
       </div>
@@ -399,10 +399,10 @@ export function FullDetailA1({
           data-source-currentness={projectSource.currentness}
           data-source-cardinality={projectSource.bindingCardinality}
           aria-live="polite"
-          className="mt-5.5 grid gap-2 border-y border-[color:var(--topology-v2-panel-border)] py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
+          className="mt-5.5 grid gap-2 border-y border-[color:var(--map-panel-border)] py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
         >
           <div className="min-w-0">
-            <p className="text-label font-[var(--font-weight-signature)] uppercase tracking-[var(--tracking-caps-08)] text-[color:var(--topology-v2-panel-text-quaternary)]">
+            <p className="text-label font-[var(--font-weight-signature)] uppercase tracking-[var(--tracking-caps-08)] text-[color:var(--map-panel-text-quaternary)]">
               {projectSourceLabels.heading}
               {projectSourceLabels.sourceKind ? (
                 <span className="ml-2 font-mono normal-case tracking-normal">
@@ -410,15 +410,15 @@ export function FullDetailA1({
                 </span>
               ) : null}
             </p>
-            <p className="mt-1 text-body-lg font-[var(--font-weight-signature)] text-[color:var(--topology-v2-panel-text-primary)]">
+            <p className="mt-1 text-body-lg font-[var(--font-weight-signature)] text-[color:var(--map-panel-text-primary)]">
               {projectSourceLabels.status}
             </p>
-            <p className="mt-0.5 text-body text-[color:var(--topology-v2-panel-text-tertiary)]">
+            <p className="mt-0.5 text-body text-[color:var(--map-panel-text-tertiary)]">
               {projectSourceLabels.measuredAt}
-              <span className="mx-1.5 text-[color:var(--topology-v2-panel-text-quaternary)]">·</span>
+              <span className="mx-1.5 text-[color:var(--map-panel-text-quaternary)]">·</span>
               {projectSourceLabels.currentness}
             </p>
-            <p className="mt-2 text-body text-[color:var(--topology-v2-panel-text-secondary)]">
+            <p className="mt-2 text-body text-[color:var(--map-panel-text-secondary)]">
               {projectSourceLabels.gap}
             </p>
             {projectSourceError ? (
@@ -436,12 +436,12 @@ export function FullDetailA1({
               onClick={() => void projectSourceAction()}
               disabled={projectSourceBusy}
               aria-busy={projectSourceBusy}
-              className={controlClass({ shape: "chip", className: "justify-self-start border-[color:var(--topology-v2-indigo-border)] bg-[color:var(--topology-v2-panel-action-surface)] px-3 py-1.5 text-body font-[var(--font-weight-signature)] text-[color:var(--topology-v2-indigo-bright)] hover:border-[color:var(--topology-v2-indigo)] hover:bg-[color:var(--topology-v2-panel-row-hover)] disabled:cursor-wait sm:justify-self-end" })}
+              className={controlClass({ shape: "chip", className: "justify-self-start border-[color:var(--map-indigo-border)] bg-[color:var(--map-panel-action-surface)] px-3 py-1.5 text-body font-[var(--font-weight-signature)] text-[color:var(--map-indigo-bright)] hover:border-[color:var(--map-indigo)] hover:bg-[color:var(--map-panel-row-hover)] disabled:cursor-wait sm:justify-self-end" })}
             >
               {projectSourceBusy ? projectSourceLabels.busy : projectSourceLabels.action}
             </button>
           ) : (
-            <span className="justify-self-start text-body font-[var(--font-weight-signature)] text-[color:var(--topology-v2-indigo-bright)] sm:justify-self-end">
+            <span className="justify-self-start text-body font-[var(--font-weight-signature)] text-[color:var(--map-indigo-bright)] sm:justify-self-end">
               {projectSourceLabels.action}
             </span>
           )}
@@ -469,9 +469,9 @@ export function FullDetailA1({
       {codeLocations.length > 0 ? (
         <section
           data-fulldetail-code-locations
-          className="mt-5.5 flex flex-col gap-1.5 rounded-card border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-surface)] px-3.5 py-3"
+          className="mt-5.5 flex flex-col gap-1.5 rounded-card border border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-surface)] px-3.5 py-3"
         >
-          <span className="text-body font-[var(--font-weight-signature)] text-[color:var(--topology-v2-panel-text-primary)]">
+          <span className="text-body font-[var(--font-weight-signature)] text-[color:var(--map-panel-text-primary)]">
             {t("codeLocations.heading")}
           </span>
           <ul className="flex flex-col gap-1">
@@ -510,19 +510,19 @@ export function FullDetailA1({
 
       <section
         data-fulldetail-handoff
-        className="mt-6.5 flex items-center gap-3.5 rounded-card border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-surface)] px-3.5 py-3"
+        className="mt-6.5 flex items-center gap-3.5 rounded-card border border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-surface)] px-3.5 py-3"
       >
-        <span className="shrink-0 text-body font-[var(--font-weight-signature)] text-[color:var(--topology-v2-panel-text-primary)]">
+        <span className="shrink-0 text-body font-[var(--font-weight-signature)] text-[color:var(--map-panel-text-primary)]">
           {t("handoff.label")}
         </span>
-        <span className="min-w-0 flex-1 truncate font-mono text-label text-[color:var(--topology-v2-panel-text-tertiary)]">
+        <span className="min-w-0 flex-1 truncate font-mono text-label text-[color:var(--map-panel-text-tertiary)]">
           {handoffChain}
         </span>
         <button
           type="button"
           onClick={handleCopyHandoff}
           data-testid="full-detail-a1-handoff-copy"
-          className={controlClass({ shape: "chip", className: "shrink-0 border-[color:var(--topology-v2-indigo-border)] bg-[color:var(--topology-v2-panel-action-surface)] px-3 py-1.5 text-body font-[var(--font-weight-signature)] text-[color:var(--topology-v2-indigo-bright)] hover:bg-[color:var(--topology-v2-panel-row-hover)] hover:border-[color:var(--topology-v2-indigo)]" })}
+          className={controlClass({ shape: "chip", className: "shrink-0 border-[color:var(--map-indigo-border)] bg-[color:var(--map-panel-action-surface)] px-3 py-1.5 text-body font-[var(--font-weight-signature)] text-[color:var(--map-indigo-bright)] hover:bg-[color:var(--map-panel-row-hover)] hover:border-[color:var(--map-indigo)]" })}
         >
           {t("handoff.copy")}
         </button>
@@ -534,7 +534,7 @@ export function FullDetailA1({
               size: "lg",
               scope: "panel",
               className:
-                "touch-hit-expand shrink-0 hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+                "touch-hit-expand shrink-0 hover:text-[color:var(--map-panel-text-secondary)]",
             })}
           >
             {t("handoff.openDocument")}
@@ -549,7 +549,7 @@ export function FullDetailA1({
               size: "lg",
               scope: "panel",
               className:
-                "touch-hit-expand shrink-0 hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+                "touch-hit-expand shrink-0 hover:text-[color:var(--map-panel-text-secondary)]",
             })}
           >
             {t("handoff.openMentionDocument")}
@@ -563,7 +563,7 @@ export function FullDetailA1({
             size: "lg",
             scope: "panel",
             className:
-              "touch-hit-expand shrink-0 hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+              "touch-hit-expand shrink-0 hover:text-[color:var(--map-panel-text-secondary)]",
           })}
         >
           {t("handoff.openStudio")}
@@ -579,15 +579,15 @@ export function FullDetailA1({
           />
         ) : (
           <>
-            <h2 className="mb-2 text-body font-[var(--font-weight-signature)] text-[color:var(--topology-v2-panel-text-primary)]">
+            <h2 className="mb-2 text-body font-[var(--font-weight-signature)] text-[color:var(--map-panel-text-primary)]">
               {t("body.title")}
             </h2>
             {bodyMarkdown && bodyMarkdown.trim().length > 0 ? (
-              <div className="prose prose-invert max-w-none text-body-lg leading-prose text-[color:var(--topology-v2-panel-text-secondary)]">
+              <div className="prose prose-invert max-w-none text-body-lg leading-prose text-[color:var(--map-panel-text-secondary)]">
                 <ReactMarkdown>{bodyMarkdown}</ReactMarkdown>
               </div>
             ) : (
-              <p className="text-body text-[color:var(--topology-v2-panel-text-tertiary)]">
+              <p className="text-body text-[color:var(--map-panel-text-tertiary)]">
                 {t("body.empty")}
               </p>
             )}
@@ -623,7 +623,7 @@ function FullDetailCodeLocationRow({
     >
       <span
         title={path}
-        className="min-w-0 flex-1 truncate font-mono text-label text-[color:var(--topology-v2-panel-text-tertiary)]"
+        className="min-w-0 flex-1 truncate font-mono text-label text-[color:var(--map-panel-text-tertiary)]"
       >
         {truncateMiddlePath(path)}
       </span>
@@ -643,7 +643,7 @@ function FullDetailCodeLocationRow({
           tone: "muted",
           scope: "panel",
           className:
-            "shrink-0 hover:bg-[color:var(--topology-v2-panel-row-hover)] hover:text-[color:var(--topology-v2-panel-text-secondary)]",
+            "shrink-0 hover:bg-[color:var(--map-panel-row-hover)] hover:text-[color:var(--map-panel-text-secondary)]",
         })}
       >
         {state === "copied" ? <Check size={ICON_SIZE.sm} aria-hidden /> : <Clipboard size={ICON_SIZE.sm} aria-hidden />}

@@ -1,14 +1,14 @@
 /**
  * Pure "direct connection" derivation for a single node — the full,
  * direction-tagged incoming+outgoing edge list, resolved to each neighbor's
- * title/kind. Originally lived inside `widgets/topology-map-v2` (the compact
+ * title/kind. Originally lived inside `widgets/ontology-map` (the compact
  * canvas datasheet) as `buildV2Connections`/`groupV2ConnectionsByDirection`;
  * promoted to `entities/knowledge-graph/lib/ontology-tree` (R+ full-detail A1) so a SECOND
  * widget (`full-detail-a1`, the topology "Full detail" / `/ontology` full-detail
  * surface) can reuse the exact same derivation instead of forking a second
  * copy — FSD forbids widget→widget imports, so shared connection logic lives
- * one layer down. `topology-v2-datasheet.ts` re-exports these names
- * unchanged so existing call sites (`HomePage.tsx`, `TopologyV2DetailPanel`,
+ * one layer down. `map-datasheet.ts` re-exports these names
+ * unchanged so existing call sites (`HomePage.tsx`, `OntologyMapDetailPanel`,
  * its tests) needed zero changes.
  */
 

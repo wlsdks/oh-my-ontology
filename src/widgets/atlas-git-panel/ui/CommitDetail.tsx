@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/shared/lib/cn";
 import { useRovingRadioGroup } from "@/shared/lib/use-roving-radio-group";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { controlClass } from "@/shared/ui";
 import { gitCommitDiff, type GitChangeEntry } from "@/shared/lib/tauri-git";
 import type { ConceptEgo } from "../model/build-concept-ego";
@@ -219,7 +219,7 @@ export function CommitDetail({
                         ),
                       })}
                     >
-                      <TopologyV2KindGlyph kind={concept.kind} size={12} />
+                      <OntologyMapKindGlyph kind={concept.kind} size={12} />
                       {concept.label}
                     </button>
                   ))}

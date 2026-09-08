@@ -35,7 +35,7 @@ would overturn it.
 | Layer | Version | What would overturn "keep" |
 |---|---|---|
 | Tauri | 2.11.x | Evidence that the WebView causes the stutter. It does not: the cause was traced to React orchestration. Electron was rejected at four to six weeks of work and three times the bundle |
-| Renderer branch point | reopens Q4 2026 | The old branch point was written against Sigma and no longer applies. `topology-map-v2` — a custom canvas-2D engine over Graphology and ForceAtlas2 — is what any Tauri, Electron or PWA comparison now has to be measured against |
+| Renderer branch point | reopens Q4 2026 | The old branch point was written against Sigma and no longer applies. `ontology-map` — a custom canvas-2D engine over Graphology and ForceAtlas2 — is what any Tauri, Electron or PWA comparison now has to be measured against |
 
 One desktop item is not a keep. **The low-alpha compositing bug** reproduces on the owner's
 machine and has no public report on the Wry or Tauri trackers, so the work is to isolate an `rgba`
@@ -84,7 +84,7 @@ choice is not made hastily on the day the gate opens.
 That last one has since been settled by events rather than by argument. `refactor/retire-sigma-topology`
 (#344) replaced the Sigma renderer on `/topology` with the custom canvas-2D engine on 2026-07-18,
 and removing the `/docs` folder minimap on 2026-07-24 took Sigma.js and every `@sigma/*` package
-out of the codebase entirely. Rendering belongs to `topology-map-v2`; graph structure and physics
+out of the codebase entirely. Rendering belongs to `ontology-map`; graph structure and physics
 belong to Graphology and ForceAtlas2. Any Sigma reasoning preserved above is a record of what was
 true then, not a description of the code today.
 

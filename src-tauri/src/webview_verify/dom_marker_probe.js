@@ -56,10 +56,10 @@
                               const topologyFrameProfile = window.__ontologyAtlasTopologyFrameProfile || null;
                               const topologyMapEngineEl = document.querySelector("[data-map-engine]");
                               const topologyMapEngine = topologyMapEngineEl?.getAttribute("data-map-engine") || "";
-                              const topologyV2CanvasInkPixels = (() => {
+                              const ontologyMapCanvasInkPixels = (() => {
                                 if (topologyMapEngine !== "v2") return 0;
                                 const canvas = topologyMapEngineEl?.querySelector(
-                                  'canvas[data-testid="topology-map-v2-canvas"]'
+                                  'canvas[data-testid="ontology-map-canvas"]'
                                 );
                                 if (!(canvas instanceof HTMLCanvasElement) || canvas.width < 1 || canvas.height < 1) {
                                   return 0;
@@ -77,66 +77,66 @@
                                   return 0;
                                 }
                               })();
-                              const topologyV2DetailPanel = document.querySelector(
-                                '[data-testid="topology-v2-detail-panel"]'
+                              const ontologyMapDetailPanel = document.querySelector(
+                                '[data-testid="map-detail-panel"]'
                               );
-                              const topologyV2DetailPanelRect =
-                                topologyV2DetailPanel?.getBoundingClientRect();
-                              const topologyV2DetailPanelStyle = topologyV2DetailPanel
-                                ? getComputedStyle(topologyV2DetailPanel)
+                              const ontologyMapDetailPanelRect =
+                                ontologyMapDetailPanel?.getBoundingClientRect();
+                              const ontologyMapDetailPanelStyle = ontologyMapDetailPanel
+                                ? getComputedStyle(ontologyMapDetailPanel)
                                 : null;
-                              const topologyV2DetailPanelVisible = Boolean(
-                                topologyV2DetailPanelRect &&
-                                topologyV2DetailPanelRect.width > 1 &&
-                                topologyV2DetailPanelRect.height > 1 &&
-                                topologyV2DetailPanelStyle?.display !== "none" &&
-                                topologyV2DetailPanelStyle?.visibility !== "hidden" &&
-                                Number(topologyV2DetailPanelStyle?.opacity || "1") > 0.01
+                              const ontologyMapDetailPanelVisible = Boolean(
+                                ontologyMapDetailPanelRect &&
+                                ontologyMapDetailPanelRect.width > 1 &&
+                                ontologyMapDetailPanelRect.height > 1 &&
+                                ontologyMapDetailPanelStyle?.display !== "none" &&
+                                ontologyMapDetailPanelStyle?.visibility !== "hidden" &&
+                                Number(ontologyMapDetailPanelStyle?.opacity || "1") > 0.01
                               );
-                              const topologyV2ProjectSourceReceipt = document.querySelector(
-                                '[data-testid="topology-v2-project-source-receipt"]'
+                              const ontologyMapProjectSourceReceipt = document.querySelector(
+                                '[data-testid="map-project-source-receipt"]'
                               );
-                              const topologyV2ProjectSourceGap = document.querySelector(
-                                '[data-testid="topology-v2-project-source-gap"]'
+                              const ontologyMapProjectSourceGap = document.querySelector(
+                                '[data-testid="map-project-source-gap"]'
                               );
-                              const topologyV2DetailPanelActions = document.querySelector(
-                                '[data-testid="topology-v2-detail-panel-actions"]'
+                              const ontologyMapDetailPanelActions = document.querySelector(
+                                '[data-testid="map-detail-panel-actions"]'
                               );
-                              const topologyV2DetailPanelFooter = document.querySelector(
-                                '[data-testid="topology-v2-detail-panel-footer"]'
+                              const ontologyMapDetailPanelFooter = document.querySelector(
+                                '[data-testid="map-detail-panel-footer"]'
                               );
-                              const topologyV2ProjectSourceReceiptRect =
-                                topologyV2ProjectSourceReceipt?.getBoundingClientRect();
-                              const topologyV2DetailPanelActionsRect =
-                                topologyV2DetailPanelActions?.getBoundingClientRect();
-                              const topologyV2DetailPanelFooterRect =
-                                topologyV2DetailPanelFooter?.getBoundingClientRect();
-                              const topologyV2RectOverlapArea = (a, b) => {
+                              const ontologyMapProjectSourceReceiptRect =
+                                ontologyMapProjectSourceReceipt?.getBoundingClientRect();
+                              const ontologyMapDetailPanelActionsRect =
+                                ontologyMapDetailPanelActions?.getBoundingClientRect();
+                              const ontologyMapDetailPanelFooterRect =
+                                ontologyMapDetailPanelFooter?.getBoundingClientRect();
+                              const ontologyMapRectOverlapArea = (a, b) => {
                                 if (!a || !b) return 0;
                                 const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
                                 const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
                                 return width > 0.5 && height > 0.5 ? width * height : 0;
                               };
-                              const topologyV2InlineActionWidths = topologyV2DetailPanelActions
-                                ? Array.from(topologyV2DetailPanelActions.children)
+                              const ontologyMapInlineActionWidths = ontologyMapDetailPanelActions
+                                ? Array.from(ontologyMapDetailPanelActions.children)
                                   .filter(aiSettingsVisible)
                                   .map((action) => action.getBoundingClientRect().width)
                                 : [];
-                              const topologyV2EdgePanel = document.querySelector(
-                                '[data-testid="topology-v2-edge-panel"]'
+                              const ontologyMapEdgePanel = document.querySelector(
+                                '[data-testid="map-edge-panel"]'
                               );
-                              const topologyV2EdgePanelRect =
-                                topologyV2EdgePanel?.getBoundingClientRect();
-                              const topologyV2EdgePanelStyle = topologyV2EdgePanel
-                                ? getComputedStyle(topologyV2EdgePanel)
+                              const ontologyMapEdgePanelRect =
+                                ontologyMapEdgePanel?.getBoundingClientRect();
+                              const ontologyMapEdgePanelStyle = ontologyMapEdgePanel
+                                ? getComputedStyle(ontologyMapEdgePanel)
                                 : null;
-                              const topologyV2EdgePanelVisible = Boolean(
-                                topologyV2EdgePanelRect &&
-                                topologyV2EdgePanelRect.width > 1 &&
-                                topologyV2EdgePanelRect.height > 1 &&
-                                topologyV2EdgePanelStyle?.display !== "none" &&
-                                topologyV2EdgePanelStyle?.visibility !== "hidden" &&
-                                Number(topologyV2EdgePanelStyle?.opacity || "1") > 0.01
+                              const ontologyMapEdgePanelVisible = Boolean(
+                                ontologyMapEdgePanelRect &&
+                                ontologyMapEdgePanelRect.width > 1 &&
+                                ontologyMapEdgePanelRect.height > 1 &&
+                                ontologyMapEdgePanelStyle?.display !== "none" &&
+                                ontologyMapEdgePanelStyle?.visibility !== "hidden" &&
+                                Number(ontologyMapEdgePanelStyle?.opacity || "1") > 0.01
                               );
                               const guidedTourOverlay = document.querySelector(
                                 '[data-testid="guided-tour-overlay"]'
@@ -154,7 +154,7 @@
                                 guidedTourOverlayStyle?.visibility !== "hidden" &&
                                 Number(guidedTourOverlayStyle?.opacity || "1") > 0.01
                               );
-                              const topologyV2PrefersReducedMotion =
+                              const ontologyMapPrefersReducedMotion =
                                 window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
                               const topologyMapCanvasCardCount = document.querySelectorAll(
                                 '[data-testid="topology-map-canvas"] [data-skeleton-card]'
@@ -175,7 +175,7 @@
                               const topologyDragConnectorClearance =
                                 Number(topologyDragConnector?.getAttribute("data-connector-clearance") || "0") ||
                                 Number(topologyDragVerification?.connectorClearance || 0);
-                              const sigmaViewport = document.querySelector('[data-testid="topology-map-v2"]');
+                              const sigmaViewport = document.querySelector('[data-testid="ontology-map"]');
                               const sigmaViewportRect = sigmaViewport?.getBoundingClientRect();
                               const sigmaViewportStyle = sigmaViewport ? getComputedStyle(sigmaViewport) : null;
                               const topologyStagePanClickCancelPx = Number(
@@ -399,7 +399,7 @@
                                */
                               const topologyCreateNodeBackdropTargetRect = (
                                 document.querySelector('[data-surface-role="map-canvas"]') ||
-                                document.querySelector('[data-testid="topology-map-v2"]')
+                                document.querySelector('[data-testid="ontology-map"]')
                               )?.getBoundingClientRect();
                               const topologyCreateNodeBackdropCoversViewport =
                                 topologyCreateNodeBackdropVisible &&
@@ -919,7 +919,7 @@
                                 ? "blocking-composer"
                                 : new URLSearchParams(location.search).get("mode") === "path"
                                   ? "focus-path-state"
-                                  : topologySelectedNodePopover || topologyV2DetailPanel
+                                  : topologySelectedNodePopover || ontologyMapDetailPanel
                                     ? "focus-state"
                                     : "map-layer";
                               return JSON.stringify({
@@ -1642,11 +1642,11 @@
                                     topologySelectedRelationVerification?.selected === true,
                                   topologySelectedRelationVerifyAttempts:
                                     topologySelectedRelationVerification?.attempts || 0,
-                                  topologyV2SelectedRelationSource:
+                                  ontologyMapSelectedRelationSource:
                                     topologySelectedRelationVerification?.sourceId || "",
-                                  topologyV2SelectedRelationTarget:
+                                  ontologyMapSelectedRelationTarget:
                                     topologySelectedRelationVerification?.targetId || "",
-                                  topologyV2SelectedRelationType:
+                                  ontologyMapSelectedRelationType:
                                     topologySelectedRelationVerification?.relationType || "",
                                   topologyDragAttempted: topologyDragVerification?.attempted === true,
                                   topologyDragReason: topologyDragVerification?.reason || "",
@@ -1893,69 +1893,69 @@
                                     "",
                                   topologyFrameProfile,
                                   topologyMapEngine,
-                                  topologyV2CanvasInkPixels,
+                                  ontologyMapCanvasInkPixels,
                                   topologyMapCanvasCardCount,
-                                  topologyV2DetailPanelVisible,
-                                  topologyV2DetailPanelNodeId:
-                                    topologyV2DetailPanel?.getAttribute("data-selected-node-id") || "",
-                                  topologyV2DetailPanelNodeKind:
-                                    topologyV2DetailPanel?.getAttribute("data-selected-node-kind") || "",
-                                  topologyV2DetailPanelNodeTitle:
-                                    topologyV2DetailPanel?.getAttribute("data-selected-node-title") || "",
-                                  topologyV2DetailPanelPresence:
-                                    topologyV2DetailPanel?.getAttribute("data-presence") || "",
-                                  topologyV2DetailPanelWidth:
-                                    topologyV2DetailPanelRect?.width || 0,
-                                  topologyV2DetailPanelHeight:
-                                    topologyV2DetailPanelRect?.height || 0,
-                                  topologyV2ProjectSourceReceiptVisible:
-                                    aiSettingsVisible(topologyV2ProjectSourceReceipt),
-                                  topologyV2ProjectSourceLayout:
-                                    topologyV2ProjectSourceReceipt?.getAttribute("data-source-layout") || "",
-                                  topologyV2ProjectSourceTopGap:
-                                    topologyV2ProjectSourceReceipt?.getAttribute("data-source-top-gap") || "",
-                                  topologyV2ProjectSourceGapVisible:
-                                    aiSettingsVisible(topologyV2ProjectSourceGap),
-                                  topologyV2ProjectSourceAction:
-                                    topologyV2ProjectSourceReceipt?.getAttribute("data-source-action") || "",
-                                  topologyV2ProjectSourceInlineActionCount:
-                                    Number(topologyV2DetailPanelActions?.getAttribute("data-inline-action-count") || "0"),
-                                  topologyV2ProjectSourceRenderedActionCount:
-                                    topologyV2InlineActionWidths.length,
-                                  topologyV2ProjectSourceInlineActionMinWidth:
-                                    topologyV2InlineActionWidths.length > 0
-                                      ? Math.min(...topologyV2InlineActionWidths)
+                                  ontologyMapDetailPanelVisible,
+                                  ontologyMapDetailPanelNodeId:
+                                    ontologyMapDetailPanel?.getAttribute("data-selected-node-id") || "",
+                                  ontologyMapDetailPanelNodeKind:
+                                    ontologyMapDetailPanel?.getAttribute("data-selected-node-kind") || "",
+                                  ontologyMapDetailPanelNodeTitle:
+                                    ontologyMapDetailPanel?.getAttribute("data-selected-node-title") || "",
+                                  ontologyMapDetailPanelPresence:
+                                    ontologyMapDetailPanel?.getAttribute("data-presence") || "",
+                                  ontologyMapDetailPanelWidth:
+                                    ontologyMapDetailPanelRect?.width || 0,
+                                  ontologyMapDetailPanelHeight:
+                                    ontologyMapDetailPanelRect?.height || 0,
+                                  ontologyMapProjectSourceReceiptVisible:
+                                    aiSettingsVisible(ontologyMapProjectSourceReceipt),
+                                  ontologyMapProjectSourceLayout:
+                                    ontologyMapProjectSourceReceipt?.getAttribute("data-source-layout") || "",
+                                  ontologyMapProjectSourceTopGap:
+                                    ontologyMapProjectSourceReceipt?.getAttribute("data-source-top-gap") || "",
+                                  ontologyMapProjectSourceGapVisible:
+                                    aiSettingsVisible(ontologyMapProjectSourceGap),
+                                  ontologyMapProjectSourceAction:
+                                    ontologyMapProjectSourceReceipt?.getAttribute("data-source-action") || "",
+                                  ontologyMapProjectSourceInlineActionCount:
+                                    Number(ontologyMapDetailPanelActions?.getAttribute("data-inline-action-count") || "0"),
+                                  ontologyMapProjectSourceRenderedActionCount:
+                                    ontologyMapInlineActionWidths.length,
+                                  ontologyMapProjectSourceInlineActionMinWidth:
+                                    ontologyMapInlineActionWidths.length > 0
+                                      ? Math.min(...ontologyMapInlineActionWidths)
                                       : 0,
-                                  topologyV2ProjectSourceReceiptActionOverlap:
-                                    topologyV2RectOverlapArea(
-                                      topologyV2ProjectSourceReceiptRect,
-                                      topologyV2DetailPanelActionsRect
+                                  ontologyMapProjectSourceReceiptActionOverlap:
+                                    ontologyMapRectOverlapArea(
+                                      ontologyMapProjectSourceReceiptRect,
+                                      ontologyMapDetailPanelActionsRect
                                     ),
-                                  topologyV2ProjectSourceReceiptFooterOverlap:
-                                    topologyV2RectOverlapArea(
-                                      topologyV2ProjectSourceReceiptRect,
-                                      topologyV2DetailPanelFooterRect
+                                  ontologyMapProjectSourceReceiptFooterOverlap:
+                                    ontologyMapRectOverlapArea(
+                                      ontologyMapProjectSourceReceiptRect,
+                                      ontologyMapDetailPanelFooterRect
                                     ),
-                                  topologyV2ProjectSourceActionFooterOverlap:
-                                    topologyV2RectOverlapArea(
-                                      topologyV2DetailPanelActionsRect,
-                                      topologyV2DetailPanelFooterRect
+                                  ontologyMapProjectSourceActionFooterOverlap:
+                                    ontologyMapRectOverlapArea(
+                                      ontologyMapDetailPanelActionsRect,
+                                      ontologyMapDetailPanelFooterRect
                                     ),
-                                  topologyV2EdgePanelVisible,
-                                  topologyV2EdgePanelRole:
-                                    topologyV2EdgePanel?.getAttribute("role") || "",
-                                  topologyV2EdgePanelAriaLabel:
-                                    topologyV2EdgePanel?.getAttribute("aria-label") || "",
-                                  topologyV2EdgePanelSentence:
-                                    topologyV2EdgePanel?.querySelector(
-                                      '[data-testid="topology-v2-edge-sentence"]'
+                                  ontologyMapEdgePanelVisible,
+                                  ontologyMapEdgePanelRole:
+                                    ontologyMapEdgePanel?.getAttribute("role") || "",
+                                  ontologyMapEdgePanelAriaLabel:
+                                    ontologyMapEdgePanel?.getAttribute("aria-label") || "",
+                                  ontologyMapEdgePanelSentence:
+                                    ontologyMapEdgePanel?.querySelector(
+                                      '[data-testid="map-edge-sentence"]'
                                     )?.textContent || "",
-                                  topologyV2EdgePanelWidth:
-                                    topologyV2EdgePanelRect?.width || 0,
-                                  topologyV2EdgePanelHeight:
-                                    topologyV2EdgePanelRect?.height || 0,
+                                  ontologyMapEdgePanelWidth:
+                                    ontologyMapEdgePanelRect?.width || 0,
+                                  ontologyMapEdgePanelHeight:
+                                    ontologyMapEdgePanelRect?.height || 0,
                                   guidedTourOverlayVisible,
-                                  topologyV2PrefersReducedMotion,
+                                  ontologyMapPrefersReducedMotion,
                                   topologyZoomVerifyAttempted:
                                     topologyZoomVerification?.attempted === true,
                                   topologyZoomVerifyReason:

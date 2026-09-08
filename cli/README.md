@@ -543,7 +543,7 @@ never raw answers or a private absolute source root;
 
 ## See the graph
 
-The map is a custom canvas-2D `topology-map-v2` renderer, with Graphology
+The map is a custom canvas-2D `ontology-map` renderer, with Graphology
 data structures and ForceAtlas2 physics. Sigma WebGL and the xyflow ERD are
 retired:
 

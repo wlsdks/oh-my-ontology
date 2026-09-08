@@ -11,8 +11,8 @@ import {
   DOME_PITCH_DEFAULT,
   domeWorldBounds,
   type DomeInputNode,
-} from "@/widgets/topology-map-v2/model/dome-view";
-import { computeDomeFitCameraTarget } from "@/widgets/topology-map-v2/ui/topology-camera-math";
+} from "@/widgets/ontology-map/model/dome-view";
+import { computeDomeFitCameraTarget } from "@/widgets/ontology-map/ui/topology-camera-math";
 
 /**
  * **Does the cone actually land on the canvas?** (2026-09-05, owner direction B2.)
@@ -83,11 +83,11 @@ function cssNumber(name: string): number {
 }
 
 const TOKENS = {
-  cameraScaleMin: cssNumber("--topology-v2-camera-scale-min"),
-  cameraScaleMax: cssNumber("--topology-v2-camera-scale-max"),
-  domeFitFill: cssNumber("--topology-v2-dome-fit-fill"),
-  domeFitInsetTop: cssNumber("--topology-v2-dome-fit-inset-top"),
-  domeFitInsetBottom: cssNumber("--topology-v2-dome-fit-inset-bottom"),
+  cameraScaleMin: cssNumber("--map-camera-scale-min"),
+  cameraScaleMax: cssNumber("--map-camera-scale-max"),
+  domeFitFill: cssNumber("--map-dome-fit-fill"),
+  domeFitInsetTop: cssNumber("--map-dome-fit-inset-top"),
+  domeFitInsetBottom: cssNumber("--map-dome-fit-inset-bottom"),
 };
 
 /**

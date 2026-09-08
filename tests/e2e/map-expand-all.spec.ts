@@ -65,7 +65,7 @@ test("모두 펼치기는 주장한 수를 드러내고, 접기로 되돌린다"
   const nodePos = () =>
     page.evaluate(() => {
       const m = (window as unknown as { __atlasMap?: { nodes: () => Array<{ hidden: boolean; label: string; x: number; y: number; radius: number }> } }).__atlasMap;
-      const box = document.querySelector('[data-testid="topology-map-v2-canvas"]')?.getBoundingClientRect();
+      const box = document.querySelector('[data-testid="ontology-map-canvas"]')?.getBoundingClientRect();
       const n = m?.nodes().find((n) => !n.hidden && n.label === "주문");
       return n && box ? { px: box.left + n.x, py: box.top + n.y, r: n.radius } : null;
     });
@@ -154,7 +154,7 @@ test("상단 전체 펼치기는 전 노드를 드러내고 자동으로 화면 
   const action = page.getByTestId("topology-expand-all");
   await expect(action).toBeVisible();
   await action.click();
-  await expect(page.getByTestId("topology-map-v2")).toHaveAttribute("data-map-lens", "all");
+  await expect(page.getByTestId("ontology-map")).toHaveAttribute("data-map-lens", "all");
   await expect
     .poll(
       () =>
@@ -168,7 +168,7 @@ test("상단 전체 펼치기는 전 노드를 드러내고 자동으로 화면 
   await settleLayout(page);
 
   const offscreen = await page.evaluate(() => {
-    const map = document.querySelector<HTMLElement>('[data-testid="topology-map-v2"]');
+    const map = document.querySelector<HTMLElement>('[data-testid="ontology-map"]');
     const nodes = window.__atlasMap?.nodes().filter((node) => !node.hidden) ?? [];
     if (!map || nodes.length === 0) return -1;
     const box = map.getBoundingClientRect();
@@ -183,5 +183,5 @@ test("상단 전체 펼치기는 전 노드를 드러내고 자동으로 화면 
   expect(offscreen, "전체 펼치기 뒤 화면 밖에 남은 노드가 있다").toBe(0);
 
   await action.click();
-  await expect(page.getByTestId("topology-map-v2")).not.toHaveAttribute("data-map-lens");
+  await expect(page.getByTestId("ontology-map")).not.toHaveAttribute("data-map-lens");
 });

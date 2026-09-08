@@ -290,7 +290,7 @@ export function useFrameMeter(): boolean {
  * the hero graph, 3.29×.
  * Crossing count dominates graph readability (Purchase 1997), so the default map
  * stays planar and 3D is opt-in for people who want to see structure as shape.
- * Geometry and cost: `src/widgets/topology-map-v2/model/dome-view.ts`,
+ * Geometry and cost: `src/widgets/ontology-map/model/dome-view.ts`,
  * `docs/DECISIONS.md`.
  */
 const VIEW_3D_KEY = "atlas.appearance.view3d";
@@ -325,7 +325,7 @@ export function useView3d(): boolean {
  *   deterministic 3D force cloud. It releases the kind tiers so dependencies
  *   can decide height as well as bearing; keeping the tiers produced only a
  *   distorted Dome and was explicitly reverted. Geometry and determinism live
- *   in `src/widgets/topology-map-v2/model/dome-view.ts`; decision 84 records the
+ *   in `src/widgets/ontology-map/model/dome-view.ts`; decision 84 records the
  *   rejected tier-constrained hybrid.
  *
  * - `strata` (2026-09-06) — *who contains what, read by level.* The same
@@ -334,7 +334,7 @@ export function useView3d(): boolean {
  *   an inference. It is the one structure the three.js probe of that day found
  *   clearly better than the cone at tier legibility, and porting it needed no
  *   renderer: `buildStrataTargets` in
- *   `src/widgets/topology-map-v2/model/dome-view.ts` is pure geometry.
+ *   `src/widgets/ontology-map/model/dome-view.ts` is pure geometry.
  *
  * **Why `strata` breaks the "key is the question" habit.** `ownership` and
  * `coupling` are named for what they ask because they ask different things.

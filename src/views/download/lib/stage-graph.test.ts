@@ -3,7 +3,7 @@ import type { KnowledgeGraphEdge, KnowledgeGraphNode } from '@/entities/knowledg
 import { buildStageGraph } from './stage-graph';
 
 /**
- * This adapter claims **the same charter-level invariants** as home's `buildTopologyV2Graph`
+ * This adapter claims **the same charter-level invariants** as home's `buildOntologyMapGraph`
  * (exactly one hub, and there may be none). A duplicate implementing that invariant differently is
  * what the design-system seat flagged, so the contract is pinned here.
  */

@@ -23,7 +23,7 @@ import {
   buildV2Connections,
   buildV2EvidenceRows,
   formatV2HandoffText,
-} from "@/widgets/topology-map-v2";
+} from "@/widgets/ontology-map";
 
 /**
  * Assembles the node datasheet (popover / panel) model.

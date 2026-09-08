@@ -8,7 +8,7 @@ import {
   CHROME_STATUS_CHIP_CLASS,
   CompactCopyButton,
   Surface,
-  TopologyV2KindGlyph,
+  OntologyMapKindGlyph,
   controlClass,
 } from "@/shared/ui";
 import type { FootprintTrailEntry, TrailStepCaption } from "../lib/footprint-trail";
@@ -533,7 +533,7 @@ export function TopologyTrailChip({
                         className="my-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[color:var(--color-indigo-accent)]"
                       />
                     ) : (
-                      <TopologyV2KindGlyph kind={entry.kind} size={13} className="my-0.5 shrink-0" />
+                      <OntologyMapKindGlyph kind={entry.kind} size={13} className="my-0.5 shrink-0" />
                     )}
                     <span
                       aria-hidden

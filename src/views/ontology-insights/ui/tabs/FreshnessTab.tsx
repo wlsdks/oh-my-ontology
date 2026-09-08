@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { formatDate } from "@/shared/lib/format-date";
-import { EvidenceOnlyBadge, HiddenCountLine, TopologyV2KindGlyph } from "@/shared/ui";
+import { EvidenceOnlyBadge, HiddenCountLine, OntologyMapKindGlyph } from "@/shared/ui";
 import { Link } from "@/i18n/navigation";
 import { controlClass } from "@/shared/ui/control-class";
 import { RecentNodeRow } from "@/widgets/recent-node-row";
@@ -144,7 +144,7 @@ export function FreshnessTab({
                     (row.stale ? "text-[color:var(--color-text-quaternary)]" : "text-[color:var(--color-text-secondary)]")
                   }
                 >
-                  <TopologyV2KindGlyph kind="domain" size={12} />
+                  <OntologyMapKindGlyph kind="domain" size={12} />
                   <span className="truncate">{row.domainTitle}</span>
                   {row.stale ? (
                     <span className="flex-none rounded-micro border border-dashed border-[color:var(--color-border-strong)] px-1 text-caption text-[color:var(--color-text-quaternary)]">
@@ -321,7 +321,7 @@ export function FreshnessTab({
         ) : null}
         <div className="mt-2.5 flex items-center justify-between border-t border-[color:var(--color-divider)] pt-2.5 text-label text-[color:var(--color-text-quaternary)]">
           <span>{labels.staleCountLabel}</span>
-          <span className="font-mono text-body tabular-nums text-[color:var(--topology-v2-numeral-face)]">{staleCount}</span>
+          <span className="font-mono text-body tabular-nums text-[color:var(--map-numeral-face)]">{staleCount}</span>
         </div>
       </section>
     </div>

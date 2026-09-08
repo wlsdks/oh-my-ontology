@@ -83,7 +83,7 @@ describe('summary freshness bridge', () => {
   });
 
   it('mounts the row only with a real verdict, so absence never reads as a clean bill', () => {
-    const panel = read('src/widgets/topology-map-v2/ui/TopologyV2DetailPanel.tsx');
+    const panel = read('src/widgets/ontology-map/ui/OntologyMapDetailPanel.tsx');
     expect(panel, 'the freshness row is no longer gated on a verdict').toMatch(
       /summaryStaleness &&[\s\S]{0,200}<SummaryFreshnessRow/,
     );

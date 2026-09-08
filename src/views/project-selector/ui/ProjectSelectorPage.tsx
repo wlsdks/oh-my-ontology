@@ -14,7 +14,7 @@ import { useOntologyInsight } from "@/features/vault-ontology";
 import { useDataSourceMode, VaultSourceHydrationBoundary, useLocalVault } from "@/entities/vault-session";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import { formatDate } from "@/shared/lib/format-date";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { controlClass } from "@/shared/ui/control-class";
 import { PAGE_FRAME, PAGE_HEADER_ROW, PAGE_TITLE_ROW } from "@/shared/ui/page-frame";
 import { AppSettingsMenu } from "@/widgets/app-settings-menu";
@@ -193,7 +193,7 @@ export function ProjectSelectorPage() {
           <Link
             href={newProjectHref}
             data-testid="project-selector-new-cta"
-            className={controlClass({ shape: "chip", size: "lg", tone: "accent", className: "h-9 border-[color:var(--color-indigo-a50)] bg-[color:var(--topology-v2-panel-action-surface,var(--color-indigo-a06))] px-4 font-[var(--font-weight-signature)] hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:var(--color-overlay-2)]" })}
+            className={controlClass({ shape: "chip", size: "lg", tone: "accent", className: "h-9 border-[color:var(--color-indigo-a50)] bg-[color:var(--map-panel-action-surface,var(--color-indigo-a06))] px-4 font-[var(--font-weight-signature)] hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:var(--color-overlay-2)]" })}
           >
             {t("ctaNewProject")}
           </Link>
@@ -270,7 +270,7 @@ export function ProjectSelectorPage() {
 
         <section className="mt-7 rounded-panel border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-overlay-1)] px-5 py-4">
           <div className="flex items-center gap-3">
-            <TopologyV2KindGlyph kind="project" size={18} />
+            <OntologyMapKindGlyph kind="project" size={18} />
             <h3 className="text-body-lg font-[var(--font-weight-strong)] tracking-[var(--tracking-title)] text-[color:var(--color-text-primary)]">
               {t("nextSlotTitle")}
             </h3>
@@ -355,7 +355,7 @@ function ProjectFullCard({ project, facts, domainRows, description, docPath, kin
       className="rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-6 py-5 shadow-[inset_0_1px_0_var(--color-overlay-2)] transition-colors hover:border-[color:var(--color-border-strong)]"
     >
       <div className="flex items-start gap-3.5">
-        <TopologyV2KindGlyph kind="project" size={26} className="mt-1 shrink-0" />
+        <OntologyMapKindGlyph kind="project" size={26} className="mt-1 shrink-0" />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-title font-[var(--font-weight-strong)] tracking-[var(--tracking-card)] text-[color:var(--color-text-primary)]">
             {project.name}
@@ -376,7 +376,7 @@ function ProjectFullCard({ project, facts, domainRows, description, docPath, kin
       {/* Capabilities and elements, which say the most about scale, come first and larger; domains,
           documents, and relations are smaller secondary figures.
           ⚠️ The background is **the app ramp's `--color-overlay-1`**. It used to use a map-panel-only
-          token (`--topology-v2-panel-metric-surface`, alpha 0.03), but this card is not a map panel.
+          token (`--map-panel-metric-surface`, alpha 0.03), but this card is not a map panel.
           That put an alpha on screen that the app ramp does not have (the ramp is 0.02, 0.06, 0.10).
           `overlay-1` was already written as the fallback value, so the intended destination was known
           all along. The real difference is 0.01 of alpha. */}

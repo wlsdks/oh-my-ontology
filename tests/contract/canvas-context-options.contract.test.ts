@@ -27,10 +27,10 @@ import { describe, expect, it } from "vitest";
  * or is a buffer.
  */
 
-const MAIN_CANVAS = "src/widgets/topology-map-v2/ui/use-topology-loop.ts";
+const MAIN_CANVAS = "src/widgets/ontology-map/ui/use-topology-loop.ts";
 const OFFSCREEN = [
-  "src/widgets/topology-map-v2/render/grid.ts",
-  "src/widgets/topology-map-v2/render/animated-background.ts",
+  "src/widgets/ontology-map/render/grid.ts",
+  "src/widgets/ontology-map/render/animated-background.ts",
 ];
 
 function read(rel: string): string {

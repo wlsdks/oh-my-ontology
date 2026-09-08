@@ -42,7 +42,7 @@ import { readLibraryGraphInk, type LibraryGraphInk } from "../render/library-gra
  * **The engine behind the library canvas** — the clock, the pointer, and the paint.
  *
  * It lives beside `LibraryGraph.tsx` rather than inside it for the reason the map splits
- * `use-topology-loop` out of `TopologyMapV2`: the component is the screen's contract with
+ * `use-topology-loop` out of `OntologyMap`: the component is the screen's contract with
  * the Library — its props, its caption row, its legend and its accessibility description —
  * while everything here is a loop that must not re-run when that contract is edited. The
  * split also keeps the two files apart in a diff.
@@ -73,7 +73,7 @@ import { readLibraryGraphInk, type LibraryGraphInk } from "../render/library-gra
 /**
  * Distance the pointer must travel before a press becomes a drag.
  *
- * 7px is the map's measured value (`--topology-v2-hysteresis-px`). It is a literal here
+ * 7px is the map's measured value (`--map-hysteresis-px`). It is a literal here
  * rather than a read of that token because the token is scoped to the topology surface and
  * borrowing it would make this canvas a second consumer of a value the map is free to tune
  * for its own reasons; the number is the same because a person's hand is the same.

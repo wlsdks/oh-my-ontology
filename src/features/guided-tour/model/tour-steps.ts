@@ -6,7 +6,7 @@
  * An anchor is either a testid string (DOM) or a canvas-node (canvas projection).
  * This file imports no widgets or views (FSD forbids feature → widgets). The
  * actual DOM and canvas resolution belongs to `resolve-anchor-rect.ts` (testid)
- * and to HomePage/TopologyMapV2 (canvas-node).
+ * and to HomePage/OntologyMap (canvas-node).
  */
 
 export type TourPersona = "all" | "dev";
@@ -59,7 +59,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: "datasheet",
-    anchor: { type: "testid", value: "topology-v2-detail-panel" },
+    anchor: { type: "testid", value: "map-detail-panel" },
     persona: "all",
     copyKey: "datasheet",
   },

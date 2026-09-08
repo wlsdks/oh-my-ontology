@@ -52,7 +52,7 @@ import type { StageGraph } from '../lib/stage-graph';
  * origin live and measures equal side margins and resize tracking.
  *
  * [Retired 2026-08-18] The old camera reserve width (derived from
- * `--topology-v2-safe-inset-left`) was arithmetic from when the map was the background behind
+ * `--map-safe-inset-left`) was arithmetic from when the map was the background behind
  * the panel. Once the map moved down into its own (evidence) section the two became
  * structurally unable to overlap, and the derivation (`computeGatewaySafeInset`) and its
  * consumers were deleted.
@@ -881,7 +881,7 @@ function DemoSection() {
 /**
  * The map left the first screen (owner call) but did not disappear — it has its own section, as
  * **evidence**. When the section enters the viewport the real engine (`StageMap` →
- * `TopologyMapV2`) fires its arrival choreography (the homing spring) once, and the census
+ * `OntologyMap`) fires its arrival choreography (the homing spring) once, and the census
  * caption arrives after assembly completes (1400ms) — the numbers are the **result** of assembly.
  *
  * The caption's honesty contract is unchanged from before the remake: the number the caption
@@ -992,7 +992,7 @@ function EvidenceSection({ graph }: { graph: StageGraph }) {
          * Map 55 / real data 45 (owner report 2026-08-18 — in the full-width frame the graph used
          * 20% of the width and 80% was empty black). One half gives the graph a near-square frame
          * it fills by bbox fit (camera and tier reveal are in `StageMap` and
-         * `--topology-v2-overview-entry-ratio`), and the other half is filled by real data derived
+         * `--map-overview-entry-ratio`), and the other half is filled by real data derived
          * from the same graph (the kind census, verbatim relations, impact radius) — this section
          * is called evidence.
          */}

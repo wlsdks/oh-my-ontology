@@ -20,7 +20,7 @@ import "./atlas-map-probe";
 const DIRECTIONS = ["ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft"] as const;
 
 async function focusCanvas(page: import("@playwright/test").Page) {
-  const canvas = page.getByTestId("topology-map-v2-canvas");
+  const canvas = page.getByTestId("ontology-map-canvas");
   await canvas.waitFor({ state: "visible", timeout: 20_000 });
   await canvas.focus();
   await expect
@@ -188,12 +188,12 @@ test.describe("지도에 초점을 주는 길", () => {
     // contract instead of `__atlasMap.nodes()`: the latter is the interaction
     // instrument under test here and can be replaced during a dev remount.
     await expect
-      .poll(async () => Number(await page.getByTestId("topology-map-v2").getAttribute("data-source-node-count")), {
+      .poll(async () => Number(await page.getByTestId("ontology-map").getAttribute("data-source-node-count")), {
         timeout: 15_000,
       })
       .toBeGreaterThan(0);
     await page.keyboard.press("ArrowRight");
-    await expect(page.getByTestId("topology-v2-detail-panel")).toHaveAttribute(
+    await expect(page.getByTestId("map-detail-panel")).toHaveAttribute(
       "data-selected-node-id",
       /.+/,
       { timeout: 5_000 },
@@ -648,7 +648,7 @@ test.describe("지도 키보드 걷기", () => {
    * information.
    */
   test("캔버스 라벨이 여기서 되는 일을 먼저 말한다", async ({ page }) => {
-    const canvas = page.getByTestId("topology-map-v2-canvas");
+    const canvas = page.getByTestId("ontology-map-canvas");
     await canvas.waitFor({ state: "visible", timeout: 20_000 });
     const label = await canvas.getAttribute("aria-label");
     expect(label, "캔버스에 접근 이름이 없다").toBeTruthy();

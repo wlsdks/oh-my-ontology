@@ -298,7 +298,7 @@ graph. The separation is a property of the **walk**, not a filter applied later.
 src/
 ├── app/        providers, init code
 ├── views/      page-level components (1 view per route or group)
-├── widgets/    composite UI blocks (topology-map-v2, drawer, palette, …)
+├── widgets/    composite UI blocks (ontology-map, drawer, palette, …)
 ├── features/   single interaction units (form, picker, search, …)
 ├── entities/   business entities (project, ontology-class, …)
 └── shared/     UI primitives, lib helpers, config, types

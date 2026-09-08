@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { LABEL_TOP_K } from "../../src/widgets/topology-map-v2/model/label-lod";
+import { LABEL_TOP_K } from "../../src/widgets/ontology-map/model/label-lod";
 import { EVIDENCE_SPECIMEN } from "../../src/views/download/model/evidence-specimen.generated";
 
 /**
