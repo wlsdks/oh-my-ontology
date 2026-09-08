@@ -97,12 +97,18 @@ export function HeroAtlas({ graph, typed, total }: { graph: StageGraph; typed: n
             .filter((e) => kept.has(e.source) && kept.has(e.target))
             .map((e) => ({ a: e.source, b: e.target, y: e.kind as 'contains' | 'depends' })),
         },
-        {
-          onHover: setHover,
-          anchor: wide ? { x: 0.72, y: 0.52 } : { x: 0.5, y: 0.5 },
-          dim: wide ? 0.9 : 1,
-          distance: wide ? 6.1 : phone ? 6.2 : 5.6,
-        },
+        // Two placements, one breakpoint — the same pair the 2D engine had. Wide: the object
+        // stands beside the decision block, seen across. Narrow: the block spans the stage, so the
+        // object is the ground under it — anchored low, seen from above, and the type stays clear
+        // of its ink (`download-gateway-grid.spec.ts` measures the share under the block).
+        // Narrow places it the way the 2D engine did: centred 210px above the stage's bottom edge
+        // (the plinth band under the facts strip measures 352px; 210 keeps the near rim inside the stage), at a fixed width, seen from
+        // higher up. A phone's band is shorter, so the object is smaller and sits lower.
+        wide
+          ? { onHover: setHover, anchor: { x: 0.72, y: 0.52 }, dim: 0.9, distance: 6.1 }
+          : phone
+            ? { onHover: setHover, anchor: { x: 0.5, bottomPx: 140 }, dim: 0.75, fitPx: 300, pitch: 0.75 }
+            : { onHover: setHover, anchor: { x: 0.5, bottomPx: 210 }, dim: 0.75, fitPx: 440, pitch: 0.75 },
       );
       if (!handle) {
         setMode('fallback');

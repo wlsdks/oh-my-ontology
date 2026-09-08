@@ -30,7 +30,6 @@ import {
 import { StageMap, useStageGraph, type StageScriptedFocus } from './StageMap';
 import { GatewayFx } from './GatewayFx';
 import { HeroAtlas } from './HeroAtlas';
-import { AsciiMascot } from './AsciiMascot';
 import { SurfaceCapture } from './SurfaceCapture';
 import { AcpChatScene } from './AcpChatScene';
 import { useInViewOnce } from '../lib/use-in-view-once';
@@ -608,10 +607,6 @@ function HeroSection({
                 SmartScreen warning are the honest sentence for that slot. */}
             {heroWindowsPrimary ? t('trustLineWindows') : t('trustLine')}
           </p>
-          {/* The character, typed in after the decision (2026-09-08): the same mascot the
-              chrome carries, in the gateway's own medium, under the trust line where the split
-              hero had empty ground. It states nothing; it is the signature under the sentence. */}
-          <AsciiMascot start={heroIn} className="mt-10" />
         </div>
 
       </div>

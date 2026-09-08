@@ -616,7 +616,19 @@ test.describe("the decision block reads over the stage at every split width", ()
       const m = await page.evaluate(() => {
         const stage = document.querySelector('[data-testid="gateway-hero-object"]')!.getBoundingClientRect();
         const canvas = document.querySelector<HTMLCanvasElement>('[data-testid="gateway-hero-object"] canvas')!;
-        const ctx = canvas.getContext("2d")!;
+        // The hero is a WebGL canvas since 2026-09-08 (the 2D engine stays as its fallback), and a
+        // WebGL canvas has no 2D context to read; copy its last frame into one (the renderer keeps
+        // its drawing buffer so the copy is the frame just drawn).
+        const ctx =
+          canvas.getContext("2d") ??
+          (() => {
+            const copy = document.createElement("canvas");
+            copy.width = canvas.width;
+            copy.height = canvas.height;
+            const c2 = copy.getContext("2d")!;
+            c2.drawImage(canvas, 0, 0);
+            return c2;
+          })();
         const dpr = canvas.width / Math.max(1, canvas.getBoundingClientRect().width);
         const litShare = (el: Element): number => {
           const r = el.getBoundingClientRect();

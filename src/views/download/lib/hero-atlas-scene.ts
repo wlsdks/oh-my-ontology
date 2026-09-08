@@ -52,12 +52,27 @@ export interface AtlasOptions {
   tokenEl?: Element;
   reducedMotion?: boolean;
   onHover?: (slug: string | null) => void;
-  /** Where the object's centre sits, as fractions of the canvas. */
-  anchor?: { x: number; y: number };
+  /**
+   * Where the object's centre sits: fractions of the canvas, or — below the split, where the
+   * stage is a plinth under the stacked text — a fixed height above the canvas's bottom edge,
+   * the same `bottomPx` the 2D engine took.
+   */
+  anchor?: { x: number; y: number } | { x: number; bottomPx: number };
   /** Overall brightness multiplier for the stage (the wide split dims the ground). */
   dim?: number;
   /** Camera distance in object radii — larger draws the object smaller. */
   distance?: number;
+  /**
+   * The object's width on screen in CSS pixels; when set, the camera distance follows the
+   * canvas height so the object keeps this size across viewports (the 2D engine's `fitPx`).
+   */
+  fitPx?: number;
+  /**
+   * Camera pitch in radians above the object's plane. The split width looks across the cone
+   * (0.5); below it the object is the ground under the decision block and is seen from higher up,
+   * so it reads as a plane and keeps its ink out of the type.
+   */
+  pitch?: number;
 }
 
 export interface AtlasHandle {
@@ -104,7 +119,9 @@ function haloTexture(): THREE.Texture {
 export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts: AtlasOptions = {}): AtlasHandle | null {
   let renderer: THREE.WebGLRenderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
+    // `preserveDrawingBuffer`: the gates read the stage's pixels through a 2D copy of the last
+    // frame (`download-gateway-grid.spec.ts`), which a discarded buffer would hand back blank.
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power', preserveDrawingBuffer: true });
   } catch {
     return null;
   }
@@ -159,8 +176,9 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
   const ground = new THREE.Color(cssVar(rootEl, '--gateway-fx-deep', '#050506'));
   // Measured off the camera distance: the near side keeps its full ink, the far side loses about
   // half by the object's back edge, never all of it (the 2D engine's floor was 0.22).
-  const camDistance = opts.distance ?? 3.4;
+  let camDistance = opts.distance ?? 3.4;
   scene.fog = new THREE.Fog(ground, camDistance - 0.2, camDistance + 2.4);
+  const fog = scene.fog;
   const group = new THREE.Group();
   scene.add(group);
   scene.add(new THREE.HemisphereLight(0xdfe1ff, 0x0b0b10, 1.1));
@@ -309,8 +327,15 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
     H = Math.max(1, Math.round(rect.height));
     renderer.setSize(W, H, false);
     camera.aspect = W / H;
+    if (opts.fitPx) {
+      // A unit radius projects to (H/2)/(d·tan(fov/2)) pixels; solve for the distance that
+      // draws the object `fitPx` wide, and keep the fog ramp tied to that distance.
+      camDistance = H / (opts.fitPx * Math.tan((camera.fov * Math.PI) / 360));
+      fog.near = camDistance - 0.2;
+      fog.far = camDistance + 2.4;
+    }
     const ax = opts.anchor?.x ?? 0.5;
-    const ay = opts.anchor?.y ?? 0.5;
+    const ay = opts.anchor && 'bottomPx' in opts.anchor ? 1 - opts.anchor.bottomPx / H : (opts.anchor?.y ?? 0.5);
     // The view offset moves the projection's centre to the anchor, so the object sits where the
     // 2D engine put it (72%/60% at the split width) without moving the scene.
     camera.setViewOffset(W, H, (0.5 - ax) * W, (0.5 - ay) * H, W, H);
@@ -322,7 +347,7 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
   resize();
 
   const setCamera = (yaw: number, pitch: number): void => {
-    const d = opts.distance ?? 3.4;
+    const d = camDistance;
     camera.position.set(Math.sin(yaw) * Math.cos(pitch) * d, Math.sin(pitch) * d, Math.cos(yaw) * Math.cos(pitch) * d);
     camera.lookAt(0, -0.02, 0);
   };
@@ -431,7 +456,7 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
     tiltYaw += (tiltYawT - tiltYaw) * kt;
     tiltPitch += (tiltPitchT - tiltPitch) * kt;
     const yaw = (reduced ? 0.6 : (clock / PERIOD_MS) * Math.PI * 2) + 0.6 + tiltYaw;
-    setCamera(yaw, 0.5 + tiltPitch);
+    setCamera(yaw, (opts.pitch ?? 0.5) + tiltPitch);
     group.updateMatrixWorld(true);
     projectAll();
     if (pointer && !reduced) {

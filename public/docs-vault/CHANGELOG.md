@@ -47,7 +47,7 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: an MCP screen; Connectors from Notion, GitHub, Context7, Playwright or an atlas link. The Library graph pulls apart by hand; an empty stage, a stepper, an outside-notes door, a local model card; Check proposes nodes; a partly read source says so. Meaning asks reasons; Strata names planes. The map has weight and light; Architecture stacks planes; the wiki index is a shelf of spines.
+**Added**: the download hero is a lit three.js atlas of the real vault, and the page shows the map, Architecture and the Library before the demo; an MCP screen; Connectors from Notion, GitHub, Context7, Playwright or an atlas link. The Library graph pulls apart by hand; an empty stage, a stepper, an outside-notes door, a local model card; Check proposes nodes; a partly read source says so. Meaning asks reasons; Strata names planes. The map has weight and light; Architecture stacks planes; the wiki index is a shelf of spines.
 
 **Changed**: the Library index switches Sources and Wiki, folds, the graph fits. Connectors add from one list; Agents lists confirmations. Insights opens on four measures. Growth replay is a toggle. Codex chat runs the newest adapter. Glow, gradients and overshoot are allowed on tokens.
 
