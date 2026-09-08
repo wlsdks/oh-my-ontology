@@ -4143,8 +4143,13 @@
     },
     {
       "depth": 2,
-      "text": "2026-09-05 · Unreleased: changes since v1.0.6",
-      "slug": "2026-09-05-unreleased-changes-since-v106"
+      "text": "2026-09-09 · Unreleased: clearer Library reading and safer answer filing",
+      "slug": "2026-09-09-unreleased-clearer-library-reading-and-safer-answer-filing"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list",
+      "slug": "2026-09-09-v110-a-lit-gateway-a-library-graph-that-stays-beside-the-page-and-connectors-added-from-one-list"
     },
     {
       "depth": 2,
