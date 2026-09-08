@@ -889,8 +889,8 @@
       "tags": [],
       "frontmatter": {},
       "headings": [],
-      "excerpt": "Current scenario: one localized page clip · 55 seconds · one take · no speed changes · no audio · recorded separately in Korean and English. The X export is a separate Korean 23-second LNB overview and is not part of the page registry. The playback contract lives in src/views/download/ui/DemoStage.tsx. Asset registrati",
-      "wordCount": 1953,
+      "excerpt": "Current scenario: one localized page clip · 28 seconds · one take, with the agent's wait cut · no speed changes · no audio · recorded separately in Korean and English. The X export is a separate Korean 23-second LNB overview and is not part of the page registry. The playback contract lives in src/views/download/ui/Demo",
+      "wordCount": 2076,
       "updatedAt": "2026-09-08",
       "linksOut": []
     },

@@ -773,7 +773,7 @@
     "demoTitle": "설치 없이, 움직이는 것부터 봅니다",
     "demoSub": "개념을 고르면 관계와 근거가 남고, Codex가 같은 지도에서 두 개념 사이의 길을 찾습니다.",
     "demoAgentPrompt": "`get_concept`와 `find_path`만 써서 `capabilities/mcp-server`에서 `capabilities/topology-browsing`까지의 경로를 한 문장으로 설명해 줘. 파일은 바꾸지 마.",
-    "demoProvisionalNote": "{seconds}초. 편집도 빨리 감기도 없이 한 번에 찍었고, 소리는 없습니다.",
+    "demoProvisionalNote": "한 번에 찍은 {seconds}초. 에이전트가 생각하는 동안만 잘라냈고, 빨리 감기도 소리도 없습니다.",
     "evidenceTitle": "파일 맨 위 몇 줄이 지도가 됩니다",
     "evidenceSub": "왼쪽 지도는 이 저장소의 마크다운 폴더를 읽은 것입니다. 오른쪽은 그 폴더에 실제로 있는 파일 한 장입니다.",
     "specimenFileHeading": "저장소에 있는 파일",

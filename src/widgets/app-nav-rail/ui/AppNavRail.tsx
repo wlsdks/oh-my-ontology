@@ -16,7 +16,6 @@ import type {
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
-  BarChart3,
   Blocks,
   Bot,
   Download,
@@ -27,6 +26,7 @@ import {
   // with "Illegal constructor". The alias cannot collide with that global.
   History as HistoryIcon,
   Library,
+  LineChart,
   Map as MapIcon,
   Plug,
 } from "lucide-react";
@@ -258,7 +258,16 @@ export function AppNavRail({
      * of the two lists it opens.
      */
     { id: "library", href: DESTINATION_HREF.library, label: t("library"), Icon: Library },
-    { id: "insights", href: DESTINATION_HREF.insights, label: t("insights"), Icon: BarChart3 },
+    /*
+     * Why the icon is `LineChart` and not `BarChart3` (owner, 2026-09-08: *"these two icons
+     * are too alike to tell apart"*). The note above chose `Library` against the tile **above**
+     * it and never looked at the tile below: `Library` is a row of upright spines and
+     * `BarChart3` is a row of upright bars, so at 20px the two were one silhouette. The
+     * Library's own screen is built on that shelf of spines, so the chart moved instead —
+     * `LineChart` is a rising diagonal, the only stroke of its kind in this list, and it still
+     * says "measures", which is what this destination opens on.
+     */
+    { id: "insights", href: DESTINATION_HREF.insights, label: t("insights"), Icon: LineChart },
     { id: "projects", href: DESTINATION_HREF.projects, label: t("projects"), Icon: FolderKanban },
     // Agents — a new destination on 2026-08-20 (ledger 90). The install and connect
     // screens were pulled out of the settings sheet to here.
