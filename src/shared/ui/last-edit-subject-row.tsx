@@ -17,7 +17,7 @@ export interface LastEditSubjectRowProps {
 
 /**
  * rank7 (design-council B5) — last-edit provenance row, shared by
- * `DocFrontmatterBlock`, `TopologyV2DetailPanel`, and `FullDetailA1`.
+ * `DocFrontmatterBlock`, `OntologyMapDetailPanel`, and `FullDetailA1`.
  *
  * Human vs AI is distinguished ONLY by a lucide glyph (User/Bot) + plain
  * label — never by hue. The product identity is "agent-native,

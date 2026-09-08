@@ -7,7 +7,7 @@ tags: [design, ux, linear, circuit-constellation, overview]
 
 > This document is maintained based on Section 3 of the design spec. For the original Linear specification, see [`design-references/DESIGN-linear.md`](design-references/DESIGN-linear.md).
 >
-> **v2 (2026-07)**: The B2+ "Circuit × Constellation" visual language shipped from topology-map-v2 has become the standard for page rollout (gateway → docs/ontology hub → projects/insights → download) — see the *v2 — "Circuit × Constellation" (B2+) Visual Language* section below. v2 **extends** the v1 charter (monochrome + single indigo + forbidden patterns) rather than replacing it. On 2026-09-08 the owner lifted the expression bans of that charter; see "Absolute rules (Don'ts)" below for what was lifted and what still holds.
+> **v2 (2026-07)**: The B2+ "Circuit × Constellation" visual language shipped from ontology-map has become the standard for page rollout (gateway → docs/ontology hub → projects/insights → download) — see the *v2 — "Circuit × Constellation" (B2+) Visual Language* section below. v2 **extends** the v1 charter (monochrome + single indigo + forbidden patterns) rather than replacing it. On 2026-09-08 the owner lifted the expression bans of that charter; see "Absolute rules (Don'ts)" below for what was lifted and what still holds.
 
 ## How to Read This Document (For Humans and Agents)
 
@@ -85,36 +85,36 @@ Topology inspection, Workshop writing, Insights maintenance, and source docs.
 
 ## v2 — "Circuit × Constellation" (B2+) Visual Language
 
-> Fidelity standard: `docs/prototypes/topology-b2plus.html` (owner-approved, the only fidelity source). Implementation standard: `src/widgets/topology-map-v2/` + `--topology-v2-*` / `--topology-chrome-*` tokens in `app/globals.css`. The entire expression architecture is in [`TOPOLOGY-V2-DESIGN.md`](./TOPOLOGY-V2-DESIGN.md). This section is the **working rulebook** for extending that language to pages outside topology — it is not marketing copy.
+> Fidelity standard: `docs/prototypes/topology-b2plus.html` (owner-approved, the only fidelity source). Implementation standard: `src/widgets/ontology-map/` + `--map-*` / `--topology-chrome-*` tokens in `app/globals.css`. The entire expression architecture is in [`ONTOLOGY-MAP-DESIGN.md`](./ONTOLOGY-MAP-DESIGN.md). This section is the **working rulebook** for extending that language to pages outside topology — it is not marketing copy.
 
 ### v2 Language Definition — 6 Axes
 
-1. **Machined surface.** All shapes/cards read like "machined parts" with a 1px stroke + neutral fill tier. Canvas nodes allow only one monochrome vertical sheen (`--topology-v2-node-sheen-tint` + blend `0.6`) — it dissolves in the far-field, and DOM cards do not simulate sheen (the ban on decorative gradients remains from v1).
-2. **Engraved mono numerals.** Counts/aggregates use a mono font on a 1px dark shadow (`--topology-v2-numeral-shadow`) with a bright face (`--topology-v2-numeral-face`) — engraved, not printed. Numbers always point to actual data (node count · relationship count · census). Decorative numbers are forbidden.
-3. **Kind = shape, not color.** project=hex plate · domain=square chip (pin-tick) · capability=circle · element=pad+via (drill hole). The primary channel for kind distinction is **shape**, and color only subtly shifts the fill/stroke brightness tier. Panel/card kind miniatures reuse the same `--topology-v2-node-*` tokens as the canvas. Do not revert to UI that distinguishes kind by color.
-4. **Signal = State (power/pulse).** Indigo means "powered on" — fresh node stroke, powered dot (`--topology-v2-panel-power-on`), active highlight. Comet pulse means "current flowing" — live traversal of `depends` relationships (accelerated from ego, `--topology-v2-edge-pulse-speed[-ego]`). Stale uses dashed border + low-chroma surface. Do not use signal color if it does not explain the state.
+1. **Machined surface.** All shapes/cards read like "machined parts" with a 1px stroke + neutral fill tier. Canvas nodes allow only one monochrome vertical sheen (`--map-node-sheen-tint` + blend `0.6`) — it dissolves in the far-field, and DOM cards do not simulate sheen (the ban on decorative gradients remains from v1).
+2. **Engraved mono numerals.** Counts/aggregates use a mono font on a 1px dark shadow (`--map-numeral-shadow`) with a bright face (`--map-numeral-face`) — engraved, not printed. Numbers always point to actual data (node count · relationship count · census). Decorative numbers are forbidden.
+3. **Kind = shape, not color.** project=hex plate · domain=square chip (pin-tick) · capability=circle · element=pad+via (drill hole). The primary channel for kind distinction is **shape**, and color only subtly shifts the fill/stroke brightness tier. Panel/card kind miniatures reuse the same `--map-node-*` tokens as the canvas. Do not revert to UI that distinguishes kind by color.
+4. **Signal = State (power/pulse).** Indigo means "powered on" — fresh node stroke, powered dot (`--map-panel-power-on`), active highlight. Comet pulse means "current flowing" — live traversal of `depends` relationships (accelerated from ego, `--map-edge-pulse-speed[-ego]`). Stale uses dashed border + low-chroma surface. Do not use signal color if it does not explain the state.
 5. **Calm chrome / fluid canvas boundary.** The canvas is fluid — spring camera, altitude crossfade (circuit ↔ constellation smoothstep), breathe. Chrome (panels/rails/pills) is static precision instrumentation — read as measurement tools rather than touch surfaces on 1920 desktops via `--topology-chrome-*` density (controls 32~36px, icons 11~12px, title 12px, eyebrow 9px). Fluid motion does not leak outside the canvas.
-6. **Indigo is the resting protagonist; amber marks one hub ring.** Since 2026-09-08 a further hue is allowed when it names a typed fact or a decision (a tier, a state, a lens) through a `--color-*` token; the earlier cyan rejection (TOPOLOGY-V2-DESIGN verdict a5) was about a hue that named nothing, and that test still applies.
+6. **Indigo is the resting protagonist; amber marks one hub ring.** Since 2026-09-08 a further hue is allowed when it names a typed fact or a decision (a tier, a state, a lens) through a `--color-*` token; the earlier cyan rejection (ONTOLOGY-MAP-DESIGN verdict a5) was about a hue that named nothing, and that test still applies.
 
 ### v2 Token Catalog — By Tier
 
-The source of truth for values is `app/globals.css` alone. Canvas 2D cannot read CSS variables directly, so `src/widgets/topology-map-v2/tokens/read-topology-v2-tokens.ts` parses and caches them once via `getComputedStyle`.
+The source of truth for values is `app/globals.css` alone. Canvas 2D cannot read CSS variables directly, so `src/widgets/ontology-map/tokens/read-map-tokens.ts` parses and caches them once via `getComputedStyle`.
 
 | Tier | Token | When to use |
 |---|---|---|
-| **Surface** | `--topology-v2-canvas-bg-near/-far` · `--topology-v2-grid-minor/-major` · `--topology-v2-dome-ring`(3D cone-base ring — consumed only in 3D view. Upper bound of values is the floor of data ink `--topology-v2-ink-depth-leaf`, rationale in the same-name standalone comment in `app/globals.css`) · `--topology-v2-vignette-*-alpha` · `--topology-v2-node-fill-{project,domain,capability,element,dim,stale}` · `--topology-v2-node-hole-fill` · `--topology-v2-node-sheen-tint/-blend` · `--topology-v2-panel-surface/-border/-divider/-shadow/-row-hover/-metric-surface/-action-surface` | Backgrounds, shape bodies, panel bases. If you need a new surface, add a token to this tier — direct hex in JSX/canvas is forbidden |
-| **Stroke** | `--topology-v2-node-stroke-{project,domain,capability,element,dim,stale}` · `--topology-v2-edge-contains/-depends/-dim` · `--topology-v2-hull-stroke` · `--topology-v2-edge-contains-mark/-depends-mark` · `--topology-v2-panel-action-border` | 1px machined outlines + relationship trace ink. contains=solid, depends=dashed — this distinction can be ported to page dividers |
-| **Text ladder** | `--topology-v2-label-{project,domain,capability,element}` · `--topology-v2-numeral-shadow/-face` · `--topology-v2-panel-text-{primary,secondary,tertiary,quaternary}` · `--topology-v2-panel-metric-text` | 4-step ladder darkening as kind decreases. Panel tertiary is nudged to `#868690` for 10px AA contrast (Guardian follow-up #2) — do not arbitrarily unify with canvas values; there is a reason they differ |
-| **Signal** | `--topology-v2-indigo`(=`--color-indigo-brand`) · `--topology-v2-indigo-bright` · `--topology-v2-amber-hub` · `--topology-v2-panel-power-on/-off` | Power/pulse/focus/hub. Signal colors without state description are forbidden |
-| **Selection ladder** | `--topology-v2-indigo`(node selection, **solid**) · `--topology-v2-edge-selected`(edge pair focus, pale indigo) · `--topology-v2-expanded-cohort`(expanded cohort, **desaturated indigo dashed**) | These three states diverge only in saturation/value/geometric (solid/dashed) within the **same indigo axis** — adding new hues is forbidden. Expanded cohort = affiliation ring of direct children revealed via cluster chips (`+N`); parents maintain protagonist status with saturated indigo dashed aura. Answer to owner's request "distinguish expanded items from selection blue" in the charter |
-| **Density · geometry** | `--topology-v2-radius-*` · `--topology-v2-layout-ring-*` · `--topology-v2-edge-bow/-blend-*` · `--topology-v2-star-count` · `--topology-v2-dust-area-per-point` · `--topology-v2-safe-inset-*` · `--topology-v2-panel-width/-pad/-gap/-radius/-row-radius` · `--topology-v2-label-max-width` | Mix of world-unit numbers (unitless, consumed by canvas) and px (consumed by DOM) — adhere to consumption annotations in comments |
-| **INDEX panel geometry** (B3) | `--topology-index-width`(300px) · `--topology-index-tab-width`(26px) · `--topology-index-inset`(= `--chrome-inset`, 24px) · `--topology-index-top`(84px) | Dedicated to `TopologyIndexPanel`/`TopologyIndexTab` — px, DOM-only (not consumed by canvas). Do not create new surface/border/shadow/padding; reuse existing `--topology-v2-panel-*` (Surface tier). `-top` fixes owner live-QA defect — since `topology-top-left-chrome-group` (Relief brand pill) already occupies the top-32px band, INDEX/tab starts below it (`TopologyAnalysisBar` used the same clearance) |
-| **Motion** | `--topology-v2-camera-*`(spring/damping/momentum/flick/**-max-zoom-ratio**) · `--topology-v2-altitude-*-ratio` · `--topology-v2-overview-entry-ratio` · `--topology-v2-focus-*` · `--topology-v2-emphasis-*-tau` · `--topology-v2-ripple-stagger-ms` · `--topology-v2-breathe-*` · `--topology-v2-pulse-duration-ms` · `--topology-v2-tip-fade-ms` · `--topology-v2-edge-pulse-speed[-ego]` · `--topology-v2-drag-tug-1hop/-2hop` · `--topology-v2-mass-heavy-degree` · `--topology-v2-mass-angfreq` · `--topology-v2-mass-heavy-zeta` · `--topology-v2-mass-drop-max-px` · `--topology-v2-press-angfreq` · `--topology-v2-press-zeta` · `--topology-v2-ego-glow-blur-px` · `--topology-v2-ego-glow-alpha` · `--topology-v2-node-bloom-blur-px` · `--topology-v2-node-bloom-alpha` | Canvas fluidity only. **Mass · drop · press · light (2026-09-08, after the overshoot ban was lifted):** a node's mass is its degree on a smoothstep; a heavy node's release spring is underdamped (one overshoot under a radius step) and a light one critical, and mass rides ζ alone — `mass-angfreq` is one ω for every node because the stability bound and the ω the map wants are the same 16; a released node carries the hand's velocity past the drop point up to `mass-drop-max-px`; the hovered node swells on an underdamped step (`press-*`); the focused node blooms and its lines glow on the focus ramp, and the hovered node blooms on its emphasis ramp (`ego-glow-*`, `node-bloom-*`) — light marks the one thing the hand is on, nothing at rest glows (`expressive/mass-spring.ts`). A ground halo sized by the farthest 1-hop neighbour was built and cut the same day: measured over 36 focus states it enclosed 290 non-neighbours out of 410 nodes and gave a degree-3 node the same radius as a degree-15 one, so the reach it drew was the layout's, not the graph's (design council, 2026-09-08). DOM chrome uses existing `--topology-motion-*` (180/420/720ms). `camera-max-zoom-ratio` is viewport-relative effective zoom upper bound (C1 A1); `drag-tug-1hop/-2hop` are neighbor propagation factors on node drag (C1 B1). Dive-zoom fix: `camera-spring-angfreq` split into `-interactive`(15, wheel zoom scale-axis + pan, crisp)/`-transition`(4.7, focus dive/release/rearrange/fit-view, cinematic 1.0s) — previous single value (2.941) made wheel zoom feel as slow as dive. `focus-bbox-margin` is now a multiplicative ratio (1.15; previously fixed 70px) — fixed issue where dive excessively enlarged ego bbox (owner: over-enlargement/label collision). **`camera-pan-leash`**(2026-07-29) is the world radius within which camera can deviate from fit when unfocused — `0`(default) = off = previous envelope (world bbox ± 320). Activates only on surfaces without "map align" chrome (gate `/download` = 220): allowing irreversible pan on screens with no way back leaves the stage empty (measured 2026-07-29: one hard left pull increases reserved column band ink by +12.6%, decay 0 after 12s → leash reduces it to −0.09%). Reference is fit itself, not bbox, so it's independent of vault size — `computeUnfocusedPanBounds` |
+| **Surface** | `--map-canvas-bg-near/-far` · `--map-grid-minor/-major` · `--map-dome-ring`(3D cone-base ring — consumed only in 3D view. Upper bound of values is the floor of data ink `--map-ink-depth-leaf`, rationale in the same-name standalone comment in `app/globals.css`) · `--map-vignette-*-alpha` · `--map-node-fill-{project,domain,capability,element,dim,stale}` · `--map-node-hole-fill` · `--map-node-sheen-tint/-blend` · `--map-panel-surface/-border/-divider/-shadow/-row-hover/-metric-surface/-action-surface` | Backgrounds, shape bodies, panel bases. If you need a new surface, add a token to this tier — direct hex in JSX/canvas is forbidden |
+| **Stroke** | `--map-node-stroke-{project,domain,capability,element,dim,stale}` · `--map-edge-contains/-depends/-dim` · `--map-hull-stroke` · `--map-edge-contains-mark/-depends-mark` · `--map-panel-action-border` | 1px machined outlines + relationship trace ink. contains=solid, depends=dashed — this distinction can be ported to page dividers |
+| **Text ladder** | `--map-label-{project,domain,capability,element}` · `--map-numeral-shadow/-face` · `--map-panel-text-{primary,secondary,tertiary,quaternary}` · `--map-panel-metric-text` | 4-step ladder darkening as kind decreases. Panel tertiary is nudged to `#868690` for 10px AA contrast (Guardian follow-up #2) — do not arbitrarily unify with canvas values; there is a reason they differ |
+| **Signal** | `--map-indigo`(=`--color-indigo-brand`) · `--map-indigo-bright` · `--map-amber-hub` · `--map-panel-power-on/-off` | Power/pulse/focus/hub. Signal colors without state description are forbidden |
+| **Selection ladder** | `--map-indigo`(node selection, **solid**) · `--map-edge-selected`(edge pair focus, pale indigo) · `--map-expanded-cohort`(expanded cohort, **desaturated indigo dashed**) | These three states diverge only in saturation/value/geometric (solid/dashed) within the **same indigo axis** — adding new hues is forbidden. Expanded cohort = affiliation ring of direct children revealed via cluster chips (`+N`); parents maintain protagonist status with saturated indigo dashed aura. Answer to owner's request "distinguish expanded items from selection blue" in the charter |
+| **Density · geometry** | `--map-radius-*` · `--map-layout-ring-*` · `--map-edge-bow/-blend-*` · `--map-star-count` · `--map-dust-area-per-point` · `--map-safe-inset-*` · `--map-panel-width/-pad/-gap/-radius/-row-radius` · `--map-label-max-width` | Mix of world-unit numbers (unitless, consumed by canvas) and px (consumed by DOM) — adhere to consumption annotations in comments |
+| **INDEX panel geometry** (B3) | `--topology-index-width`(300px) · `--topology-index-tab-width`(26px) · `--topology-index-inset`(= `--chrome-inset`, 24px) · `--topology-index-top`(84px) | Dedicated to `TopologyIndexPanel`/`TopologyIndexTab` — px, DOM-only (not consumed by canvas). Do not create new surface/border/shadow/padding; reuse existing `--map-panel-*` (Surface tier). `-top` fixes owner live-QA defect — since `topology-top-left-chrome-group` (Relief brand pill) already occupies the top-32px band, INDEX/tab starts below it (`TopologyAnalysisBar` used the same clearance) |
+| **Motion** | `--map-camera-*`(spring/damping/momentum/flick/**-max-zoom-ratio**) · `--map-altitude-*-ratio` · `--map-overview-entry-ratio` · `--map-focus-*` · `--map-emphasis-*-tau` · `--map-ripple-stagger-ms` · `--map-breathe-*` · `--map-pulse-duration-ms` · `--map-tip-fade-ms` · `--map-edge-pulse-speed[-ego]` · `--map-drag-tug-1hop/-2hop` · `--map-mass-heavy-degree` · `--map-mass-angfreq` · `--map-mass-heavy-zeta` · `--map-mass-drop-max-px` · `--map-press-angfreq` · `--map-press-zeta` · `--map-ego-glow-blur-px` · `--map-ego-glow-alpha` · `--map-node-bloom-blur-px` · `--map-node-bloom-alpha` | Canvas fluidity only. **Mass · drop · press · light (2026-09-08, after the overshoot ban was lifted):** a node's mass is its degree on a smoothstep; a heavy node's release spring is underdamped (one overshoot under a radius step) and a light one critical, and mass rides ζ alone — `mass-angfreq` is one ω for every node because the stability bound and the ω the map wants are the same 16; a released node carries the hand's velocity past the drop point up to `mass-drop-max-px`; the hovered node swells on an underdamped step (`press-*`); the focused node blooms and its lines glow on the focus ramp, and the hovered node blooms on its emphasis ramp (`ego-glow-*`, `node-bloom-*`) — light marks the one thing the hand is on, nothing at rest glows (`expressive/mass-spring.ts`). A ground halo sized by the farthest 1-hop neighbour was built and cut the same day: measured over 36 focus states it enclosed 290 non-neighbours out of 410 nodes and gave a degree-3 node the same radius as a degree-15 one, so the reach it drew was the layout's, not the graph's (design council, 2026-09-08). DOM chrome uses existing `--topology-motion-*` (180/420/720ms). `camera-max-zoom-ratio` is viewport-relative effective zoom upper bound (C1 A1); `drag-tug-1hop/-2hop` are neighbor propagation factors on node drag (C1 B1). Dive-zoom fix: `camera-spring-angfreq` split into `-interactive`(15, wheel zoom scale-axis + pan, crisp)/`-transition`(4.7, focus dive/release/rearrange/fit-view, cinematic 1.0s) — previous single value (2.941) made wheel zoom feel as slow as dive. `focus-bbox-margin` is now a multiplicative ratio (1.15; previously fixed 70px) — fixed issue where dive excessively enlarged ego bbox (owner: over-enlargement/label collision). **`camera-pan-leash`**(2026-07-29) is the world radius within which camera can deviate from fit when unfocused — `0`(default) = off = previous envelope (world bbox ± 320). Activates only on surfaces without "map align" chrome (gate `/download` = 220): allowing irreversible pan on screens with no way back leaves the stage empty (measured 2026-07-29: one hard left pull increases reserved column band ink by +12.6%, decay 0 after 12s → leash reduces it to −0.09%). Reference is fit itself, not bbox, so it's independent of vault size — `computeUnfocusedPanBounds` |
 | **Chrome density (global)** | `--topology-chrome-control-height[-compact]` · `--topology-chrome-badge-size[-compact]` · `--topology-chrome-icon-size[-sm]` · `--topology-chrome-gap/-radius/-title-size/-eyebrow-size/-shadow` (+ `--topology-utility-lane-*` alias) | Single reference for instrument density. Desktop control clusters on new pages inherit this — reintroducing touch size inflation is forbidden |
 
 **Scope note**:
 
-- `--topology-v2-*` is a family consumed **only behind the feature flag `topology-map-v2`**. Maintain it so that grepping for `--topology-v2-` reveals the scope of new/old replacement when P6 engine is deleted — if other pages reference this family directly, the contract breaks. If page rollout needs the same value, **promote to global token** (rename + update this document) first.
+- `--map-*` is a family consumed **only behind the feature flag `ontology-map`**. Maintain it so that grepping for `--map-` reveals the scope of new/old replacement when P6 engine is deleted — if other pages reference this family directly, the contract breaks. If page rollout needs the same value, **promote to global token** (rename + update this document) first.
 - `--topology-chrome-*` is already global (HomePage renders outside the render engine; map-v2 inherits it; old map-canvas/sigma-graph engines are deleted via #344). Page rollout chrome density uses this family directly.
 - Dark only — after the 2026-07-19 decision to fully retire light mode, this family defines dark values only (see guard below).
 
@@ -141,7 +141,7 @@ Rollout order: gateway → docs(`/docs` Source Vault)/ontology hub(`/ontology`) 
 - `--engraved-numeral-face` / `--engraved-numeral-text-shadow` — Engraved mono numerals. Dark-only values copied directly from v2 numeral values.
 - `--kind-glyph-stroke-{project,domain,capability,element}` /
   `--kind-glyph-fill-{project,domain,capability,element}` /
-  `--kind-glyph-edge-contains` / `--kind-glyph-edge-relates` — Kind glyph miniatures (hex/chip/circle/pad) and trace ink. **Copied** from v2 node/edge-mark values (not var() references — maintaining the P6 `--topology-v2-` grep contract). Consumers:
+  `--kind-glyph-edge-contains` / `--kind-glyph-edge-relates` — Kind glyph miniatures (hex/chip/circle/pad) and trace ink. **Copied** from v2 node/edge-mark values (not var() references — maintaining the P6 `--map-` grep contract). Consumers:
   Introduction section of `src/views/download/ui/DownloadPage.tsx`
   (formerly LandingPage, migrated to root-first-open Slice 2 — markers
   `data-token="engraved-numeral"` / `data-token="kind-glyph"`).
@@ -188,8 +188,8 @@ All [Absolute rules](#absolute-rules-donts) from v1 remain valid. Additional v2-
 - ❌ Tokenless `clamp(...)` / shadow / easing in JSX — adding visual values without tokens or markers is prohibited (page extension of v1 Tokenization Contract)
 - ❌ Touch-density chrome on desktop — 48px+ controls, touch padding inflation
 - ❌ Ego-focus dim with low alpha — dim must use opaque tokens
-  (`--topology-v2-node-fill/stroke-dim`) only. Alpha is allowed only for global atmospheric crossfades (grid/dust/vignette/hints) (precedent of WebGL low-alpha opacity composition defects)
-- ❌ Directly referencing `--topology-v2-*` on pages outside topology (promote globally first)
+  (`--map-node-fill/stroke-dim`) only. Alpha is allowed only for global atmospheric crossfades (grid/dust/vignette/hints) (precedent of WebGL low-alpha opacity composition defects)
+- ❌ Directly referencing `--map-*` on pages outside topology (promote globally first)
 - ❌ Secondary coloring (cyan, etc.) — rejected per Guardian precedent, even for data mark justification
 
 ### Guard (Page rollout process)
@@ -199,23 +199,23 @@ All [Absolute rules](#absolute-rules-donts) from v1 remain valid. Additional v2-
   full light mode retirement on 2026-07-19).
 - New tokens follow the v1 Tokenization Contract: explicitly state product reason, state/layer,
   responsive fallback, and WebView/test marker.
-- v2 widget regression gate: `pnpm exec vitest run src/widgets/topology-map-v2`.
+- v2 widget regression gate: `pnpm exec vitest run src/widgets/ontology-map`.
 
 ### Fan — Token drift audit (2026-07-18)
 
 List of hardcodes bypassing token families. **This pass records only; it does not fix** — each item will be resolved in subsequent cycles via token promotion or intentional documentation.
 
-`src/widgets/topology-map-v2/`:
+`src/widgets/ontology-map/`:
 
 - `render/starfield.ts:75` — Star-dust ink `rgba(236,236,240,…)` literal
   (alpha only syncs with farT, ink color is not tokenized).
 - `render/grid.ts:147-148` — Vignette ink `rgba(3,3,4,…)` literal (alpha uses
-  `--topology-v2-vignette-*-alpha` token, but the color itself is not tokenized).
+  `--map-vignette-*-alpha` token, but the color itself is not tokenized).
 - `render/labels.ts:50-53` — Kind-specific label font stack/size hardcode
   (`"600 13px -apple-system, 'SF Pro Text', …"` etc., 4 variants). A faithful prototype copy but inconsistent with the app body font (Inter Variable) — need to determine if intentional or drift in a subsequent decision.
 - `drawEngraved()` in `render/node-shapes.ts` — Engraved numeral font `600 ${size}px ui-monospace…`
   family/weight hardcoded (referencing symbol name; corrected on 2026-08-01 — previously pointed to line `:201`, but if code moves, it silently points to the wrong place).
-- `ui/TopologyV2DetailPanel.tsx` — Colors all use `--topology-v2-panel-*` tokens,
+- `ui/OntologyMapDetailPanel.tsx` — Colors all use `--map-panel-*` tokens,
   but **the type ladder is not tokenized**: many arbitrary values like `text-[10px]`~`text-[13.5px]` ·
   `tracking-[0.12em]` · `pl-[30px]` · `h-[6px]`. The old node-popover family had compact type tokens, so the v2 panel is also a candidate for promotion.
 
@@ -238,16 +238,16 @@ List of hardcodes bypassing token families. **This pass records only; it does no
 
 Intentional deviations between prototype and shipped code (not drift, for reference):
 
-- The default overview is tight-fit (towards the star) in the prototype, but enters from the circuit side in shipping with `--topology-v2-overview-entry-ratio: 0.95`.
-- `--topology-v2-edge-pulse-speed-ego`(0.2) is an added lead spec not present in the prototype ("more current flows through selected nodes").
-- The **Cone (3D) view fits itself**, not through the 2D overview fit: `--topology-v2-dome-fit-fill`(0.98) with `--topology-v2-dome-fit-inset-top`(104) and `--topology-v2-dome-fit-inset-bottom`(32), against the canvas minus the **measured** panel obstruction (`measureCanvasInsets`) rather than the static `--topology-v2-safe-inset-*`. Why it is its own fit: the 2D reservations describe things the cone never draws — the docking chips inside `safe-inset-top`(148) are a density device, `safe-inset-bottom`(96) plus its label allowance is a 2D bottom-row reservation, and the side values are static guesses at panels the measurement already knows the width of. Fitted through them, and padded 15% a side on top, the cone measured **602 x 620 px on a 1532 x 1080 free canvas at 1920 — 22.6%** (2026-09-05, sample vault). The bottom band is the instrument readout row; `domeFitFill` is the only padding term, because two multiplied paddings is how the old number got small without anyone choosing it. The top band is **104, not the tool lane's own 66**: the label pipeline culls against `--topology-v2-safe-inset-top`(148) and a project label is *protected* there, so it clamps to the inset edge instead of culling and carries the clamp shift into its flipped slot. At 80 the apex centre landed at y=101 (1920) and y=99 (1440), above that line — the apex ring ran through its own name at 1920, and at 1440 the name sat 43px below its disc, 9px under an unlabelled neighbour (guardian measurement, 2026-09-05). At 104 the apex sits near 125 and flips above cleanly at every width, and the fill stays over the floor (62% at 1920, 70% at 1440). Decision logic: `topology-camera-math.ts#computeDomeFitCameraTarget`; gate: `tests/contract/cone-fit-fill.contract.test.ts`.
-- `--topology-v2-safe-inset-*` is a concept absent from the panel-less prototype — a width correction for analysis panels/popover rails covering the canvas in the shipping environment.
-- The data sheet panel (`TopologyV2DetailPanel`) itself is a surface added after the prototype (only tip existed) — the instrument density contract's truth source is §2.6 token block.
+- The default overview is tight-fit (towards the star) in the prototype, but enters from the circuit side in shipping with `--map-overview-entry-ratio: 0.95`.
+- `--map-edge-pulse-speed-ego`(0.2) is an added lead spec not present in the prototype ("more current flows through selected nodes").
+- The **Cone (3D) view fits itself**, not through the 2D overview fit: `--map-dome-fit-fill`(0.98) with `--map-dome-fit-inset-top`(104) and `--map-dome-fit-inset-bottom`(32), against the canvas minus the **measured** panel obstruction (`measureCanvasInsets`) rather than the static `--map-safe-inset-*`. Why it is its own fit: the 2D reservations describe things the cone never draws — the docking chips inside `safe-inset-top`(148) are a density device, `safe-inset-bottom`(96) plus its label allowance is a 2D bottom-row reservation, and the side values are static guesses at panels the measurement already knows the width of. Fitted through them, and padded 15% a side on top, the cone measured **602 x 620 px on a 1532 x 1080 free canvas at 1920 — 22.6%** (2026-09-05, sample vault). The bottom band is the instrument readout row; `domeFitFill` is the only padding term, because two multiplied paddings is how the old number got small without anyone choosing it. The top band is **104, not the tool lane's own 66**: the label pipeline culls against `--map-safe-inset-top`(148) and a project label is *protected* there, so it clamps to the inset edge instead of culling and carries the clamp shift into its flipped slot. At 80 the apex centre landed at y=101 (1920) and y=99 (1440), above that line — the apex ring ran through its own name at 1920, and at 1440 the name sat 43px below its disc, 9px under an unlabelled neighbour (guardian measurement, 2026-09-05). At 104 the apex sits near 125 and flips above cleanly at every width, and the fill stays over the floor (62% at 1920, 70% at 1440). Decision logic: `topology-camera-math.ts#computeDomeFitCameraTarget`; gate: `tests/contract/cone-fit-fill.contract.test.ts`.
+- `--map-safe-inset-*` is a concept absent from the panel-less prototype — a width correction for analysis panels/popover rails covering the canvas in the shipping environment.
+- The data sheet panel (`OntologyMapDetailPanel`) itself is a surface added after the prototype (only tip existed) — the instrument density contract's truth source is §2.6 token block.
 - Panel tertiary text `#868690` is an AA contrast nudge from prototype `#77777f` (Guardian follow-up #2).
 
 ## Node Spec (Node Spec, 2026-08-01)
 
-> The token **names** (`--kind-glyph-*`, `--topology-v2-radius-*`) already existed. This
+> The token **names** (`--kind-glyph-*`, `--map-radius-*`) already existed. This
 > section fills in what those names **mean** — the rationale for shape mapping, why the radius is that value, why size follows child count, and when numerals appear. Response to owner directive (2026) "Node specs and other info should also go into the design system."
 > Code references use **symbol names** — line numbers silently point to wrong places if code moves by even one line (the `node-shapes.ts:201` reference in the "Fan" section above is that failure case, corrected here to symbol names).
 
@@ -266,7 +266,7 @@ working channels, so kind is carried by shape.
 | kind | shape | canvas source | DOM source |
 
 |---|---|---|---|
-| `project` | hex plate | `hexPoints()` → `bodyPoints()` (`render/node-shapes.ts`) | `<polygon>` (`shared/ui/topology-v2-kind-glyph.tsx`) |
+| `project` | hex plate | `hexPoints()` → `bodyPoints()` (`render/node-shapes.ts`) | `<polygon>` (`shared/ui/map-kind-glyph.tsx`) |
 
 | `domain` | square chip (4 pin-tick legs) | `squarePoints()` → `bodyPoints()` | `<rect>` |
 
@@ -275,9 +275,9 @@ working channels, so kind is carried by shape.
 | `element` | square + center via-hole (drill hole) | `bodyPoints()` body + separate via arc in `draw()` | `<rect>` + center `<circle>` |
 
 
-**Both gateways must render the same mapping** — merely listing it in the table isn't enough to enforce this (consistent with the principle "specs are enforced by lint"). Each file has only validated consistency within itself (`node-shapes.test.ts`, `topology-v2-kind-glyph.test.tsx`), meaning nothing checked whether the two files **shared** the same mapping. The contract test `tests/contract/node-kind-shape-parity.contract.test.ts` (added 2026-08-01) fills this gap: we broke one side's mapping with a probe to confirm failure (e.g., forcing it to draw domain silhouettes as circles is immediately caught).
+**Both gateways must render the same mapping** — merely listing it in the table isn't enough to enforce this (consistent with the principle "specs are enforced by lint"). Each file has only validated consistency within itself (`node-shapes.test.ts`, `map-kind-glyph.test.tsx`), meaning nothing checked whether the two files **shared** the same mapping. The contract test `tests/contract/node-kind-shape-parity.contract.test.ts` (added 2026-08-01) fills this gap: we broke one side's mapping with a probe to confirm failure (e.g., forcing it to draw domain silhouettes as circles is immediately caught).
 
-Shapes converge to circles based on `farT` (far-distance progress) — once `FULL_CIRCLE_FAR_T = 0.985` is exceeded, they are always circles. Corner radii interpolate from `minCornerRadius`(kind-specific minimum corner ratio — e.g., project is 14% of the radius) to `r`(full circle) via `interpolateCornerRadius(minCornerRadius(kind, r), r, farT)` — this is a continuous morph, not a silhouette swap (`docs/TOPOLOGY-V2-DESIGN.md` §3.1).
+Shapes converge to circles based on `farT` (far-distance progress) — once `FULL_CIRCLE_FAR_T = 0.985` is exceeded, they are always circles. Corner radii interpolate from `minCornerRadius`(kind-specific minimum corner ratio — e.g., project is 14% of the radius) to `r`(full circle) via `interpolateCornerRadius(minCornerRadius(kind, r), r, farT)` — this is a continuous morph, not a silhouette swap (`docs/ONTOLOGY-MAP-DESIGN.md` §3.1).
 
 Decorations (pin-tick, via-hole, double hairline) are material expressions rather than silhouettes and are drawn only under the radius-`farT` gate (fading at a distance). The threshold is defined by the top constant block in `node-shapes.ts` (`DOMAIN_PIN_MIN_HALF_EXTENT`, etc.) as the single source of truth — do not duplicate values in this document (duplication is the start of drift, Carbon).
 
@@ -288,10 +288,10 @@ The node icon set (geometry/lines, see "Personalization" section #21 below) neve
 | kind | world radius | token |
 
 |---|---|---|
-| project | 30 | `--topology-v2-radius-project` |
-| domain | 17 | `--topology-v2-radius-domain` |
-| capability | 11 | `--topology-v2-radius-capability` |
-| element | 7 | `--topology-v2-radius-element` |
+| project | 30 | `--map-radius-project` |
+| domain | 17 | `--map-radius-domain` |
+| capability | 11 | `--map-radius-capability` |
+| element | 7 | `--map-radius-element` |
 
 `radiusForKind()` (`ui/topology-world.ts`) is the single lookup point. The values themselves are a **design decision** enforcing a strict hierarchy, so lint/contract tests cannot judge them — changing them requires re-convergence at the same evidence level (45 rounds of research + systematic review) as described in the "Map Ink Ladder" section.
 
@@ -311,9 +311,9 @@ scale = clamp(1, 1.4, 1 + k × (√childCount − 1) / √maxChildCount)
 - **`childCount ≤ 1` also uses base (1.0)** — the previous log compression reduced nodes below the median to *below* base, creating a false signal of "small node." Now it's always at least base, signaling only "this node is unusually large" and never "unusually small."
 - **Why √?** — It's gentler than log, preventing excessive compression of gaps while still compressing large differences. The goal is to provide ranking cues ("which is larger"), not proportional claims like a bar chart (Shneiderman overview-first — detailed comparison is for after clicking).
 
-  ⚠️ **2026-08-01 Measurement Correction**: The `--topology-v2-radius-magnitude-k` token comment in `app/globals.css` read "log compression" until just before writing this section — the actual implementation (`computeMagnitudeScale`) had already switched to **√ (square root)** compression, but the comment hadn't caught up. This is left here as an example of what happens when the same fact is written in two places (code comment + this doc): one gets fixed while the other silently remains wrong. The comment has now been corrected along with this discovery.
+  ⚠️ **2026-08-01 Measurement Correction**: The `--map-radius-magnitude-k` token comment in `app/globals.css` read "log compression" until just before writing this section — the actual implementation (`computeMagnitudeScale`) had already switched to **√ (square root)** compression, but the comment hadn't caught up. This is left here as an example of what happens when the same fact is written in two places (code comment + this doc): one gets fixed while the other silently remains wrong. The comment has now been corrected along with this discovery.
 - **1.4 Upper Bound** — Ensures max/min stay within the same kind ladder even at a distance (e.g., a domain should never appear larger than a project, which would invert the hierarchy).
-- `k = --topology-v2-radius-magnitude-k` (0.45, `app/globals.css`) — Scale intensity. Changing this recalculates all domain/capability node sizes, so 0.45 itself is a finalized design value (requires owner approval before arbitrary adjustment).
+- `k = --map-radius-magnitude-k` (0.45, `app/globals.css`) — Scale intensity. Changing this recalculates all domain/capability node sizes, so 0.45 itself is a finalized design value (requires owner approval before arbitrary adjustment).
 - **Different channel from badge numbers (§4)** — Size uses `childCount` (direct children only), while numbers use `descendantCount` (all descendants). "Large" and "high number" can yield different answers on the same screen — an intentional dual channel (preemptive size + readable number).
 - Gate: `computeMagnitudeScale` describe block in `ui/topology-world.test.ts` — project/element invariant (=1), clamp bounds, base when `childCount ≤ 1`, defense for `maxChildCount`/`k = 0`.
 
@@ -524,7 +524,7 @@ Note: Type ramp utilities must be **strictly synchronized** with registration in
 - `--color-text-primary`: `#f7f8f8`
 - `--color-text-secondary`: `#d0d6e0`
 - `--color-text-tertiary`: `#8a8f98`
-- `--color-text-quaternary`: `#82828a` — value raised twice (#62666d → #787c84 → #82828a). The last raise (2026-08-03) corrected the defect where AA was breached only on surfaces one level up (panel+overlay-1 · elevated), all four quaternary surfaces now exceed 4.5:1, and values converge with `--topology-v2-panel-text-quaternary` of the map panel. **Still below on hover/selection (overlay-2) at 4.36** — use tertiary from rows that can be clicked. Director: `docs/DECISIONS.md`
+- `--color-text-quaternary`: `#82828a` — value raised twice (#62666d → #787c84 → #82828a). The last raise (2026-08-03) corrected the defect where AA was breached only on surfaces one level up (panel+overlay-1 · elevated), all four quaternary surfaces now exceed 4.5:1, and values converge with `--map-panel-text-quaternary` of the map panel. **Still below on hover/selection (overlay-2) at 4.36** — use tertiary from rows that can be clicked. Director: `docs/DECISIONS.md`
 
   **Surface license (2026-08-04 spec elevation)** — open surface triggers confirmed boundaries became specs by verifying actual screens via global search (4.38 · 4.14 · 4.39):
 
@@ -627,7 +627,7 @@ a defect if it names the right one:
 
 | Family | Value | Rule |
 | --- | --- | --- |
-| **Hub amber** | `--topology-v2-amber-hub` `#d4b478` | One hub ring + one Layer-0 container, plus two written exceptions (agent focus ring, `?recent=` spotlight). A third on screen is a defect. |
+| **Hub amber** | `--map-amber-hub` `#d4b478` | One hub ring + one Layer-0 container, plus two written exceptions (agent focus ring, `?recent=` spotlight). A third on screen is a defect. |
 | **Kind tone** | `--color-kind-<kind>-rgb` (project · domain · capability · element · unknown) and its four steps `-fill` (.94) · `-border` (.88) · `-chip-bg` (.11–.12) · `-chip-border` (.44–.46); `capability` amber, `element` eucalyptus. Registered 2026-09-08; before that the hues were rgba literals in `tone.ts`, which keeps a paint copy held equal by `kind-tone-mirror.contract.test.ts`. | A **data mark**. Allowed only where colour is the sole identity channel — the kind-census strip, map dots, tree chips. Composition bars whose segments are already identified by order + adjacent numerals use the app bar grammar (indigo primary + neutral + 1px seam) instead. Never a surface, rail, or callout. |
 | **Footprint trail** | `--color-footprint-trail` `#e8c47a` (2026-07-29, added) | Deliberately a DIFFERENT value from hub amber, not an extension of it — same family, split value, so "center" (hub) and "walked" (trail) never collapse into one meaning. Opt-in, default 0; the 6px bloom cap and single-consumer seal were lifted on 2026-09-08. Gate for contrast: `tests/contract/footprint-trail-ink.contract.test.ts`. See `.claude/rules/design.md` "amber has four branches" for the full four-way rule. |
 
@@ -732,14 +732,14 @@ The hierarchy stone's physical measurement captured the same issue from a differ
 vs background 13.3 is **effectively absent**, and the brightest thing on screen was not the connection line but
 the summary chip (102.5). **The map's job is to show connections, yet connections were the blurriest.**
 
-**Depth axis (`--topology-v2-ink-depth-*`)** — single source of truth. Node strokes and
+**Depth axis (`--map-ink-depth-*`)** — single source of truth. Node strokes and
 containment edges are **drawing the same tree depth twice**, so they reference the same values:
 
 | Row | Token | Contrast | Alias |
 |---|---|---|---|
-| leaf | `--topology-v2-ink-depth-leaf` | 4.70:1 | `node-stroke-element` · `edge-contains-l2` |
-| mid | `--topology-v2-ink-depth-mid` | 5.11:1 | `node-stroke-capability` · `edge-contains` |
-| top | `--topology-v2-ink-depth-top` | 5.84:1 | `node-stroke-domain` · `edge-contains-l0` |
+| leaf | `--map-ink-depth-leaf` | 4.70:1 | `node-stroke-element` · `edge-contains-l2` |
+| mid | `--map-ink-depth-mid` | 5.11:1 | `node-stroke-capability` · `edge-contains` |
+| top | `--map-ink-depth-top` | 5.84:1 | `node-stroke-domain` · `edge-contains-l0` |
 
 Initially, I listed the two groups separately, and the third pair converged within a 0.02 contrast ratio **by chance**.
 That’s luck, not a contract — if you fix one side, it drifts apart without any warning.
@@ -754,7 +754,7 @@ That’s luck, not a contract — if you fix one side, it drifts apart without a
   **WCAG 3:1 or higher**, and **not exceeding the brightest mark (project)**.
 
 **Chrome is darker than content** — the cluster chip rest is at the **bottom step** of the lamp
-(`--topology-v2-cluster-chip-{border,ink}-rest`, 3.01/3.14:1). It is darker than any node but still respects the WCAG lower bound (it must not be unfindable as a control). **Not using indigo for rest is key** — indigo is this app’s single accent; if chrome used it constantly, it would compete with the user’s intended target. It wakes up to indigo on hover/focus.
+(`--map-cluster-chip-{border,ink}-rest`, 3.01/3.14:1). It is darker than any node but still respects the WCAG lower bound (it must not be unfindable as a control). **Not using indigo for rest is key** — indigo is this app’s single accent; if chrome used it constantly, it would compete with the user’s intended target. It wakes up to indigo on hover/focus.
 
 **Gate**: `tests/contract/topology-ink-contrast.contract.test.ts` enforces ① the 3:1
 lower bound, ② the order of the two ladders, ③ the **alias relationship itself** (not the value but the `var()` reference), ④
@@ -778,7 +778,7 @@ they are runtime workbench contracts, not Tailwind-only decoration. Use token
 names in component data markers and tests whenever a surface depends on
 14-inch fullscreen geometry.
 
-- **[Deleted, 2026-07-18]** `--topology-graph-edge-hairline` / `-spoke` (SigmaTopology graph mode only edge ink, used to work around WebGL low-alpha compositing defects) was removed from `app/globals.css` with consumer set to 0 after #344 (retire-sigma-topology). topology-map-v2 uses its own `--topology-v2-edge-*` family.
+- **[Deleted, 2026-07-18]** `--topology-graph-edge-hairline` / `-spoke` (SigmaTopology graph mode only edge ink, used to work around WebGL low-alpha compositing defects) was removed from `app/globals.css` with consumer set to 0 after #344 (retire-sigma-topology). ontology-map uses its own `--map-edge-*` family.
 - `--topology-panel-selected-rail-width`: selected node support rail.
 - `--topology-panel-overview-reserved-width`: overview rail when a right-side inspector reserves map space.
 - `--topology-panel-path-rail-width`: path mode support rail; the path prompt must not become a second large panel.
@@ -850,7 +850,7 @@ names in component data markers and tests whenever a surface depends on
 - `--topology-overview-proof-cell-divider` / `--topology-overview-proof-strong-text` / `--topology-overview-proof-supported-text` / `--topology-overview-proof-warning-text` / `--topology-overview-proof-review-text`: shared proof-cell divider and semantic text tones used by relation quality and readiness chips.
 - `--topology-health-repair-primary-surface` / `--topology-health-repair-primary-border` / `--topology-health-repair-primary-hover-surface` / `--topology-health-repair-secondary-surface` / `--topology-health-repair-secondary-border` / `--topology-health-repair-secondary-hover-surface`: health repair action hierarchy. Builder repair is the primary action; MCP and ontology handoff remain compact secondary actions without inventing one-off button colors.
 - `--topology-overview-readiness-meter-surface` / `--topology-overview-readiness-meter-border` / `--topology-overview-readiness-ready-meter` / `--topology-overview-readiness-preflight-meter` / `--topology-overview-readiness-review-meter`: readiness meter track and segment fills. These tokens keep the handoff-ready/preflight/review balance mode-aware without hard-coded gradient exceptions in the component.
-- **[Stale, 2026-07-18]** `--topology-minimap-surface` is the sole survivor of a larger minimap token family (`-border` / `-shadow` / `-active-*` / `-grid-glow`) that backed a `topology-minimap` testid support chrome. No component currently renders that testid or the `data-minimap-*` contracts described below — the minimap UI appears to have been retired alongside #344 (retire-sigma-topology) without a matching doc/test cleanup. `tests/e2e/topology-overlap.spec.ts` still asserts on it and fails against the current app; needs an owner decision (rebuild the minimap for `topology-map-v2`, or delete the dead spec + token).
+- **[Stale, 2026-07-18]** `--topology-minimap-surface` is the sole survivor of a larger minimap token family (`-border` / `-shadow` / `-active-*` / `-grid-glow`) that backed a `topology-minimap` testid support chrome. No component currently renders that testid or the `data-minimap-*` contracts described below — the minimap UI appears to have been retired alongside #344 (retire-sigma-topology) without a matching doc/test cleanup. `tests/e2e/topology-overlap.spec.ts` still asserts on it and fails against the current app; needs an owner decision (rebuild the minimap for `ontology-map`, or delete the dead spec + token).
 - `--topology-floating-panel-surface` / `--topology-floating-panel-border` / `--topology-floating-panel-shadow`: expanded map-control sheet. It must read as one support surface with internal divider rows, not a stack of separate cards competing with the analysis panel or selected-node inspector.
 - `--topology-command-step-surface` / `--topology-command-step-border`: selected-focus review order rail. Use one flat numbered rail with divider rows, not separate nested cards, so the support panel stays visually lighter than the map and selected-node inspector.
 - `--topology-command-secondary-surface` / `--topology-command-secondary-border` / `--topology-command-secondary-hover-border`: selected-focus secondary exits and proof-copy actions. Ontology, Builder, MCP, impact, sync-gate, and strengthen-command handoffs must stay secondary to the focus brief primary action while remaining visible on compact widths.
@@ -1106,7 +1106,7 @@ Width breakpoints alone cannot express "tablet = touch" — a 1024px display cou
   `--topology-shortcut-sheet-close-size` are promoted to 44px. Fine-pointer retains density. No dark/single/color changes — only height/Hit area.
 - **Bottom tab bar reservation** — For `<lg` where BottomTabBar exists, surfaces anchored to the bottom or having scroll ends must subtract/pad `--topology-mobile-bottom-tab-reserve`
   (56px + safe-area). Application points: expanded INDEX (`--topology-index-bottom-inset`) · bottom-right gauge
-  (`--topology-relation-legend-bottom-inset`, bottom-specific separate token) · datasheet max-height (`--topology-v2-panel-bottom-reserve` single knob) · content page main `max-lg` bottom padding · the reading pane's back-to-top pill (`--doc-reading-back-to-top-inset`). **"Blocked by tab bar behind it is a defect"** — when creating new bottom-anchored surfaces, contract from this reservation.
+  (`--topology-relation-legend-bottom-inset`, bottom-specific separate token) · datasheet max-height (`--map-panel-bottom-reserve` single knob) · content page main `max-lg` bottom padding · the reading pane's back-to-top pill (`--doc-reading-back-to-top-inset`). **"Blocked by tab bar behind it is a defect"** — when creating new bottom-anchored surfaces, contract from this reservation.
 
 ### A floating control laid over a scroll area owes the page a reserve (2026-09-08)
 
@@ -1369,9 +1369,9 @@ details-on-demand* — not the inverse (everything-at-once + fullscreen-on-click
 
 - **Click = ego focus + compact popover, not a fullscreen modal.** Clicking a
   node keeps the node and its direct neighbors (its `ego` subgraph) at full
-  opacity and dims the rest through `topology-map-v2`'s `focus-state` world
+  opacity and dims the rest through `ontology-map`'s `focus-state` world
   derivation; the source graph is not mutated. A content-sized
-  `TopologyV2DetailPanel` anchors near the node and lists connected nodes as
+  `OntologyMapDetailPanel` anchors near the node and lists connected nodes as
   incremental ego-walk targets. `FullDetailA1` remains an opt-in full-detail
   drill, not the click default.
 - **Card count chips are topology marks.** `--topology-card-count-surface` /
@@ -1392,7 +1392,7 @@ details-on-demand* — not the inverse (everything-at-once + fullscreen-on-click
   Sigma/WebGL stack; publish a new upper bound only after production
   canvas-2D measurements at the stated viewport and interaction.
 - **Canvas palette tokens.** The only current map-layer token source is
-  `src/widgets/topology-map-v2/tokens/read-topology-v2-tokens.ts`. Dark overview
+  `src/widgets/ontology-map/tokens/read-map-tokens.ts`. Dark overview
   edges stay quiet enough for dense vaults while containment, dependency,
   dimmed, hovered, and selected relations remain distinct semantic layers.
   There is no `topology-map-sigma` palette or WebGL reducer contract.
@@ -2247,7 +2247,7 @@ Two lessons learned:
 | Gateway FX alpha ceiling | `--gateway-fx-blob-alpha` / `--gateway-fx-grain-alpha` / `--gateway-fx-dust-alpha` | 0.14 / 0.05 / 0.28 — ceiling for the charter exception (gateway current field). Gate: `tests/contract/gateway-fx-exception.contract.test.ts` |
 
 **[Retired 2026-08-18] Plate-gap token (gateway plate-gap) and camera reservation width derivation**
-(`computeGatewaySafeInset` = origin + plate width + gap → `--topology-v2-safe-inset-left`).
+(`computeGatewaySafeInset` = origin + plate width + gap → `--map-safe-inset-left`).
 The map moved down to the background behind the plate as its own cutout (evidence), eliminating the premise of overlap — non-overlap is measured directly via rect in `tests/e2e/download-gateway-grid.spec.ts`.
 The descriptions below regarding "camera reservation width" are records from that era.
 
@@ -2268,14 +2268,14 @@ Gateway: `tests/e2e/download-gateway-grid.spec.ts` — 8-column × (six elements
 |---|---|---|
 | Inside Card | `--card-pad` | 16 |
 
-| Inside Panel | `--topology-v2-panel-pad` | 14 |
+| Inside Panel | `--map-panel-pad` | 14 |
 
 
 **A separate two-step ramp named `--pad-card`/`--pad-panel` once existed,
 but was removed.** The documentation pointed to dead values:
 
 - An exhaustive census found **zero code uses** of either token. Cards had
-  always used `--card-pad`, and panels used `--topology-v2-panel-pad`.
+  always used `--card-pad`, and panels used `--map-panel-pad`.
 - `--pad-card` (16) duplicated `--card-pad` (16): two names for one concept.
 - `--pad-panel` (12) **differed** from the value panels actually used (14).
   A new panel built from that table would have missed existing panels by 2px.
@@ -2305,7 +2305,7 @@ Widths have **no shared unit; that is the specification.** All widths in this re
 
 | `--agent-panel-width` | `clamp(320px, 26vw, 420px)` | Viewport function |
 
-| `--topology-v2-panel-width` | `min(352px, calc(100vw − 28px))` | Viewport function |
+| `--map-panel-width` | `min(352px, calc(100vw − 28px))` | Viewport function |
 
 | `--docs-list-width` | 280px | Document list rail |
 
@@ -2341,7 +2341,7 @@ Each box references only the tokens below. Do not reimplement inline px/radius o
 
 | Status Chip (`CHROME_STATUS_CHIP_CLASS`) | 44px (same as tile) | `--chrome-radius` 10px | `px-3.5` | body / label |
 
-| Panel (INDEX · Datasheet) | Content | `--topology-v2-panel-radius` 12px (= `rounded-panel`) | `--topology-v2-panel-pad` | title header · body row |
+| Panel (INDEX · Datasheet) | Content | `--map-panel-radius` 12px (= `rounded-panel`) | `--map-panel-pad` | title header · body row |
 | Popover (ego popover) | Content | `rounded-panel` | `--card-pad` | title + body/label |
 | **Section Box** (Panel) | Content | `rounded-panel` | **`--card-pad`** | title + body |
 | **Item Box** (Card) | Content | `rounded-card` | Density determines inset (no enforcement) | title + body |
@@ -2355,7 +2355,7 @@ Each box references only the tokens below. Do not reimplement inline px/radius o
 
 The concentric relationship of outer 12 > inner 9 aligns with Material 3 shape scale and Apple HIG's "nested surfaces have smaller radii" guideline. Empirical evidence: within a single file, there are instances where the outer layer is panel/16px and the inner is card (`ConstructionReviewPanel` lines 104 ↔ 158), and all card family samples are items/nested boxes. Padding distribution also differs — the panel family has a majority of 16px (46%), while the card family follows a density-driven long tail, so **card inset is not enforced**.
 
-⚠️ **Previously, this table stated "Card (General) = `rounded-card` + `--card-pad`", but its real-world usage was zero.** The living spec is `rounded-panel` + 16px (token 13 + manual 12 = 25 locations). Using the table to build would have led to misinformation contradicting reality, akin to the removed `--pad-panel`. `--topology-v2-panel-pad` (14px) applies to only 4 consumers, all within map detail panels, making it a **map-local token**, not a general panel spec.
+⚠️ **Previously, this table stated "Card (General) = `rounded-card` + `--card-pad`", but its real-world usage was zero.** The living spec is `rounded-panel` + 16px (token 13 + manual 12 = 25 locations). Using the table to build would have led to misinformation contradicting reality, akin to the removed `--pad-panel`. `--map-panel-pad` (14px) applies to only 4 consumers, all within map detail panels, making it a **map-local token**, not a general panel spec.
 
 ### Explicit Exceptions (Outside the Lamp, Only Documented Ones)
 
@@ -2365,7 +2365,7 @@ no-restricted-syntax -- <reason>`. Current listings:
 - **Hairline radius 1~4px** — progress/capacity meter tracks/fills for heights 2~14px (`full-detail-a1-reach-panel`, `TopologyIndexTreeRow`, `FreshnessTab`, reach step chips). Raising to chip (6px) makes them read like pills, preserving intent.
 - **Overlay sheet radius 18~28px** — floating cards/sheets (`SearchPalette` 22px, `GestureHint`/`PublicQuickActions` 18px, `ProjectDrawer` 20px, `detail-card` 28px signature). Lowering to panel (12px) changes surface character, preserving intent. `detail-card` 28px is asserted by `detail-card.test.tsx`.
 - **Display number 34~40px** — census signature large numbers (`InsightsHeroCensus` 40px), responsive hero emphasis (`DesktopVaultWelcome` md:34px). Intentional display exceeding lamp top (hero 30px).
-- **Line-height 1.1 (Exactly one case)** — Data sheet action tile's 10px two-line label (`TopologyV2DetailPanel` `ACTION_TILE_LEADING`). Adding the paired caption (14px) would grow both lines by 6px, pushing the action strip below the metric line and breaking the chrome scale contract. Since only one location in the app needs this value, we do not widen the lamp — tokens used once are misinformation, not specs. **Reason for extracting as a separate constant**: disable comments are line-level; attaching them to class strings would silence `text-[Npx]` fans on the same line (empirical: lint total dropped from 143 → 142).
+- **Line-height 1.1 (Exactly one case)** — Data sheet action tile's 10px two-line label (`OntologyMapDetailPanel` `ACTION_TILE_LEADING`). Adding the paired caption (14px) would grow both lines by 6px, pushing the action strip below the metric line and breaking the chrome scale contract. Since only one location in the app needs this value, we do not widen the lamp — tokens used once are misinformation, not specs. **Reason for extracting as a separate constant**: disable comments are line-level; attaching them to class strings would silence `text-[Npx]` fans on the same line (empirical: lint total dropped from 143 → 142).
 
 ### Lint Blockade
 
@@ -2376,7 +2376,7 @@ no-restricted-syntax -- <reason>`. Current listings:
 - **Migration complete directories = error** — `src/views/{ontology-insights,
   project-selector,ontology-edit,docs-vault}` · `src/shared/ui` · `src/widgets`
   (excluding R6).
-- **Incomplete (in-progress) = warn** — `src/widgets/topology-map-v2` ·
+- **Incomplete (in-progress) = warn** — `src/widgets/ontology-map` ·
   `src/widgets/hero-header` · `src/views/home`. Upgrades to error upon R6 replacement completion.
 - Test files (`*.test.tsx`) are excluded from the rule as they assert rendered classNames.
 
@@ -2400,7 +2400,7 @@ The "machined tile" syntax shared by Topology chrome (brand pill, top HUD lane, 
 | Keycap | 4px | `<kbd>` shortcut key cap |
 | Inner | 7px (`--chrome-radius-inner`) | Small controls nested inside tiles, such as the collapse button |
 | Tile / Chip / Pill | 10px (`--chrome-radius`) | ChromeTile · ChromeChip · Brand pill |
-| Panel | 12px (`--topology-v2-panel-radius`) | INDEX panel · Compressed datasheet |
+| Panel | 12px (`--map-panel-radius`) | INDEX panel · Compressed datasheet |
 
 ### Four-Layer Hierarchy: Tile / Chip / Pill / Panel
 
@@ -2411,7 +2411,7 @@ The "machined tile" syntax shared by Topology chrome (brand pill, top HUD lane, 
 
 ### Box Specifications (Geometry Ladder) — "Applied Uniformly Everywhere" Contract
 
-**All surfaces** in the top chrome row (brand pills, status chips, utility lane) share the same geometry tokens. Do not reimplement specifications as inline px/hex; reference only the tokens below (`design.md` "No Inline Reimplementation"). Value sources: `app/globals.css` `--chrome-*` / `--topology-v2-panel-*`.
+**All surfaces** in the top chrome row (brand pills, status chips, utility lane) share the same geometry tokens. Do not reimplement specifications as inline px/hex; reference only the tokens below (`design.md` "No Inline Reimplementation"). Value sources: `app/globals.css` `--chrome-*` / `--map-panel-*`.
 
 | Specification | Token | Value | Target |
 |---|---|---|---|
@@ -2419,7 +2419,7 @@ The "machined tile" syntax shared by Topology chrome (brand pill, top HUD lane, 
 | Tile/Chip/Pill Radius | `--chrome-radius` | 10px | All above chrome surfaces |
 | Inner Radius | `--chrome-radius-inner` | 7px | Small controls nested inside tiles |
 | Keycap Radius | (kbd) | 4px | `<kbd>` shortcut key cap |
-| Panel Radius | `--topology-v2-panel-radius` | 12px | INDEX panel · Compressed datasheet |
+| Panel Radius | `--map-panel-radius` | 12px | INDEX panel · Compressed datasheet |
 | Border · Surface · Shadow | `--chrome-border` · `--chrome-surface` · `--chrome-shadow` | — | All above chrome surfaces |
 
 - **Button Chip vs. Status Chip** — Click actions use `ChromeChip` (button), while non-button status indicators signaling "this world/path right now" use `CHROME_STATUS_CHIP_CLASS` (`src/shared/ui/chrome-chip.tsx`). Both share the **same height, radius, border, surface, and padding (`px-3.5`)** — standing side-by-side as siblings, any specification mismatch is immediately visible. The three status chip types (`TopologyRealmChip`, `TopologyInsightsReturnChip`, `TopologyPathChip`) share this constant. Regression pin: `src/views/home/ui/topology-chrome-chip-geometry.test.tsx`.
@@ -2506,7 +2506,7 @@ The axis count increased by three, then **one died again** (all under the same d
 
 | Axis | What it enables | Rationale |
 |---|---|---|
-| `scope: 'app' \| 'panel'` | **Second achromatic ink lamp** for the map panel (`--topology-v2-panel-text-*`) | Two rounds independently reached the same conclusion (11 + 8). These two lamps are not two color systems, but **two manifestations of a single achromatic lamp across two backgrounds** — panel values were nudged via empirical contrast against `#17171c`. The contract asserts: ① the two lamps actually differ per stanza by reading globals.css, and ② the panel lamp is locked to **ink only** |
+| `scope: 'app' \| 'panel'` | **Second achromatic ink lamp** for the map panel (`--map-panel-text-*`) | Two rounds independently reached the same conclusion (11 + 8). These two lamps are not two color systems, but **two manifestations of a single achromatic lamp across two backgrounds** — panel values were nudged via empirical contrast against `#17171c`. The contract asserts: ① the two lamps actually differ per stanza by reading globals.css, and ② the panel lamp is locked to **ink only** |
 | `truncate` | Ellipsis | All eight shapes use flex layouts, so `text-overflow: ellipsis` doesn't work (empirical: `inline-block` shows `…`, `inline-flex` hard-clips). Adding only utilities won't fix it; **display must be changed** |
 | ~~`fixedHeight` 3-tier~~ | — | **Deleted on 2026-08-03.** The section "Control Height Ladder" below is authoritative — this axis was a **symptom** of incorrect values; converging the value to 32 caused it to die |
 
@@ -2858,7 +2858,7 @@ there, height is shape.
 The visual treatment for unclickable controls is **the single set `CONTROL_DISABLED_CLASS` in `control-class.ts`**: blurred `disabled:opacity-55`, cursor `not-allowed`, removed shadow, and disabled hover. These four form one set — taking only the blur leaves a half-state where the control appears disabled but hover still works. `controlClass()`/`fieldClass()` already load this as base; hand controls combine this constant (they do not copy the value).
 
 - **Why 55**: The value from the 2026-08-03 layer decision (owner feedback: «pressing recent changes yields no response»), verified on `/project/new` where both filled indigo and outline buttons read as «present» and «not clickable». The nine places split across 60, 50, and 45 were unified to 55 on 2026-08-06 — WCAG 1.4.3 exempts disabled components from contrast requirements, but this exemption does not permit «any value».
-- **Elements that cannot receive `disabled:` variants** (inactive representations of `<Link>`/`<span>`) use `opacity-55` directly at the same level — currently one place (`TopologyV2ContextMenu`), outside lint.
+- **Elements that cannot receive `disabled:` variants** (inactive representations of `<Link>`/`<span>`) use `opacity-55` directly at the same level — currently one place (`OntologyMapContextMenu`), outside lint.
 - **Gate**: `eslint.config.mjs` `disabledAffordanceSelectors` (global ban on values other than 55, zero exempt files) + `tests/contract/disabled-affordance.contract.test.ts` (does the constant handle all four treatments? · do values not diverge per path? · is the value layer consistent with lint allowed values?).
 
 
@@ -2978,12 +2978,12 @@ live preview picker in the [Screen] group of the settings sheet.
   thinner strokes). Follow-up (backlog): field (filled) · minimal dot.
 - **Immutable rule (hard)**: **kind→silhouette mapping is absolutely fixed across sets** — the mapping table,
   rationale, and gate are defined in the "Node Specs" section §1 above (not duplicated here). Sets only
-  change **render style** (silhouette consistency itself is enforced by `topology-v2-kind-glyph.test.tsx` /
+  change **render style** (silhouette consistency itself is enforced by `map-kind-glyph.test.tsx` /
   `node-shapes.test.ts`; parity between the two gates is
   enforced by `tests/contract/node-kind-shape-parity.contract.test.ts`).
 - **Single gateway**: All kind-glyph rendering goes through one of two gates —
-  DOM `@/shared/ui/topology-v2-kind-glyph` (subscribes to `useGlyphSet()`; INDEX, workshop,
-  popover, detail, project, etc. app-wide) + canvas `topology-map-v2/render/node-shapes`
+  DOM `@/shared/ui/map-kind-glyph` (subscribes to `useGlyphSet()`; INDEX, workshop,
+  popover, detail, project, etc. app-wide) + canvas `ontology-map/render/node-shapes`
   (`glyphStyleDescriptor(fill|line)`). Both read the same `appearance-preferences`
   store so **map · INDEX · workshop change in lockstep** ("if only one surface doesn't change,
   it's a defect"). The canvas does not duplicate shape math per set; it splits fill/line via shared descriptors.
@@ -3032,13 +3032,13 @@ reads it via ref mirror every frame, **reflecting from the next frame onward**.
 ## Changelog
 
 - 2026-08-29: Replaced the rejected nested-hex compatibility identity with the pixel mascot across raster masters, favicon, README/OG/PWA, macOS/Windows/mobile packaging assets, loading, and one finite verified agent-work motion sequence. Direct owner inspection removed the repeated rail mark, so navigation begins with destinations. Project hexagons remain data marks.
-- 2026-08-01: New "Node Specs" section (document shape, radius, size scale, engraved number as symbol names, reserve bridge node space) + new "Layers consumed by agents" section (what already existed vs. newly filled vs. deemed unnecessary as of 2026-07-31 web research). Gate: new `tests/contract/node-kind-shape-parity.contract.test.ts` (parity between canvas and DOM kind-glyph gates; previously coincidental, now a contract). Fixed `--topology-v2-radius-magnitude-k` comment (log → √, correcting drift that diverged from implementation). Added 4th row (footprint trail) to "Three ambers" table. Corrected 1 line number reference in the "Fan" section to symbol name.
+- 2026-08-01: New "Node Specs" section (document shape, radius, size scale, engraved number as symbol names, reserve bridge node space) + new "Layers consumed by agents" section (what already existed vs. newly filled vs. deemed unnecessary as of 2026-07-31 web research). Gate: new `tests/contract/node-kind-shape-parity.contract.test.ts` (parity between canvas and DOM kind-glyph gates; previously coincidental, now a contract). Fixed `--map-radius-magnitude-k` comment (log → √, correcting drift that diverged from implementation). Added 4th row (footprint trail) to "Three ambers" table. Corrected 1 line number reference in the "Fan" section to symbol name.
 - 2026-07-25: Design overhaul Phase 5 (Personalization) — 3 canvas backgrounds (dot/constellation/contour, `--canvas-bg-*` + ink cap `--canvas-bg-ink-max`) and 2 node icon sets (geometric/line, immutable kind→silhouette · single gateway). Settings [Screen] live preview picker + localStorage persistence. See "Personalization" section.
 - 2026-07-25: Design overhaul Phase 1 — canonical `Select` (dark Listbox, #4) · `EmptyState` skeleton/icon slot expansion (#16) · control height tokens `--control-h-sm/md/lg` (#13) · dialog width scale `--dialog-w-sm/md/lg` new. Workshop create domain + topology "concept add" kind select migrated to canonical Select; insight depends/hub empty areas migrated to EmptyState. See "Control Inventory" section.
 - 2026-07-21: Geometry & Type Codex (R5) — converged `text-[Npx]` (29 types, 1,184 instances) into 7-step type ramp (`--text-caption`…`--text-hero` + `--tracking-*` pairs), arbitrary radii (18 types) into 3 steps (`--radius-chip/card/panel`). Box-specific spec table + explicit exceptions listed. ESLint `no-restricted-syntax` blocks new arbitrary instances (migration complete directory error / R6 concurrent work dir warn). Visuals maintained at ±1px snap level (not a redesign); see "Geometry & Type Codex" section.
 - 2026-07-18: Chrome system (feat/chrome-system) — `--chrome-*` tokens + ChromeTile/ChromeChip components new; converged to 24px alignment rail for brand fill / INDEX panel / analysis panel left inset; INDEX panel v2.1 (header "INDEX · N" + collapse, tree row grid + Lucide chevron + inset capacity meter, footer moved agent sync); see `docs/prototypes/index-panel-v2-full.html`.
 - 2026-07-18: Historical: "Hex Constellation" became the compatibility mark. Retired by the 2026-08-29 pixel mascot identity.
-- 2026-07-18: v2 — Elevated B2+ "Circuit × Constellation" language to page rollout norm (6-axis language · token tier catalog · surface class do/don't · v2 prohibitions added · rollout guard · token drift debt audit); see [`TOPOLOGY-V2-DESIGN.md`](./TOPOLOGY-V2-DESIGN.md).
+- 2026-07-18: v2 — Elevated B2+ "Circuit × Constellation" language to page rollout norm (6-axis language · token tier catalog · surface class do/don't · v2 prohibitions added · rollout guard · token drift debt audit); see [`ONTOLOGY-MAP-DESIGN.md`](./ONTOLOGY-MAP-DESIGN.md).
 - 2026-06-08: Added topology node-focus & scale pattern (ego popover, overview-first, plain-language counts, LOD perf path); see [`TOPOLOGY-FOCUS-AND-SCALE.md`](./TOPOLOGY-FOCUS-AND-SCALE.md).
 - 2026-04-13: Removed the consulting category.
 - 2026-04-12: Initial draft (Phase 0).

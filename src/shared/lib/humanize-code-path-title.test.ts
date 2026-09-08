@@ -6,7 +6,7 @@ import {
 
 describe("looksLikeCodePath", () => {
   it("알려진 확장자를 가진 경로를 코드 경로로 판정한다", () => {
-    expect(looksLikeCodePath("src/widgets/topology-map-v2/ui/topology-world.ts")).toBe(
+    expect(looksLikeCodePath("src/widgets/ontology-map/ui/topology-world.ts")).toBe(
       true,
     );
   });
@@ -32,7 +32,7 @@ describe("humanizeCodePathTitle", () => {
   it("kebab-case 파일명을 사람이 읽는 제목으로 변환한다", () => {
     expect(
       humanizeCodePathTitle(
-        "src/widgets/topology-map-v2/ui/topology-world.ts",
+        "src/widgets/ontology-map/ui/topology-world.ts",
       ),
     ).toBe("Topology World");
   });
@@ -72,7 +72,7 @@ describe("humanizeCodePathTitle", () => {
   });
 
   it("결정론적이다 — 동일 입력에 동일 출력", () => {
-    const input = "src/widgets/topology-map-v2/ui/topology-world.ts";
+    const input = "src/widgets/ontology-map/ui/topology-world.ts";
     expect(humanizeCodePathTitle(input)).toBe(humanizeCodePathTitle(input));
   });
 
@@ -88,8 +88,8 @@ describe("humanizeCodePathTitle", () => {
 
   it("3글자 이하의 짧은 잔재 세그먼트(목록 밖 단어)는 부모 세그먼트로 승격한다", () => {
     expect(
-      humanizeCodePathTitle("src/widgets/topology-map-v2/db.ts"),
-    ).toBe("Topology Map V2");
+      humanizeCodePathTitle("src/widgets/ontology-map/db.ts"),
+    ).toBe("Ontology Map");
   });
 
   it("generic 목록에 새로 추가된 단어(src/lib/ui/api/util 등)도 승격 대상이다", () => {

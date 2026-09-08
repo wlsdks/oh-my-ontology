@@ -75,7 +75,7 @@ test("보고 있는 동안 에이전트가 쓴 노드를 지도가 집는다", a
     "볼트가 안 물렸다 — 아래 측정은 전부 무의미하다.",
   ).toHaveCount(0, { timeout: 30_000 });
 
-  await expect(page.getByTestId("topology-map-v2-canvas")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("ontology-map-canvas")).toBeVisible({ timeout: 30_000 });
 
   const focused = () =>
     page.evaluate(() => {

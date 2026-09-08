@@ -25,5 +25,5 @@ Map gesture hint overlay widget.
 ## Excludes
 
 - Any pointer/mouse-only environment; the hint gates entirely on `(pointer: coarse)`.
-- The map gesture handling itself (pan/zoom/rotate), owned by elements/topology-map-v2.
+- The map gesture handling itself (pan/zoom/rotate), owned by elements/ontology-map.
 - The keyboard shortcut sheet, a separate overlay owned by elements/shortcut-sheet.

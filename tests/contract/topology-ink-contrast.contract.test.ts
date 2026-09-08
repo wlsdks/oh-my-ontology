@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { realmDepthClarityAlpha } from "@/widgets/topology-map-v2/model/realm-transition";
+import { realmDepthClarityAlpha } from "@/widgets/ontology-map/model/realm-transition";
 
 /**
  * The contract that map ink sits above **WCAG 1.4.11 (non-text contrast 3:1)**.
@@ -37,7 +37,7 @@ const MIN_CONTRAST = 3;
  * multiplier at 1.9, so even the loudest label at full zoom is 28.5px only while
  * the camera is pushed all the way in — the resting sizes are what must pass.
  *
- * Caught by this contract on 2026-09-05: `--topology-v2-label-element` was
+ * Caught by this contract on 2026-09-05: `--map-label-element` was
  * `#6a6a73` = **3.69:1** at 9.5px, carrying a comment that claimed "AA-large" for a
  * size the AA-large rule cannot reach.
  */
@@ -79,24 +79,24 @@ function contrast(a: string, b: string): number {
 const CANVAS = "#08090a";
 
 /** The ink ladder — its order is the hierarchy. The **order** is pinned, not the values. */
-const EDGE_LADDER = ["topology-v2-edge-contains-l2", "topology-v2-edge-contains", "topology-v2-edge-contains-l0"];
+const EDGE_LADDER = ["map-edge-contains-l2", "map-edge-contains", "map-edge-contains-l0"];
 /** The canvas **label** ladder — the same hierarchy, read as words rather than marks.
  *  `project` is deliberately outside the order: it is Layer-0 amber, a different family. */
 const LABEL_LADDER = [
-  "topology-v2-label-element",
-  "topology-v2-label-capability",
-  "topology-v2-label-domain",
+  "map-label-element",
+  "map-label-capability",
+  "map-label-domain",
 ];
 const NODE_LADDER = [
-  "topology-v2-node-stroke-element",
-  "topology-v2-node-stroke-capability",
-  "topology-v2-node-stroke-domain",
-  "topology-v2-node-stroke-project",
+  "map-node-stroke-element",
+  "map-node-stroke-capability",
+  "map-node-stroke-domain",
+  "map-node-stroke-project",
 ];
 
 describe("topology ink contrast contract", () => {
   it("모든 엣지·노드 stroke 가 3:1 이상이다", () => {
-    const tokens = [...EDGE_LADDER, ...NODE_LADDER, "topology-v2-edge-depends"];
+    const tokens = [...EDGE_LADDER, ...NODE_LADDER, "map-edge-depends"];
     const failures = tokens
       .map((name) => ({ name, value: readToken(name), ratio: contrast(readToken(name), CANVAS) }))
       .filter((row) => row.ratio < MIN_CONTRAST);
@@ -104,11 +104,11 @@ describe("topology ink contrast contract", () => {
   });
 
   it("캔버스 라벨이 모두 본문 대비 4.5:1 이상이다", () => {
-    // Measured against `--topology-v2-canvas-bg-near`, not the page canvas: that is
+    // Measured against `--map-canvas-bg-near`, not the page canvas: that is
     // the surface the labels are actually painted over, and it is the lighter of the
     // two, so it is the conservative denominator.
-    const surface = readToken("topology-v2-canvas-bg-near");
-    const failures = LABEL_LADDER.concat("topology-v2-label-project")
+    const surface = readToken("map-canvas-bg-near");
+    const failures = LABEL_LADDER.concat("map-label-project")
       .map((name) => ({ name, value: readToken(name), ratio: contrast(readToken(name), surface) }))
       .filter((row) => row.ratio < MIN_TEXT_CONTRAST);
     expect(failures.map((f) => `${f.name}=${f.value} (${f.ratio.toFixed(2)}:1)`)).toEqual([]);
@@ -119,7 +119,7 @@ describe("topology ink contrast contract", () => {
     // element ink (7.09:1) would have done exactly that here — above capability's
     // 5.33:1 — so the workbench takes the dimmest value that clears the text floor
     // instead of the gateway's value.
-    const surface = readToken("topology-v2-canvas-bg-near");
+    const surface = readToken("map-canvas-bg-near");
     const ratios = LABEL_LADDER.map((name) => contrast(readToken(name), surface));
     for (let i = 1; i < ratios.length; i += 1) {
       expect(ratios[i], LABEL_LADDER[i]).toBeGreaterThan(ratios[i - 1]);
@@ -145,7 +145,7 @@ describe("topology ink contrast contract", () => {
     // child node 28.4 = **a 3.6× inversion**. The map's job is to show connections and
     // concepts, yet the summary button was the brightest thing. At rest the chip must
     // sit on the ramp's bottom step.
-    const chip = ["topology-v2-cluster-chip-border-rest", "topology-v2-cluster-chip-ink-rest"].map(
+    const chip = ["map-cluster-chip-border-rest", "map-cluster-chip-ink-rest"].map(
       (name) => contrast(readToken(name), CANVAS),
     );
     const dimmestNode = contrast(readToken(NODE_LADDER[0]), CANVAS);
@@ -165,12 +165,12 @@ describe("topology ink contrast contract", () => {
     // value does not exist in two places, no rule to catch the drift is needed
     // (Carbon).
     const AXIS_PAIRS = [
-      ["topology-v2-node-stroke-element", "topology-v2-edge-contains-l2", "leaf"],
-      ["topology-v2-node-stroke-capability", "topology-v2-edge-contains", "mid"],
-      ["topology-v2-node-stroke-domain", "topology-v2-edge-contains-l0", "top"],
+      ["map-node-stroke-element", "map-edge-contains-l2", "leaf"],
+      ["map-node-stroke-capability", "map-edge-contains", "mid"],
+      ["map-node-stroke-domain", "map-edge-contains-l0", "top"],
     ] as const;
     for (const [nodeToken, edgeToken, step] of AXIS_PAIRS) {
-      const expected = `var(--topology-v2-ink-depth-${step})`;
+      const expected = `var(--map-ink-depth-${step})`;
       expect(readRaw(nodeToken), nodeToken).toBe(expected);
       expect(readRaw(edgeToken), edgeToken).toBe(expected);
     }
@@ -182,8 +182,8 @@ describe("topology ink contrast contract", () => {
     // cross-ladder ceiling such as "edge ≤ node × 0.8" is applied, because the premise
     // that the two ladders compete is wrong. Two constraints only: the WCAG floor, and
     // never speaking louder than any entity.
-    const depends = contrast(readToken("topology-v2-edge-depends"), CANVAS);
-    const loudestMark = contrast(readToken("topology-v2-node-stroke-project"), CANVAS);
+    const depends = contrast(readToken("map-edge-depends"), CANVAS);
+    const loudestMark = contrast(readToken("map-node-stroke-project"), CANVAS);
     expect(depends).toBeGreaterThanOrEqual(MIN_CONTRAST);
     expect(depends).toBeLessThan(loudestMark);
   });
@@ -195,7 +195,7 @@ describe("topology ink contrast contract", () => {
     // caught here.
     const stageBlock = CSS.slice(CSS.indexOf("html[data-gateway-stage]"));
     const scoped = stageBlock.slice(0, stageBlock.indexOf("}"));
-    for (const name of [...EDGE_LADDER, "topology-v2-edge-depends"]) {
+    for (const name of [...EDGE_LADDER, "map-edge-depends"]) {
       const override = scoped.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
       if (!override) continue;
       expect(contrast(override[1], CANVAS), `${name} 관문 오버라이드`).toBeGreaterThanOrEqual(
@@ -206,23 +206,23 @@ describe("topology ink contrast contract", () => {
 
   it("깊이 선명도 알파와 **합성해도** 잉크 사다리가 3:1 바닥 위다", () => {
     // Infoviz seat's measurement (2026-08-18): multiplying
-    // `--topology-v2-ink-depth-leaf` (#7a7a86, 4.7:1 on its own) by the S5 clarity
+    // `--map-ink-depth-leaf` (#7a7a86, 4.7:1 on its own) by the S5 clarity
     // alpha of 0.84 gives a composited contrast of **2.58:1** on the map surface — a
     // shortfall the standalone check (the first test above) cannot catch. Measuring the
     // screen means compositing with the alpha the renderer actually multiplies by
     // (`realmDepthClarityAlpha`). (The 3D dome's depth fog is outside this floor by
     // owner deferral — `docs/DECISIONS.md` "3D deferral list", the 3D deferral list. This
     // contract is the 2D map's.)
-    const surface = readToken("topology-v2-canvas-bg-near");
+    const surface = readToken("map-canvas-bg-near");
     const compositeHex = (ink: string, alpha: number, bg: string): string => {
       const ch = (hex: string, i: number) => parseInt(hex.slice(i, i + 2), 16);
       const mix = (i: number) => Math.round(ch(ink, i) * alpha + ch(bg, i) * (1 - alpha));
       return `#${[1, 3, 5].map((i) => mix(i).toString(16).padStart(2, "0")).join("")}`;
     };
     const CASES: ReadonlyArray<readonly [token: string, depth: number]> = [
-      ["topology-v2-ink-depth-top", 1],
-      ["topology-v2-ink-depth-mid", 2],
-      ["topology-v2-ink-depth-leaf", 3],
+      ["map-ink-depth-top", 1],
+      ["map-ink-depth-mid", 2],
+      ["map-ink-depth-leaf", 3],
     ];
     for (const [token, depth] of CASES) {
       const alpha = realmDepthClarityAlpha(depth);

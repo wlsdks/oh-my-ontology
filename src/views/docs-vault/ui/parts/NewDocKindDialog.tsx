@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
-import { Dialog, TopologyV2KindGlyph, controlClass } from "@/shared/ui";
+import { Dialog, OntologyMapKindGlyph, controlClass } from "@/shared/ui";
 
 /**
  * "New document" asks for the kind before anything else, instead of a generic `title:` template.
@@ -54,7 +54,7 @@ export function NewDocKindDialog({
                 className: "w-full text-left",
               })}
             >
-              <TopologyV2KindGlyph kind={kind} size={16} />
+              <OntologyMapKindGlyph kind={kind} size={16} />
               <span className="text-body text-[color:var(--color-text-secondary)]">
                 {kindLabel(kind)}
               </span>

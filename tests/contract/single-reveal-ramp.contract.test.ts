@@ -34,8 +34,8 @@ import { describe, expect, it } from "vitest";
  * This test locks only the **structural premise** that verdict needs.
  */
 
-const DRAW = join(process.cwd(), "src/widgets/topology-map-v2/ui/topology-frame-draw.ts");
-const LOOP = join(process.cwd(), "src/widgets/topology-map-v2/ui/use-topology-loop.ts");
+const DRAW = join(process.cwd(), "src/widgets/ontology-map/ui/topology-frame-draw.ts");
+const LOOP = join(process.cwd(), "src/widgets/ontology-map/ui/use-topology-loop.ts");
 
 function read(path: string): string {
   return readFileSync(path, "utf8");

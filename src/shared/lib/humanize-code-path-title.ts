@@ -102,7 +102,7 @@ function isGenericSegment(segment: string): boolean {
  * at most twice) → split on kebab/snake/camel boundaries → title-case each word,
  * with acronyms fully uppercase.
  *
- *     "src/widgets/topology-map-v2/ui/topology-world.ts" → "Topology World"
+ *     "src/widgets/ontology-map/ui/topology-world.ts" → "Topology World"
  *     "cli/src/commands/agent-brief.mjs"                 → "Agent Brief"
  *     "src/features/user-auth/index.ts"                  → "User Auth"
  *     ".claude/skills/ontology-sync/SKILL.md"            → "Ontology Sync"

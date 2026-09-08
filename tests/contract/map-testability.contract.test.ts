@@ -21,7 +21,7 @@ import { describe, expect, it } from "vitest";
  */
 const LOOP = join(
   process.cwd(),
-  "src/widgets/topology-map-v2/ui/use-topology-loop.ts",
+  "src/widgets/ontology-map/ui/use-topology-loop.ts",
 );
 
 const source = readFileSync(LOOP, "utf8");

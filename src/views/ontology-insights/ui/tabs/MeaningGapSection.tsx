@@ -6,7 +6,7 @@ import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { Link } from "@/i18n/navigation";
 import { useRowDisclosure } from "@/shared/lib/use-row-disclosure";
 import { MtimeConflictBadge } from "@/shared/ui/mtime-conflict-badge";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { controlClass, fieldClass } from "@/shared/ui/control-class";
 import type { MeaningGapKind } from "@/entities/knowledge-graph";
 import type { DomainChoice, MeaningGapRow } from "../../lib/meaning-gap-rows";
@@ -354,7 +354,7 @@ function MeaningGapRowView({
         data-fix-kind={gapKind}
         className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5 py-2.5"
       >
-        <TopologyV2KindGlyph kind={row.nodeKind} size={13} />
+        <OntologyMapKindGlyph kind={row.nodeKind} size={13} />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="min-w-0 truncate text-body text-[color:var(--color-text-secondary)]">
             {row.title}

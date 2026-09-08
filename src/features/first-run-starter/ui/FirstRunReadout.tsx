@@ -7,7 +7,7 @@ import { useFirstRunSampleModeSettled } from "../model/use-first-run-sample-mode
 export interface FirstRunReadoutProps {
   /**
    * How many concepts are **on the canvas right now**
-   * (`TopologyMapV2#onDrawnCountChange`), not how many the vault holds. The
+   * (`OntologyMap#onDrawnCountChange`), not how many the vault holds. The
    * readout used to open with the project count, which is 1 in every vault
    * anyone has opened and told the reader nothing.
    */
@@ -17,7 +17,7 @@ export interface FirstRunReadoutProps {
   domainCount: number;
   /**
    * M-5 — the current semantic-zoom altitude tier, reported by the map engine
-   * (`TopologyMapV2#onZoomTierChange`). Drives the readout's orientation label
+   * (`OntologyMap#onZoomTierChange`). Drives the readout's orientation label
    * (SPINE → CIRCUIT → ELEMENT) and, once elements are actually on screen
    * ("element"), drops the now-false "zoom in to see elements" hint. Defaults
    * to "spine" (the overview entry) when the map hasn't reported yet.

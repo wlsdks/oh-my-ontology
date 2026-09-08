@@ -12,7 +12,7 @@ import { EGO_BEARINGS, type ConceptEgo, type EgoBearing } from "../model/build-c
  * does not (charter: Kind = shape, not color). Two line styles: solid =
  * contains/belongs to, dashed = depends on/used by.
  *
- * The SVG is drawn by hand here because `TopologyV2KindGlyph` is a **DOM glyph**
+ * The SVG is drawn by hand here because `OntologyMapKindGlyph` is a **DOM glyph**
  * and cannot be placed inside a coordinate system. That facade stays the source
  * of truth for the silhouettes; this file only ports the same mapping into
  * coordinates, and must not diverge from what the `node-kind-shape-parity`
@@ -93,10 +93,10 @@ function NodeShape({
     ? kind
     : "element";
   const style = {
-    fill: `var(--topology-v2-node-fill-${resolved})`,
+    fill: `var(--map-node-fill-${resolved})`,
     stroke: selected
       ? "var(--color-indigo-accent)"
-      : `var(--topology-v2-node-stroke-${resolved})`,
+      : `var(--map-node-stroke-${resolved})`,
     strokeWidth: selected ? 1.6 : 1.15,
   };
   if (resolved === "project") {
@@ -209,7 +209,7 @@ export function ConceptEgoGraph({
           d={`M${cx},${cy} L${x.toFixed(1)},${y.toFixed(1)}`}
           fill="none"
           stroke={
-            dashed ? "var(--topology-v2-edge-depends)" : "var(--topology-v2-edge-contains)"
+            dashed ? "var(--map-edge-depends)" : "var(--map-edge-contains)"
           }
           strokeWidth={1}
           strokeDasharray={dashed ? "3.5 3.5" : undefined}
@@ -310,8 +310,8 @@ export function ConceptEgoGraph({
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="var(--topology-v2-node-sheen-tint)" />
-            <stop offset="1" stopColor="var(--topology-v2-node-fill-domain)" />
+            <stop offset="0" stopColor="var(--map-node-sheen-tint)" />
+            <stop offset="1" stopColor="var(--map-node-fill-domain)" />
           </linearGradient>
         </defs>
         {edges}
@@ -322,7 +322,7 @@ export function ConceptEgoGraph({
             cy={cy}
             r={selfRadius + 6}
             fill="none"
-            stroke="var(--topology-v2-selection-ring-hairline)"
+            stroke="var(--map-selection-ring-hairline)"
           />
           <NodeShape kind={ego.kind} x={cx} y={cy} r={selfRadius} selected />
           <text

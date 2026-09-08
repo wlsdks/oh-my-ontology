@@ -67,7 +67,7 @@ function cssToken(name: string): Rgba | null {
 }
 
 /** The app's four opaque host surfaces — an alpha surface sits on one of them. */
-const HOSTS = ["--color-canvas", "--color-panel", "--color-elevated", "--topology-v2-panel-surface"]
+const HOSTS = ["--color-canvas", "--color-panel", "--color-elevated", "--map-panel-surface"]
   .map((n) => [n, cssToken(n)] as const)
   .filter((e): e is readonly [string, Rgba] => e[1] !== null);
 

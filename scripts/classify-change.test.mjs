@@ -230,7 +230,7 @@ test('per-file lint carries the warning ratchet', () => {
 
 test('rendering .ts in a ui/ segment fails closed to smoke; lib .ts stays with units', () => {
   const ui = buildImpactPlan({
-    files: ['src/widgets/topology-map-v2/ui/topology-pointer-handlers.ts'],
+    files: ['src/widgets/ontology-map/ui/topology-pointer-handlers.ts'],
   });
   assert.equal(ui.lanes.e2e.mode, 'smoke');
 

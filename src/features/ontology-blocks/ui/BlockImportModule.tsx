@@ -281,15 +281,15 @@ export function BlockImportModule() {
         className={controlClass({
           shape: "chip",
           className:
-            "mt-2 shrink-0 border-[color:var(--topology-v2-panel-border)] text-left enabled:hover:bg-[color:var(--topology-v2-panel-row-hover)]",
+            "mt-2 shrink-0 border-[color:var(--map-panel-border)] text-left enabled:hover:bg-[color:var(--map-panel-row-hover)]",
         })}
       >
         <PackageOpen
           size={ICON_SIZE.sm}
           aria-hidden="true"
-          className="shrink-0 text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="shrink-0 text-[color:var(--map-panel-text-quaternary)]"
         />
-        <span className="min-w-0 flex-1 truncate text-[color:var(--topology-v2-panel-text-tertiary)]">
+        <span className="min-w-0 flex-1 truncate text-[color:var(--map-panel-text-tertiary)]">
           {t("importAction")}
         </span>
         {inlineText ? (
@@ -298,7 +298,7 @@ export function BlockImportModule() {
             className={`shrink-0 truncate ${
               inlineText.kind === "error"
                 ? "text-[color:var(--color-status-danger)]"
-                : "text-[color:var(--topology-v2-panel-text-quaternary)]"
+                : "text-[color:var(--map-panel-text-quaternary)]"
             }`}
           >
             {inlineText.text}

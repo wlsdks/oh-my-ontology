@@ -981,7 +981,7 @@ describe('focused check suggestions', () => {
 
   it('suggests the map viewport framing E2E for the exact camera-obstacle source owners', () => {
     const paths = [
-      'src/widgets/topology-map-v2/interaction/free-area.ts',
+      'src/widgets/ontology-map/interaction/free-area.ts',
       'src/views/home/ui/HomePage.tsx',
     ];
     const command = 'pnpm exec playwright test tests/e2e/map-viewport-reframe.spec.ts';
@@ -1034,7 +1034,7 @@ describe('focused check suggestions', () => {
   });
 
   it('suggests the touch-target E2E for the selected-node panel owner', () => {
-    const paths = ['src/widgets/topology-map-v2/ui/TopologyV2DetailPanel.tsx'];
+    const paths = ['src/widgets/ontology-map/ui/OntologyMapDetailPanel.tsx'];
     const command = 'pnpm exec playwright test tests/e2e/touch-target-contract.spec.ts';
     const result = suggestFocusedChecks(paths);
     const matches = result.commands.filter((row) => row.command === command);
@@ -1052,12 +1052,12 @@ describe('focused check suggestions', () => {
       'pnpm exec playwright test tests/e2e/touch-target-contract.spec.ts',
     ]);
     const result = suggestFocusedChecks([
-      'src/widgets/topology-map-v2/interaction/free-area.test.ts',
+      'src/widgets/ontology-map/interaction/free-area.test.ts',
       'src/views/home/model/use-node-datasheet-model.ts',
       'src/views/ontology-insights/ui/tabs/OverviewTab.test.tsx',
       'src/widgets/domain-capacity-bar/ui/DomainCapacityLegend.tsx',
       'src/features/ontology-change-review/ui/OntologyChangeReview.test.tsx',
-      'src/widgets/topology-map-v2/ui/TopologyV2DetailPanel.test.tsx',
+      'src/widgets/ontology-map/ui/OntologyMapDetailPanel.test.tsx',
     ]);
 
     assert.deepEqual(

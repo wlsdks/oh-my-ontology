@@ -138,7 +138,7 @@ async function readRelationInk(page: Page) {
         };
       }
     ).__atlasMap;
-    const canvas = document.querySelector('[data-testid="topology-map-v2-canvas"]') as HTMLCanvasElement | null;
+    const canvas = document.querySelector('[data-testid="ontology-map-canvas"]') as HTMLCanvasElement | null;
     if (!probe || !canvas) return null;
     const rect = canvas.getBoundingClientRect();
     const dpr = canvas.width / rect.width;

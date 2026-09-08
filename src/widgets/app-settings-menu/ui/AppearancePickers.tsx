@@ -20,7 +20,7 @@ import {
   type GlyphSet,
 } from '@/shared/lib/appearance-preferences';
 import { controlClass } from '@/shared/ui/control-class';
-import { TopologyV2KindGlyph } from '@/shared/ui/topology-v2-kind-glyph';
+import { OntologyMapKindGlyph } from '@/shared/ui/map-kind-glyph';
 
 /**
  * The **selection ink** for both pickers — this is a radio group, so it does not
@@ -63,7 +63,7 @@ const PICKER_TILE_FRAME =
  *
  * The previews are live mini swatches, not screenshots: the background is a small
  * SVG drawn with the real `--canvas-bg-*` and grid tokens, and the icon set is a
- * mini glyph row rendering the real `TopologyV2KindGlyph` per set. The current
+ * mini glyph row rendering the real `OntologyMapKindGlyph` per set. The current
  * choice carries an indigo ring. Choosing writes to the app-wide store and the map
  * canvas and every DOM glyph swap immediately with it.
  */
@@ -95,9 +95,9 @@ function CanvasBgSwatch({ variant }: { variant: CanvasBackground }) {
       aria-hidden="true"
       data-canvas-bg-swatch={variant}
     >
-      <rect x="0" y="0" width="240" height="56" fill="var(--topology-v2-canvas-bg-near)" />
+      <rect x="0" y="0" width="240" height="56" fill="var(--map-canvas-bg-near)" />
       {variant === 'dot' ? (
-        <g stroke="var(--topology-v2-grid-major)" strokeWidth="1">
+        <g stroke="var(--map-grid-major)" strokeWidth="1">
           {[20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220].map((x) => (
             <line key={x} x1={x} y1="0" x2={x} y2="56" />
           ))}
@@ -245,7 +245,7 @@ export function GlyphSetPicker() {
             >
               <span className="flex items-center gap-1.5">
                 {PREVIEW_KINDS.map((kind) => (
-                  <TopologyV2KindGlyph key={kind} kind={kind} glyphSet={set} size={15} />
+                  <OntologyMapKindGlyph key={kind} kind={kind} glyphSet={set} size={15} />
                 ))}
               </span>
               <span

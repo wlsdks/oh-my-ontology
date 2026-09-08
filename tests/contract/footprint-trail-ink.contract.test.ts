@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest";
 import {
   FOOTPRINT_RANGES,
 } from "@/shared/lib/appearance-preferences";
-import { trailNodeInkStrength } from "@/widgets/topology-map-v2/model/focus-state";
-import { draw as traceDraw } from "@/widgets/topology-map-v2/render/traces";
+import { trailNodeInkStrength } from "@/widgets/ontology-map/model/focus-state";
+import { draw as traceDraw } from "@/widgets/ontology-map/render/traces";
 
 /**
  * Footprint trail ink — the two values a person can pick must both stay readable.
@@ -55,7 +55,7 @@ describe("발자국 잉크 — 고를 수 있는 두 톤은 모두 읽힌다", (
    */
   it("두 톤 모두 최저 진하기에서 3:1 을 넘는다", () => {
     const css = read("app/globals.css");
-    const bg = hexRgb(/--topology-v2-canvas-bg-near:\s*(#[0-9a-fA-F]{6})/.exec(css)![1]);
+    const bg = hexRgb(/--map-canvas-bg-near:\s*(#[0-9a-fA-F]{6})/.exec(css)![1]);
     const tones = {
       amber: /--color-footprint-trail:\s*(#[0-9a-fA-F]{6})/.exec(css)![1],
       indigo: /--color-footprint-trail-indigo:\s*(#[0-9a-fA-F]{6})/.exec(css)![1],
@@ -74,7 +74,7 @@ describe("발자국 잉크 — 고를 수 있는 두 톤은 모두 읽힌다", (
    */
   it("발자국 노랑은 허브 앰버와 다른 값이다", () => {
     const css = read("app/globals.css");
-    const hub = /--topology-v2-amber-hub:\s*(#[0-9a-fA-F]{6})/.exec(css)?.[1]?.toLowerCase();
+    const hub = /--map-amber-hub:\s*(#[0-9a-fA-F]{6})/.exec(css)?.[1]?.toLowerCase();
     const trail = /--color-footprint-trail:\s*(#[0-9a-fA-F]{6})/.exec(css)?.[1]?.toLowerCase();
     expect(hub).toBeDefined();
     expect(trail).toBeDefined();
@@ -175,7 +175,7 @@ describe("걸어온 길 렌즈 — 노드와 선의 트레일 잉크", () => {
    */
   it("렌즈가 켜져도 안 밟은 선은 dim 그대로다", () => {
     const source = readFileSync(
-      join(repoRoot, "src/widgets/topology-map-v2/ui/topology-frame-draw.ts"),
+      join(repoRoot, "src/widgets/ontology-map/ui/topology-frame-draw.ts"),
       "utf8",
     );
     expect(source).toContain("walkedEdgeKeys");

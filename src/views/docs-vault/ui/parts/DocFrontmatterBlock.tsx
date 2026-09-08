@@ -736,7 +736,7 @@ export function DocFrontmatterBlock({
               y1="3"
               x2="15"
               y2="3"
-              stroke="var(--topology-v2-edge-contains-mark, var(--color-border-strong))"
+              stroke="var(--map-edge-contains-mark, var(--color-border-strong))"
               strokeWidth="1.5"
               strokeLinecap="round"
             />

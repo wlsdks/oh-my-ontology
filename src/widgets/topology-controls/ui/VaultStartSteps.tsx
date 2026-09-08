@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { VendorMark } from "@/shared/ui/vendor-mark";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import {
   Cable,
@@ -405,7 +405,7 @@ export function VaultStartSteps({
           The step used to spend its second sentence on what our prompt contains, which is an
           implementation detail of our prompt engineering, not something the person is deciding. What
           they are about to see is a map made of four marks, so the card shows those marks — the same
-          `TopologyV2KindGlyph` the map draws, so this is a preview rather than an illustration, and
+          `OntologyMapKindGlyph` the map draws, so this is a preview rather than an illustration, and
           it teaches the four names they will meet in the files.
         */}
         {current === "analyze" ? (
@@ -415,7 +415,7 @@ export function VaultStartSteps({
           >
             {(["project", "domain", "capability", "element"] as const).map((kind) => (
               <li key={kind} className="flex items-center gap-1.5">
-                <TopologyV2KindGlyph kind={kind} size={13} />
+                <OntologyMapKindGlyph kind={kind} size={13} />
                 <span className="text-label leading-label text-[color:var(--color-text-quaternary)]">
                   {kindLabel(kind)}
                 </span>

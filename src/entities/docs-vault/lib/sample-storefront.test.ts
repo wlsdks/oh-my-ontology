@@ -12,7 +12,7 @@ import type { VaultDoc, VaultManifest } from '../model/types';
 // hand-maintenance on every sample edit and caught no actual *spec violation* (it
 // broke on the 2026-08-01 regeneration). Expectations are therefore **derived from
 // the manifest itself** — they pass as nodes are added and fail when a spec breaks.
-// Precedent: `tests/e2e/topology-v2-smoke.spec.ts`.
+// Precedent: `tests/e2e/map-smoke.spec.ts`.
 
 const sampleStorefrontManifest = sampleStorefrontManifestRaw as VaultManifest;
 

@@ -166,7 +166,7 @@ test.describe("카메라 전환 규격", () => {
     await page.setViewportSize({ width: 1512, height: 982 });
     await seedFirstRunSeen(page);
     await page.goto("/ko/topology/?guides=off&e2e=1");
-    const canvas = page.getByTestId("topology-map-v2-canvas");
+    const canvas = page.getByTestId("ontology-map-canvas");
     await canvas.waitFor({ state: "visible", timeout: 20_000 });
     await expect
       .poll(() => page.evaluate(() => Boolean(window.__atlasMap)), { timeout: 15_000 })
@@ -217,7 +217,7 @@ test.describe("카메라 전환 규격", () => {
    * frame's share was 14.3%, so not a hard cut).
    */
   test("입력 뒤 카메라와 팝오버가 한 사건으로 시작한다", async ({ page }) => {
-    const canvas = page.getByTestId("topology-map-v2-canvas");
+    const canvas = page.getByTestId("ontology-map-canvas");
     await canvas.focus();
     const measured = await page.evaluate(async () => {
       const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));

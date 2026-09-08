@@ -6,7 +6,7 @@ import { isContainmentRelation, isDirectionalRelation } from "@/entities/knowled
  * The contract that **the map does not claim a direction that does not exist.**
  *
  * Background (measured 2026-07-31): the topology adapter
- * (`views/home/lib/topology-v2-adapter.ts`) classified relations into two buckets with
+ * (`views/home/lib/map-adapter.ts`) classified relations into two buckets with
  * `isContainmentRelation(type) ? "contains" : "depends"`, and the renderer drew a
  * **directional taper** (thick at source → thin at target) on every "depends". But of
  * the dogfood vault's 89 non-containment relations, **62 (70%) were `related_to`** — a

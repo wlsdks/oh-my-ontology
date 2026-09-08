@@ -47,7 +47,7 @@ test("데이터시트 줄 호버 — 지도가 그 노드를 가리키고, 떼�
   const target = await page.evaluate(() => {
     const probe = window.__atlasMap;
     const box = document
-      .querySelector('[data-testid="topology-map-v2-canvas"]')
+      .querySelector('[data-testid="ontology-map-canvas"]')
       ?.getBoundingClientRect();
     const node = probe?.nodes().find((n) => !n.hidden && n.label === "주문");
     return node && box ? { px: box.left + node.x, py: box.top + node.y } : null;
@@ -62,7 +62,7 @@ test("데이터시트 줄 호버 — 지도가 그 노드를 가리키고, 떼�
   const pixels = () =>
     page.evaluate(() => {
       const canvas = document.querySelector(
-        '[data-testid="topology-map-v2-canvas"]',
+        '[data-testid="ontology-map-canvas"]',
       ) as HTMLCanvasElement;
       const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
       return Array.from(ctx.getImageData(0, 0, canvas.width, canvas.height).data);

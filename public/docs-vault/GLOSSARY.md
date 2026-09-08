@@ -52,7 +52,7 @@ chose among several possible words, the reason is given.
 | **slug** | A node's readable, mutable address | slug | Web standard |
 | **uid** | A node's permanent UUIDv4 identity, minted once at creation | uid | Survives rename; `slug` does not |
 | **ego graph** | A node plus its direct neighbours | ego | Standard in social-network analysis ("ego network") |
-| **spine / circuit / element** | The map's three zoom tiers, outermost to innermost | spine / circuit / element | Repo-specific. Defined in `docs/TOPOLOGY-V2-DESIGN.md` |
+| **spine / circuit / element** | The map's three zoom tiers, outermost to innermost | spine / circuit / element | Repo-specific. Defined in `docs/ONTOLOGY-MAP-DESIGN.md` |
 | **dome** | The map's 3D projection mode | dome | Repo-specific |
 | **ACP** | Agent Client Protocol — how a coding agent talks to the app | ACP | Upstream protocol name |
 
@@ -87,7 +87,7 @@ Do **not** unify these. A sweep that collapses them destroys meaning. Measured
 
 | Word | One sense | A different sense |
 |---|---|---|
-| `gate` in `topology-map-v2/*-gate.ts` | a **runtime conditional** — skip an idle frame, cluster past a density threshold | not a CI gate |
+| `gate` in `ontology-map/*-gate.ts` | a **runtime conditional** — skip an idle frame, cluster past a density threshold | not a CI gate |
 | `gate` in ACP code | a **permission checkpoint** — the user approves a write | not a CI gate |
 | `repository` | the **git repo** (~780 occurrences, every one legitimate) | never the vault |
 | `ramp` as a verb | motion **ramping down** (deceleration) | not a value list |
@@ -194,7 +194,7 @@ file and leave a one-line pointer:
 
 ```ts
 // Why the camera fits the full node bbox and not the spine bbox:
-// docs/TOPOLOGY-V2-DESIGN.md "Camera fit"
+// docs/ONTOLOGY-MAP-DESIGN.md "Camera fit"
 ```
 
 Two rules keep this safe:

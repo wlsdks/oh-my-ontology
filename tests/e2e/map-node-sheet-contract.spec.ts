@@ -78,7 +78,7 @@ async function openSheetFromIndex(page: Page, width: number, height: number) {
   // Selecting **from the INDEX tree** is the path that leaves the INDEX open beside
   // the sheet — the `?p=` deep link collapses it, so it cannot see this defect at all.
   await page.getByTestId("topology-index-row").first().click();
-  await expect(page.getByTestId("topology-v2-detail-panel")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("map-detail-panel")).toBeVisible({ timeout: 20_000 });
   // Let the focus camera finish making room before anything is counted.
   await page.waitForTimeout(1_200);
 }
@@ -88,10 +88,10 @@ async function measure(page: Page) {
     const q = <T extends Element>(id: string) =>
       document.querySelector<T>(`[data-testid="${id}"]`);
     const positioner = q<HTMLElement>("topology-node-popover-positioner");
-    const panel = q<HTMLElement>("topology-v2-detail-panel");
+    const panel = q<HTMLElement>("map-detail-panel");
     const index = q<HTMLElement>("topology-index-panel");
-    const canvas = q<HTMLElement>("topology-map-v2-canvas");
-    const full = q<HTMLElement>("topology-v2-detail-panel-open-full-detail");
+    const canvas = q<HTMLElement>("ontology-map-canvas");
+    const full = q<HTMLElement>("map-detail-panel-open-full-detail");
     const tabBar = document.querySelector<HTMLElement>("[data-tabbar-min-height-token]");
     if (!positioner || !panel || !canvas) return null;
 
@@ -143,7 +143,7 @@ async function measure(page: Page) {
       const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
       fullDetailHit =
         hit === full || full.contains(hit)
-          ? "topology-v2-detail-panel-open-full-detail"
+          ? "map-detail-panel-open-full-detail"
           : (hit?.closest("[data-testid]")?.getAttribute("data-testid") ??
             hit?.tagName.toLowerCase() ??
             null);
@@ -213,7 +213,7 @@ for (const vp of CASES) {
     // F5 — the footer's primary action answers its own centre, and the sheet ends
     // above the bottom tab bar rather than under it.
     expect(m!.fullDetailHit, "「전체 상세」 중심이 자기 자신을 돌려준다").toBe(
-      "topology-v2-detail-panel-open-full-detail",
+      "map-detail-panel-open-full-detail",
     );
     if (m!.tabBarTop !== null) {
       expect(m!.panelBottom, "시트 바닥이 하단 탭 바를 침범하지 않는다").toBeLessThanOrEqual(

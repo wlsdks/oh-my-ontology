@@ -237,7 +237,7 @@ These sources do not decide Atlas hierarchy; the ontology workflow does.
 
 The current renderer contract stands:
 
-- `topology-map-v2` owns canvas-2D rendering, camera, hit testing, and visible
+- `ontology-map` owns canvas-2D rendering, camera, hit testing, and visible
   frame work;
 - Graphology owns graph data and ForceAtlas2 inputs;
 - ForceAtlas2 owns bounded layout work;

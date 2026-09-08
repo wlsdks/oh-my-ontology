@@ -70,7 +70,7 @@ test("the press that dismisses the 3D picker does not also walk the map", async 
   await openPicker(page);
   const target = await page.evaluate(() => {
     const m = (window as unknown as { __atlasMap: { nodes: () => Array<{ id: string; hidden: boolean; x: number; y: number }> } }).__atlasMap;
-    const box = document.querySelector('[data-testid="topology-map-v2-canvas"]')!.getBoundingClientRect();
+    const box = document.querySelector('[data-testid="ontology-map-canvas"]')!.getBoundingClientRect();
     const n = m.nodes().find((n) => !n.hidden && n.id.startsWith("capability:"));
     return n ? { id: n.id, px: box.left + n.x, py: box.top + n.y } : null;
   });
@@ -102,7 +102,7 @@ test("a deliberate node click in 3D does survive the return to 2D", async ({ pag
 
   const target = await page.evaluate(() => {
     const m = (window as unknown as { __atlasMap: { nodes: () => Array<{ id: string; hidden: boolean; x: number; y: number }> } }).__atlasMap;
-    const box = document.querySelector('[data-testid="topology-map-v2-canvas"]')!.getBoundingClientRect();
+    const box = document.querySelector('[data-testid="ontology-map-canvas"]')!.getBoundingClientRect();
     const n = m.nodes().find((n) => !n.hidden && n.id.startsWith("capability:"));
     return n ? { id: n.id, px: box.left + n.x, py: box.top + n.y } : null;
   });

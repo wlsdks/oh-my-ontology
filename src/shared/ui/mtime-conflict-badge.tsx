@@ -7,7 +7,7 @@ export interface MtimeConflictBadgeProps {
 
 /**
  * rank7 (design-council B5) — expected_mtime conflict badge, shared by
- * `DocFrontmatterBlock`, `TopologyV2DetailPanel`, and `FullDetailA1`.
+ * `DocFrontmatterBlock`, `OntologyMapDetailPanel`, and `FullDetailA1`.
  *
  * Rendered ONLY by the caller when a real mtime mismatch was detected
  * (`hasUnaccountedMtimeChange`) — this component has no vault knowledge, it

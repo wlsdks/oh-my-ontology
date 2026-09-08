@@ -29,7 +29,7 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
  * classifies as "the value is right and nothing catches it").
  */
 describe('wheel intent — 스크롤하는 문서 안의 지도', () => {
-  const handlers = read('src/widgets/topology-map-v2/ui/topology-pointer-handlers.ts');
+  const handlers = read('src/widgets/ontology-map/ui/topology-pointer-handlers.ts');
 
   it('page-scroll 의도에서는 preventDefault 보다 먼저 빠져나간다', () => {
     const start = handlers.indexOf('const handleWheel');
@@ -53,14 +53,14 @@ describe('wheel intent — 스크롤하는 문서 안의 지도', () => {
   });
 
   it('세로 스와이프도 같은 계약을 탄다 — touch-action 이 의도를 따라간다', () => {
-    const widget = read('src/widgets/topology-map-v2/ui/TopologyMapV2.tsx');
+    const widget = read('src/widgets/ontology-map/ui/OntologyMap.tsx');
     // `none` swallows vertical swipes too, so the page does not move at all on a phone.
     expect(widget).toMatch(/wheelIntent === "page-scroll" \? "pan-y" : "none"/);
   });
 
   it('워크벤치는 기본값으로 현행 동작을 유지한다', () => {
     expect(handlers).toMatch(/wheelIntent = "zoom"/);
-    const widget = read('src/widgets/topology-map-v2/ui/TopologyMapV2.tsx');
+    const widget = read('src/widgets/ontology-map/ui/OntologyMap.tsx');
     expect(widget).toMatch(/wheelIntent = "zoom"/);
   });
 

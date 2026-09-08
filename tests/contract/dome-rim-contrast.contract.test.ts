@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   domeFogAlpha,
   DOME_RIM_FOG_FLOOR,
-} from "@/widgets/topology-map-v2/model/dome-view";
+} from "@/widgets/ontology-map/model/dome-view";
 
 /**
  * **Depth fog may darken a node's rim only to 3 : 1** (2026-09-05, owner
@@ -87,12 +87,12 @@ function rimAlphaAt(u: number): number {
   return Math.min(1, fog * Math.max(1, DOME_RIM_FOG_FLOOR / fog));
 }
 
-const GROUND = rgb(token("--topology-v2-canvas-bg-near"));
+const GROUND = rgb(token("--map-canvas-bg-near"));
 const STROKES: Record<string, [number, number, number]> = {
-  project: rgb(token("--topology-v2-node-stroke-project")),
-  domain: rgb(token("--topology-v2-ink-depth-top")),
-  capability: rgb(token("--topology-v2-ink-depth-mid")),
-  element: rgb(token("--topology-v2-ink-depth-leaf")),
+  project: rgb(token("--map-node-stroke-project")),
+  domain: rgb(token("--map-ink-depth-top")),
+  capability: rgb(token("--map-ink-depth-mid")),
+  element: rgb(token("--map-ink-depth-leaf")),
 };
 
 describe("dome-rim-contrast — 안개는 테두리를 3:1 아래로 내리지 못한다", () => {

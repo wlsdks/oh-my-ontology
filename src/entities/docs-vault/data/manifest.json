@@ -96,7 +96,7 @@
       "headings": [],
       "excerpt": "2026-07-27 update — the current architecture is a local-first, git-backed meaning layer: a folder of markdown files that records what each part of the product is, who owns it, what it depends on, and what proves it. People and AI coding agents read and write that same folder. Round 10 permanently removed every login an",
       "wordCount": 5160,
-      "updatedAt": "2026-09-07",
+      "updatedAt": "2026-09-08",
       "linksOut": [
         "ANALYSIS-RECORDS",
         "../AGENTS",
@@ -218,13 +218,13 @@
     {
       "slug": "archive/SIGMA-PLAYBOOK",
       "path": "docs/archive/SIGMA-PLAYBOOK.md",
-      "title": "Sigma.js v3 — \"내장 기능 우선\" 플레이북 (topology-map-v2 / Slice 2)",
+      "title": "Sigma.js v3 — \"내장 기능 우선\" 플레이북 (ontology-map / Slice 2)",
       "tags": [],
       "frontmatter": {},
       "headings": [],
-      "excerpt": "[archived, 2026-07-18] topology-map-v2 는 결국 Sigma 를 채택하지 않고 커스텀 canvas-2D 엔진으로 출하됐다(344 retire-sigma-topology). 이 플레이북은 검토됐다가 채택되지 않은 접근의 조사 기록으로만 보관 — Sigma.js 는 현재 /docs 폴더 토폴로지 미니맵에만 남아 있다. 모든 API 이름은 jacomyal/sigma.js main 브랜치 소스(packages/sigma/src/.ts)와 공식 스토리북 예제(packages/storybook/stories/), packages/website/doc",
+      "excerpt": "[archived, 2026-07-18] ontology-map 는 결국 Sigma 를 채택하지 않고 커스텀 canvas-2D 엔진으로 출하됐다(344 retire-sigma-topology). 이 플레이북은 검토됐다가 채택되지 않은 접근의 조사 기록으로만 보관 — Sigma.js 는 현재 /docs 폴더 토폴로지 미니맵에만 남아 있다. 모든 API 이름은 jacomyal/sigma.js main 브랜치 소스(packages/sigma/src/.ts)와 공식 스토리북 예제(packages/storybook/stories/), packages/website/docs/a",
       "wordCount": 3036,
-      "updatedAt": "2026-07-18",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -234,9 +234,9 @@
       "tags": [],
       "frontmatter": {},
       "headings": [],
-      "excerpt": "[archived, 2026-07-18] 이 문서가 설계한 topology-map-canvas 자체가 topology-map-v2 로 대체되며 삭제됐다(현재 src/widgets/ 에 해당 디렉터리 없음). 역사적 맥락으로만 보관 — 현재 지도/그래프 엔진 설계는 docs/TOPOLOGY-V2-DESIGN.md 참조. 2026-07-03. 소유자 결정: \"지도쪽이 부드럽지도 않고 버벅거림 — 전체 재구성\". 상태: S1~S5 구현·출하됨 (src/widgets/topology-map-canvas/) — 잔여는 §5 의 S6 후보(미니맵/범례 재공급, 관계 커넥터 클릭",
+      "excerpt": "[archived, 2026-07-18] 이 문서가 설계한 topology-map-canvas 자체가 ontology-map 로 대체되며 삭제됐다(현재 src/widgets/ 에 해당 디렉터리 없음). 역사적 맥락으로만 보관 — 현재 지도/그래프 엔진 설계는 docs/ONTOLOGY-MAP-DESIGN.md 참조. 2026-07-03. 소유자 결정: \"지도쪽이 부드럽지도 않고 버벅거림 — 전체 재구성\". 상태: S1~S5 구현·출하됨 (src/widgets/topology-map-canvas/) — 잔여는 §5 의 S6 후보(미니맵/범례 재공급, 관계 커넥터 클릭, ",
       "wordCount": 831,
-      "updatedAt": "2026-07-18",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -313,7 +313,7 @@
       "headings": [],
       "excerpt": "상태: 진행 중. 이 문서는 전면 재디자인 제안서가 아니라, 실제 사용자 시나리오를 설치 앱에서 반복 검증하며 발견·수정·재검증한 계약을 기록한다. 최신 반복 측정: 2026-07-27, 설치 앱 + Codex Computer Use. 원칙: 취향보다 과업 성공, 스크린샷보다 상호작용 증거, 새 기능보다 현재 흐름의 신뢰 회복을 우선한다. 각 항목은 아래 순서로 닫는다. 1. 사용자·과업·시작 상태·이벤트 순서를 고정한다. 2. 설치 앱에서 포인터와 키보드로 재현한다. 3. 스크린샷의 광점·호버·강조를 판정하기 전 포인터를 비정보 영역으로 옮겨 한 장 더 캡처한다. ",
       "wordCount": 14980,
-      "updatedAt": "2026-07-31",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -785,9 +785,9 @@
       "tags": [],
       "frontmatter": {},
       "headings": [],
-      "excerpt": "The 2026-09-06 decision record (docs/DECISIONS.md) names these in one line each; it has 2,000 bytes and no room for the reasons. This page carries them. It is a sources page, not a plan: the geometry lives in buildStrataTargets (src/widgets/topology-map-v2/model/dome-view.ts) and the numbers live in tests/e2e/map-3d-st",
+      "excerpt": "The 2026-09-06 decision record (docs/DECISIONS.md) names these in one line each; it has 2,000 bytes and no room for the reasons. This page carries them. It is a sources page, not a plan: the geometry lives in buildStrataTargets (src/widgets/ontology-map/model/dome-view.ts) and the numbers live in tests/e2e/map-3d-strat",
       "wordCount": 1123,
-      "updatedAt": "2026-09-06",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -813,7 +813,7 @@
       "headings": [],
       "excerpt": "A trial, not a feature. The owner asked two questions on 2026-09-06: try three.js on the map's 3D view and compare it with what ships, and look for a 3D structure better suited to an ontology than the cone. This file is the answer; nothing here is on by default and no decision record was written, because the decision i",
       "wordCount": 2171,
-      "updatedAt": "2026-09-06",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -863,7 +863,7 @@
       "headings": [],
       "excerpt": "What lives here and why. This is the round-by-round record behind tests/contract/control-adoption-ratchet.contract.test.ts: the exhaustive counts, the registration verdicts, the categories that were rejected and on what evidence. It was 579 lines of doc-block at the top of that test file until 2026-08-22. .claude/rules",
       "wordCount": 7833,
-      "updatedAt": "2026-08-23",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -874,7 +874,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 119909,
+      "wordCount": 120130,
       "updatedAt": "2026-09-08",
       "linksOut": [
         "wiki/…",
@@ -940,12 +940,12 @@
         ]
       },
       "headings": [],
-      "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from topology-map-v2 has become the standard for page rollout (gateway → docs/ontology hub → projects/",
+      "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from ontology-map has become the standard for page rollout (gateway → docs/ontology hub → projects/ins",
       "wordCount": 44050,
       "updatedAt": "2026-09-08",
       "linksOut": [
         "design-references/DESIGN-linear",
-        "TOPOLOGY-V2-DESIGN",
+        "ONTOLOGY-MAP-DESIGN",
         "FOUNDATIONS",
         "TOPOLOGY-FOCUS-AND-SCALE"
       ]
@@ -1017,7 +1017,7 @@
       "headings": [],
       "excerpt": "This file is the single source of truth for the words this repository uses. English is canonical: comments, doc-blocks, and developer docs are written in English so contributors outside Korea can read them. Korean equivalents are listed for the maintainer and for the two Korean docs that stay Korean — docs/DECISIONS.md",
       "wordCount": 2349,
-      "updatedAt": "2026-08-23",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -1077,7 +1077,7 @@
       "headings": [],
       "excerpt": "Twenty nodes is no problem. Problems arise when you reach two hundred, three people start using it together, and agents add several items daily. I think I made the same thing twice, but where is it? If I rename this, what breaks? How do I know what needs fixing now? This chapter covers what happens next. The primary fa",
       "wordCount": 1191,
-      "updatedAt": "2026-08-23",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -1183,9 +1183,9 @@
       "tags": [],
       "frontmatter": {},
       "headings": [],
-      "excerpt": "A record of decisions applying open principles from the Apple Designing Fluid Interfaces (WWDC18) lineage to this project's design charter (DESIGN-SYSTEM.md · .claude/rules/design.md). If in conflict with the charter, the charter wins — see \"Conflict Resolution\" below. This is a design gate input document for topology-",
+      "excerpt": "A record of decisions applying open principles from the Apple Designing Fluid Interfaces (WWDC18) lineage to this project's design charter (DESIGN-SYSTEM.md · .claude/rules/design.md). If in conflict with the charter, the charter wins — see \"Conflict Resolution\" below. This is a design gate input document for ontology-",
       "wordCount": 890,
-      "updatedAt": "2026-08-23",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -1257,7 +1257,7 @@
       "headings": [],
       "excerpt": "One-liner: States that cannot be distinguished from outside cannot be inspected from outside. The map is a single canvas with no DOM — if state is not explicitly exported, automation merely «pretends to see» the screen while measuring the wrong things. On 2026-07-31, the owner reported node drag lag. I replied six time",
       "wordCount": 1255,
-      "updatedAt": "2026-08-23",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -1296,6 +1296,20 @@
         "FOUNDATIONS",
         "ONTOLOGY-ATLAS-SPEC",
         "BACKLOG"
+      ]
+    },
+    {
+      "slug": "ONTOLOGY-MAP-DESIGN",
+      "path": "docs/ONTOLOGY-MAP-DESIGN.md",
+      "title": "ONTOLOGY-MAP DESIGN — Presentation Architecture Design (Phase 1)",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "Historical implementation record (superseded, 2026-07-27). This document preserves the measurements and decisions that led to ontology-map; its descriptions of coexisting DOM/Sigma engines and future migration phases are not current runtime instructions. The shipped contract is one canvas-2D engine. Use docs/TECH-STACK",
+      "wordCount": 4333,
+      "updatedAt": "2026-09-08",
+      "linksOut": [
+        "owner-topology-taste"
       ]
     },
     {
@@ -1626,7 +1640,7 @@
       "headings": [],
       "excerpt": "A component layer that prevents screen creators from manually writing className. Values are provided by controlClass()/fieldClass() (cva), and behavior (default type · forced access names · error wiring · keyboard contracts) is handled by the components. Control & Form Primitives is the component layer that prevents sc",
       "wordCount": 465,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -2101,7 +2115,7 @@
       "headings": [],
       "excerpt": "The capability to apply ontology writing requested by a user directly correcting the map or an ACP agent into markdown frontmatter only after reviewing accurate typed change proposals. It keeps the map selection context and the user's final meaning decision authority in the same flow. Change proposals are volatile pre-",
       "wordCount": 271,
-      "updatedAt": "2026-08-24",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -2166,12 +2180,12 @@
         "elements": [
           "elements/full-detail-a1",
           "elements/global-search",
+          "elements/ontology-map",
           "elements/search-palette",
           "elements/topology-controls",
-          "elements/topology-index-panel",
-          "elements/topology-map-v2"
+          "elements/topology-index-panel"
         ],
-        "path": "src/widgets/topology-map-v2",
+        "path": "src/widgets/ontology-map",
         "created_by": "agent:unknown",
         "dependencies": [
           "capabilities/design-token-ramps",
@@ -2185,7 +2199,7 @@
       "headings": [],
       "excerpt": "The capability to render, pan/zoom, and search the entire vault graph on a custom canvas-2D engine. There is no dedicated folder in src/features/, but it is proposed via widget evidence + documentation description (review-required). Selecting a node on the map: the compact node datasheet popover shown beside the clicke",
       "wordCount": 1337,
-      "updatedAt": "2026-09-07",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -2660,13 +2674,13 @@
           "elements/full-detail-a1",
           "elements/gesture-hint",
           "elements/global-search",
+          "elements/ontology-map",
           "elements/recent-node-row",
           "elements/search-hint",
           "elements/search-palette",
           "elements/shortcut-sheet",
           "elements/topology-controls",
-          "elements/topology-index-panel",
-          "elements/topology-map-v2"
+          "elements/topology-index-panel"
         ],
         "created_by": "human",
         "relation_notes": {
@@ -2681,13 +2695,13 @@
           "elements/shortcut-sheet": "Keyboard travel over the map has to be discoverable, so the sheet groups shortcuts by the screen a person is actually on.",
           "elements/topology-controls": "The hub rail keeps the map's main projects one click away and says what to do when no vault or no matching node exists.",
           "elements/topology-index-panel": "The INDEX tree is how a person walks domains, capabilities, and elements when reading the canvas alone is not enough.",
-          "elements/topology-map-v2": "The canvas renderer is the map itself, drawing and hit-testing from one per-frame position map in both the flat view and the opt-in 3D one."
+          "elements/ontology-map": "The canvas renderer is the map itself, drawing and hit-testing from one per-frame position map in both the flat view and the opt-in 3D one."
         }
       },
       "headings": [],
       "excerpt": "canvas-2D graph browsing surface (map, search, index panel): The product's primary entry point for visually navigating the entire vault. docs/ARCHITECTURE.md: \"the current route model converges browsing on Topology, writing on Workshop, maintenance on the six-tab Insights page: five measured questions plus Flow\" (risky",
       "wordCount": 95,
-      "updatedAt": "2026-09-06",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -2924,7 +2938,7 @@
       "headings": [],
       "excerpt": "Kind/category classification data entity. Implementation evidence for capabilities/taxonomy. Primary implementation: src/entities/category/model/types.tsCategory Supporting implementation: src/entities/category/model/defaults.tsDEFAULTCATEGORIES Focused test: src/features/project-edit/model/placement.test.tsreturns a p",
       "wordCount": 113,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -3225,7 +3239,7 @@
       "headings": [],
       "excerpt": "Map gesture hint overlay widget. Primary implementation: src/widgets/gesture-hint/ui/GestureHint.tsxGestureHint Focused test: src/widgets/gesture-hint/ui/GestureHint.test.tsxnever appears on a fine pointer, however long the page stays open Focused test: src/widgets/gesture-hint/ui/GestureHint.test.tsxshows the touch hi",
       "wordCount": 105,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -3294,7 +3308,7 @@
       "headings": [],
       "excerpt": "/ Home entry page. Primary implementation: src/views/home/ui/HomePage.tsxHomePage Supporting implementation: src/views/home/model/use-home-route-state.tsuseHomeRouteState Focused test: src/views/home/ui/HomePage.accessibility.test.tskeeps the visible label inside the longer accessible name Focused test: src/views/home/",
       "wordCount": 123,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -3336,7 +3350,7 @@
       "headings": [],
       "excerpt": "Graph node/edge data structure entity. Evidence of implementation for capabilities/vault-ontology. Primary implementation: src/entities/knowledge-graph/model/build-edge-type-rows.tsbuildEdgeTypeRows Supporting implementation: src/entities/knowledge-graph/model/use-edge-type-label.tsuseEdgeTypeLabel Focused test: src/en",
       "wordCount": 134,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -3462,7 +3476,7 @@
       "headings": [],
       "excerpt": "Kind-specific schema class definition entity. Evidence of implementation for capabilities/vault-ontology. Primary implementation: src/entities/ontology-class/model/icons.tsgetOntologyKindIcon Supporting implementation: src/entities/ontology-class/model/labels.tsgetOntologyKindLabel Focused test: src/entities/ontology-c",
       "wordCount": 118,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -3505,6 +3519,33 @@
       "excerpt": "The Analysis workbench answers seven questions through Do next, Not held, Inventory, Connections, Boundaries, Freshness, and Flow. One ACP conversation stays beside the tabs in the installed app; changing tabs preserves its draft and request origin. Explicit tab actions seat read-only questions, and the person owns Sen",
       "wordCount": 167,
       "updatedAt": "2026-09-05",
+      "linksOut": []
+    },
+    {
+      "slug": "ontology/elements/ontology-map",
+      "path": "docs/ontology/elements/ontology-map.md",
+      "title": "Topology Map V2",
+      "tags": [],
+      "frontmatter": {
+        "uid": "cc95edb1-2eab-4752-941f-8bcf99d19769",
+        "slug": "elements/ontology-map",
+        "kind": "element",
+        "title": "Topology Map V2",
+        "display_ko": "지도 렌더러 v2",
+        "domain": "domains/topology-navigation",
+        "path": "src/widgets/ontology-map",
+        "created_by": "agent:unknown",
+        "dependencies": [
+          "elements/knowledge-graph"
+        ],
+        "relation_notes": {
+          "elements/knowledge-graph": "The canvas renderer draws the node/edge model the knowledge-graph entity derives; src/widgets/ontology-map imports @/entities/knowledge-graph."
+        }
+      },
+      "headings": [],
+      "excerpt": "Custom canvas-2D graph renderer core. Core implementation evidence for capabilities/topology-browsing. AGENTS.md Tech stack: \"The graph renderer is ours\". The opt-in 3D view lives inside this widget rather than in a second renderer: model/dome-view.ts lays the ownership arrangement out as a cone tree (height = containm",
+      "wordCount": 233,
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -3903,7 +3944,7 @@
       "headings": [],
       "excerpt": "Map pan/zoom/reset control widget. Implementation evidence for capabilities/topology-browsing. Primary implementation: src/widgets/topology-controls/ui/HubRail.tsxHubRail Supporting implementation: src/widgets/topology-controls/ui/TopologyEmptyState.tsxTopologyEmptyState Focused test: src/widgets/topology-controls/ui/H",
       "wordCount": 126,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -3924,34 +3965,7 @@
       "headings": [],
       "excerpt": "Map index (INDEX) panel widget. Implementation evidence for capabilities/topology-browsing. Primary implementation: src/widgets/topology-index-panel/ui/TopologyIndexPanel.tsxTopologyIndexPanel Supporting implementation: src/widgets/topology-index-panel/ui/TopologyIndexTab.tsxTopologyIndexTab Focused test: src/widgets/t",
       "wordCount": 127,
-      "updatedAt": "2026-09-04",
-      "linksOut": []
-    },
-    {
-      "slug": "ontology/elements/topology-map-v2",
-      "path": "docs/ontology/elements/topology-map-v2.md",
-      "title": "Topology Map V2",
-      "tags": [],
-      "frontmatter": {
-        "uid": "cc95edb1-2eab-4752-941f-8bcf99d19769",
-        "slug": "elements/topology-map-v2",
-        "kind": "element",
-        "title": "Topology Map V2",
-        "display_ko": "지도 렌더러 v2",
-        "domain": "domains/topology-navigation",
-        "path": "src/widgets/topology-map-v2",
-        "created_by": "agent:unknown",
-        "dependencies": [
-          "elements/knowledge-graph"
-        ],
-        "relation_notes": {
-          "elements/knowledge-graph": "The canvas renderer draws the node/edge model the knowledge-graph entity derives; src/widgets/topology-map-v2 imports @/entities/knowledge-graph."
-        }
-      },
-      "headings": [],
-      "excerpt": "Custom canvas-2D graph renderer core. Core implementation evidence for capabilities/topology-browsing. AGENTS.md Tech stack: \"The graph renderer is ours\". The opt-in 3D view lives inside this widget rather than in a second renderer: model/dome-view.ts lays the ownership arrangement out as a cone tree (height = containm",
-      "wordCount": 233,
-      "updatedAt": "2026-09-04",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4018,7 +4032,7 @@
       "headings": [],
       "excerpt": "A local-first codebase ontology workbench that records what a codebase builds, why it is structured that way, and what a change will affect. It links product domains and capabilities to implementation evidence, dependencies, and impact in a computable Markdown graph that people and AI agents maintain together. README.m",
       "wordCount": 808,
-      "updatedAt": "2026-09-06",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4038,7 +4052,7 @@
       "headings": [],
       "excerpt": "This folder is Ontology Atlas described in its own data format (dogfooding). Every .md file here is one node of the product's meaning model: the same project / domain / capability / element graph the app draws and the MCP server serves to AI agents. If you are an agent reading this: this vault is the shared mental mode",
       "wordCount": 927,
-      "updatedAt": "2026-08-31",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4050,7 +4064,7 @@
       "headings": [],
       "excerpt": "소유자가 실사용 스크린샷과 함께 보고한 22건 + \"디자인 시스템 구축\"이라는 메타 과제를 기록한 단일 진실원 계획 문서. 프로세스: fable 기획 → opus 검수 → sonnet/opus 코딩. 항목마다 상태를 갱신한다 (☐ 대기 · ◐ 진행 · ☑ 완료 · ✗ 반려/보류). 세션이 바뀌어도 이 문서만 읽으면 이어서 작업 가능해야 한다. \"모든 디자인의 토큰화 — 사이즈·모양 다 코드로 구성되어야 한다.\" 22건 중 다수(4·6·8·13·16·17)는 개별 수정이 아니라 시스템 부재의 증상이다. 따라서 Phase 1 에서 캐노니컬 컴포넌트/토큰을 먼저 세우고, ",
       "wordCount": 2163,
-      "updatedAt": "2026-07-31",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4062,7 +4076,7 @@
       "headings": [],
       "excerpt": "이 문서는 2026-07-17 하루 동안의 집중 재기획의 확정 산출물이다. 검증 이력: 시장·기술 조사 17건 (haiku) · 사용자 페르소나 패널 7인 · CPO 심사 (PO rubric 22/24, Chief PO Level 4) · 사상가 렌즈 패널 10인 × 3라운드 (최종 평균 7.60 — 기획 단계 캘리브레이션 기준 Obsidian/dbt의 7.3을 상회) · 도입 심사 10인 · 충분성 분석 2건. 상세 근거는 세션 기록과 메모리 참조. 결론: 기획 단계 완료. 남은 점수는 구현과 시장 증거에서 나온다. Layer 1 (로컬 코어 — 불변의 신뢰 계약)",
       "wordCount": 2209,
-      "updatedAt": "2026-07-31",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4118,7 +4132,7 @@
       "headings": [],
       "excerpt": "Atlas-specific design routing. The PO pass decides whether a product slice is worth doing. This system derives which design work and runtime evidence that slice needs. It does not grade taste and it does not make every UI edit hold a council. Atlas exists so a person can recover understanding after agents change code f",
       "wordCount": 2295,
-      "updatedAt": "2026-09-02",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4169,7 +4183,7 @@
       "headings": [],
       "excerpt": "소유자 피드백 5건(A 시각 빈곤 · B 다이브 과심도 · C 줌 둔감 · D 설정 어포던스 · E 크롬 충돌)에 대한 리뷰·레퍼런스 조사·처방. 목업: chrome-recomposition.html · focus-dive-before-after.html · visual-richness-sampler.html. 스샷: shots/. 헌장 유지: 무채색 + 단일 인디고, 그라디언트/글로우/글래스모피즘 금지, data-ink 원칙(Tufte). 레퍼런스는 원칙 인용만 — 자산 모방 없음. 기계가공-계기판 언어는 토폴로지 캔버스 위에서는 성립한다(각인 숫자·기계가공 셰이프",
       "wordCount": 1454,
-      "updatedAt": "2026-07-18",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4205,7 +4219,7 @@
       "headings": [],
       "excerpt": "Decisions recorded 2026-07-17. Package and runtime facts refreshed from the repository 2026-08-23. Next full review January 2027, or sooner if one of the branch conditions below actually fires. The default is to keep a stack that has been verified working. It is the same reasoning that rejected a full rewrite: a replac",
       "wordCount": 1260,
-      "updatedAt": "2026-08-29",
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
@@ -4234,22 +4248,8 @@
       "headings": [],
       "excerpt": "Design rationale and implemented contract for how the topology map reveals a node on click and stays readable + fast as the vault grows. /topology is the explicit map address; / is the map only after a vault is available (a web visitor without one sees the gateway). This is the canonical decision; .claude/rules/design.",
       "wordCount": 1198,
-      "updatedAt": "2026-09-03",
+      "updatedAt": "2026-09-08",
       "linksOut": []
-    },
-    {
-      "slug": "TOPOLOGY-V2-DESIGN",
-      "path": "docs/TOPOLOGY-V2-DESIGN.md",
-      "title": "TOPOLOGY-V2 DESIGN — Presentation Architecture Design (Phase 1)",
-      "tags": [],
-      "frontmatter": {},
-      "headings": [],
-      "excerpt": "Historical implementation record (superseded, 2026-07-27). This document preserves the measurements and decisions that led to topology-map-v2; its descriptions of coexisting DOM/Sigma engines and future migration phases are not current runtime instructions. The shipped contract is one canvas-2D engine. Use docs/TECH-ST",
-      "wordCount": 4333,
-      "updatedAt": "2026-08-23",
-      "linksOut": [
-        "owner-topology-taste"
-      ]
     },
     {
       "slug": "TROUBLESHOOTING",
@@ -4402,15 +4402,15 @@
     "design-references/DESIGN-linear": [
       {
         "fromSlug": "DESIGN-SYSTEM",
-        "context": "System > This document is maintained based on Section 3 of the design spec. For the original Linear specification, see **[`design-references/DESIGN-linear.md`]**. > > **v2 (2026-07)**: The B2+ \"Circuit × Constellation\" visual language shipped from topology-map-v2 has become the st",
+        "context": "System > This document is maintained based on Section 3 of the design spec. For the original Linear specification, see **[`design-references/DESIGN-linear.md`]**. > > **v2 (2026-07)**: The B2+ \"Circuit × Constellation\" visual language shipped from ontology-map has become the stand",
         "linkText": "`design-references/DESIGN-linear.md`"
       }
     ],
-    "TOPOLOGY-V2-DESIGN": [
+    "ONTOLOGY-MAP-DESIGN": [
       {
         "fromSlug": "DESIGN-SYSTEM",
-        "context": "-v2/` + `--topology-v2-*` / `--topology-chrome-*` tokens in `app/globals.css`. The entire expression architecture is in **[`TOPOLOGY-V2-DESIGN.md`]**. This section is the **working rulebook** for extending that language to pages outside topology — it is not marketing c",
-        "linkText": "`TOPOLOGY-V2-DESIGN.md`"
+        "context": "ntology-map/` + `--map-*` / `--topology-chrome-*` tokens in `app/globals.css`. The entire expression architecture is in **[`ONTOLOGY-MAP-DESIGN.md`]**. This section is the **working rulebook** for extending that language to pages outside topology — it is not marketing c",
+        "linkText": "`ONTOLOGY-MAP-DESIGN.md`"
       }
     ],
     "FOUNDATIONS": [
@@ -4528,18 +4528,18 @@
         "linkText": "`BACKLOG.md`"
       }
     ],
+    "owner-topology-taste": [
+      {
+        "fromSlug": "ONTOLOGY-MAP-DESIGN",
+        "context": "ct detail neighbor map `SigmaTopology minimal`) are already problematic from the owner's \"mode proliferation aversion\" (**[owner-topology-taste]**) perspective — one vault is drawn by three different codes. B2+’s continuous smoothstep transition (circuit ↔ constella",
+        "linkText": "owner-topology-taste"
+      }
+    ],
     "CODEBASE-ONTOLOGY-POSITIONING": [
       {
         "fromSlug": "PRODUCT-DIRECTION",
         "context": "conversation-memory store and hides the product/implementation meaning that distinguishes it. Canonical internal note: **[`docs/CODEBASE-ONTOLOGY-POSITIONING.md`]**. ### Required product loop This loop must work before the project is treated as launch-ready: ```text init -> bootst",
         "linkText": "`docs/CODEBASE-ONTOLOGY-POSITIONING.md`"
-      }
-    ],
-    "owner-topology-taste": [
-      {
-        "fromSlug": "TOPOLOGY-V2-DESIGN",
-        "context": "ct detail neighbor map `SigmaTopology minimal`) are already problematic from the owner's \"mode proliferation aversion\" (**[owner-topology-taste]**) perspective — one vault is drawn by three different codes. B2+’s continuous smoothstep transition (circuit ↔ constella",
-        "linkText": "owner-topology-taste"
       }
     ],
     "../CLAUDE": [
@@ -5715,6 +5715,18 @@
         "linkText": "elements/global-search"
       }
     ],
+    "ontology/elements/ontology-map": [
+      {
+        "fromSlug": "ontology/capabilities/topology-browsing",
+        "context": "frontmatter · **[elements/ontology-map]**",
+        "linkText": "elements/ontology-map"
+      },
+      {
+        "fromSlug": "ontology/domains/topology-navigation",
+        "context": "frontmatter · **[elements/ontology-map]**",
+        "linkText": "elements/ontology-map"
+      }
+    ],
     "ontology/elements/search-palette": [
       {
         "fromSlug": "ontology/capabilities/topology-browsing",
@@ -5749,18 +5761,6 @@
         "fromSlug": "ontology/domains/topology-navigation",
         "context": "frontmatter · **[elements/topology-index-panel]**",
         "linkText": "elements/topology-index-panel"
-      }
-    ],
-    "ontology/elements/topology-map-v2": [
-      {
-        "fromSlug": "ontology/capabilities/topology-browsing",
-        "context": "frontmatter · **[elements/topology-map-v2]**",
-        "linkText": "elements/topology-map-v2"
-      },
-      {
-        "fromSlug": "ontology/domains/topology-navigation",
-        "context": "frontmatter · **[elements/topology-map-v2]**",
-        "linkText": "elements/topology-map-v2"
       }
     ],
     "ontology/capabilities/design-token-ramps": [
@@ -5802,6 +5802,11 @@
         "linkText": "domains/topology-navigation"
       },
       {
+        "fromSlug": "ontology/elements/ontology-map",
+        "context": "frontmatter · **[domains/topology-navigation]**",
+        "linkText": "domains/topology-navigation"
+      },
+      {
         "fromSlug": "ontology/elements/recent-node-row",
         "context": "frontmatter · **[domains/topology-navigation]**",
         "linkText": "domains/topology-navigation"
@@ -5828,11 +5833,6 @@
       },
       {
         "fromSlug": "ontology/elements/topology-index-panel",
-        "context": "frontmatter · **[domains/topology-navigation]**",
-        "linkText": "domains/topology-navigation"
-      },
-      {
-        "fromSlug": "ontology/elements/topology-map-v2",
         "context": "frontmatter · **[domains/topology-navigation]**",
         "linkText": "domains/topology-navigation"
       },
@@ -5895,7 +5895,7 @@
         "linkText": "elements/knowledge-graph"
       },
       {
-        "fromSlug": "ontology/elements/topology-map-v2",
+        "fromSlug": "ontology/elements/ontology-map",
         "context": "frontmatter · **[elements/knowledge-graph]**",
         "linkText": "elements/knowledge-graph"
       }
@@ -6372,7 +6372,7 @@
             "path": "archive/SIGMA-PLAYBOOK",
             "type": "doc",
             "slug": "archive/SIGMA-PLAYBOOK",
-            "title": "Sigma.js v3 — \"내장 기능 우선\" 플레이북 (topology-map-v2 / Slice 2)"
+            "title": "Sigma.js v3 — \"내장 기능 우선\" 플레이북 (ontology-map / Slice 2)"
           },
           {
             "name": "TOPOLOGY-MAP-REBUILD",
@@ -7451,6 +7451,13 @@
                 "title": "Ontology Insights"
               },
               {
+                "name": "ontology-map",
+                "path": "ontology/elements/ontology-map",
+                "type": "doc",
+                "slug": "ontology/elements/ontology-map",
+                "title": "Topology Map V2"
+              },
+              {
                 "name": "ontology-meaning-editor",
                 "path": "ontology/elements/ontology-meaning-editor",
                 "type": "doc",
@@ -7589,13 +7596,6 @@
                 "type": "doc",
                 "slug": "ontology/elements/topology-index-panel",
                 "title": "Topology Index Panel"
-              },
-              {
-                "name": "topology-map-v2",
-                "path": "ontology/elements/topology-map-v2",
-                "type": "doc",
-                "slug": "ontology/elements/topology-map-v2",
-                "title": "Topology Map V2"
               },
               {
                 "name": "vault-agent-panel",
@@ -7854,6 +7854,13 @@
         "title": "Ontology Construction Qualification v1"
       },
       {
+        "name": "ONTOLOGY-MAP-DESIGN",
+        "path": "ONTOLOGY-MAP-DESIGN",
+        "type": "doc",
+        "slug": "ONTOLOGY-MAP-DESIGN",
+        "title": "ONTOLOGY-MAP DESIGN — Presentation Architecture Design (Phase 1)"
+      },
+      {
         "name": "ONTOLOGY-QUALITY",
         "path": "ONTOLOGY-QUALITY",
         "type": "doc",
@@ -7908,13 +7915,6 @@
         "type": "doc",
         "slug": "TOPOLOGY-FOCUS-AND-SCALE",
         "title": "Topology — Node Focus & Scale"
-      },
-      {
-        "name": "TOPOLOGY-V2-DESIGN",
-        "path": "TOPOLOGY-V2-DESIGN",
-        "type": "doc",
-        "slug": "TOPOLOGY-V2-DESIGN",
-        "title": "TOPOLOGY-V2 DESIGN — Presentation Architecture Design (Phase 1)"
       },
       {
         "name": "TROUBLESHOOTING",

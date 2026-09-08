@@ -651,7 +651,7 @@ const RULES = [
     command: 'pnpm exec playwright test tests/e2e/map-viewport-reframe.spec.ts',
     reason: 'camera free-area measurement or its selected-inspector owner changed',
     matches: [
-      /^src\/widgets\/topology-map-v2\/interaction\/free-area\.ts$/,
+      /^src\/widgets\/ontology-map\/interaction\/free-area\.ts$/,
       /^src\/views\/home\/ui\/HomePage\.tsx$/,
     ],
   },
@@ -682,7 +682,7 @@ const RULES = [
   {
     command: 'pnpm exec playwright test tests/e2e/touch-target-contract.spec.ts',
     reason: 'selected-node panel touch targets changed',
-    matches: [/^src\/widgets\/topology-map-v2\/ui\/TopologyV2DetailPanel\.tsx$/],
+    matches: [/^src\/widgets\/ontology-map\/ui\/OntologyMapDetailPanel\.tsx$/],
   },
   {
     /*

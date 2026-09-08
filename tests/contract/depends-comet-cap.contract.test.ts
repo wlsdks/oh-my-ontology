@@ -5,7 +5,7 @@ import {
   edgePairKey,
   selectAmbientDependsComets,
   selectEgoContainsComets,
-} from "@/widgets/topology-map-v2/render/edge-fireflies";
+} from "@/widgets/ontology-map/render/edge-fireflies";
 
 /**
  * The contract that the always-on ambient `depends` comets carry **the same cap** as

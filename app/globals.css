@@ -53,7 +53,7 @@
    *   All four static surfaces passed AA (canvas 5.23 · panel 5.00 · panel+overlay-1
    *   4.81 · elevated 4.57). It is the practically minimum luminance exceeding 4.5 for elevated
    *   (#828282 has a lower bound of 4.54), preserving the hierarchy gap with tertiary (#8a8f98) as much as
-   *   possible, and converging with the value that --topology-v2-panel-text-quaternary on the map panel
+   *   possible, and converging with the value that --map-panel-text-quaternary on the map panel
    *   already arrived at in 2026-07 for the same reason — the system's quaternary
    *   solution reduced to one. Only achromatic luminance moved, new hue 0.
    * ⚠️ hover/selected surfaces (overlay-2 composite 4.36) are still insufficient — text on clickable
@@ -455,7 +455,7 @@
    * properties like `--page-max`.
    *
    * **Why unitless**: Contract for camera token reader to parse via `parseFloat`
-   * (`src/widgets/topology-map-v2/tokens/read-topology-v2-tokens.ts`).
+   * (`src/widgets/ontology-map/tokens/read-map-tokens.ts`).
    * Adding px silently becomes NaN. CSS consumers use `calc(var(…) * 1px)`.
    */
   /*
@@ -1134,8 +1134,8 @@
   --default-transition-duration: var(--motion-fast);
   --default-transition-timing-function: var(--motion-ease);
 
-  /* Padding does not have a separate ramp. Previously `--pad-card`/`--pad-panel` existed but **0 usage**, and `--pad-card` actually overlapped values with the used `--card-pad`, while `--pad-panel`(12px) **differed in value** from what panels actually use `--topology-v2-panel-pad`(14px) — meaning docs pointed to dead tokens with wrong values. Card uses `--card-pad`, panel uses
-     `--topology-v2-panel-pad` as single source. (2026-07-26) */
+  /* Padding does not have a separate ramp. Previously `--pad-card`/`--pad-panel` existed but **0 usage**, and `--pad-card` actually overlapped values with the used `--card-pad`, while `--pad-panel`(12px) **differed in value** from what panels actually use `--map-panel-pad`(14px) — meaning docs pointed to dead tokens with wrong values. Card uses `--card-pad`, panel uses
+     `--map-panel-pad` as single source. (2026-07-26) */
 
   /* Codex index — geometry/motion tokens already defined at the bottom of this file:
      · --chrome-tile-size (36px) chrome tile square
@@ -2223,7 +2223,7 @@
     pointer-events: none;
   }
 
-  /* Reduced-motion only — remove translate, use opacity crossfade only. The 120ms duration copies --topology-v2-tip-fade-ms(120) (this token is scoped to the topology-v2 feature flag, so direct var() references in this DOM overlay trio are prohibited per DESIGN-SYSTEM v2 §Scope Caution — we match the value only). GlobalSearch/NewDocKindDialog applies this class instead of .overlay-spring-surface based on useReducedMotion(); SearchPalette/NewDocKindDialog(framer) plays the same 120ms from JS via OVERLAY_SPRING_REDUCED. */
+  /* Reduced-motion only — remove translate, use opacity crossfade only. The 120ms duration copies --map-tip-fade-ms(120) (this token is scoped to the ontology-map feature flag, so direct var() references in this DOM overlay trio are prohibited per DESIGN-SYSTEM v2 §Scope Caution — we match the value only). GlobalSearch/NewDocKindDialog applies this class instead of .overlay-spring-surface based on useReducedMotion(); SearchPalette/NewDocKindDialog(framer) plays the same 120ms from JS via OVERLAY_SPRING_REDUCED. */
   .overlay-fade-only[data-state="open"] {
     animation: panelCrossfadeIn 120ms linear both;
   }
@@ -2390,8 +2390,8 @@
     /* [Deleted, 2026-07-18] Legacy SigmaTopology graph mode ink
        (--topology-edge-hairline/-spoke, --topology-graph-edge-hairline/-spoke,
        --topology-graph-node-dim, --topology-connector) has 0 consumers after #344
-       (retire-sigma-topology); topology-map-v2 uses its own
-       --topology-v2-edge-* family. */
+       (retire-sigma-topology); ontology-map uses its own
+       --map-edge-* family. */
     --topology-relation-summary-surface: rgba(139, 151, 255, 0.18);
     --topology-relation-summary-border: var(--color-indigo-line-a42);
     --topology-relation-summary-text: rgba(222, 225, 255, 0.94);
@@ -2403,7 +2403,7 @@
      * no one read them, yet only the definitions remained, and `DESIGN-SYSTEM.md` still
      * presented them as specifications. Verification: `var(--topology-relation-label-*)`
      * usage 0 times (including within globals.css), canvas token reader
-     * (`read-topology-v2-tokens.ts`) spec list also 0 entries, string references 0.
+     * (`read-map-tokens.ts`) spec list also 0 entries, string references 0.
      *
      * Deleted for the same reason as `--pad-card`/`--pad-panel`(2026-07-26):
      * **Tokens no one uses are misinformation, not specifications.** Especially this collection
@@ -2470,7 +2470,7 @@
     );
     /* [Deleted, 2026-07-18] Legacy TopologyMapCanvas(px strings) fit safe-area 4 tokens —
        TopologyMapCanvas.tsx itself was deleted after #344, making consumers 0. The v2 equivalent is
-       below §2.5 --topology-v2-safe-inset-* (unitless numbers, consumed by canvas 2D). */
+       below §2.5 --map-safe-inset-* (unitless numbers, consumed by canvas 2D). */
     --topology-panel-support-surface: rgba(15, 16, 17, 0.99);
     --topology-command-spine-padding: clamp(8px, 0.56vw, 10px);
     --topology-command-spine-gap: clamp(6px, 0.48vw, 8px);
@@ -2709,10 +2709,10 @@
 
     /*
      * Global promotion token for B2+ page rollout (feat/landing-b2plus).
-     * `--topology-v2-*` is feature-flag scoped; do not reference directly from pages outside topology (DESIGN-SYSTEM v2 §Scope Caution) — only values needed by landing are promoted globally. Product reason: the "honest topology miniature" of the landing hero
+     * `--map-*` is feature-flag scoped; do not reference directly from pages outside topology (DESIGN-SYSTEM v2 §Scope Caution) — only values needed by landing are promoted globally. Product reason: the "honest topology miniature" of the landing hero
      * (kind = shape glyph) and embossed mono numerals (census = real data) must be read in the page
      * DOM as machine-machined language, just like canvas.
-     * Dark values sourced by copying identical values from topology-map-v2 node/emboss palette
+     * Dark values sourced by copying identical values from ontology-map node/emboss palette
      * (value copy — not var() reference — to maintain grep contract when flag is removed).
      * Marker: DownloadPage intro section (formerly LandingPage, migrated to root-first-open Slice 2)
      * data-token="engraved-numeral" / data-token="kind-glyph".
@@ -2776,7 +2776,7 @@
     --topology-growth-replay-desktop-top: calc(
       var(--topology-floating-control-desktop-top) + (var(--chrome-tile-size) + 8px) * 3
     );
-    /* Settings gear (formerly TopologyV2SettingsGear — settings integration after 2026-07-24,
+    /* Settings gear (formerly OntologyMapSettingsGear — settings integration after 2026-07-24,
        AppSettingsMenu trigger, chrome-datasheet-final.html draft) —
        one row below the "?" button on the right utility rail. Shares hide conditions with fit/filter stack (createNodeOpen/selectedRelationActive/blocking-overlay/
        selectedNodeFocusActive), so it hides while datasheet is visible — same convention as before where entire right rail replaces with datasheet at that moment.
@@ -2873,7 +2873,7 @@
      * Design council batch B1 rank2 — single spring unified token for 3 DOM overlays (GlobalSearch·SearchPalette·
      * NewDocKindDialog). Overlays have no inbound momentum, so confirm with critical damping (damping 1.0, overshoot/bounce 0).
      *
-     * **Separate tuning** with different values from canvas 2-param physics model (topology-map-v2 press/ego-reveal etc., angular
+     * **Separate tuning** with different values from canvas 2-param physics model (ontology-map press/ego-reveal etc., angular
      * frequency + damping ratio) — DOM overlay has much shorter travel distance, so response
      * value differs even with same damping concept. Do not claim "inherited identical spring".
      * Canvas→framer conversion: map canvas's { angularFreq, dampingRatio: 1.0 } concept to
@@ -2965,19 +2965,19 @@
   }
 
   /*
-   * topology-map-v2 (docs/TOPOLOGY-V2-DESIGN.md §2) — new token family
+   * ontology-map (docs/ONTOLOGY-MAP-DESIGN.md §2) — new token family
    * extracted 1:1 from B2+ "Circuit × Constellation" prototype (docs/prototypes/topology-b2plus.html). Intentionally
-   * separated from existing 657 --topology-* tokens (prefix --topology-v2-) — consumed only behind feature flag `topology-map-v2`, and when removing the old engine in P6, grepping for `--topology-v2-` makes the scope of new/old replacement clear. Canvas 2D cannot read CSS variables directly,
-   * so `src/widgets/topology-map-v2/tokens/read-topology-v2-tokens.ts`
+   * separated from existing 657 --topology-* tokens (prefix --map-) — consumed only behind feature flag `ontology-map`, and when removing the old engine in P6, grepping for `--map-` makes the scope of new/old replacement clear. Canvas 2D cannot read CSS variables directly,
+   * so `src/widgets/ontology-map/tokens/read-map-tokens.ts`
    * parses them once via `getComputedStyle` and caches — this block is the single source of truth for values.
    * Dark-only (2026-07-19 decision to fully retire light mode, .claude/rules/design.md).
    */
   :root {
     /* 2.1 Node surface (fill/stroke tier by kind) */
-    --topology-v2-node-fill-project: #1c1c22;
-    --topology-v2-node-fill-domain: #191920;
-    --topology-v2-node-fill-capability: #17171d;
-    --topology-v2-node-fill-element: #15151a;
+    --map-node-fill-project: #1c1c22;
+    --map-node-fill-domain: #191920;
+    --map-node-fill-capability: #17171d;
+    --map-node-fill-element: #15151a;
     /*
      * The **depth axis** of map ink — single source of truth (2026-07-31, hierarchy stone ruling).
      *
@@ -2986,14 +2986,14 @@
      *
      * All values are above WCAG 1.4.11 (non-text 3:1): leaf 3.22 · mid 3.42 · top 3.96.
      */
-    --topology-v2-ink-depth-leaf: #7a7a86;
-    --topology-v2-ink-depth-mid: #80808c;
-    --topology-v2-ink-depth-top: #8a8a96;
+    --map-ink-depth-leaf: #7a7a86;
+    --map-ink-depth-mid: #80808c;
+    --map-ink-depth-top: #8a8a96;
     /* project is one unit on the depth axis — no corresponding containment edge (no parent above project). So it has its own value, not an alias for the axis. */
-    --topology-v2-node-stroke-project: #9898a3;
-    --topology-v2-node-stroke-domain: var(--topology-v2-ink-depth-top);
-    --topology-v2-node-stroke-capability: var(--topology-v2-ink-depth-mid);
-    --topology-v2-node-stroke-element: var(--topology-v2-ink-depth-leaf);
+    --map-node-stroke-project: #9898a3;
+    --map-node-stroke-domain: var(--map-ink-depth-top);
+    --map-node-stroke-capability: var(--map-ink-depth-mid);
+    --map-node-stroke-element: var(--map-ink-depth-leaf);
     /* ── Record screen ego preview (`--git-ego-*`) ───────────────────────
        A small picture of a concept's 1-depth neighbors, visible right there. **Not a map**
        — this is not the place to explore 3k nodes, but to query about eight, so using the map ladder (30·17·11·7 = 4.3:1) as-is turns elements into dots. Keep the order, compress only the width.
@@ -3013,39 +3013,39 @@
     /* Ellipse aspect ratio — the picture box is wider. Placing it as a circle fills vertically first, shrinking the whole to 73% (measured fill rate 24% → 42%). */
     --git-ego-ellipse-x: 1.52;
     --git-ego-ellipse-y: 0.8;
-    --topology-v2-node-fill-dim: #1e1e24;
-    --topology-v2-node-stroke-dim: #6a6a74;
+    --map-node-fill-dim: #1e1e24;
+    --map-node-stroke-dim: #6a6a74;
     /* Recent change spotlight rest alpha (council design 2026-07-23). product reason: when the "changes in last N days" lens is ON, sink nodes/edges outside the window to this alpha so change nodes (fresh channel) win by contrast — not "glowing" but "sinking" (prohibited glow/pulse per charter, fulfilling owner's 'at a glance' desire). Lighter than ego dim(0.15): in the full-map lens, remaining structure must remain readable as context (ego is local focus, so sinks deeper). state/layer:
        map lens. Responsive: value itself is width-agnostic (alpha scalar). Marker: lens state is deterministically reproducible via URL `?recent=`. */
-    --topology-v2-spotlight-rest-alpha: 0.65;
+    --map-spotlight-rest-alpha: 0.65;
     /* Spotlight change-node ring dash rotation speed (px/ms) — owner directive
        2026-07-23 "only changed items rotate border": sinking alone doesn't make change nodes readable in element view (actual report Image #14), so during lens ON, rotate amberHub dashed ring on change nodes via lineDashOffset. glow/blur
        0 — charter prohibits rotation? No precedent: comet=always motion, agent focus ring =amberHub precedent. 0.012 ≈ one dash cycle (9px)/750ms — lens is a persistent mode kept ON *while reading the map*, so initial 500ms (2Hz) felt rushed on multiple rings (motion inspection 2026-07-23 frame evidence). HIG deference
        (motion must not compete with content) + Toss cognitive load minimization → slow to ~1.3Hz — "aliveness" maintained, urgency removed. reduced-motion is static dash (rotation 0). */
-    --topology-v2-spotlight-ring-speed: 0.012;
-    --topology-v2-node-fill-stale: #141418;
-    --topology-v2-node-stroke-stale: #454549;
-    --topology-v2-node-hole-fill: #0c0c10;
-    --topology-v2-indigo: var(--color-indigo-brand);
-    --topology-v2-indigo-bright: #8890e0;
-    --topology-v2-amber-hub: #d4b478;
+    --map-spotlight-ring-speed: 0.012;
+    --map-node-fill-stale: #141418;
+    --map-node-stroke-stale: #454549;
+    --map-node-hole-fill: #0c0c10;
+    --map-indigo: var(--color-indigo-brand);
+    --map-indigo-bright: #8890e0;
+    --map-amber-hub: #d4b478;
     /*
      * Teal for "Recent Changes" lens only (2026-08-02, owner confirmed — selected after comparing candidate sets applied to actual screen).
      *
-     * **Why open a new hue**: Previously this lens drew dashed rings with `--topology-v2-amber-hub`. But that value already means "**this is the center**" (hub) on the map, so turning on the lens makes "center" and "just changed" share one color. On actual screen, the central hub node and 15 change nodes floated in same amber, indistinguishable.
+     * **Why open a new hue**: Previously this lens drew dashed rings with `--map-amber-hub`. But that value already means "**this is the center**" (hub) on the map, so turning on the lens makes "center" and "just changed" share one color. On actual screen, the central hub node and 15 change nodes floated in same amber, indistinguishable.
      *
      * No room left: indigo=selection · amber=hub · #e8c47a=path walked · red/green=error/success. Achromatic candidates blended with dim nodes, killing signal; indigo candidates competed with selection. Teal doesn't mix with any of those four.
      *
      * **No extension**: This value is used in **only one place** — "change node dashed ring while recent changes lens is ON" — same structure as amber's two named exceptions (agent focus ring · path walked). It disappears from screen when lens is off, so not a permanent color expansion. If other surfaces use this color, reference documentation is required.
      */
-    --topology-v2-recent-change: #3fbfae;
+    --map-recent-change: #3fbfae;
     /* Footprint trail (path walked) — fourth amber branch (see design.md "Three ambers" section). Does **not share bits with hub amber #d4b478**: on this map, yellow already means "this is the center", so same value makes "center" and "walked" one color. Separate lightness/chroma, keep hue family but different values. Lens (popover open) only notation, not permanent amber expansion. */
     --color-footprint-trail: #e8c47a;
     /* Footprint indigo — reason for not using `--color-indigo-accent`(#7170ff) is
        **contrast**. On canvas (#0a0a0d), the lowest selectable saturation (0.5) yields 2.08:1, failing to reach 3:1, creating "invisible footprint" flaw. Edge selection same pale indigo hits 3.93:1 at same value — not a new hue but another value within charter's "selection color ladder". */
     --color-footprint-trail-indigo: #c8d2ff;
-    --topology-v2-numeral-shadow: #08080a;
-    --topology-v2-numeral-face: #8c8c94;
+    --map-numeral-shadow: #08080a;
+    --map-numeral-face: #8c8c94;
     /*
      * Cluster chip rest ink — **chrome is darker than content** (2026-07-31).
      *
@@ -3061,34 +3061,34 @@
      * Key is removing indigo from rest: indigo is this app's single accent,
      * so if chrome uses it constantly, it competes with user-called targets.
      */
-    --topology-v2-cluster-chip-border-rest: #5c5c65;
-    --topology-v2-cluster-chip-ink-rest: #5f5f65;
+    --map-cluster-chip-border-rest: #5c5c65;
+    --map-cluster-chip-ink-rest: #5f5f65;
     /* Node metal sheen: vertical gradient top tint + blend ratio.
        drawNode uses lerp(fill, tint, blend) at top stop to create machined
        metal surface. Dissolves in far-field(farT>=0.98)/small(r<=3). */
-    --topology-v2-node-sheen-tint: #232329;
-    --topology-v2-node-sheen-blend: 0.6;
+    --map-node-sheen-tint: #232329;
+    --map-node-sheen-blend: 0.6;
     /* builder-core (feat/builder-core, docs/prototypes/builder-v2-0{2,3}.html):
-       the ONE DOM surface that draws a real topology-v2 node as an HTML card
+       the ONE DOM surface that draws a real ontology-map node as an HTML card
        (`AtlasNode`, the `/ontology/edit` builder canvas) instead of canvas-2D
        draw calls. It borrows this section's kind fill/stroke tokens for its
        glyph and needs one extra: a hairline top-inset highlight ("machined
        edge") the canvas-2D sheen has no DOM equivalent for. Dark-only, same
-       precedent as `--topology-v2-node-sheen-*` above.
+       precedent as `--map-node-sheen-*` above.
 
-       ⚠️ 2026-07-28 — This token (`--topology-v2-builder-node-sheen`) is **deleted**.
+       ⚠️ 2026-07-28 — This token (`--map-builder-node-sheen`) is **deleted**.
        Zero usage, and its consumer xyflow ERD builder retired on 2026-07-24.
        While name ("sheen") remains, next person could read it as glow permission — unused tokens are misinformation, not spec. */
-    /* canvas-emphasis slice (owner: "center(project node) must shine differently") — material instead of glow (design.md "material instead of glow"). Project hexagon exclusive double hairline + pincushion color. Outer stroke itself reuses --topology-v2-amber-hub (topology-frame-draw.ts#resolveNodeVisual), these two are inner offset hairline + 4-direction pincushion exclusive. rgb(212,180,120) = same hue as amber-hub,
+    /* canvas-emphasis slice (owner: "center(project node) must shine differently") — material instead of glow (design.md "material instead of glow"). Project hexagon exclusive double hairline + pincushion color. Outer stroke itself reuses --map-amber-hub (topology-frame-draw.ts#resolveNodeVisual), these two are inner offset hairline + 4-direction pincushion exclusive. rgb(212,180,120) = same hue as amber-hub,
        only alpha differs (first run v3 flagship mockup, docs/prototypes/first-run-v3-flagship.html
        §"project hexagon" 1:1 extraction). */
-    --topology-v2-project-hairline-inner: rgba(212, 180, 120, 0.35);
-    --topology-v2-project-pin-tick: rgba(212, 180, 120, 0.5);
+    --map-project-hairline-inner: rgba(212, 180, 120, 0.35);
+    --map-project-pin-tick: rgba(212, 180, 120, 0.5);
     /* Static double ring for selected node (not glow, mechanical ring) + hover preview ring.
        rgb(94,106,210) = same hue as --color-indigo-brand(#5e6ad2), only
        alpha differs — not violating "no multiple coloring systems" (maintain single indigo). */
-    --topology-v2-selection-ring-indigo: var(--topology-v2-indigo-bright);
-    --topology-v2-selection-ring-hairline: rgba(94, 106, 210, 0.45);
+    --map-selection-ring-indigo: var(--map-indigo-bright);
+    --map-selection-ring-hairline: rgba(94, 106, 210, 0.45);
     /*
      * **Pending review** ring for human-written nodes (2026-08-03 owner directive: *"red border... not an error, but a warning"*).
      *
@@ -3099,40 +3099,40 @@
      * does not use `shadowBlur`). No rotation — recent change spotlight's
      * rotating dashed ring is temporary "while lens is ON", but this ring stays while node is under review, so moving it shakes the whole map.
      */
-    --topology-v2-hover-ring: var(--color-indigo-a55);
+    --map-hover-ring: var(--color-indigo-a55);
     /* Design Guardian approved prescription L — hover circuit-trace shimmer. Static hover
        ring (above) with one slowly circulating bright arc (glow 0 — reuse `strokeKindOutline`
        path + `setLineDash`/`lineDashOffset` time animation only). seg is
        circumference ratio, period is 1 rotation(ms, linear, clockwise). Pure phase calculation
        in `model/hover-shimmer.ts`. */
-    --topology-v2-hover-shimmer-seg: 0.16;
-    --topology-v2-hover-shimmer-period-ms: 2400;
+    --map-hover-shimmer-seg: 0.16;
+    --map-hover-shimmer-period-ms: 2400;
 
     /* 2.2 Edge · Label · Background */
     /* B1 ink hierarchy (Guardian 2026-07-20): corrects inversion where decorative particles were 3.2x brighter than data edges. contains is graph backbone, must be readable in overview without hover (1.32 → 1.83:1), depends is highest-value relationship for impact inference, must be clearly above contains (1.78 → 2.42:1). */
-    --topology-v2-edge-contains: var(--topology-v2-ink-depth-mid);
+    --map-edge-contains: var(--map-ink-depth-mid);
     /* P3a ink ladder — containment depth uses lightness×thickness not hue (correct channel for order data, Bertin). L0(project skeleton) darker, L2
-       (capability-element twigs) slightly recessed but darker than pre-B1 value(1.32:1) — establish hierarchy without undoing readability recovery. L1 remains old --topology-v2-edge-contains. */
-    --topology-v2-edge-contains-l0: var(--topology-v2-ink-depth-top);
-    --topology-v2-edge-contains-l2: var(--topology-v2-ink-depth-leaf);
+       (capability-element twigs) slightly recessed but darker than pre-B1 value(1.32:1) — establish hierarchy without undoing readability recovery. L1 remains old --map-edge-contains. */
+    --map-edge-contains-l0: var(--map-ink-depth-top);
+    --map-edge-contains-l2: var(--map-ink-depth-leaf);
     /* B2 remainder (Guardian post-inspection) — penetrating edges with both endpoints off-screen create "show nothing" while turning deep-zoom view into tangled yarn. Culling is geometrically impossible(curve actually passes screen) — instead downgrade ink so structures with endpoints are read first. */
-    --topology-v2-edge-passthrough-alpha: 0.3;
+    --map-edge-passthrough-alpha: 0.3;
     /* B7 — node minimum separation scale. If overlap less than (rA+rB)×this value, push apart in sim active
        frame — prevent drag/settling from pushing children above parents via "accidentally touching pixels". */
-    --topology-v2-node-min-separation-ratio: 1.35;
+    --map-node-min-separation-ratio: 1.35;
     /* B4 — scale encoding intensity k. Makes mark answer first question of overview("what's big?"). √childCount compression factor in computeMagnitudeScale(topology-world.ts) — 103-domain is ~1.2x 9-domain (1.4 upper clamp), rank clue not bar chart. [2026-08-01 correction: this comment previously said "log compression" but implementation already changed log → √ in S2 Part 2 — example of drift when value written in two places, this token itself shows it. Detailed spec: docs/DESIGN-SYSTEM.md "node spec" section. */
-    --topology-v2-radius-magnitude-k: 0.45;
+    --map-radius-magnitude-k: 0.45;
     /* B3 remainder — dust delay depth range (slower flow vs grid 1.0). */
     /* Edge selection (pair focus) — indigo pale ladder: same family as node selection (#5e6ad2), distinguished by lighter value (no color system proliferation). */
-    --topology-v2-edge-selected: rgba(200, 210, 255, 0.66);
+    --map-edge-selected: rgba(200, 210, 255, 0.66);
     /* Expansion cohort (direct children revealed as chips) belonging ring — 3rd step of indigo ladder.
        Node selection = saturated indigo (#5e6ad2) **solid line**, edge selection = pale indigo,
        expansion = **desaturated** indigo dashed line. Hue remains on the indigo axis, only saturation
        drops toward neutral to separate "selection" and "expansion" via solid/dashed + saturation —
        new brand color 0 (design.md selection color ladder). */
-    --topology-v2-expanded-cohort: rgba(146, 156, 194, 0.72);
-    --topology-v2-dust-parallax-min: 0.15;
-    --topology-v2-dust-parallax-max: 0.45;
+    --map-expanded-cohort: rgba(146, 156, 194, 0.72);
+    --map-dust-parallax-min: 0.15;
+    --map-dust-parallax-max: 0.45;
     /*
      * Constellation background parallax factor (2026-07-28 design council — owner "looks inertial like space").
      *
@@ -3155,7 +3155,7 @@
      * exactly with the content, eliminating relative motion. Setting it to 0 welds the background to the screen,
      * which actually creates relative motion against the content.
      */
-    --topology-v2-canvas-bg-parallax: 0.82;
+    --map-canvas-bg-parallax: 0.82;
     /*
      * `depends` is **outside the depth axis** (2026-07-31, system stone determination). Since it's a relationship
      * **category** rather than hierarchy, it's distinguished by a separate channel (dashed line + indigo
@@ -3168,18 +3168,18 @@
      * the brightest mark in this map (project stroke 4.63) — relationships
      * do not speak louder than any entity.
      */
-    --topology-v2-edge-depends: #666685;
-    --topology-v2-edge-dim: #1e1e22;
-    --topology-v2-hull-stroke: #3a3a42;
+    --map-edge-depends: #666685;
+    --map-edge-dim: #1e1e22;
+    --map-hull-stroke: #3a3a42;
     /* canvas-emphasis slice: project labels maintain Layer-0 container amber identity
        (design.md "Auxiliary tones allowed only for Hub nodes and Layer 0 containers") —
        previous value (#ececf0, neutral white) was visually indistinguishable from domain/capability. Same hex as amber-hub (project text
        fill in the first run v3 flagship mockup, 1:1). */
-    --topology-v2-label-project: #d4b478;
-    --topology-v2-label-domain: #b8b8c1;
-    --topology-v2-label-capability: #84848c;
+    --map-label-project: #d4b478;
+    --map-label-domain: #b8b8c1;
+    --map-label-capability: #84848c;
     /*
-     * 2026-09-05: `#6a6a73` measured **3.69:1** on `--topology-v2-canvas-bg-near`,
+     * 2026-09-05: `#6a6a73` measured **3.69:1** on `--map-canvas-bg-near`,
      * and the "AA-large" the old comment claimed does not exist at this size —
      * `LABEL_FONT_SIZE.element` is 9.5px, while the large-text rule starts at
      * 18.66px bold / 24px regular. An element label is a word someone reads, so it
@@ -3192,32 +3192,32 @@
      * the floor without spending the hierarchy. Gate:
      * `tests/contract/topology-ink-contrast.contract.test.ts`.
      */
-    --topology-v2-label-element: #7e7e87;
+    --map-label-element: #7e7e87;
     /* Max on-screen label width (px) before word-boundary ellipsis — keeps a
        long element title (file path) from clipping the right edge / colliding
        with its horizontal neighbor (Design Guardian readability rejection). */
-    --topology-v2-label-max-width: 168;
-    --topology-v2-canvas-bg-near: #0a0a0d;
-    --topology-v2-canvas-bg-far: #050507;
-    --topology-v2-grid-minor: #0e0e13;
-    --topology-v2-grid-major: #121218;
-    --topology-v2-vignette-base-alpha: 0.32;
-    --topology-v2-vignette-far-alpha: 0.18;
+    --map-label-max-width: 168;
+    --map-canvas-bg-near: #0a0a0d;
+    --map-canvas-bg-far: #050507;
+    --map-grid-minor: #0e0e13;
+    --map-grid-major: #121218;
+    --map-vignette-base-alpha: 0.32;
+    --map-vignette-far-alpha: 0.18;
 
     /*
      * Latitude ring of the 3D dome — **coordinate system ink drawn only in 3D**.
      *
-     * Why not `--topology-v2-grid-major` (#121218): that value is for a **planar grid**,
+     * Why not `--map-grid-major` (#121218): that value is for a **planar grid**,
      * and a planar grid covers the entire screen so "there is a coordinate system" is perceived even with very low ink. The ring has only three lines on screen, so the same value would be invisible (measured:
      * multiplying fog on canvas #0a0a0d results in effectively 0). If the covered area differs,
      * the value must differ even for the same role.
      *
-     * The upper bound is the **bottom of data ink** (`--topology-v2-ink-depth-leaf` #7a7a86).
+     * The upper bound is the **bottom of data ink** (`--map-ink-depth-leaf` #7a7a86).
      * If the ring exceeds it, the coordinate system competes with data for attention. This value is below that,
      * and in actual rendering, base opacity (0.34) and depth fog are further multiplied —
      * only nearby arcs remain, distant arcs disappear. That asymmetry is "which side is front".
      */
-    --topology-v2-dome-ring: #43434f;
+    --map-dome-ring: #43434f;
 
     /* Canvas background set — dots (default, above blueprint grid) + moving trio (flow field·
        proximity constellation·gravity field, render/animated-background.ts). Former static tiles 2 types
@@ -3235,23 +3235,23 @@
        hexagons were drawn much larger than domain chips (that mockup's absolute
        scale was a separate mockup unrelated to this world-unit system, so 1:1 porting wasn't possible,
        only porting the "clearly above" relationship). */
-    --topology-v2-radius-project: 30;
-    --topology-v2-radius-domain: 17;
-    --topology-v2-radius-capability: 11;
-    --topology-v2-radius-element: 7;
-    --topology-v2-layout-ring-domain: 250;
-    --topology-v2-layout-ring-capability: 145;
-    --topology-v2-layout-ring-element: 90;
+    --map-radius-project: 30;
+    --map-radius-domain: 17;
+    --map-radius-capability: 11;
+    --map-radius-element: 7;
+    --map-layout-ring-domain: 250;
+    --map-layout-ring-capability: 145;
+    --map-layout-ring-element: 90;
     /* Area expansion depth derived ring — remove shallow subtree empty annulus, owner actual report 2026-07. */
-    --topology-v2-realm-fill-radius-1: 130;
-    --topology-v2-realm-fill-radius-2: 190;
-    --topology-v2-realm-fill-radius-3: 250;
-    --topology-v2-edge-bow-contains: 70;
-    --topology-v2-edge-bow-depends: 92;
-    --topology-v2-edge-blend-contains: 0.46;
-    --topology-v2-edge-blend-depends: 0.62;
-    --topology-v2-star-count: 4;
-    --topology-v2-dust-area-per-point: 5200;
+    --map-realm-fill-radius-1: 130;
+    --map-realm-fill-radius-2: 190;
+    --map-realm-fill-radius-3: 250;
+    --map-edge-bow-contains: 70;
+    --map-edge-bow-depends: 92;
+    --map-edge-blend-contains: 0.46;
+    --map-edge-blend-depends: 0.62;
+    --map-star-count: 4;
+    --map-dust-area-per-point: 5200;
 
     /* 2.4 Motion · Camera */
     /* Dive-zoom fix (owner feedback — "zoom in/out feels sluggish"): existing
@@ -3262,22 +3262,22 @@
     /* 12 → 15 (owner actual report 2026-07-24: "zoom is a bit slow, make it slightly faster")
        — interactive settle 0.40s → ≈0.32s (25% faster). Maintain crispness, no overshoot
        (damping 1.0 threshold). Programmatic transitions (dive/return) remain at 4.7. */
-    --topology-v2-camera-spring-angfreq-interactive: 15;
-    --topology-v2-camera-spring-angfreq-transition: 4.7;
-    --topology-v2-camera-damping-default: 1.0;
-    --topology-v2-camera-damping-flick: 0.82;
-    --topology-v2-camera-momentum-decay: 0.998;
+    --map-camera-spring-angfreq-interactive: 15;
+    --map-camera-spring-angfreq-transition: 4.7;
+    --map-camera-damping-default: 1.0;
+    --map-camera-damping-flick: 0.82;
+    --map-camera-momentum-decay: 0.998;
     /* Stop release gate (iOS scroll rule) — sample pointer speed in this window (ms) just before release. If no movement within this window (=stopped then released), momentum is 0. */
-    --topology-v2-camera-release-velocity-window-ms: 80;
+    --map-camera-release-velocity-window-ms: 80;
     /* Speed below this threshold (px/ms) is considered stopped — stop in place without inertial glide.
        Approximately 10% of actual flick (≈0.3~0.5px/ms). */
-    --topology-v2-camera-flick-min-speed: 0.05;
-    --topology-v2-camera-scale-min: 0.24;
-    --topology-v2-camera-scale-max: 2.6;
+    --map-camera-flick-min-speed: 0.05;
+    --map-camera-scale-min: 0.24;
+    --map-camera-scale-max: 2.6;
     /* #11 — overview fit ceiling for a ≤5-node graph (just-onboarded vault),
        so a lone hexagon renders at a sane size instead of filling half the
        screen. Only bites for tiny bounds; larger vaults never reach it. */
-    --topology-v2-camera-small-graph-scale-max: 1.3;
+    --map-camera-small-graph-scale-max: 1.3;
     /* C1 A1 (semantic-zoom audit): overview entry scale is viewport-proportional (≈1.5 in 1512×917
        so using absolute value 2.6 directly as "effective max" caps zoomRatio at max
        ≈1.8, preventing capability reveal band (1.5~2.0) from completing (max alpha
@@ -3287,7 +3287,7 @@
        (`topology-camera-math.ts#computeEffectiveCameraScaleMax`). 3.2 is
        comfortably larger than element fullRatio (2.85) so all tiers reach cursor+element
        tier in every viewport. */
-    --topology-v2-camera-max-zoom-ratio: 3.2;
+    --map-camera-max-zoom-ratio: 3.2;
     /* C1 A1 follow-up (owner feedback — "wheel zoom in/out" first-try acceptance
        test): the zoom-OUT floor has the same absolute-vs-ratio problem in
        reverse — `cameraScaleMin` (0.24) is an absolute floor, so on a large
@@ -3299,23 +3299,23 @@
        BELOW the constellation threshold's own zoom-ratio (~0.65 at default
        tokens) so zooming out still crosses into the far-field constellation
        view instead of stopping short of it. */
-    --topology-v2-camera-min-zoom-ratio: 0.5;
+    --map-camera-min-zoom-ratio: 0.5;
     /* In focus (ego) state, when panning empty space, camera center cannot stray more than this
        world-unit from the focus node — "can look around but won't lose the subject"
        (obsidian tactile). If exceeded, rubber-bands back. Even at max focus scale (1.9),
        180×1.9≈342px < safe zone half-height (354px) so subject doesn't go off-screen.
        Only applies when zoomed in (full bounds on fit view/focus exit). */
-    --topology-v2-camera-focus-pan-margin: 180;
+    --map-camera-focus-pan-margin: 180;
     /* Pan leash when unfocused (world unit). 0 = no leash = previous envelope (world bbox
        ± 320). Workbench can always revert via "fit map", so it is 0.
        Only enable for gate (`html[data-gateway-stage]`) — pan that cannot be reverted on a surface without revertable chrome is a defect. Determination: `computeUnfocusedPanBounds`. */
-    --topology-v2-camera-pan-leash: 0;
-    --topology-v2-altitude-far-high-ratio: 0.92;
-    --topology-v2-altitude-far-low-ratio: 0.62;
+    --map-camera-pan-leash: 0;
+    --map-altitude-far-high-ratio: 0.92;
+    --map-altitude-far-low-ratio: 0.62;
     /* Overview entry scale = tight-fit × this ratio. Kept above the far-high
        ratio (0.92) so the DEFAULT overview reads as CIRCUIT (farT ≈ 0), while
        tier visibility rides a separate zoom-ratio signal (model/tier-visibility). */
-    --topology-v2-overview-entry-ratio: 0.95;
+    --map-overview-entry-ratio: 0.95;
     /* Cone (3D) fit — `topology-camera-math.ts#computeDomeFitCameraTarget`.
        The cone is fitted into the FREE canvas (canvas minus the measured panels)
        minus these two bands, and then spans this fraction of whichever axis binds.
@@ -3323,7 +3323,7 @@
        the 15% pad plus the 0.95 overview ratio the cone used to inherit is what
        left it at 18.6% of the canvas (measured 2026-09-05).
        Top band 104, not the tool lane's own 66: the LABEL pipeline culls against
-       `--topology-v2-safe-inset-top`(148), and a project label is protected there
+       `--map-safe-inset-top`(148), and a project label is protected there
        — it CLAMPS to the inset edge instead of culling, and the clamp shift is
        then carried into the flipped slot. At 80 the apex centre landed at y=101
        and y=99, above that line, so the apex ring ran through its own name at
@@ -3331,73 +3331,73 @@
        2026-09-05). 104 puts the apex near 125, its below-slot anchor near 159,
        and it flips above with no clamp — the clean 1024 frame's behaviour at
        every width. Fill stays over the 60% floor: 62% at 1920, 70% at 1440. */
-    --topology-v2-dome-fit-fill: 0.98;
-    --topology-v2-dome-fit-inset-top: 104;
-    --topology-v2-dome-fit-inset-bottom: 32;
-    --topology-v2-focus-fit-max-scale: 1.9;
+    --map-dome-fit-fill: 0.98;
+    --map-dome-fit-inset-top: 104;
+    --map-dome-fit-inset-bottom: 32;
+    --map-focus-fit-max-scale: 1.9;
     /* Dive-framing fix (owner: "diving too deep on click — over-zoom·label
        collision") — now MULTIPLICATIVE margin (previously fixed px padding 70): expand ego bbox
        width/height by this ratio to compute fit-scale — larger clusters get
        proportionally larger padding (with fixed px, large fans would have been tight). See `topology-camera-math.ts#computeFocusCameraTarget`. */
-    --topology-v2-focus-bbox-margin: 1.15;
+    --map-focus-bbox-margin: 1.15;
     /* Owner actual report (2026-07-24, feature check): when neighbors hide like a spotlight
        and ego bbox becomes small, click fit shoots up to microscope zoom, requiring
        repeated wheel reverts. Zoom-in upper limit for selection framing — does not exceed overviewEntryScale ×
        this ratio (ego members are tier-exempt so all remain visible at this multiplier). No limits on zoom-out direction fit. */
-    --topology-v2-focus-max-zoom-ratio: 1.8;
-    --topology-v2-hysteresis-px: 7;
-    --topology-v2-emphasis-rise-tau: 0.09;
-    --topology-v2-emphasis-decay-tau: 0.15;
+    --map-focus-max-zoom-ratio: 1.8;
+    --map-hysteresis-px: 7;
+    --map-emphasis-rise-tau: 0.09;
+    --map-emphasis-decay-tau: 0.15;
     /* Click focus signal motion — time constant for color transition where neighbors=indigo·others=gray ramp-dim
        on node click (single symmetric rise/decay). Overlaid on the same timeline as camera dive (~200~420ms) so "click pushed back background" causality is read as one gesture rather than a hard cut. On deselect, returns with same τ while background dim·selection ring fade out together. Consumed by `stepFocusRamp` (`model/focus-state.ts`). */
-    --topology-v2-focus-dim-tau: 0.16;
+    --map-focus-dim-tau: 0.16;
     /* rank7 — time constant for cluster chip expand/collapse ramp (single symmetric rise/decay). When children subtree of collapsed parent expands, interpolate child draw alpha 0→1 with this τ, and 1→0 when collapsing, eliminating "pop in/out" hard cuts. Consistent entrance/exit fade regardless of camera zoom. Slightly longer than emphasis (0.09) (~0.17s) to create rhythm of subtree opening as a single block. Reuses `stepEmphasis` (`focus-state.ts`). */
-    --topology-v2-cluster-reveal-tau: 0.17;
-    --topology-v2-ripple-stagger-ms: 55;
-    --topology-v2-breathe-amplitude: 0.04;
-    --topology-v2-breathe-freq-rad: 1.15;
-    --topology-v2-pulse-duration-ms: 420;
+    --map-cluster-reveal-tau: 0.17;
+    --map-ripple-stagger-ms: 55;
+    --map-breathe-amplitude: 0.04;
+    --map-breathe-freq-rad: 1.15;
+    --map-pulse-duration-ms: 420;
     /* canvas-emphasis slice — one-time commit pulse on click (distinct from static selection ring, ring expands 1.0→1.15× with alpha fadeout). Owner upper limit ≤200ms.
-       Distinct token from 420 `--topology-v2-pulse-duration-ms` — that's an unused
+       Distinct token from 420 `--map-pulse-duration-ms` — that's an unused
        reserved token so this slice doesn't touch it (`model/selection-pulse.ts`). */
-    --topology-v2-select-pulse-duration-ms: 180;
-    --topology-v2-tip-fade-ms: 120;
+    --map-select-pulse-duration-ms: 180;
+    --map-tip-fade-ms: 120;
     /* depends edge comet-tail progression speed (t += dt × speed). Default is ambient
        flow, ego (edges attached to selected node) accelerates with circuit metaphor "current flows more" — B2+ connection highlight (lead spec §2). */
     /* R6 permanent comet restoration (owner instruction — "bring back the old one"): surrounding (non-ego)
        depends edges also flow constantly like prototype (topology-b2plus §14 `e.t += dt*0.075`) regardless of focus. Value reverted from 0 (A1 comet tail focus reduction) to prototype's permanent state. Reduced-motion users skip forward in updateParticles (stop), and only then does idle frame gate (A2) determine stop. */
-    --topology-v2-edge-pulse-speed: 0.075;
+    --map-edge-pulse-speed: 0.075;
     /* A3 — max scale delta for selection commit pulse. 0.15 was below JND at element (r=7) with ring movement 1.5px. 0.28 gives 2.8px for r+3=10 — minimum width readable as "click landed" even on smallest node. Duration remains 180ms (owner upper limit ≤200ms). */
-    --topology-v2-select-pulse-scale-delta: 0.28;
+    --map-select-pulse-scale-delta: 0.28;
     /* A4 — Time budget (ms) for drag-release settling. Switched from frame count (90)-based to time-based — eliminates refresh-rate dependency where the same gesture split into 0.75s at 120Hz and 1.5s at 60Hz. */
-    --topology-v2-node-release-settle-ms: 900;
+    --map-node-release-settle-ms: 900;
     /* A5 — Spring angular frequency for auto-align homing. Layout correction must end decisively (ζ=1, ~0.63s), while camera dive is a navigation transition so it can be cinematic (4.7) — different contract, different token. */
-    --topology-v2-node-home-spring-angfreq: 7.5;
+    --map-node-home-spring-angfreq: 7.5;
     /* A6 — τ for focus ego rebuild. Reusing hover ripple τ (0.09) causes children to pop out at ~0.41s while camera dive is ~1.01s — two motions explaining the same event but misaligned. Entry is slow (0.22) synced to camera landing, exit is fast (0.12). Asymmetry is intentional. */
-    --topology-v2-ego-reveal-rise-tau: 0.22;
-    --topology-v2-ego-reveal-decay-tau: 0.12;
+    --map-ego-reveal-rise-tau: 0.22;
+    --map-ego-reveal-decay-tau: 0.12;
     /* A7 — Total budget (ms) for hover ripple stagger. The previous 55+12×i meant the last neighbor in a hub of 40 neighbors started 523ms later — turning it into a slow scan rather than a ripple. Ripples say "these are neighbors," not enumerate them. */
-    --topology-v2-ripple-stagger-max-ms: 180;
-    --topology-v2-edge-pulse-speed-ego: 0.2;
+    --map-ripple-stagger-max-ms: 180;
+    --map-edge-pulse-speed-ego: 0.2;
     /* C1 B1 (Drag tug gratitude): When dragging a node, relying only on FA2 global relax (1 iter/frame, slowDown 20) makes neighbors barely move — directly propagate the frame-by-frame world-space displacement (Δ) of the dragged node to 1-hop/2-hop neighbors at this ratio so they follow like springs (`interaction/drag-tug.ts`). */
-    --topology-v2-drag-tug-1hop: 0.45;
-    --topology-v2-drag-tug-2hop: 0.15;
+    --map-drag-tug-1hop: 0.45;
+    --map-drag-tug-2hop: 0.15;
     /* Tug influence radius (world units). Hop count alone cannot determine "closeness" — in a hub-spoke vault all nodes are within 2 hops, so hop rules alone caused the entire map to move together. Clusters of nodes enclosing the layout ring (domain 250 + competency 145 ≈ 395) retain elasticity, while those outside stop exactly at 0. */
-    --topology-v2-drag-tug-radius: 600;
+    --map-drag-tug-radius: 600;
     /* Mass · drop · press (2026-09-08, direction B "Weighted graph", after the overshoot ban was lifted). A node's mass is its degree on a smoothstep up to `-heavy-degree`; a light node's release spring is critical (ζ=1, snaps), a heavy one is underdamped (`-heavy-zeta`: one overshoot under a radius step, ~450 ms to sit). Every `*-angfreq` token rides `tests/contract/spring-stability.contract.test.ts`, whose proven bound at the 50 ms frame clamp is 16, so mass lives in ζ rather than ω and `-angfreq` is one number for every node — a light/heavy pair holding 16 twice would name a ramp that does not exist (design council, 2026-09-08). A released node carries the hand's velocity past the drop point, capped to `-drop-max-px` world units (`expressive/mass-spring.ts`). */
-    --topology-v2-mass-heavy-degree: 12;
-    --topology-v2-mass-angfreq: 16;
-    --topology-v2-mass-heavy-zeta: 0.55;
-    --topology-v2-mass-drop-max-px: 14;
+    --map-mass-heavy-degree: 12;
+    --map-mass-angfreq: 16;
+    --map-mass-heavy-zeta: 0.55;
+    --map-mass-drop-max-px: 14;
     /* Ego light — the focused node blooms (a soft indigo disc under it, blurred by `-glow-blur-px`) and its relation lines carry a glow of the same blur, both on the focus ramp; the hovered node carries the bloom at `-node-bloom-alpha` on its emphasis ramp. Light says "this is the one your hand is on"; nothing at rest glows. */
-    --topology-v2-ego-glow-blur-px: 22;
-    --topology-v2-ego-glow-alpha: 0.55;
+    --map-ego-glow-blur-px: 22;
+    --map-ego-glow-alpha: 0.55;
     /* The bloom's own blur, wider than the line glow because a disc under a node has to read past the node's edge while a line's glow must stay a line. Named rather than written as `-ego-glow-blur-px * 1.4` in the canvas: a multiplier in TypeScript is a second blur step nobody can find (design council, 2026-09-08). */
-    --topology-v2-node-bloom-blur-px: 31;
-    --topology-v2-node-bloom-alpha: 0.35;
+    --map-node-bloom-blur-px: 31;
+    --map-node-bloom-alpha: 0.35;
     /* Press — the hovered node swells on an underdamped unit step (peak ≈ 1.31 of the rest swell at ζ=0.35, measured on the sample vault: rest 28.1 px, peak 34.7, settled 34.2) instead of the critical hover ramp, so a hover reads as a press that gives. Reduced motion keeps the ramp. The swell crosses its own rest value at ω_d·t = π/2 → 105 ms, inside `--motion-fast`; what follows is the follow-through, which blocks no input (design council, 2026-09-08). */
-    --topology-v2-press-angfreq: 16;
-    --topology-v2-press-zeta: 0.35;
+    --map-press-angfreq: 16;
+    --map-press-zeta: 0.35;
 
     /* 2.5 Safe area (fixed chrome inset — px, consumed as numbers by canvas 2D)
 Left ReaderLens analysis panel + right popover rail + top utility lane +
@@ -3408,30 +3408,30 @@ RATIO-SYSTEM §4 datasheet 352px scale-up gratitude: safeInsetRight is
 only read in `computeOverviewFitScale`/`computeOverviewCameraTarget` (fit when no node selected) — `computeFocusCameraTarget` (the only time the datasheet is actually visible, i.e., node selected) does not reference safeInset at all (`topology-camera-math.ts`). Thus even if the datasheet width increases, there is no reason for the "safe area when invisible" value to change, so it remains 120 — we did not mechanically expand left/right padding just because the panel widened. Verified no actual collision via live check on 1512/1920 (`.qa-scratch/datasheet-gear/`). */
     /* feat/chrome-system §4 — After inset 18→24px, 300 + 24 + 26 = 350
 (previously 344 = 300 + 18 + 26). Canvas 2D consumes this number as a JS constant and cannot auto-follow CSS vars, so always update it together when changing insets. */
-    --topology-v2-safe-inset-left: 350;
-    --topology-v2-safe-inset-right: 120;
-    --topology-v2-safe-inset-top: 148; /* 96 Chrome + top docking cluster chip (+N) height/gap — QA-A D1: Defect where chips were hidden behind the search bar on first paint */
-    --topology-v2-safe-inset-bottom: 96;
+    --map-safe-inset-left: 350;
+    --map-safe-inset-right: 120;
+    --map-safe-inset-top: 148; /* 96 Chrome + top docking cluster chip (+N) height/gap — QA-A D1: Defect where chips were hidden behind the search bar on first paint */
+    --map-safe-inset-bottom: 96;
 
-    /* 2.6 Component datasheet panel (`TopologyV2DetailPanel`, DOM consumption)
+    /* 2.6 Component datasheet panel (`OntologyMapDetailPanel`, DOM consumption)
 Instrument detail panel appearing on the right when a node is clicked —
 denser than the old `TopologyNodePopover` (owner rejected "icons too large" +
 "information appears three times"). Colors use neutral 5-step + indigo signal only,
-kind miniatures reuse `--topology-v2-node-*` tokens shared with the canvas.
-When removing the old engine in P6, `--topology-v2-` grep will remove them together.
+kind miniatures reuse `--map-node-*` tokens shared with the canvas.
+When removing the old engine in P6, `--map-` grep will remove them together.
 
 RATIO-SYSTEM §4 FINAL scale-up (owner: "Information is good but too small",
 `docs/prototypes/chrome-datasheet-final.html`): 288→352px, padding
 11→14px, group/section gap 10→14px. As width increased, evidence
 groups were promoted to a third group, filling space with information rather than whitespace
-(`topology-v2-datasheet.ts#buildV2EvidenceRows`,
-`TopologyV2DetailPanel.tsx`'s `renderEvidenceGroup`). Type sizes
+(`map-datasheet.ts#buildV2EvidenceRows`,
+`OntologyMapDetailPanel.tsx`'s `renderEvidenceGroup`). Type sizes
 for each element next to it (individual JSX classes in §2.6 below) increased by one step: title 13.5→15px, row
 12→13px, metric 11.5→12.5px — this file holds only structural
 tokens, type sizes are owned by the component. */
     /* Responsive audit rank3 (2026-07-23) — Fixed 352px covered 59% of the viewport on tablet portrait (~600px), swallowing the map. Unified with the pattern `min(target, 100vw - gap)` already used by node popovers: on wide screens it stays 352px as is,
 on narrow screens it naturally shrinks to width minus left/right padding (28px). */
-    --topology-v2-panel-width: min(352px, calc(100vw - 28px));
+    --map-panel-width: min(352px, calc(100vw - 28px));
     /* P3-③ (2026-07-21 retention round) — On 1440×900, nodes with many connections had panel content (actions 4-up + contains/usedBy/dependsOn/evidence groups)
 overflow the viewport so the "full details →" footer was pushed off-screen (y=911) and unreachable by mouse. Since the panel is fixed-anchored to `--topology-node-popover-top`,
 clamp it to the remaining viewport height minus that offset and enable internal scrolling —
@@ -3447,10 +3447,10 @@ and stop the datasheet from underlapping the tab bar on tablet/mobile. */
 8px was just the minimum padding to "prevent footer from pushing off-screen," so
 the panel appeared stuck to the bottom. The `<lg` override (below) must add BottomTabBar,
 so leave it as is. */
-    --topology-v2-panel-bottom-reserve: var(--topology-node-popover-inset);
-    --topology-v2-panel-max-height: calc(
+    --map-panel-bottom-reserve: var(--topology-node-popover-inset);
+    --map-panel-max-height: calc(
       100dvh / var(--topology-ui-scale-factor) - var(--topology-node-popover-top) -
-        var(--topology-v2-panel-bottom-reserve)
+        var(--map-panel-bottom-reserve)
     );
     /*
      * The **selected-node inspector's** own ceiling. It is an alias, not a copy: at
@@ -3468,98 +3468,98 @@ so leave it as is. */
      * (`contextual-meaning-editor.spec.ts`, "every control is reachable"). 768 and
      * 834 were 46px and 7px from the same failure.
      */
-    --topology-v2-inspector-max-height: var(--topology-v2-panel-max-height);
+    --map-inspector-max-height: var(--map-panel-max-height);
     /* 9→12px (feat/chrome-system §9, INDEX panel v2.1) — Promote the radius of the shared panel layer between datasheet and INDEX to the final step of the chrome system's 4-layer step
 (keycap4·inner7·tile/chip/field10·panel12). */
-    --topology-v2-panel-radius: var(--radius-panel);
+    --map-panel-radius: var(--radius-panel);
     /* 5px was outside the ramp — rows share corners with chips. */
-    --topology-v2-panel-row-radius: var(--radius-chip);
-    --topology-v2-panel-pad: 14px;
-    --topology-v2-panel-surface: #17171c;
-    --topology-v2-panel-border: #2a2a30;
-    --topology-v2-panel-divider: #23232a;
-    --topology-v2-panel-shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
-    --topology-v2-panel-row-hover: rgba(255, 255, 255, 0.045);
+    --map-panel-row-radius: var(--radius-chip);
+    --map-panel-pad: 14px;
+    --map-panel-surface: #17171c;
+    --map-panel-border: #2a2a30;
+    --map-panel-divider: #23232a;
+    --map-panel-shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
+    --map-panel-row-hover: rgba(255, 255, 255, 0.045);
     /* rank3 — Press (active) surface for panel actions/rows. Use alpha one step darker than hover (0.045) to give tactile "press" feel via color alone (Toss press-state priority).
 No transform/scale — surface darkens as if pressed during pointer down, returns to hover on release. transition-colors (150ms) prevents hard toggle. */
-    --topology-v2-panel-row-active: rgba(255, 255, 255, 0.08);
+    --map-panel-row-active: rgba(255, 255, 255, 0.08);
     /* One step **darker** block inside panel (unsupported notice · CLI bridge). The metric/action
 surfaces above are the bright side, this is the dark side so it is separate.
 2026-08-04 audit: `rgba(6,6,9,·)` literal appeared in 2 places — listed value as-is. */
-    --topology-v2-panel-recess-a35: rgba(6, 6, 9, 0.35);
-    --topology-v2-panel-recess-a45: rgba(6, 6, 9, 0.45);
+    --map-panel-recess-a35: rgba(6, 6, 9, 0.35);
+    --map-panel-recess-a45: rgba(6, 6, 9, 0.45);
     /* 2026-08-06 audit: value was `0.028` and the action-surface below is `0.03`
 — alpha difference of 0.002 is imperceptible, and the comment above already referred to both as a pair «metric/action
 surface». Keep names separate (different locations) but derive values from one source. */
-    --topology-v2-panel-metric-surface: var(--topology-v2-panel-action-surface);
-    --topology-v2-panel-metric-text: #b6b6c0;
-    --topology-v2-panel-action-surface: rgba(255, 255, 255, 0.03);
-    --topology-v2-panel-action-border: #2f2f37;
+    --map-panel-metric-surface: var(--map-panel-action-surface);
+    --map-panel-metric-text: #b6b6c0;
+    --map-panel-action-surface: rgba(255, 255, 255, 0.03);
+    --map-panel-action-border: #2f2f37;
     /* "Power" indicator — powered (recently updated)=indigo signal, unpowered=neutral low-chroma */
-    --topology-v2-panel-power-on: var(--color-indigo-brand);
-    --topology-v2-panel-power-off: #45454d;
-    --topology-v2-panel-text-primary: #ececf0;
-    --topology-v2-panel-text-secondary: #a3a3ac;
+    --map-panel-power-on: var(--color-indigo-brand);
+    --map-panel-power-off: #45454d;
+    --map-panel-text-primary: #ececf0;
+    --map-panel-text-secondary: #a3a3ac;
     /* tertiary = CONTAINS/DEPENDS caps label + kind sublabel. #77777f is 4.02:1 on dark panel (#17171c), failing AA (4.5) for 10px text → nudged to #868690 (≈4.9:1),
 still recedes compared to primary. Guardian follow-up #2. */
-    --topology-v2-panel-text-tertiary: #868690;
+    --map-panel-text-tertiary: #868690;
     /* quaternary = Low-emphasis info text such as meter sublabels, "document not on map" hints, edge declaration source labels.
 #55555d is ~2.5:1 on dark panel (#17171c), significantly failing AA (4.5) (accessibility audit H3 P1) → raised to #82828a (~4.7:1). Maintains luminance just below tertiary (#868690,
 ~4.9:1) to preserve 4-step text ladder order (adjust monochrome luminance only, no new hue). Decorative consumption points like search icons/chevrons brighten slightly but rhythm disruption is minimal. Token change requires dev server (:3107) restart. */
-    --topology-v2-panel-text-quaternary: #82828a;
+    --map-panel-text-quaternary: #82828a;
 
     /* Node popover redesign (2026-07-24 owner-approved proposal — mockup-panel-detail):
 Balanced header (name hero + kind badge + domain chip) · plain stats · quiet action
 strip · relationship groups with direction icon+count chip+underline · indigo primary
-footer. All new surfaces defined only in this `--topology-v2-panel-*` namespace,
+footer. All new surfaces defined only in this `--map-panel-*` namespace,
 primary colors reference global monochrome/single indigo ladder (`--color-indigo-a*`) to avoid creating new hues (charter compliance). */
     /* Rhythm between groups — much larger than spacing between rows within a group (space encodes grouping) */
-    --topology-v2-panel-zone-gap: 28px;
+    --map-panel-zone-gap: 28px;
     /* Full-bleed zone divider — major structural separation (reuse panel divider) */
-    --topology-v2-panel-zone-divider: var(--topology-v2-panel-divider);
+    --map-panel-zone-divider: var(--map-panel-divider);
     /* Kind badge field — quiet elevated surface + thin border */
-    --topology-v2-panel-kind-badge-surface: rgba(255, 255, 255, 0.04);
-    --topology-v2-panel-kind-badge-border: rgba(255, 255, 255, 0.07);
+    --map-panel-kind-badge-surface: rgba(255, 255, 255, 0.04);
+    --map-panel-kind-badge-border: rgba(255, 255, 255, 0.07);
     /* Domain chip — single indigo low-chroma tint (navigation affordance) */
-    --topology-v2-panel-domain-surface: var(--color-indigo-a08);
-    --topology-v2-panel-domain-surface-hover: var(--color-indigo-a12);
-    --topology-v2-panel-domain-border: var(--color-indigo-a16);
-    --topology-v2-panel-domain-border-hover: var(--color-indigo-a24);
-    --topology-v2-panel-domain-text: var(--color-indigo-text-soft);
+    --map-panel-domain-surface: var(--color-indigo-a08);
+    --map-panel-domain-surface-hover: var(--color-indigo-a12);
+    --map-panel-domain-border: var(--color-indigo-a16);
+    --map-panel-domain-border-hover: var(--color-indigo-a24);
+    --map-panel-domain-text: var(--color-indigo-text-soft);
     /* Relationship group header underline + direction glyph ink */
-    --topology-v2-panel-group-underline: var(--topology-v2-panel-divider);
-    --topology-v2-panel-group-dir: var(--topology-v2-panel-text-tertiary);
+    --map-panel-group-underline: var(--map-panel-divider);
+    --map-panel-group-dir: var(--map-panel-text-tertiary);
     /* Relationship count chip — indigo low-chroma (same indigo 1st generation) */
-    --topology-v2-panel-count-surface: var(--color-indigo-a08);
-    --topology-v2-panel-count-text: var(--color-indigo-text-soft);
+    --map-panel-count-surface: var(--color-indigo-a08);
+    --map-panel-count-text: var(--color-indigo-text-soft);
     /* Footer primary — Indigo fill (single accent within panel) */
-    --topology-v2-panel-primary-surface: var(--color-indigo-a12);
-    --topology-v2-panel-primary-surface-hover: var(--color-indigo-a16);
-    --topology-v2-panel-primary-border: var(--color-indigo-a34);
-    --topology-v2-panel-primary-border-hover: var(--color-indigo-a46);
-    --topology-v2-panel-primary-text: var(--color-indigo-text-strong);
+    --map-panel-primary-surface: var(--color-indigo-a12);
+    --map-panel-primary-surface-hover: var(--color-indigo-a16);
+    --map-panel-primary-border: var(--color-indigo-a34);
+    --map-panel-primary-border-hover: var(--color-indigo-a46);
+    --map-panel-primary-text: var(--color-indigo-text-strong);
 
     /* Connection group trace mini-line — same family as canvas edges (contains solid / depends dashed) */
     /* A1 full detail indigo border — tokenizing the two literal rgba(94,106,210,0.5)s
        (Guardian A1 follow-up P2). */
-    --topology-v2-indigo-border: var(--color-indigo-a50);
+    --map-indigo-border: var(--color-indigo-a50);
 
-    --topology-v2-edge-contains-mark: #4a4a54;
-    --topology-v2-edge-depends-mark: #5c5c72;
+    --map-edge-contains-mark: #4a4a54;
+    --map-edge-depends-mark: #5c5c72;
 
     /* 2.7 INDEX panel (B3 hub is the map — `TopologyIndexPanel`/`TopologyIndexTab`,
        DOM consumption, `docs/prototypes/hub-b3-immersive.html`). Replaces the old `/ontology`
        tree hub with a left dashboard — always floating above the map. Surface/border/
        shadow/rounding/padding are not recreated; instead, reuse the 2.6 data sheet tokens
-       (`--topology-v2-panel-*`) as-is — the approved spec's core requirement is that both
+       (`--map-panel-*`) as-is — the approved spec's core requirement is that both
        dashboards on the map read as the same material (machined instrument), so only
        width/tab-width/inset are newly created.
        expanded width (300) + inset (18) + gap (26) = 344 already matches the
-       `--topology-v2-safe-inset-left` default above — that token already codified the
+       `--map-safe-inset-left` default above — that token already codified the
        premise that INDEX is the default expanded state. On collapse,
        the `html[data-topology-index="collapsed"]` rule below narrows the safe area to
        tab width (26) + inset (18) + gap (28) = 72. HomePage toggles `data-topology-index`
-       on INDEX expand/collapse + invalidates cached tokens (`clearTopologyV2TokensCache`) +
+       on INDEX expand/collapse + invalidates cached tokens (`clearOntologyMapTokensCache`) +
        forces camera re-fit.
 
        Owner live-QA defect (2026-07-18, v1): The 18px top inset was based on the false
@@ -3599,7 +3599,7 @@ primary colors reference global monochrome/single indigo ladder (`--color-indigo
   html[data-topology-index="collapsed"] {
     /* feat/chrome-system §4 — tab-width(26) + inset(24) + gap(28) = 78
        (old 72 = 26 + 18 + 28). */
-    --topology-v2-safe-inset-left: 78;
+    --map-safe-inset-left: 78;
   }
 
   html {
@@ -3791,7 +3791,7 @@ primary colors reference global monochrome/single indigo ladder (`--color-indigo
    */
   @media (max-width: 1023px) {
     :root {
-      --topology-v2-panel-bottom-reserve: calc(
+      --map-panel-bottom-reserve: calc(
         var(--topology-mobile-bottom-tab-reserve) + 8px
       );
       /*
@@ -3818,13 +3818,13 @@ primary colors reference global monochrome/single indigo ladder (`--color-indigo
        * this is identity today and stays correct if that ever changes.
        *
        * ⚠️ **This caps the inspector, not every panel that shares the anchor.** The
-       * first version of this override moved `--topology-v2-panel-max-height`, which
+       * first version of this override moved `--map-panel-max-height`, which
        * the meaning editor reads too — and the editor is a form, so 405px of ceiling
        * put its own 「why」 textarea behind its own sticky footer at 600×900 (2026-09-05,
        * caught by `contextual-meaning-editor.spec.ts`). The reason for the split lives
        * with the token declaration above.
        */
-      --topology-v2-inspector-max-height: calc(
+      --map-inspector-max-height: calc(
         45dvh / var(--topology-ui-scale-factor)
       );
       /* Expanded INDEX bottom also rises above reservation in zones where tab bar exists (<lg)
@@ -4393,7 +4393,7 @@ body *::-webkit-scrollbar {
 @media (min-width: 1280px) {
   [data-right-inspector-reserve='recenter-in-remaining-map'] {
     left: calc(
-      50% - (var(--topology-v2-panel-width) + var(--topology-node-popover-right-inset)) / 2
+      50% - (var(--map-panel-width) + var(--topology-node-popover-right-inset)) / 2
     );
   }
 }
@@ -4845,7 +4845,7 @@ html [data-sonner-toast].app-toast [data-close-button]:hover {
  *   was effectively invisible. The owner's statement "it looks fixed" refers to **brightness**
  *   before affordance — something this dim doesn't read as a tangible object.
  * - Increasing the stage height from 671→999px did **not increase the map ink bbox by even 1 pixel**
- *   (fixed at 436×408). It was pinned to the upper limit of `--topology-v2-camera-scale-max` (2.6),
+ *   (fixed at 436×408). It was pinned to the upper limit of `--map-camera-scale-max` (2.6),
  *   so giving it more space was useless. The owner's "it could be a bit bigger" was not a preference request
  *   but **reporting the camera hard cap**.
  *
@@ -4853,7 +4853,7 @@ html [data-sonner-toast].app-toast [data-close-button]:hover {
  * it's just stepping up one level within the existing achromatic ladder, so the charter (achromatic + single indigo) remains
  * intact.
  *
- * ⚠️ **Reason for root attribute**: The canvas token leader (`getTopologyV2Tokens`) reads
+ * ⚠️ **Reason for root attribute**: The canvas token leader (`getOntologyMapTokens`) reads
  * the computed style of `document.documentElement` once and caches it globally —
  * classes applied to the container **do not reach it** (actual measurement: applying class scope changed only ink
  * color, leaving the camera upper limit unchanged, so map size didn't change by even 1 pixel).
@@ -4871,8 +4871,8 @@ html[data-gateway-stage] {
    * Labels remain one step brighter in the gateway — since the map is a "tactile" area, the name
    * must be read first.
    */
-  --topology-v2-label-capability: #aeaeb8;
-  --topology-v2-label-element: #9a9aa4;
+  --map-label-capability: #aeaeb8;
+  --map-label-element: #9a9aa4;
 
   /* Camera — the gateway is a "tactile" area, so it sits closer than the workbench. */
   /*
@@ -4885,7 +4885,7 @@ html[data-gateway-stage] {
    * motionless affordance prescribed by the motion seat — "the image shows the whole, the window shows fragments." The upper limit
    * is raised just enough so this scale isn't clipped.
    */
-  --topology-v2-camera-scale-max: 6;
+  --map-camera-scale-max: 6;
   /* 1.85 was excessive (owner: *"It's too big now? It doesn't fit the screen"*) and 1.15's
      "slight overflow" was a signal from when the map was background behind the board. With the remake, the map
      became the evidence section, so this frame's purpose changed to "the entire graph is visible as evidence" — the owner's observation on 2026-08-18 (actual measurement: graph used only 20% of the frame)
@@ -4896,7 +4896,7 @@ html[data-gateway-stage] {
      (`overviewFit="full"`), "tight fit" finally measured the entire graph — the previous 1 was based on
      spline bbox, so it actually overflowed and sat low (owner: *"Too low"* — actual measurement at 1512: 143px top gap · 17px bottom). The edges of all-node bbox are faint element dots shrouded in fog (luminance 52~60), so exactly 1 means clear visual mass uses only half the frame. 1.12 removes just that surplus — the clear main body fits entirely within the frame, and overflow is only a few pixels at fog endpoints (height-constrained fit leaves horizontal padding even at 1.12).
      With pan leash, dragging reveals those endpoints — "slight overflow" also serves as a signal to touch. */
-  --topology-v2-overview-entry-ratio: 1.12;
+  --map-overview-entry-ratio: 1.12;
 
   /*
    * No inset reservation (2026-08-18 remake) — when the map was background behind the board,
@@ -4904,8 +4904,8 @@ html[data-gateway-stage] {
    * its own section (evidence) and uses full column width alone, the camera fits to the entire frame.
    * Unitless number — token reader reads via `parseFloat`.
    */
-  --topology-v2-safe-inset-left: 0;
-  --topology-v2-safe-inset-right: 0;
+  --map-safe-inset-left: 0;
+  --map-safe-inset-right: 0;
 
   /*
    * Pan leash — there is no "map fit" in the gateway (2026-07-29 council verdict ②).
@@ -4918,7 +4918,7 @@ html[data-gateway-stage] {
    * 220 world units × entry scale 1.15 ≈ 253px screen. The "pushed" feeling remains (try dragging),
    * but it cannot reach the reserved column (0..520). It's independent of bolt size — the reference point is **fit itself**, not bbox.
    */
-  --topology-v2-camera-pan-leash: 220;
+  --map-camera-pan-leash: 220;
 }
 
 /*

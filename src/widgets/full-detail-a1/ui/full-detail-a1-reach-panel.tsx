@@ -79,11 +79,11 @@ export function FullDetailA1ReachPanel({
 
   return (
     <section data-fulldetail-reach className={className}>
-      <p className="max-w-[var(--measure-doc-column)] text-body-lg leading-prose tracking-[var(--tracking-title)] text-[color:var(--topology-v2-panel-text-secondary)]">
+      <p className="max-w-[var(--measure-doc-column)] text-body-lg leading-prose tracking-[var(--tracking-title)] text-[color:var(--map-panel-text-secondary)]">
         {labels.leadIn}{" "}
         <span
           data-fulldetail-reach-steps
-          className="mx-1 inline-flex items-baseline gap-1.5 align-baseline font-mono text-label text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="mx-1 inline-flex items-baseline gap-1.5 align-baseline font-mono text-label text-[color:var(--map-panel-text-quaternary)]"
         >
           {STEPS.map((candidate) => (
             <button
@@ -99,8 +99,8 @@ export function FullDetailA1ReachPanel({
                   // 4px is no longer an off-ramp exception — registered as `--radius-micro` (2026-08-03).
                   "px-1 py-0.5",
                   candidate === step
-                    ? "border-[color:var(--topology-v2-indigo-border)] text-[color:var(--topology-v2-indigo-bright)]"
-                    : "border-transparent hover:border-[color:var(--topology-v2-panel-text-quaternary)]",
+                    ? "border-[color:var(--map-indigo-border)] text-[color:var(--map-indigo-bright)]"
+                    : "border-transparent hover:border-[color:var(--map-panel-text-quaternary)]",
                 ].join(" "),
               })}
             >
@@ -166,26 +166,26 @@ function DomainBarRow({
         className={[
           "truncate text-body",
           row.isSelf
-            ? "text-[color:var(--topology-v2-panel-text-secondary)]"
-            : "text-[color:var(--topology-v2-panel-text-tertiary)]",
+            ? "text-[color:var(--map-panel-text-secondary)]"
+            : "text-[color:var(--map-panel-text-tertiary)]",
         ].join(" ")}
       >
         {displayName}
       </span>
       {/* eslint-disable-next-line no-restricted-syntax -- the 2px hairline radius of a 3px-tall gauge track is an exception outside chip(6px). */}
-      <span className="relative h-[3px] overflow-hidden rounded-[2px] bg-[color:var(--topology-v2-panel-border)]">
+      <span className="relative h-[3px] overflow-hidden rounded-[2px] bg-[color:var(--map-panel-border)]">
         <span
           // eslint-disable-next-line no-restricted-syntax -- the fill paired with the gauge track above, same 2px hairline radius.
           className="absolute inset-y-0 left-0 rounded-[2px]"
           style={{
             width: `${widthPercent}%`,
             backgroundColor: row.isSelf
-              ? "var(--topology-v2-indigo)"
-              : "var(--topology-v2-panel-text-quaternary)",
+              ? "var(--map-indigo)"
+              : "var(--map-panel-text-quaternary)",
           }}
         />
       </span>
-      <span className="text-right text-label text-[color:var(--topology-v2-panel-text-tertiary)]">
+      <span className="text-right text-label text-[color:var(--map-panel-text-tertiary)]">
         {row.count}
       </span>
     </>

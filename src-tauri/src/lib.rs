@@ -4127,7 +4127,7 @@ mod tests {
         // v2 canvas copy — the original census message must be included in the relief marker.
         assert!(source.contains("개념 \\d+개 · 관계 \\d+개"));
         // Draw evidence to prevent false positives where only the v2 canvas exists.
-        assert!(source.contains("topologyV2CanvasInkPixels"));
+        assert!(source.contains("ontologyMapCanvasInkPixels"));
         assert!(source.contains("getImageData"));
         // The `data-focus-cluster-size` assertion was removed (cleaned up markers on 2026-08-12) — that
         // attribute doesn't exist anywhere in the UI ("retired marker"); this line was a reverse gate forcing

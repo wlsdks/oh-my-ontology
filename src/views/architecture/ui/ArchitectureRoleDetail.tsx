@@ -3,7 +3,7 @@
 import { useState, type ComponentType } from 'react';
 import { FileCode2, Folder } from 'lucide-react';
 
-import { Chip, StaggeredFadeIn, TopologyV2KindGlyph } from '@/shared/ui';
+import { Chip, StaggeredFadeIn, OntologyMapKindGlyph } from '@/shared/ui';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
 
 import { useGridColumns } from '../model/grid-columns';
@@ -346,7 +346,7 @@ export function ArchitectureRoleDetail({
                 className="flex h-14 min-w-0 items-center gap-3 rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3"
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-micro border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-2)]">
-                  <TopologyV2KindGlyph kind={concept.kind} size={18} />
+                  <OntologyMapKindGlyph kind={concept.kind} size={18} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-body font-[var(--font-weight-emphasis)] text-[color:var(--color-text-primary)]">

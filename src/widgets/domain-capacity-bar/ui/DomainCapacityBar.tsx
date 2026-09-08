@@ -1,4 +1,4 @@
-import { TopologyV2KindGlyph } from "@/shared/ui";
+import { OntologyMapKindGlyph } from "@/shared/ui";
 
 interface DomainCapacityBarRow {
   id: string;
@@ -103,7 +103,7 @@ export function DomainCapacityBar({
       <span
         className={`flex w-full shrink-0 items-center gap-2 truncate text-body-lg text-[color:var(--color-text-secondary)] ${titleWidthClassName}`}
       >
-        <TopologyV2KindGlyph kind="domain" size={15} />
+        <OntologyMapKindGlyph kind="domain" size={15} />
         <span className="truncate">{row.title}</span>
       </span>
       {/* The track is `aria-hidden` — the same fact (capability N · element M) sits as
@@ -147,7 +147,7 @@ export function DomainCapacityBar({
         data-testid="domain-capacity-bar-tail"
         className="w-[192px] flex-none text-right"
       >
-        <span className="block font-mono text-title tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+        <span className="block font-mono text-title tabular-nums text-[color:var(--map-numeral-face)]">
           {row.total}
         </span>
         <span

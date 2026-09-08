@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/shared/lib/page-metadata";
 import { MapEntryFallback } from "@/shared/ui/map-entry-fallback";
 
 /**
- * `/topology` — the canvas-2D topology surface (`topology-map-v2`). An explicit entry alias
+ * `/topology` — the canvas-2D topology surface (`ontology-map`). An explicit entry alias
  * rendering the same component as `/` (HomePage), and the demo URL the README and launch assets
  * point at.
  *

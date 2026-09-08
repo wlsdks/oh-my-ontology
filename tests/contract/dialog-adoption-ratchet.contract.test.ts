@@ -111,7 +111,7 @@ const DEBT: ReadonlyArray<readonly [file: string, count: number]> = [
   ["src/features/ontology-blocks/ui/BlockImportModule.tsx", 1],
   ["src/features/vault-ontology/ui/RecentChangesNeedsVaultDialog.tsx", 1],
   ["src/views/docs-vault/ui/parts/DocsVaultAuditModal.tsx", 1],
-  ["src/widgets/topology-map-v2/ui/TopologyV2EdgePanel.tsx", 1],
+  ["src/widgets/ontology-map/ui/OntologyMapEdgePanel.tsx", 1],
   ["src/widgets/docs-quick-drawer/ui/DocsQuickDrawer.tsx", 1],
   // 2026-08-21 — that sheet was retired (ledger entry 90). Recovered rows are
   // deleted from the ledger: holding a file that no longer exists lets a "decrease"

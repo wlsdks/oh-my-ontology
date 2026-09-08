@@ -968,7 +968,7 @@
 
 ## 2026-07-27 · Docs and the ontology vault describe the current app, not retired screens
 
-**Changed**: Documentation and the ontology vault now describe the app as it currently works, a single `topology-map-v2` canvas, neutral kind coloring, a relation-line legend, and Topology, INDEX, Workshop, and Insights, instead of retired features they previously referenced.
+**Changed**: Documentation and the ontology vault now describe the app as it currently works, a single `ontology-map` canvas, neutral kind coloring, a relation-line legend, and Topology, INDEX, Workshop, and Insights, instead of retired features they previously referenced.
 
 ## 2026-07-27 · The app no longer offers to connect an unpublished agent package
 

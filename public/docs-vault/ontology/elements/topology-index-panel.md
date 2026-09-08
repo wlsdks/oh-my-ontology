@@ -27,4 +27,4 @@ Map index (INDEX) panel widget. Implementation evidence for capabilities/topolog
 
 - Computing per-domain descendant subcounts, delegated to `lib/domain-subcounts` and only consumed here.
 - The domain composition bar shown inside rows, a separate widget: elements/domain-capacity-bar.
-- The map canvas and node rendering itself, owned by elements/topology-map-v2.
+- The map canvas and node rendering itself, owned by elements/ontology-map.

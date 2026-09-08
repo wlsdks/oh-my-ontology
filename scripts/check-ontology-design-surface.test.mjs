@@ -181,7 +181,7 @@ function writeCleanWorkbenchFixtures(root) {
       "Source -> Atlas rule -> verifier",
       "Reference Permission Test",
       "Relief/Topology Graph Engine Fit Gate",
-      "topology-map-v2",
+      "ontology-map",
       "Graphology",
       "ForceAtlas2",
       "Composer blocks the map",

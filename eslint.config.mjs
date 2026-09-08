@@ -76,7 +76,7 @@ const checkboxAccentSelectors = [
  * The 8 cases were converged first before enabling.
  */
 const ALLOWED_SHADOW_TOKEN =
-  'var\\(--shadow-elevation-|var\\(--shadow-control-press|var\\(--topology|var\\(--chrome|var\\(--git|inset';
+  'var\\(--shadow-elevation-|var\\(--shadow-control-press|var\\(--topology|var\\(--map-|var\\(--chrome|var\\(--git|inset';
 
 /**
  * Allowance judgment is done **per layer** (2026-08-06).
@@ -455,7 +455,7 @@ const accentTintPairingSelectors = [
 // Express only via the "Geometry & Type Codex" ramp (text-caption…text-hero / rounded-chip…panel).
 // Intentional exceptions outside the ramp must be explicitly marked with `// eslint-disable-next-line
 // no-restricted-syntax -- <reason>`. Migrated directories = error,
-// incomplete (topology-map-v2 · views/home) = warn.
+// incomplete (ontology-map · views/home) = warn.
 /*
  * Colour literals outside the token layer (2026-09-08).
  *
@@ -1179,15 +1179,15 @@ const eslintConfig = defineConfig([
   //   - `src/shared/config/indigo-tokens.ts` — the documented JS mirror of `--color-indigo-*`.
   //   - `src/views/docs-vault/lib/popout-template.ts` — a standalone HTML document with no
   //     stylesheet of ours to read.
-  //   - `src/widgets/topology-map-v2/render/**` — canvas paint, which reads its tokens through
-  //     `read-topology-v2-tokens` and keeps a literal only as the fallback for a missing one.
+  //   - `src/widgets/ontology-map/render/**` — canvas paint, which reads its tokens through
+  //     `read-map-tokens` and keeps a literal only as the fallback for a missing one.
   // A new file here is a new exception and needs the same sentence.
   {
     files: [
       'src/entities/ontology-class/model/tone.ts',
       'src/shared/config/indigo-tokens.ts',
       'src/views/docs-vault/lib/popout-template.ts',
-      'src/widgets/topology-map-v2/render/**/*.{ts,tsx}',
+      'src/widgets/ontology-map/render/**/*.{ts,tsx}',
     ],
     ignores: codexTestIgnores,
     rules: {

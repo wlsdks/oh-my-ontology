@@ -336,7 +336,7 @@ describe('탐지기 프로브 — 이 게이트가 실제로 무엇을 잡는가
 
   it('⑤ 기제를 갖춘 표면은 놓아준다 — 전환한 것이 되돌아가면 여기서 걸린다', () => {
     const converted = [
-      'src/widgets/topology-map-v2/ui/TopologyV2DetailPanel.tsx',
+      'src/widgets/ontology-map/ui/OntologyMapDetailPanel.tsx',
       'src/widgets/vault-agent-panel/ui/VaultAgentPanel.tsx',
       'src/widgets/project-drawer/ui/ProjectDrawer.tsx',
       'src/widgets/search-palette/ui/SearchPalette.tsx',

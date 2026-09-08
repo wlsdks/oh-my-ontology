@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { TopologyV2KindGlyph } from "@/shared/ui";
+import { OntologyMapKindGlyph } from "@/shared/ui";
 import { relationTypeIndigo } from "../../lib/relation-type-tone";
 import type {
   DomainCouplingBoundaryRow,
@@ -195,7 +195,7 @@ export function DomainCouplingCard({
             return (
               <div key={row.id} className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 text-body text-[color:var(--color-text-secondary)]">
-                  <TopologyV2KindGlyph kind="domain" size={14} className="flex-none" />
+                  <OntologyMapKindGlyph kind="domain" size={14} className="flex-none" />
                   <span className="min-w-0 flex-1 truncate">{row.title}</span>
                   <span className="flex-none font-mono text-caption tabular-nums text-[color:var(--color-text-quaternary)]">
                     {labels.boundarySelfLabel} {row.selfEdges} · {labels.boundaryCrossLabel} {row.crossEdges} ({crossPct}%)
@@ -494,7 +494,7 @@ function CardHead({ label, unit, count }: { label: string; unit: string; count: 
       <InsightsSectionTitle level={2} className="text-body-lg font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--color-text-primary)]">{label}</InsightsSectionTitle>
       <span className="ml-auto flex items-baseline gap-1.5">
         <span className="text-label text-[color:var(--color-text-quaternary)]">{unit}</span>
-        <span className="font-mono text-body tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+        <span className="font-mono text-body tabular-nums text-[color:var(--map-numeral-face)]">
           {count}
         </span>
       </span>

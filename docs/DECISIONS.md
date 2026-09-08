@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — The map widget is named for what it draws: `ontology-map`, tokens `--map-*`
+
+**Why**: the owner, reading the branch: *"topology-map-v2 is a bad name; the v2 alone…"*. The suffix dated a rewrite that retired its predecessor on 2026-07 and has carried no meaning since; the product vocabulary rule (2026-08-25) already says the ontology is the thing and the map is the view of it.
+**Prior**: extends 2026-08-25 "One word per thing"; the `topology-map-v2` renderer decision (2026-07) stands, only its name moves. Older records keep the old name as history; the ledger is append-only.
+**Decision**: `src/widgets/topology-map-v2` → `src/widgets/ontology-map`; identifiers `TopologyMapV2`/`TopologyV2*` → `OntologyMap*`; CSS tokens, classes and test ids `topology-v2-*` → `map-*`; `docs/TOPOLOGY-V2-DESIGN.md` → `ONTOLOGY-MAP-DESIGN.md`; the dogfood element slug follows the folder with its uid unchanged. One mechanical codemod, no behaviour change, its own pull request stacked on `feat/expressive-surfaces`.
+**Dissent**: `--map-*` is a short prefix beside `--topology-chrome-*` and `--topology-motion-*`, which name the screen's chrome, not the canvas; a reader may expect them to share a stem. Declined: the canvas tokens are the map's own paint, and a shared stem is what made "topology" do duty for both the data and the view.
+**Falsifier**: a second widget that needs `--map-*` for a different map, or a contributor who cannot find the canvas tokens from the folder name, reopens the prefix.
+**Owner**: jinan
+
 ## 2026-09-08 — Light and depth stay only where a fact stays with them
 
 **Why**: the expressive slice drew three marks that outran their data. The map's ground halo, sized by the farthest 1-hop neighbour, enclosed 410 nodes over 36 focus states of which 290 (70.7%) were not neighbours, and gave a degree-3 node the same radius as a degree-15 one; measured on the rendered canvas it lifted blue across the whole field (mean B−R 9.82 against 3.55 without it). The architecture planes' depth ramp rendered rgb 13·12·11·10 — every adjacent pair 1.00:1 — while dimming the deepest plane's lit edge to 1.02:1. The library's Compile light rested on one spine at 1.29:1 against the open page's own fill.

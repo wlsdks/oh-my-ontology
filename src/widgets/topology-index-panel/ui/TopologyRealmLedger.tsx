@@ -15,7 +15,7 @@ import {
   type OntologyTreeNode,
 } from "@/entities/knowledge-graph";
 import { RealmBlockExportAction } from "@/features/ontology-blocks";
-import { TopologyV2KindGlyph } from "@/shared/ui/topology-v2-kind-glyph";
+import { OntologyMapKindGlyph } from "@/shared/ui/map-kind-glyph";
 import { controlClass } from "@/shared/ui";
 import {
   flattenVisibleRowIds,
@@ -104,7 +104,7 @@ export interface TopologyRealmLedgerProps {
  * (sections are separated by a caps eyebrow, whitespace and one hairline divider),
  * no badge or chip soup (the census is one line of text, and the jump is a quiet
  * action revealed only on row hover), and an empty state is one line of copy. It
- * reuses the global `TopologyIndexPanel`'s `--topology-v2-panel-*` /
+ * reuses the global `TopologyIndexPanel`'s `--map-panel-*` /
  * `--topology-index-*` tokens, the same aside shell and the same
  * `TopologyIndexTreeRow` — a sister panel with only its content narrowed to the
  * realm's scope.
@@ -189,13 +189,13 @@ export function TopologyRealmLedger({
     <aside
       aria-label={labels.label}
       data-testid="topology-realm-ledger"
-      className={`flex h-full flex-col rounded-[var(--topology-v2-panel-radius)] border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-surface)] p-3 shadow-[var(--topology-v2-panel-shadow)] ${className ?? ""}`}
+      className={`flex h-full flex-col rounded-[var(--map-panel-radius)] border border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-surface)] p-3 shadow-[var(--map-panel-shadow)] ${className ?? ""}`}
       style={{ width: "var(--topology-index-width)" }}
     >
       {/* ── 1. Header ── caps eyebrow + title + one-line census + a quiet leave action. */}
       <header className="mb-3 shrink-0 px-0.5">
         <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="min-w-0 flex-1 truncate font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <span className="min-w-0 flex-1 truncate font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--map-panel-text-tertiary)]">
             {labels.label}
           </span>
           {/* "Export this realm as a block". A self-contained module (the
@@ -214,7 +214,7 @@ export function TopologyRealmLedger({
               size: "md",
               tone: "muted",
               className:
-                "shrink-0 text-[color:var(--topology-v2-panel-text-quaternary)] hover:text-[color:var(--topology-v2-panel-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-focus-ring)] focus-visible:ring-inset",
+                "shrink-0 text-[color:var(--map-panel-text-quaternary)] hover:text-[color:var(--map-panel-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-focus-ring)] focus-visible:ring-inset",
             })}
           >
             {labels.exit}
@@ -222,18 +222,18 @@ export function TopologyRealmLedger({
         </div>
         <div className="flex min-w-0 items-center gap-2">
           <span className="shrink-0">
-            <TopologyV2KindGlyph kind={rootKind} size={15} />
+            <OntologyMapKindGlyph kind={rootKind} size={15} />
           </span>
           <p
             data-testid="topology-realm-title"
-            className="min-w-0 flex-1 truncate text-body-lg font-[var(--font-weight-signature)] text-[color:var(--topology-v2-panel-text-primary)]"
+            className="min-w-0 flex-1 truncate text-body-lg font-[var(--font-weight-signature)] text-[color:var(--map-panel-text-primary)]"
           >
             {rootTitle}
           </p>
         </div>
         <p
           data-testid="topology-realm-census"
-          className="mt-1 truncate font-mono text-caption text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="mt-1 truncate font-mono text-caption text-[color:var(--map-panel-text-quaternary)]"
         >
           {labels.elementsShort} {census.elementCount} · {labels.capabilitiesShort}{" "}
           {census.capabilityCount} · {labels.depthShort} {census.depth}
@@ -245,7 +245,7 @@ export function TopologyRealmLedger({
         <Search
           size={ICON_SIZE.sm}
           aria-hidden
-          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--map-panel-text-quaternary)]"
         />
         <input
           type="text"
@@ -277,7 +277,7 @@ export function TopologyRealmLedger({
         className="min-h-0 flex-1 space-y-px overflow-y-auto"
       >
         {visibleRoots.length === 0 ? (
-          <p className="px-1 py-2 text-label text-[color:var(--topology-v2-panel-text-quaternary)]">
+          <p className="px-1 py-2 text-label text-[color:var(--map-panel-text-quaternary)]">
             {labels.emptyHint}
           </p>
         ) : (
@@ -308,10 +308,10 @@ export function TopologyRealmLedger({
       {/* ── 3. Boundary relations ── separated by one hairline, a collapsed-by-default summary line. */}
       <div
         data-testid="topology-realm-boundary"
-        className="mt-2.5 shrink-0 border-t border-[color:var(--topology-v2-panel-divider)] pt-2"
+        className="mt-2.5 shrink-0 border-t border-[color:var(--map-panel-divider)] pt-2"
       >
         {boundaryTotal === 0 ? (
-          <p className="px-1 text-label text-[color:var(--topology-v2-panel-text-quaternary)]">
+          <p className="px-1 text-label text-[color:var(--map-panel-text-quaternary)]">
             {labels.boundaryEmpty}
           </p>
         ) : (
@@ -322,15 +322,15 @@ export function TopologyRealmLedger({
               aria-expanded={boundaryOpen}
               aria-label={labels.boundaryToggleAria}
               data-testid="topology-realm-boundary-toggle"
-              className={controlClass({ shape: "row", className: "gap-1.5 rounded-[var(--chrome-radius-inner)] px-1 py-0.5 hover:bg-[color:var(--topology-v2-panel-row-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-focus-ring)] focus-visible:ring-inset" })}
+              className={controlClass({ shape: "row", className: "gap-1.5 rounded-[var(--chrome-radius-inner)] px-1 py-0.5 hover:bg-[color:var(--map-panel-row-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-focus-ring)] focus-visible:ring-inset" })}
             >
-              <span className="min-w-0 flex-1 truncate text-label text-[color:var(--topology-v2-panel-text-tertiary)]">
+              <span className="min-w-0 flex-1 truncate text-label text-[color:var(--map-panel-text-tertiary)]">
                 {labels.boundaryHeading}
               </span>
               <ChevronDown
                 size={ICON_SIZE.sm}
                 aria-hidden="true"
-                className={`shrink-0 text-[color:var(--topology-v2-panel-text-quaternary)] transition-transform ${boundaryOpen ? "rotate-180" : ""}`}
+                className={`shrink-0 text-[color:var(--map-panel-text-quaternary)] transition-transform ${boundaryOpen ? "rotate-180" : ""}`}
               />
             </button>
             {boundaryOpen ? (
@@ -339,17 +339,17 @@ export function TopologyRealmLedger({
                   <li
                     key={row.edgeId}
                     data-testid="topology-realm-boundary-row"
-                    className="group flex items-center gap-2 rounded-chip px-1 py-1 transition-colors hover:bg-[color:var(--topology-v2-panel-row-hover)]"
+                    className="group flex items-center gap-2 rounded-chip px-1 py-1 transition-colors hover:bg-[color:var(--map-panel-row-hover)]"
                   >
-                    <span className="min-w-0 flex-1 truncate text-label text-[color:var(--topology-v2-panel-text-secondary)]">
-                      <span className="text-[color:var(--topology-v2-panel-text-primary)]">
+                    <span className="min-w-0 flex-1 truncate text-label text-[color:var(--map-panel-text-secondary)]">
+                      <span className="text-[color:var(--map-panel-text-primary)]">
                         {row.fromTitle}
                       </span>
-                      <span className="mx-1 text-[color:var(--topology-v2-panel-text-quaternary)]">→</span>
-                      <span className="text-[color:var(--topology-v2-panel-text-primary)]">
+                      <span className="mx-1 text-[color:var(--map-panel-text-quaternary)]">→</span>
+                      <span className="text-[color:var(--map-panel-text-primary)]">
                         {row.toTitle}
                       </span>
-                      <span className="ml-1 text-[color:var(--topology-v2-panel-text-quaternary)]">
+                      <span className="ml-1 text-[color:var(--map-panel-text-quaternary)]">
                         ({row.relationLabel})
                       </span>
                     </span>

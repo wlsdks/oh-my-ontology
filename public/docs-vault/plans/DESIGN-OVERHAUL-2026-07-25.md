@@ -51,7 +51,7 @@
 
 - ☑ **#5 선택 노드 vs 연결 노드 구분.** 노드 선택 시 엣지는 보이는데 상대
   노드가 강조 안 돼 안 보임. → 선택 노드=표준 인디고 링, **연결 이웃=pale
-  인디고(기존 `--topology-v2-edge-selected` 계열) 얇은 링**. 헌장의 "선택 색
+  인디고(기존 `--map-edge-selected` 계열) 얇은 링**. 헌장의 "선택 색
   사다리 = 인디고 1계열 안에서 값으로만 구분" 준수(파란색 새 hue 금지 —
   소유자 의도는 '구분'이므로 인디고 사다리로 충족).
 - ☑ **#8 개념 추가 팝업.** 너무 작음 → 화면 중앙 더 크게(dialog 사이즈
@@ -124,7 +124,7 @@
   세트 단위로 교체(개별 아님). **출하: 기하(현재, fill+stroke) · 라인(stroke-only
   얇은 획)**. **불변 규칙: kind→실루엣 매핑은 세트 간 고정**(project=hex ·
   domain=chip · capability=circle · element=via-pad) — 세트는 렌더 스타일만.
-  단일 게이트웨이: DOM `TopologyV2KindGlyph`(`useGlyphSet`) + 캔버스 `node-shapes`
+  단일 게이트웨이: DOM `OntologyMapKindGlyph`(`useGlyphSet`) + 캔버스 `node-shapes`
   (`glyphStyleDescriptor`)가 같은 `appearance-preferences` 스토어를 읽어 지도·
   INDEX·공방·팝오버 **전 표면 동시 스왑**. 설정 [화면] 2택 미리보기,
   `glyphSet` localStorage 지속. **후속: 필드(채움) · 미니멀 점**.

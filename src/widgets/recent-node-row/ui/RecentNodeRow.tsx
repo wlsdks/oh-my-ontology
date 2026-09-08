@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
-import { TopologyV2KindGlyph } from "@/shared/ui";
+import { OntologyMapKindGlyph } from "@/shared/ui";
 
 export interface RecentNodeRowProps {
   kind: string;
@@ -46,7 +46,7 @@ export function RecentNodeRow({
 }: RecentNodeRowProps) {
   const content = (
     <>
-      <TopologyV2KindGlyph kind={kind} size={14} />
+      <OntologyMapKindGlyph kind={kind} size={14} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-body text-[color:var(--color-text-primary)]">{title}</span>
         <span className="block truncate text-label text-[color:var(--color-text-quaternary)]">{subtitle}</span>

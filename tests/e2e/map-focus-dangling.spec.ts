@@ -26,7 +26,7 @@ import { stubDirectoryPicker } from "./vault-picker-stub";
  * ## Why this check counts pixels
  *
  * **Lint, types, and contract tests are all blind to this defect** — every value used
- * is a legitimate token (`--topology-v2-node-stroke-dim`), and what is wrong is
+ * is a legitimate token (`--map-node-stroke-dim`), and what is wrong is
  * *which nodes* it was applied to. The map is a canvas with no DOM, so there is
  * nothing for a selector to ask. The remaining instrument is **counting the painted
  * pixels directly.**
@@ -51,7 +51,7 @@ async function readablePixelCount(page: import("@playwright/test").Page) {
      * (a screen already emptying), so **the brightest one** is chosen.
      */
     const canvases = [
-      ...document.querySelectorAll<HTMLCanvasElement>('[data-testid="topology-map-v2-canvas"]'),
+      ...document.querySelectorAll<HTMLCanvasElement>('[data-testid="ontology-map-canvas"]'),
     ].filter((c) => c.width > 0 && c.height > 0);
     if (canvases.length === 0) return -1;
     const canvas = canvases[canvases.length - 1];
@@ -76,10 +76,10 @@ async function openVault(page: import("@playwright/test").Page, query: string) {
   await page.goto(`/ko/topology/?e2e=1&guides=off`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("first-run-starter-open").click();
   await page.getByTestId("vault-guide-pick-existing").click();
-  await expect(page.getByTestId("topology-map-v2-canvas").first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("ontology-map-canvas").first()).toBeVisible({ timeout: 30_000 });
   if (query) {
     await page.goto(`/ko/topology/?e2e=1&guides=off&${query}`, { waitUntil: "domcontentloaded" });
-    await expect(page.getByTestId("topology-map-v2-canvas").first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("ontology-map-canvas").first()).toBeVisible({ timeout: 30_000 });
   }
   // Until the layout has been drawn — decided by value (a fixed wait rides machine speed).
   await expect
@@ -100,7 +100,7 @@ test("문서함이 보내는 프로젝트 딥링크로 들어와도 지도가 �
   // The failing path — the address "open in map" on a project document actually
   // produces (`topology-href.ts`: kind: project → `/topology/?p=<slug>`).
   await page.goto("/ko/topology/?e2e=1&guides=off&p=project", { waitUntil: "domcontentloaded" });
-  await expect(page.getByTestId("topology-map-v2-canvas").first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("ontology-map-canvas").first()).toBeVisible({ timeout: 30_000 });
   await expect
     .poll(() => readablePixelCount(page), {
       timeout: 30_000,
@@ -135,7 +135,7 @@ test("지도에 없는 노드를 가리키는 딥링크는 아무것도 안 고�
   await page.goto("/ko/topology/?e2e=1&guides=off&p=element:this-node-does-not-exist", {
     waitUntil: "domcontentloaded",
   });
-  await expect(page.getByTestId("topology-map-v2-canvas").first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("ontology-map-canvas").first()).toBeVisible({ timeout: 30_000 });
   await expect
     .poll(() => readablePixelCount(page), {
       timeout: 30_000,

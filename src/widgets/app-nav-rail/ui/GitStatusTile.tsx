@@ -22,7 +22,7 @@ import { cn } from "@/shared/lib/cn";
  * completion (green) but an unresolved state that draws attention — consistent with
  * the reserved meanings of the signal tones and with the git ecosystem's
  * modified = amber convention. It is a status token distinct from the hub/Layer-0
- * reserved amber (`--topology-v2-amber-hub`), so it does not fall under the charter's
+ * reserved amber (`--map-amber-hub`), so it does not fall under the charter's
  * ban on spreading decorative amber.
  */
 export interface GitStatusTileProps {

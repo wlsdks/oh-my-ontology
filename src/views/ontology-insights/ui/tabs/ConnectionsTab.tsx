@@ -3,8 +3,8 @@ import { Link } from "@/i18n/navigation";
 import {
   EmptyState,
   EvidenceOnlyBadge,
-  TopologyV2KindGlyph,
-  TopologyV2TraceMark,
+  OntologyMapKindGlyph,
+  OntologyMapTraceMark,
 } from "@/shared/ui";
 import { isContainmentRelation } from "@/entities/knowledge-graph";
 import { relationTypeIndigo } from "../../lib/relation-type-tone";
@@ -159,14 +159,14 @@ export function ConnectionsTab({
                     key={row.type}
                     className="flex items-center gap-3 border-t border-[color:var(--color-divider)] py-2.5 first:border-t-0"
                   >
-                    <TopologyV2TraceMark containment={isContainmentRelation(row.type)} />
+                    <OntologyMapTraceMark containment={isContainmentRelation(row.type)} />
                     <span className="w-[var(--insights-row-label-w)] flex-none truncate font-mono text-body text-[color:var(--color-text-primary)]">
                       {edgeTypeLabel(row.type)}
                     </span>
                     <span className="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--color-overlay-2)]">
                       <InsightsBar pct={width} color={relationTypeIndigo(row.type)} index={i} />
                     </span>
-                    <span className="w-11 flex-none text-right font-mono text-body tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+                    <span className="w-11 flex-none text-right font-mono text-body tabular-nums text-[color:var(--map-numeral-face)]">
                       {row.count}
                     </span>
                     <span className="w-9 flex-none text-right font-mono text-caption tabular-nums text-[color:var(--color-text-quaternary)]">
@@ -211,7 +211,7 @@ export function ConnectionsTab({
                   data-testid="insights-hub-row-link"
                   className={controlClass({ shape: "chip", className: "-mx-1.5 flex gap-3 border-t border-[color:var(--color-divider)] px-1.5 py-2.5 first:border-t-0 hover:bg-[color:var(--color-overlay-1)]" })}
                 >
-                  <TopologyV2KindGlyph kind={hub.kind} size={16} className="flex-none" />
+                  <OntologyMapKindGlyph kind={hub.kind} size={16} className="flex-none" />
                   <span className="min-w-0 flex-1 truncate text-body text-[color:var(--color-text-primary)]">
                     {hub.title}
                   </span>
@@ -230,7 +230,7 @@ export function ConnectionsTab({
                   >
                     <InsightsBar pct={meterPct} color="var(--color-indigo-a66)" index={i} />
                   </span>
-                  <span className="w-9 flex-none text-right font-mono text-body tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+                  <span className="w-9 flex-none text-right font-mono text-body tabular-nums text-[color:var(--map-numeral-face)]">
                     {hub.degree}
                   </span>
                 </Link>
@@ -268,7 +268,7 @@ function CardHead({ label, count }: { label: string; count?: number }) {
     <div className="flex items-baseline gap-2.5">
       <InsightsSectionTitle level={2} className="text-body-lg font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--color-text-primary)]">{label}</InsightsSectionTitle>
       {count === undefined ? null : (
-        <span className="ml-auto font-mono text-body tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+        <span className="ml-auto font-mono text-body tabular-nums text-[color:var(--map-numeral-face)]">
           {count}
         </span>
       )}

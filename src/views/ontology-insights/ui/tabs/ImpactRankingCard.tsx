@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight, Radar } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/shared/lib/cn";
-import { EmptyState, EvidenceOnlyBadge, TopologyV2KindGlyph } from "@/shared/ui";
+import { EmptyState, EvidenceOnlyBadge, OntologyMapKindGlyph } from "@/shared/ui";
 import { controlClass } from "@/shared/ui/control-class";
 import type { ImpactRankingRow } from "../../lib/impact-ranking";
 import { InsightsBar } from "../parts/InsightsBar";
@@ -307,7 +307,7 @@ function ImpactRow({
         ),
       })}
     >
-      <TopologyV2KindGlyph kind={row.kind} size={16} className="flex-none" />
+      <OntologyMapKindGlyph kind={row.kind} size={16} className="flex-none" />
       <span className="min-w-0 flex-1 truncate text-body text-[color:var(--color-text-primary)]">
         {row.title}
       </span>
@@ -331,7 +331,7 @@ function ImpactRow({
           <InsightsBar pct={directPct} color="var(--color-indigo-a66)" index={index} />
         </span>
       </span>
-      <span className="w-9 flex-none text-right font-mono text-body tabular-nums text-[color:var(--topology-v2-numeral-face)]">
+      <span className="w-9 flex-none text-right font-mono text-body tabular-nums text-[color:var(--map-numeral-face)]">
         {row.total}
       </span>
     </Link>

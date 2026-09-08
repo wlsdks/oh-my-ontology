@@ -129,7 +129,7 @@ test("skips .test. files", () => {
 });
 
 /*
- * This place used to hold a test asserting that the topology-map-v2 directory is
+ * This place used to hold a test asserting that the ontology-map directory is
  * skipped. The 2026-08-04 audit removed that directory-wide exemption (see the
  * `shouldSkipDir` comment in `check-no-raw-color.mjs` — the directory's violation count
  * at removal was 0). Exemptions now exist only as the per-file `ALLOWLIST`.
@@ -138,15 +138,15 @@ test("skips .test. files", () => {
  * red. Without this assertion, "0 because clean" and "0 because not looked at" become
  * the same green again.
  */
-test("scans the topology-map-v2 canvas engine directory — no directory-wide exemption", () => {
+test("scans the ontology-map canvas engine directory — no directory-wide exemption", () => {
   withTempSrc({}, (dir) => {
-    const nested = join(dir, "widgets", "topology-map-v2", "lib");
+    const nested = join(dir, "widgets", "ontology-map", "lib");
     mkdirSync(nested, { recursive: true });
     writeFileSync(join(nested, "colors.ts"), `const c = "rgba(94,106,210,0.24)";\n`, "utf8");
     const found = findRawColorLiterals(dir);
     assert.equal(found.length, 1, "캔버스 디렉터리가 다시 통째로 면제됐다");
     assert.equal(found[0].family, "indigo");
-    assert.match(found[0].file, /topology-map-v2/);
+    assert.match(found[0].file, /ontology-map/);
   });
 });
 
@@ -154,8 +154,8 @@ test("documented ALLOWLIST entries stay clean of raw literals so future edits do
   assert.ok(!ALLOWLIST.has("shared/config/indigo-tokens.ts"), "면제할 리터럴이 없으므로 목록에 없어야 한다");
   assert.ok(ALLOWLIST.has("views/docs-vault/lib/popout-template.ts"));
   assert.ok(ALLOWLIST.has("entities/ontology-class/model/tone.ts"));
-  assert.ok(ALLOWLIST.has("widgets/topology-map-v2/render/starfield.ts"));
-  assert.ok(ALLOWLIST.has("widgets/topology-map-v2/render/grid.ts"));
+  assert.ok(ALLOWLIST.has("widgets/ontology-map/render/starfield.ts"));
+  assert.ok(ALLOWLIST.has("widgets/ontology-map/render/grid.ts"));
 });
 
 /* ════════════════════════════════════════════════════════════════════

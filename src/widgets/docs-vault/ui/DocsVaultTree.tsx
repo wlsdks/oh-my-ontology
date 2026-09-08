@@ -6,9 +6,9 @@ import { ChevronDown, ChevronRight, FileText, Folder } from 'lucide-react';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
 import type { VaultDoc, VaultTreeNode } from '@/entities/docs-vault';
 import {
-  TopologyV2KindGlyph,
-  isTopologyV2RenderableKind,
-} from '@/shared/ui/topology-v2-kind-glyph';
+  OntologyMapKindGlyph,
+  isOntologyMapRenderableKind,
+} from '@/shared/ui/map-kind-glyph';
 import {
   DEFAULT_DOCS_TREE_GROUP,
   DEFAULT_DOCS_TREE_SORT,
@@ -59,8 +59,8 @@ function DocKindGlyph({
 }) {
   const kind = docsBySlug?.get(slug)?.frontmatter?.kind;
   const kindStr = typeof kind === 'string' ? kind : '';
-  if (kindStr && isTopologyV2RenderableKind(kindStr)) {
-    return <TopologyV2KindGlyph kind={kindStr} size={12} className="shrink-0" />;
+  if (kindStr && isOntologyMapRenderableKind(kindStr)) {
+    return <OntologyMapKindGlyph kind={kindStr} size={12} className="shrink-0" />;
   }
   return (
     <FileText

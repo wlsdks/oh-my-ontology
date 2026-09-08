@@ -294,7 +294,7 @@ export function TopologyIndexPanel({
    * a uniform 48px) were settled by the owner over two rounds (2026-08-02
    * *"The buttons are too small."* — the buttons are too small → after the fix,
    * *"The proportions have to line up."* — the proportions have to line up), and they
-   * carry panel-scoped ink (`--topology-v2-panel-*`) and the chrome radius, none of
+   * carry panel-scoped ink (`--map-panel-*`) and the chrome radius, none of
    * which the value layer combines, so pulling them onto the primitive would break
    * that history. **Having no arrow-key movement, by contrast, was a defect
    * unrelated to that history.**
@@ -427,7 +427,7 @@ export function TopologyIndexPanel({
     <aside
       aria-label={labels.label}
       data-testid="topology-index-panel"
-      className={`flex h-full flex-col rounded-[var(--topology-v2-panel-radius)] border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--topology-v2-panel-surface)] p-3 shadow-[var(--topology-v2-panel-shadow)] ${className ?? ""}`}
+      className={`flex h-full flex-col rounded-[var(--map-panel-radius)] border border-[color:var(--map-panel-border)] bg-[color:var(--map-panel-surface)] p-3 shadow-[var(--map-panel-shadow)] ${className ?? ""}`}
       style={{ width: "var(--topology-index-width)" }}
     >
       {/* The "get started" module (root-first-open v3, `first-run-v3-flagship.html`).
@@ -482,7 +482,7 @@ export function TopologyIndexPanel({
 
           The whole header row is the collapse toggle (owner feedback — a hit area
           limited to the chevron was awkward). It reuses the INDEX tree rows' hover
-          grammar (`--topology-v2-panel-row-hover` background, `transition-colors`)
+          grammar (`--map-panel-row-hover` background, `transition-colors`)
           verbatim, so "this is a clickable row too" is said in the same language. The
           chevron is no longer a separate button but a state indicator
           (`aria-hidden`) — folded into the single outer `<button>` to avoid nested
@@ -494,9 +494,9 @@ export function TopologyIndexPanel({
         aria-label={labels.foldAria}
         title={labels.fold}
         data-testid="topology-index-fold"
-        className={controlClass({ shape: "row", className: "group mb-3 gap-1.5 rounded-[var(--chrome-radius-inner)] px-0.5 hover:bg-[color:var(--topology-v2-panel-row-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-focus-ring)] focus-visible:ring-inset" })}
+        className={controlClass({ shape: "row", className: "group mb-3 gap-1.5 rounded-[var(--chrome-radius-inner)] px-0.5 hover:bg-[color:var(--map-panel-row-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-focus-ring)] focus-visible:ring-inset" })}
       >
-        <span className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--topology-v2-panel-text-tertiary)]">
+        <span className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--map-panel-text-tertiary)]">
           {labels.label}
         </span>
         {/* The visual "· N" count was removed — the terrain HUD already exposes the
@@ -511,7 +511,7 @@ export function TopologyIndexPanel({
           // content overshot the floor and put the whole control two steps off the
           // ladder (2026-09-05). At 20 the row lands exactly on its own 36, and the
           // coarse-pointer floor still lifts it to 44. The glyph itself is unchanged.
-          className="ml-auto inline-flex size-5 shrink-0 items-center justify-center text-[color:var(--topology-v2-panel-text-quaternary)] transition-colors group-hover:text-[color:var(--topology-v2-panel-text-secondary)]"
+          className="ml-auto inline-flex size-5 shrink-0 items-center justify-center text-[color:var(--map-panel-text-quaternary)] transition-colors group-hover:text-[color:var(--map-panel-text-secondary)]"
         >
           <ChevronLeft size={ICON_SIZE.sm} aria-hidden="true" />
         </span>
@@ -528,10 +528,10 @@ export function TopologyIndexPanel({
       {sourceName ? (
         <p
           data-testid="topology-index-source"
-          className="mb-3 flex min-w-0 items-center gap-1.5 text-label leading-label text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="mb-3 flex min-w-0 items-center gap-1.5 text-label leading-label text-[color:var(--map-panel-text-quaternary)]"
         >
           <span
-            className="min-w-0 truncate text-[color:var(--topology-v2-panel-text-tertiary)]"
+            className="min-w-0 truncate text-[color:var(--map-panel-text-tertiary)]"
             title={sourceName}
           >
             {sourceName}
@@ -559,7 +559,7 @@ export function TopologyIndexPanel({
         <Search
           size={ICON_SIZE.sm}
           aria-hidden
-          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--map-panel-text-quaternary)]"
         />
         <input
           type="text"
@@ -595,7 +595,7 @@ export function TopologyIndexPanel({
         <div
           role="tablist"
           aria-label={labels.segmentRecentAria}
-          className="mb-3 grid shrink-0 grid-cols-2 gap-1 rounded-[var(--chrome-radius-inner)] border border-[color:var(--topology-v2-panel-border)] bg-[color:var(--color-overlay-1)] p-1"
+          className="mb-3 grid shrink-0 grid-cols-2 gap-1 rounded-[var(--chrome-radius-inner)] border border-[color:var(--map-panel-border)] bg-[color:var(--color-overlay-1)] p-1"
         >
           <button
             type="button"
@@ -607,7 +607,7 @@ export function TopologyIndexPanel({
               shape: "segment",
               scope: "panel",
               active: !lensActive,
-              className: "min-w-0 hover:text-[color:var(--topology-v2-panel-text-primary)]",
+              className: "min-w-0 hover:text-[color:var(--map-panel-text-primary)]",
             })}
           >
             {labels.segmentAll}
@@ -623,7 +623,7 @@ export function TopologyIndexPanel({
               scope: "panel",
               truncate: true,
               active: lensActive,
-              className: "min-w-0 hover:text-[color:var(--topology-v2-panel-text-primary)]",
+              className: "min-w-0 hover:text-[color:var(--map-panel-text-primary)]",
             })}
           >
             {labels.segmentRecent}
@@ -701,8 +701,8 @@ export function TopologyIndexPanel({
                */
               className={`inline-flex h-6 min-w-12 items-center justify-center rounded-[var(--chrome-radius-inner)] border text-label transition-colors [@media(pointer:coarse)]:h-[var(--touch-target-min)] ${
                 recentWindow === value
-                  ? "border-[color:var(--color-indigo-a46)] bg-[color:var(--color-indigo-a16)] text-[color:var(--topology-v2-panel-text-primary)]"
-                  : "border-[color:var(--topology-v2-panel-border)] text-[color:var(--topology-v2-panel-text-tertiary)] hover:text-[color:var(--topology-v2-panel-text-primary)]"
+                  ? "border-[color:var(--color-indigo-a46)] bg-[color:var(--color-indigo-a16)] text-[color:var(--map-panel-text-primary)]"
+                  : "border-[color:var(--map-panel-border)] text-[color:var(--map-panel-text-tertiary)] hover:text-[color:var(--map-panel-text-primary)]"
               }`}
             >
               {WINDOW_CHIP_LABELS[index]}
@@ -716,7 +716,7 @@ export function TopologyIndexPanel({
       {plainMode && labels.plainHint ? (
         <p
           data-testid="topology-index-plain-hint"
-          className="mb-2 shrink-0 text-label text-[color:var(--topology-v2-panel-text-quaternary)]"
+          className="mb-2 shrink-0 text-label text-[color:var(--map-panel-text-quaternary)]"
         >
           {labels.plainHint}
         </p>
@@ -745,7 +745,7 @@ export function TopologyIndexPanel({
         }}
       >
         {visibleRoots.length === 0 ? (
-          <p className="px-1 py-2 text-label text-[color:var(--topology-v2-panel-text-quaternary)]">
+          <p className="px-1 py-2 text-label text-[color:var(--map-panel-text-quaternary)]">
             {lensActive ? labels.recentEmptyHint : labels.emptyHint}
           </p>
         ) : (
@@ -782,10 +782,10 @@ export function TopologyIndexPanel({
             shape: "card",
             size: "sm",
             className:
-              "mt-2 shrink-0 text-left border-[color:var(--topology-v2-panel-border)] hover:bg-[color:var(--topology-v2-panel-row-hover)]",
+              "mt-2 shrink-0 text-left border-[color:var(--map-panel-border)] hover:bg-[color:var(--map-panel-row-hover)]",
           })}
         >
-          <span className="min-w-0 flex-1 truncate text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <span className="min-w-0 flex-1 truncate text-[color:var(--map-panel-text-tertiary)]">
             {labels.uncatalogedDocsLabel}
           </span>
           <span className="shrink-0 text-[color:var(--color-indigo-accent)]">
@@ -808,9 +808,9 @@ export function TopologyIndexPanel({
         <Link
           href="/ontology/insights?tab=do-next"
           data-testid="topology-index-dusty-nodes"
-          className={controlClass({ shape: "chip", size: "md", className: "mt-2 shrink-0 gap-2 rounded-[var(--chrome-radius-inner)] border-[color:var(--topology-v2-panel-border)] text-left hover:bg-[color:var(--topology-v2-panel-row-hover)]" })}
+          className={controlClass({ shape: "chip", size: "md", className: "mt-2 shrink-0 gap-2 rounded-[var(--chrome-radius-inner)] border-[color:var(--map-panel-border)] text-left hover:bg-[color:var(--map-panel-row-hover)]" })}
         >
-          <span className="min-w-0 flex-1 truncate text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <span className="min-w-0 flex-1 truncate text-[color:var(--map-panel-text-tertiary)]">
             {labels.dustyNodesLabel}
           </span>
           <span className="shrink-0 text-[color:var(--color-indigo-accent)]">
@@ -831,9 +831,9 @@ export function TopologyIndexPanel({
         <Link
           href="/docs/"
           data-testid="topology-index-broken-docs"
-          className={controlClass({ shape: "chip", size: "md", className: "mt-2 shrink-0 gap-2 rounded-[var(--chrome-radius-inner)] border-[color:var(--topology-v2-panel-border)] text-left hover:bg-[color:var(--topology-v2-panel-row-hover)]" })}
+          className={controlClass({ shape: "chip", size: "md", className: "mt-2 shrink-0 gap-2 rounded-[var(--chrome-radius-inner)] border-[color:var(--map-panel-border)] text-left hover:bg-[color:var(--map-panel-row-hover)]" })}
         >
-          <span className="min-w-0 flex-1 truncate text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <span className="min-w-0 flex-1 truncate text-[color:var(--map-panel-text-tertiary)]">
             {labels.brokenDocsLabel}
           </span>
           <span className="shrink-0 text-[color:var(--color-indigo-accent)]">
@@ -854,7 +854,7 @@ export function TopologyIndexPanel({
           data-testid="topology-index-opened-inside"
           className="mt-2 flex shrink-0 items-start gap-1.5 px-1"
         >
-          <p className="min-w-0 flex-1 break-keep text-caption leading-caption text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <p className="min-w-0 flex-1 break-keep text-caption leading-caption text-[color:var(--map-panel-text-tertiary)]">
             {labels.openedInsideLabel}
           </p>
           {/*
@@ -899,10 +899,10 @@ export function TopologyIndexPanel({
             shape: "card",
             size: "sm",
             className:
-              "mt-2 shrink-0 text-left border-[color:var(--topology-v2-panel-border)] hover:bg-[color:var(--topology-v2-panel-row-hover)]",
+              "mt-2 shrink-0 text-left border-[color:var(--map-panel-border)] hover:bg-[color:var(--map-panel-row-hover)]",
           })}
         >
-          <span className="min-w-0 flex-1 truncate text-[color:var(--topology-v2-panel-text-tertiary)]">
+          <span className="min-w-0 flex-1 truncate text-[color:var(--map-panel-text-tertiary)]">
             {labels.sourceUnboundLabel}
           </span>
           <span className="shrink-0 text-[color:var(--color-indigo-accent)]">

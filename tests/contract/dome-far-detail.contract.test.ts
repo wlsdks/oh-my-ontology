@@ -4,7 +4,7 @@ import {
   DOME_DETAIL_FADE_START,
   domeDetailFactor,
   domeHaloPx,
-} from "@/widgets/topology-map-v2/model/dome-view";
+} from "@/widgets/ontology-map/model/dome-view";
 
 /**
  * Far-side detail elision — the "no pop" contract (2026-08-19, owner decision).

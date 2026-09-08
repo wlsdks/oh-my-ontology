@@ -101,7 +101,7 @@ describe('mascot motion continuity', () => {
 
   it('keeps every opaque frame pixel inside the existing right-side map reserve', () => {
     const chromeInset = Number(CSS.match(/--chrome-inset:\s*(\d+)px/)?.[1]);
-    const safeRight = Number(CSS.match(/--topology-v2-safe-inset-right:\s*(\d+)/)?.[1]);
+    const safeRight = Number(CSS.match(/--map-safe-inset-right:\s*(\d+)/)?.[1]);
     expect({ chromeInset, safeRight }).toEqual({
       chromeInset: 24,
       safeRight: 120,

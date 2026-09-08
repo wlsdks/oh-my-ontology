@@ -9,7 +9,7 @@
  */
 export const AGENT_DOCK_INSET_SURFACE_CLASS = [
   "absolute inset-y-3 right-3",
-  "overflow-hidden rounded-[var(--topology-v2-panel-radius)]",
-  "border border-[color:var(--topology-v2-panel-border)]",
-  "bg-[color:var(--color-panel)] shadow-[var(--topology-v2-panel-shadow)]",
+  "overflow-hidden rounded-[var(--map-panel-radius)]",
+  "border border-[color:var(--map-panel-border)]",
+  "bg-[color:var(--color-panel)] shadow-[var(--map-panel-shadow)]",
 ].join(" ");

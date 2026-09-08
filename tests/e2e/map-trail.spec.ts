@@ -30,7 +30,7 @@ test("걸어온 길 — 쌓이고, 목록이 맞고, 뒤로 점프하고, 지워
   // Step 1 — click the orders domain (canvas coordinates)
   const t = await page.evaluate(() => {
     const m = (window as unknown as { __atlasMap?: { nodes: () => Array<{ hidden: boolean; label: string; x: number; y: number }> } }).__atlasMap;
-    const box = document.querySelector('[data-testid="topology-map-v2-canvas"]')?.getBoundingClientRect();
+    const box = document.querySelector('[data-testid="ontology-map-canvas"]')?.getBoundingClientRect();
     const n = m?.nodes().find((n) => !n.hidden && n.label === "주문");
     return n && box ? { px: box.left + n.x, py: box.top + n.y } : null;
   });

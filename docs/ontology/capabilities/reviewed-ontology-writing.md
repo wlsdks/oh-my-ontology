@@ -22,7 +22,7 @@ Change proposals are volatile pre-write states, not separate approval ledgers or
 - src/features/ontology-meaning-editor (relation editor for the same anchor as the selection node inspector)
 - src/entities/knowledge-graph/lib/ontology-change-set.ts (preserving all review items in batch protocol order)\n- src/features/ontology-change-review (manual/ACP common typed change review and selected item accordion)
 - src/entities/knowledge-graph/lib/ontology-relation-edit.ts (frontmatter before/after plan)
-- src/widgets/topology-map-v2/render/preview-edge.ts (directional preview that does not alter the force graph)
+- src/widgets/ontology-map/render/preview-edge.ts (directional preview that does not alter the force graph)
 - src/features/acp-session/model/atlas-tool-policy.ts (read/write classification aligned with generated MCP surface)
 - src/widgets/acp-chat-panel/ui/AcpPermissionCard.tsx (ACP write pause, allow-once/reject-once)
 - src/widgets/acp-chat-panel/ui/AcpChatPanel.tsx (draft/committing map handoff for single relation change set)

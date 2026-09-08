@@ -19,7 +19,7 @@ node cli/src/index.mjs similar "map rendering" my-vault
 ```
 similar to: map rendering — 3 matches
 
-  1  0.158  element     elements/topology-map-v2      — Topology Map V2
+  1  0.158  element     elements/ontology-map      — Topology Map V2
        signals: title 0.09 · slug 0.07
   2  0.087  domain      domains/topology-navigation   — Topology Map Navigation
 ```

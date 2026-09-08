@@ -23,12 +23,12 @@ type AtlasMap = { nodes: () => MapNode[]; selection: () => { nodeId: string | nu
 const readMap = (page: import("@playwright/test").Page) =>
   page.evaluate(() => {
     const m = (window as unknown as { __atlasMap?: AtlasMap }).__atlasMap;
-    const canvasEl = document.querySelector('[data-testid="topology-map-v2-canvas"]');
+    const canvasEl = document.querySelector('[data-testid="ontology-map-canvas"]');
     if (!m || !canvasEl) {
       return { canvas: { width: 0, height: 0 }, panelLeft: null, selected: null, offscreen: 0, visible: 0, project: null, domains: [] as MapNode[] };
     }
     const canvas = canvasEl.getBoundingClientRect();
-    const panel = document.querySelector('[data-testid="topology-v2-detail-panel"]')?.getBoundingClientRect() ?? null;
+    const panel = document.querySelector('[data-testid="map-detail-panel"]')?.getBoundingClientRect() ?? null;
     const visible = m.nodes().filter((n) => !n.hidden);
     const selected = visible.find((n) => n.id === m.selection().nodeId) ?? null;
     return {
@@ -66,7 +66,7 @@ test("a node picked from the search palette is framed left of the detail panel",
   await page.keyboard.type("배송");
   await page.waitForTimeout(600);
   await page.keyboard.press("Enter");
-  await expect(page.locator('[data-testid="topology-v2-detail-panel"]')).toBeVisible({ timeout: 5_000 });
+  await expect(page.locator('[data-testid="map-detail-panel"]')).toBeVisible({ timeout: 5_000 });
   await page.waitForTimeout(1800);
   const after = await readMap(page);
   expect(after.selected, "검색으로 고른 노드가 선택된다").not.toBeNull();
@@ -94,14 +94,14 @@ test("auto-arrange while everything is expanded keeps every node on screen", asy
 });
 
 test("the Korean relation sentence joins its particles to the names", async ({ page }) => {
-  const box = (await page.locator('[data-testid="topology-map-v2-canvas"]').boundingBox())!;
+  const box = (await page.locator('[data-testid="ontology-map-canvas"]').boundingBox())!;
   const m = await readMap(page);
   const domain = m.domains.find((d) => d.label === "배송")!;
   const mid = { x: (m.project!.x + domain.x) / 2, y: (m.project!.y + domain.y) / 2 };
   await page.mouse.move(box.x + mid.x, box.y + mid.y);
   await page.waitForTimeout(300);
   await page.mouse.click(box.x + mid.x, box.y + mid.y);
-  const sentence = page.locator('[data-testid="topology-v2-edge-sentence"]');
+  const sentence = page.locator('[data-testid="map-edge-sentence"]');
   await expect(sentence).toBeVisible({ timeout: 5_000 });
   await expect(sentence).toHaveText("온라인 쇼핑몰이 배송을 담고 있어요.");
 });
@@ -129,7 +129,7 @@ test("a deep link that opens one domain frames its revealed children, and the 0 
   const drawnOffscreen = () =>
     page.evaluate(() => {
       const m = (window as unknown as { __atlasMap: AtlasMap }).__atlasMap;
-      const c = document.querySelector('[data-testid="topology-map-v2-canvas"]')!.getBoundingClientRect();
+      const c = document.querySelector('[data-testid="ontology-map-canvas"]')!.getBoundingClientRect();
       return m
         .nodes()
         .filter((n) => !n.hidden && n.kind !== "capability")

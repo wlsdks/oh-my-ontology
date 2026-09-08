@@ -313,7 +313,7 @@ export function useGuidedTour(args: UseGuidedTourArgs): UseGuidedTourResult {
   // (i.e. this render's `visibleSteps`) must not be called directly: in the very
   // render where `hasSelection` flips to true, the `visibleSteps` useMemo
   // recomputes before this commit reaches the DOM (React goes render → commit →
-  // paint → effect), so step 5's anchor (`topology-v2-detail-panel`) does not
+  // paint → effect), so step 5's anchor (`map-detail-panel`) does not
   // exist yet, `canResolveAnchor` returns false, and datasheet is skipped
   // entirely (measured regression — clicking on step 4 jumped straight to step 7).
   // Effects run after commit, so this microtask calls `computeVisibleSteps`

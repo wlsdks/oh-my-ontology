@@ -39,7 +39,7 @@ test("the play tile toggles the replay, survives pointer input, and stops on a s
   await expect(tile, "재생 중에는 컨트롤이 눌린 상태다").toHaveAttribute("aria-pressed", "true");
 
   // Moving and wheel-zooming must NOT end it — this is the whole point of the toggle.
-  const canvas = page.locator('[data-testid="topology-map-v2-canvas"]');
+  const canvas = page.locator('[data-testid="ontology-map-canvas"]');
   const box = (await canvas.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 30);
@@ -76,7 +76,7 @@ test("Escape and a press on the canvas each end a running replay", async ({ page
   await tile.click();
   await page.waitForTimeout(1000);
   expect(await lastActiveCauses(page)).toContain("growthReplaying");
-  const canvas = page.locator('[data-testid="topology-map-v2-canvas"]');
+  const canvas = page.locator('[data-testid="ontology-map-canvas"]');
   const box = (await canvas.boundingBox())!;
   await page.mouse.click(box.x + box.width - 60, box.y + box.height - 60);
   await page.waitForTimeout(600);

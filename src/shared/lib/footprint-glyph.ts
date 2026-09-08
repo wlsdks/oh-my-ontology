@@ -9,7 +9,7 @@ import { FONT_WEIGHT } from "@/shared/ui/font-weight";
  *
  * **Why footprints and not a ring** (owner decision, 2026-07-29). The previous
  * notation was a concentric hairline ring on visited nodes (the old
- * `model/footprint-ring.ts` under `widgets/topology-map-v2`). Its structural limit
+ * `model/footprint-ring.ts` under `widgets/ontology-map`). Its structural limit
  * was that a ring shares the grammar of the node outline — the selection ring, the
  * expansion aura and the boundary are already circles, so the footprint ring became
  * a fourth circle whose meaning the user had to re-learn each time. Owner:

@@ -21,7 +21,7 @@ describe("14-inch map chrome reflows around the agent dock and node inspector", 
   it("wide layout recenters by the panel width and inset, not a screenshot-specific pixel", () => {
     expect(css).toContain("[data-right-inspector-reserve='recenter-in-remaining-map']");
     expect(css).toMatch(
-      /left:\s*calc\(\s*50%\s*-\s*\(var\(--topology-v2-panel-width\)\s*\+\s*var\(--topology-node-popover-right-inset\)\)\s*\/\s*2\s*\)/,
+      /left:\s*calc\(\s*50%\s*-\s*\(var\(--map-panel-width\)\s*\+\s*var\(--topology-node-popover-right-inset\)\)\s*\/\s*2\s*\)/,
     );
   });
 

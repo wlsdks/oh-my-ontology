@@ -3,12 +3,12 @@ import { indigoRgba } from "@/shared/config/indigo-tokens";
 /**
  * Indigo-intensity scale for the relation TYPE distribution. The same hue as
  * `--color-indigo-brand` (#5e6ad2 = rgb(94,106,210)); only the alpha varies per type — the same
- * "one hue, alpha only" precedent already used by `--topology-v2-selection-ring-hairline` and
- * `--topology-v2-hover-ring` in `app/globals.css`. This does not add a second colouring system; it
+ * "one hue, alpha only" precedent already used by `--map-selection-ring-hairline` and
+ * `--map-hover-ring` in `app/globals.css`. This does not add a second colouring system; it
  * reuses the one indigo the design charter allows.
  *
  * Containment relations (contains/belongs_to) get the strongest alpha, matching
- * `TopologyV2TraceMark`'s solid-line = containment convention; depends_on is next strongest (dashed
+ * `OntologyMapTraceMark`'s solid-line = containment convention; depends_on is next strongest (dashed
  * in the trace mark); everything else fades toward a neutral-ish floor so unknown and rare types
  * stay legible without competing for attention.
  */

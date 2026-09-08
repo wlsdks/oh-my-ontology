@@ -7,7 +7,7 @@ describe("truncateMiddlePath", () => {
   });
 
   it("truncates a long path in the middle, keeping head and tail", () => {
-    const long = "src/widgets/topology-map-v2/ui/TopologyV2DetailPanel.tsx";
+    const long = "src/widgets/ontology-map/ui/OntologyMapDetailPanel.tsx";
     const result = truncateMiddlePath(long, 44);
     expect(result.length).toBeLessThanOrEqual(44);
     expect(result).toContain("…");

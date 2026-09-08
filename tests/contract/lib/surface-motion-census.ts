@@ -188,7 +188,7 @@ export function ternaryAlternative(src: string, qmark: number): string {
  * the opening tag.
  *
  * Needed because of positioners. The map's node popover is
- * `{mounted && <div positioner><TopologyV2DetailPanel open onExited/></div>}`, where
+ * `{mounted && <div positioner><OntologyMapDetailPanel open onExited/></div>}`, where
  * **the exit window belongs to the `<Surface>` inside the child** and this wrapper is
  * a layout shell that unmounts on that notification (`onExited`). Reading only the
  * opening tag makes it look like there is no way out.

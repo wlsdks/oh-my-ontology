@@ -485,7 +485,7 @@ const control = cva(`${DISABLED} ${FOCUS}`, {
      * independently. This repo has **two** neutral text ramps with different
      * values:
      *
-     * | Step | `--color-text-*` | `--topology-v2-panel-text-*` |
+     * | Step | `--color-text-*` | `--map-panel-text-*` |
      * |---|---|---|
      * | primary | `#f7f8f8` | `#ececf0` |
      * | secondary | `#d0d6e0` | `#a3a3ac` |
@@ -521,7 +521,7 @@ const control = cva(`${DISABLED} ${FOCUS}`, {
     scope: {
       /** Over the app-wide ground (`--color-canvas` family). The default. */
       app: '',
-      /** Over the map panel (`--topology-v2-panel-surface`, `#17171c`). */
+      /** Over the map panel (`--map-panel-surface`, `#17171c`). */
       panel: '',
     },
     /**
@@ -664,8 +664,8 @@ const control = cva(`${DISABLED} ${FOCUS}`, {
      */
     { hoverInk: 'strong', scope: 'app', active: false, class: 'hover:text-[color:var(--color-text-primary)]' },
     { hoverInk: 'secondary', scope: 'app', active: false, class: 'hover:text-[color:var(--color-text-secondary)]' },
-    { hoverInk: 'strong', scope: 'panel', active: false, class: 'hover:text-[color:var(--topology-v2-panel-text-primary)]' },
-    { hoverInk: 'secondary', scope: 'panel', active: false, class: 'hover:text-[color:var(--topology-v2-panel-text-secondary)]' },
+    { hoverInk: 'strong', scope: 'panel', active: false, class: 'hover:text-[color:var(--map-panel-text-primary)]' },
+    { hoverInk: 'secondary', scope: 'panel', active: false, class: 'hover:text-[color:var(--map-panel-text-secondary)]' },
 
     /*
      * Surface — "one step brighter". Measurement decided the branching: a **row**
@@ -678,7 +678,7 @@ const control = cva(`${DISABLED} ${FOCUS}`, {
     { hoverSurface: 'lift', shape: 'pill', scope: 'app', active: false, class: 'hover:bg-[color:var(--color-overlay-2)]' },
     { hoverSurface: 'lift', shape: 'icon', scope: 'app', active: false, class: 'hover:bg-[color:var(--color-overlay-2)]' },
     { hoverSurface: 'lift', shape: 'segment', scope: 'app', active: false, class: 'hover:bg-[color:var(--color-overlay-2)]' },
-    { hoverSurface: 'lift', scope: 'panel', active: false, class: 'hover:bg-[color:var(--topology-v2-panel-row-hover)]' },
+    { hoverSurface: 'lift', scope: 'panel', active: false, class: 'hover:bg-[color:var(--map-panel-row-hover)]' },
 
     // Border — the edge sharpens. Exactly one option (see "13 steps are noise" above).
     { hoverBorder: 'strong', active: false, class: 'hover:border-[color:var(--color-border-strong)]' },
@@ -798,7 +798,7 @@ const control = cva(`${DISABLED} ${FOCUS}`, {
      * same neutral ramp's second solution**. The three signals and indigo are not
      * here — colours decided by meaning do not depend on the ground.
      */
-    { scope: 'panel', tone: 'default', class: 'text-[color:var(--topology-v2-panel-text-tertiary)]' },
+    { scope: 'panel', tone: 'default', class: 'text-[color:var(--map-panel-text-tertiary)]' },
     /*
      * The panel compound for `muted` is **deliberately absent** (removed
      * 2026-08-03). Both ramps' quaternary converged on `#82828a` (global raise,
@@ -809,13 +809,13 @@ const control = cva(`${DISABLED} ${FOCUS}`, {
      * diverge again, the contract test's convergence assertion turns red and
      * tells you to restore this compound.
      */
-    { scope: 'panel', tone: 'secondary', class: 'text-[color:var(--topology-v2-panel-text-secondary)]' },
-    { scope: 'panel', tone: 'strong', class: 'text-[color:var(--topology-v2-panel-text-primary)]' },
+    { scope: 'panel', tone: 'secondary', class: 'text-[color:var(--map-panel-text-secondary)]' },
+    { scope: 'panel', tone: 'strong', class: 'text-[color:var(--map-panel-text-primary)]' },
     // Pressed inside a panel also uses panel ink — otherwise the ramp jumps for
     // exactly the pressed moment.
-    { scope: 'panel', shape: 'segment', active: true, class: 'text-[color:var(--topology-v2-panel-text-primary)]' },
-    { scope: 'panel', shape: 'row', active: true, class: 'text-[color:var(--topology-v2-panel-text-primary)]' },
-    { scope: 'panel', shape: 'link', active: true, class: 'text-[color:var(--topology-v2-panel-text-primary)]' },
+    { scope: 'panel', shape: 'segment', active: true, class: 'text-[color:var(--map-panel-text-primary)]' },
+    { scope: 'panel', shape: 'row', active: true, class: 'text-[color:var(--map-panel-text-primary)]' },
+    { scope: 'panel', shape: 'link', active: true, class: 'text-[color:var(--map-panel-text-primary)]' },
 
     /*
      * ── A filled tone clears the border. It must sit here for ordering reasons:
