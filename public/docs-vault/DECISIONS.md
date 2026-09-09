@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-09 — The board's time claim is recomputed from Git, never stored, and drawn as three tracks that never blend
+
+**Why**: the board's only time claim was the "last 12 weeks" tile, and po-evidence measured its source lying on this repository: fourteen vault files carry an mtime days after their last real change because a checkout moved them, and on a fresh clone every file reads as modified today. The owner asked for a growth surface that accumulates and assembles.
+**Prior**: narrows the "last 12 weeks" tile of 2026-09-06 "The insights board leads with measurement…"; that record's four-tile census stands, this adds the shape the tile cannot carry.
+**Decision**: weekly counts are replayed backwards from `git log --name-status` over the open folder, held only while the screen is open, and stamped with a rules version. Three layers (concept, wiki page, raw source) get one track each on one block meaning, never a stacked area and never a blended total: the probe found concepts falling 107 to 71 while documents rose, the one comparison a moving baseline destroys. A block is four files, coarsening only so the tallest track fits thirty blocks. "No history" is never drawn as zeroes, and a folder with no commits, a browser with no Git bridge, and a genuinely empty layer say three different things. Columns rise left to right on a 34ms stride; reduced motion draws the finished chart on the first frame.
+**Dissent**: po-leverage: a blended index is one number and cheaper to read; rejected on the probe, where a blend moved only 157 to 132 and hid the divergence that is the whole reason to look. design-guardian: a track framed at the tallest layer's height reserved 130px for a layer holding nothing; the frame went, the block stayed.
+**Falsifier**: a person reading a fall in one layer as a fall overall; a series that disagrees with `git ls-tree` at any week; a folder whose history costs more than a second to replay at the 1500-commit limit.
+**Owner**: jinan
+
 ## 2026-09-08 — The Library canvas stands beside the page it is about
 
 **Why**: the owner, on an open wiki page: *"Wasn't this supposed to be an LLM wiki — whatever data you put in gets compiled into our own wiki, its relations shown as a graph, and it compounds. There's no graph here."* The canvas was the pane only while nothing was selected, so the relations vanished at the moment a person read the thing that has them.

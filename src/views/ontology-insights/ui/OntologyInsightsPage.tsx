@@ -113,6 +113,8 @@ import type { MeaningGapLabels } from "./tabs/MeaningGapSection";
 import { ConnectionsTab, type ConnectionHubRow } from "./tabs/ConnectionsTab";
 import { DomainCouplingCard } from "./tabs/DomainCouplingCard";
 import { FreshnessTab } from "./tabs/FreshnessTab";
+import { VaultHistorySection } from "./parts/VaultHistorySection";
+import { useVaultHistory } from "../lib/use-vault-history";
 import { FlowTab } from "./tabs/FlowTab";
 import { buildBusinessFlowRequest } from "@/features/vault-agent";
 import { detectAcpRuntimes, isAcpBridgeAvailable } from "@/shared/lib/tauri-acp";
@@ -354,6 +356,16 @@ export function OntologyInsightsPage() {
     readServerAcpBridge,
   );
   const gitVaultPath = vault.handle ? getTauriVaultRootPath(vault.handle) ?? null : null;
+  /*
+   * The counts the chart ends on come from the same manifest every other tile reads, and
+   * are classified by the same path rule the history is — the commonest way a series like
+   * this goes quietly wrong is a present counted one way and a past another.
+   */
+  const vaultHistory = useVaultHistory(
+    gitVaultPath,
+    vault.manifest?.docs,
+    vault.manifest?.sources?.map((source) => source.path),
+  );
   const [acpRuntimes, setAcpRuntimes] = useState<ReturnType<typeof selectInsightsAgentRuntimes>>([]);
   const [acpRuntimeId, setAcpRuntimeId] = useState<string | null>(null);
   const [runtimeCheckComplete, setRuntimeCheckComplete] = useState(false);
@@ -1569,6 +1581,29 @@ export function OntologyInsightsPage() {
               />
             ) : null}
             {tab === "freshness" ? (
+              /*
+                The panel itself is a gapless `flex-col`, so two blocks put in it as
+                siblings sit flush — measured on the owner's frame: this section's border
+                touching the two cards under it with no space at all. The gap is
+                `--card-gap`, the same one `FreshnessTab` already puts between its own two
+                cards, so the vertical rhythm between the blocks and inside them agree.
+              */
+              <div className="flex min-h-0 flex-1 flex-col gap-[var(--card-gap)]">
+              {/*
+                ⚠️ **The board already carried a time claim, and it was built on the wrong
+                source.** 2026-09-06 replaced this tab's trend with a "last 12 weeks"
+                census tile, and that tile is derived from file mtime — which po-evidence
+                measured lying on this very repository (fourteen vault files carry an mtime
+                days after their last real change, moved by checkouts) and collapsing
+                entirely on a clone, where every file reads as modified today.
+
+                This is that claim with a source that survives being cloned: three counts
+                recomputed from the folder's Git history, never stored. It sits in the tab
+                where time lives rather than as a fifth tile, because a tile is a number
+                and the fact worth seeing here is a *shape* — the divergence between the
+                layers, which is the one thing a single number cannot carry.
+              */}
+              <VaultHistorySection state={vaultHistory} t={t} />
               <FreshnessTab
                 labels={freshnessLabels}
                 domainRows={freshness.domainRows}
@@ -1583,6 +1618,7 @@ export function OntologyInsightsPage() {
                   ariaLabel: (title) => t("freshnessRowAriaLabel", { title }),
                 }}
               />
+              </div>
             ) : null}
             {tab === "flow" ? (
               <FlowTab

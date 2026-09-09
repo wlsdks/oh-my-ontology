@@ -6489,6 +6489,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-09 — The board's time claim is recomputed from Git, never stored, and drawn as three tracks that never blend",
+      "slug": "2026-09-09-the-boards-time-claim-is-recomputed-from-git-never-stored-and-drawn-as-three-tracks-that-never-blend"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — The Library canvas stands beside the page it is about",
       "slug": "2026-09-08-the-library-canvas-stands-beside-the-page-it-is-about"
     },

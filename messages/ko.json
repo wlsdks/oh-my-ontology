@@ -1719,6 +1719,22 @@
         "noVaultTitle": "먼저 폴더를 여세요",
         "noVaultBody": "설명할 온톨로지가 아직 없습니다.",
         "request": "Atlas의 온톨로지 읽기 도구만 사용해 이 온톨로지의 비즈니스 흐름을 설명해줘. shell·파일·소스·웹·다른 도구는 호출하지 마.\n\n정확히 여섯 개의 ### 제목과 각 한 문단으로 답해:\n1) 이 제품이 왜 존재하는가.\n2) 어느 도메인이 무엇을 책임지는가.\n3) 주요 capability가 어떤 비즈니스 흐름을 만드는가.\n4) 그 capability가 element나 path에서 어떻게 구현되는가.\n5) 선언된 dependency가 어떤 영향을 설명하며 무엇이 unknown인가.\n6) 다음 사람이 유지해야 할 partial, visible-gap, stale, unverified 한계는 무엇인가.\n\n규칙:\n- 먼저 전체 지도를 보고 대표 의미→구현 체인 하나를 골라. 모든 노드를 열거하지 마.\n- get_concept(body: full) 또는 get_concepts(body: full)는 합쳐서 최대 12개 개념만 읽어.\n- 모든 문단은 이번 턴에 본문 전체를 읽은 정확한 전체 노드 슬러그를 하나 이상 적어.\n- from --type--> to 관계는 현재 온톨로지에 실제로 있을 때만 적어.\n- partial, visible-gap, unknown 한정을 끝까지 유지해.\n- capability의 제외를 제품 전체 범위로 넓히지 마.\n- 답할 수 없으면 이유와 함께 모른다고 말하고, 다른 지식으로 메우지 마."
+      },
+      "vaultHistory": {
+        "title": "폴더가 무엇을 담고 있었는지",
+        "caption": "Git 이력에서 다시 계산합니다. 따로 저장하지 않습니다.",
+        "layerConcept": "개념",
+        "layerWriteUp": "위키 문서",
+        "layerDocument": "원문",
+        "axisStart": "이력의 시작",
+        "axisEnd": "이번 주",
+        "scaleNote": "블록 하나 = 파일 {count}개",
+        "trackSummary": "{layer}: 이번 주 {latest}개, 이 구간 시작에는 {earliest}개",
+        "loading": "이력을 읽는 중입니다.",
+        "unavailableTitle": "여기서는 이력을 읽을 수 없습니다",
+        "unavailableBody": "주차별 기록은 폴더의 Git 이력에서 다시 계산합니다. 브라우저는 그 이력에 닿지 못하고, 맥 앱은 닿습니다.",
+        "noneTitle": "아직 볼 이력이 없습니다",
+        "noneBody": "이 폴더에는 커밋이 없습니다. Atlas 는 자체 기록을 쌓지 않으므로 커밋이 생기기 전에는 지난 주를 보여 줄 방법이 없습니다. 0 으로 그리면 폴더가 비어 있었다는 뜻이 되어 사실이 아닙니다."
       }
     }
   },

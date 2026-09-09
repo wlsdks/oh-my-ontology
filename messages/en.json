@@ -1719,6 +1719,22 @@
         "noVaultTitle": "Open a folder first",
         "noVaultBody": "There is no vault to explain yet.",
         "request": "Use only Atlas MCP read tools to explain this ontology's business flow. Never call shell, file, source, web, or other tools.\n\nReturn exactly six ### headings with one paragraph each:\n1) Why this product exists.\n2) Which domains own which responsibilities.\n3) How the main capabilities form a business flow.\n4) How those capabilities appear in elements or paths.\n5) Which declared dependencies explain impact, and what remains unknown.\n6) Which partial, visible-gap, stale, or unverified limits must be retained.\n\nRules:\n- Inspect the project map first and choose one representative meaning-to-implementation chain; do not enumerate every node.\n- Read at most 12 concepts with get_concept(body: full) or get_concepts(body: full).\n- Every paragraph names an exact full node slug whose complete body was read this turn.\n- Write a from --type--> to relation only when it exists in the current ontology.\n- Keep partial, visible-gap, and unknown qualifiers throughout.\n- A capability's excludes bound that capability only; do not widen them to project scope.\n- If the ontology cannot answer, say why instead of filling the gap from other knowledge."
+      },
+      "vaultHistory": {
+        "title": "What the folder held",
+        "caption": "Recomputed from Git history. Nothing is stored.",
+        "layerConcept": "Concepts",
+        "layerWriteUp": "Wiki pages",
+        "layerDocument": "Documents",
+        "axisStart": "start of history",
+        "axisEnd": "this week",
+        "scaleNote": "one block = {count} files",
+        "trackSummary": "{layer}: {latest} this week, {earliest} at the start of the window",
+        "loading": "Reading the history.",
+        "unavailableTitle": "The history cannot be read here",
+        "unavailableBody": "The weekly counts are recomputed from the folder's Git history. A browser cannot reach it; the Mac app can.",
+        "noneTitle": "There is no history to show yet",
+        "noneBody": "This folder has no commits. Atlas keeps no record of its own, so until there are commits there is no way to show earlier weeks. Drawing zeroes would say the folder was empty, which is not true."
       }
     }
   },
