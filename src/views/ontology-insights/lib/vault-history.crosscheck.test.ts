@@ -1,8 +1,9 @@
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  countVaultPaths, replayVaultHistory, weeklyVaultHistory,
+  classifyVaultPath, countVaultPaths, replayVaultHistory, weeklyVaultHistory,
   type VaultHistoryCommit,
 } from "./vault-history";
 
@@ -47,6 +48,47 @@ const runnable = (() => {
     return false;
   }
 })();
+
+/**
+ * **The chart and the summary card have to say the same number.**
+ *
+ * They reach it by different roads and always will: the card counts graph nodes by their
+ * frontmatter `kind`, while this chart replays Git history, where a past commit's frontmatter
+ * is not available and only the path is. That is a legitimate difference in method, not a
+ * licence for two answers.
+ *
+ * Measured 2026-09-09 on the installed app: the card read 102 and the chart read 103 under the
+ * same word, both on screen at once. The extra one was the vault's own README — `kind:
+ * vault-readme`, which the card never counted because it is not an authorable node. A reader
+ * had no way to tell which number to trust, so the gate is the agreement itself rather than
+ * either number.
+ */
+const AUTHORABLE_KINDS = new Set(["project", "domain", "capability", "element"]);
+
+function kindOf(vaultRelativePath: string): string | null {
+  const raw = readFileSync(join(VAULT, vaultRelativePath), "utf8");
+  const front = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+  const kind = front ? /^kind:\s*(\S+)/m.exec(front[1] ?? "") : null;
+  return kind?.[1] ?? null;
+}
+
+describe.skipIf(!runnable)("the chart agrees with the summary card", () => {
+  it("counts exactly the nodes the card counts, by a different road", () => {
+    const paths = git("ls-tree", "-r", "--name-only", "HEAD", VAULT)
+      .trim().split("\n").filter(Boolean).map(rel);
+    const byPath = countVaultPaths(paths).concept;
+    const byKind = paths.filter((p) => p.endsWith(".md") && AUTHORABLE_KINDS.has(kindOf(p) ?? "")).length;
+    expect(byKind).toBeGreaterThan(20);
+    expect(byPath).toBe(byKind);
+  });
+
+  it("drops the vault README rather than the whole root", () => {
+    expect(classifyVaultPath("README.md")).toBeNull();
+    expect(classifyVaultPath("readme.md")).toBeNull();
+    expect(classifyVaultPath("ontology-atlas.md")).toBe("concept");
+    expect(classifyVaultPath("elements/README.md")).toBe("concept");
+  });
+});
 
 describe.skipIf(!runnable)("the rewind agrees with a direct count of the tree", () => {
   it("matches ls-tree at every week it reports", () => {

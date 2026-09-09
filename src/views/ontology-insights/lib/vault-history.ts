@@ -91,7 +91,7 @@ export interface VaultHistoryPoint {
  * Stamped on every series so an old picture is never silently redrawn by new rules. If
  * `classifyVaultPath` changes what it counts, this changes with it.
  */
-export const VAULT_HISTORY_RULES_VERSION = 2;
+export const VAULT_HISTORY_RULES_VERSION = 3;
 
 const WIKI_DIR = "wiki";
 const SOURCES_DIR = "sources";
@@ -102,7 +102,8 @@ const ARCHITECTURE_DIR = "architecture";
  *
  * Furniture is excluded on the same rule the rest of the product uses — a file under
  * `wiki/` whose name starts with `_` is the wiki's own scaffolding (`_template.md`,
- * `_log.md`), not a page somebody wrote.
+ * `_log.md`), not a page somebody wrote, and the vault's root README is its title page
+ * rather than a concept.
  */
 export function classifyVaultPath(path: string): VaultLayer | null {
   const clean = String(path ?? "").trim().replace(/^\.\//, "");
@@ -124,6 +125,17 @@ export function classifyVaultPath(path: string): VaultLayer | null {
   if (!clean.endsWith(".md")) return null;
   const name = segments.at(-1) ?? "";
   if (name.startsWith("_")) return null;
+  /*
+   * The vault's own README is furniture too — its front page, not a concept. `kind:
+   * vault-readme` is not an authorable node, so the summary card (which counts graph nodes by
+   * kind) never counted it, while this path rule did. On the dogfood vault that put 102 in the
+   * card and 103 on the chart under the same word, **in the same viewport**, with no way for a
+   * reader to tell which one to believe.
+   *
+   * Root level only. `elements/README.md` would be a real node that somebody named badly, and
+   * dropping it would hide a node instead of a title page.
+   */
+  if (dirs.length === 0 && /^readme\.md$/i.test(name)) return null;
   if (inFolder(WIKI_DIR)) return "writeUp";
   if (inFolder(ARCHITECTURE_DIR)) return "module";
   return "concept";
