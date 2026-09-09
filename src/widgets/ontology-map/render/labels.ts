@@ -88,7 +88,30 @@ export interface LabelTokens {
   labelElement: string;
   /** W6 agent visibility — same amber signal tone as the node ring (`NodeShapeTokens.amberHub`), reused here for the label-side activity mark. */
   amberHub: string;
+  /**
+   * The canvas the names stand on, stroked under each glyph so the edges beneath stop at
+   * the letterform instead of running through it. The ground itself, never a colour
+   * spreading outward — see {@link LABEL_HALO_PX}.
+   */
+  labelHalo: string;
 }
+
+/**
+ * Half-width of the ground outline every name is stroked with, in CSS px.
+ *
+ * **The number comes from what crosses a name.** This canvas draws relations at
+ * `lineWidth = 1`, and on a radial layout the diagonals always land on the labels of the
+ * nodes they run to: measured at 1512x949 on the installed app 2026-09-09, the edges ran
+ * through the glyphs of both "topology navigation" and "codebase architecture" on the
+ * dogfood vault. Ink cannot separate them — a domain name and a relation line are both
+ * drawn in the dim end of the neutral ramp — so only clearance can, and 2px clears the
+ * widest line this canvas draws with a full 1px to spare.
+ *
+ * The same device, number and reasoning as the Library graph's `LABEL_OUTLINE_PX`
+ * (2026-09-08, "a 2px ground halo wider than the line that crossed its glyphs"). It is
+ * stroked *before* the fill so the glyph is never thickened by it, and it never animates.
+ */
+export const LABEL_HALO_PX = 2;
 
 /**
  * Font string per kind — single source shared by `draw` and
@@ -492,6 +515,17 @@ export function draw(ctx: CanvasRenderingContext2D, state: LabelDrawState, token
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
   ctx.globalAlpha = alpha;
+  /*
+   * The ground, laid under the glyph first, so a relation running beneath this name stops
+   * at the letterform. Same alpha as the name it defends: a halo that stayed opaque while
+   * its label faded would leave a legible hole in the shape of a word nobody can read.
+   */
+  const fill = ctx.fillStyle;
+  ctx.strokeStyle = tokens.labelHalo;
+  ctx.lineWidth = LABEL_HALO_PX * 2;
+  ctx.lineJoin = "round";
+  ctx.strokeText(text, x, ty);
+  ctx.fillStyle = fill;
   ctx.fillText(text, x, ty);
   ctx.globalAlpha = 1;
 
