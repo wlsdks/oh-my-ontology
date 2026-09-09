@@ -1,0 +1,173 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+import { ambientSleepFactor, isAmbientAsleep } from "@/widgets/ontology-map";
+import { usePrefersReducedMotion } from "@/shared/lib/use-prefers-reduced-motion";
+import { cn } from "@/shared/lib/cn";
+
+import {
+  createSynapseField,
+  stepSynapseField,
+  synapseLinks,
+} from "../../expressive/synapse-field";
+
+/**
+ * **The ambient network behind the Library's guided pane** — canvas-2D, one call, and
+ * deletable along with `../../expressive/synapse-field.ts` to put the screen back.
+ *
+ * Canvas-2D rather than WebGL: the field is dots and hairlines with no depth, no lighting
+ * and no occlusion, so a GPU context would buy nothing and cost a second one on a screen
+ * that already has the map's. The maths is in the expressive module; this file owns the
+ * frame, the device pixel ratio, the ink and the sleep.
+ *
+ * ## The three things that keep a background from becoming a nuisance
+ *
+ * - **It sleeps.** `ambientSleepFactor` is the map's own contract: full speed until 30s
+ *   after the last input, then a 2s deceleration to a complete stop. A pane left open
+ *   costs nothing, and any input restores it on the next frame.
+ * - **It stops dead under reduced motion.** One still frame of the seeded field, drawn
+ *   once, with no loop at all.
+ * - **It never reaches the type.** The host fades it at the pane's rim and the copy has
+ *   its own ground; the ink here is quaternary at a fraction of full alpha, which is
+ *   under every contrast floor precisely because it is carrying no fact.
+ * - **It stops when nobody can see it.** `paused` is set while the Library's graph stands
+ *   over this pane. A field painting behind a full-viewport dialog is the "do not compute
+ *   data for a surface that is not rendered" rule pointed the other way, and
+ *   `library-graph-alive.spec.ts` measures exactly that: it counts every animation frame
+ *   the page asks for once the graph has settled, and expects **zero**. A background is
+ *   not an exception to that; it is a thing that should have stopped.
+ */
+export function LibrarySynapseField({
+  paused = false,
+  className,
+}: {
+  /** True while something covers this pane — the graph overlay, today. */
+  paused?: boolean;
+  className?: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const root = document.documentElement;
+    const styles = getComputedStyle(root);
+    const nodeInk =
+      styles.getPropertyValue("--color-text-quaternary").trim() || "#61626c";
+    const linkInk = styles.getPropertyValue("--color-indigo-accent").trim() || "#7170ff";
+
+    let width = 1;
+    let height = 1;
+    let nodes = createSynapseField({ count: 1, reach: 1, width: 1, height: 1 });
+
+    /*
+     * Density is per area, not a fixed count: one field constant across a 1512px pane and
+     * a 390px one is either a crowd on the phone or three dots on the desktop. The reach
+     * follows the pane's short side for the same reason — links must form at the same
+     * *visual* distance whatever the box is.
+     */
+    const measure = (): void => {
+      const rect = canvas.getBoundingClientRect();
+      width = Math.max(1, Math.round(rect.width));
+      height = Math.max(1, Math.round(rect.height));
+      const ratio = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const count = Math.round(
+        Math.min(64, Math.max(14, (width * height) / 26_000)),
+      );
+      nodes = createSynapseField({
+        count,
+        reach: Math.max(90, Math.min(width, height) * 0.42),
+        width,
+        height,
+      });
+    };
+
+    const draw = (): void => {
+      context.clearRect(0, 0, width, height);
+      const reach = Math.max(90, Math.min(width, height) * 0.42);
+      const links = synapseLinks(nodes, reach);
+
+      context.lineWidth = 1;
+      context.strokeStyle = linkInk;
+      for (const link of links) {
+        const a = nodes[link.a]!;
+        const b = nodes[link.b]!;
+        // Squared so only genuinely close pairs carry a visible line; a field where every
+        // pair in range draws at a readable alpha is a mesh, not a constellation.
+        context.globalAlpha = link.strength * link.strength * 0.3;
+        context.beginPath();
+        context.moveTo(a.x, a.y);
+        context.lineTo(b.x, b.y);
+        context.stroke();
+      }
+
+      context.fillStyle = nodeInk;
+      context.globalAlpha = 0.5;
+      for (const node of nodes) {
+        context.beginPath();
+        context.arc(node.x, node.y, 1.4, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.globalAlpha = 1;
+    };
+
+    const observer = new ResizeObserver(() => {
+      measure();
+      draw();
+    });
+    observer.observe(canvas);
+    measure();
+    draw();
+
+    // One still frame is all a covered or reduced-motion pane gets: the field is drawn so
+    // it is there when the cover lifts, and no loop is registered at all.
+    if (reducedMotion || paused) return () => observer.disconnect();
+
+    let raf = 0;
+    let previous = performance.now();
+    let lastInput = performance.now();
+    const onInput = (): void => {
+      lastInput = performance.now();
+    };
+    const loop = (now: number): void => {
+      raf = requestAnimationFrame(loop);
+      const dt = now - previous;
+      previous = now;
+      const factor = ambientSleepFactor(now, lastInput);
+      // Asleep: rAF keeps ticking so any input wakes it on the very next frame, but the
+      // field is neither stepped nor repainted. The map's own conservative rule.
+      if (isAmbientAsleep(factor)) return;
+      stepSynapseField(nodes, dt * factor, width, height);
+      draw();
+    };
+    window.addEventListener("pointermove", onInput, { passive: true });
+    window.addEventListener("keydown", onInput, { passive: true });
+    window.addEventListener("wheel", onInput, { passive: true });
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      window.removeEventListener("pointermove", onInput);
+      window.removeEventListener("keydown", onInput);
+      window.removeEventListener("wheel", onInput);
+    };
+  }, [reducedMotion, paused]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden
+      data-testid="library-synapse-field"
+      className={cn("pointer-events-none absolute inset-0 h-full w-full", className)}
+    />
+  );
+}

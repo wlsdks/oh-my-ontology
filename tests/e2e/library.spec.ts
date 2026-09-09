@@ -291,17 +291,27 @@ test.describe("the Library destination", () => {
 
     /*
      * **The state is on the shelf, not behind a press.** `quarter-plan.md` records a hash
-     * these bytes cannot match, so its spine wears the amber head rim; `handover.md`
-     * cites nothing, so nothing has ever checked it against a file. Both are derived from
-     * the folder, so this measures the derivation as well as the drawing.
+     * these bytes cannot match, so its row is marked; `handover.md` cites nothing, so
+     * nothing has ever checked it against a file and nothing is wrong there. Both are
+     * derived from the folder, so this measures the derivation as well as the drawing.
+     *
+     * ⚠️ **The mark is a dot beside a word, not a coloured rim** (2026-09-09). The rim
+     * was a full-bleed amber bar across the row's head, and the owner read it — and a
+     * first repair that moved it to the row's start edge — as generic: *"that yellow line
+     * looks so AI… do it our way."* `docs/DESIGN-SYSTEM.md` lists full-height coloured
+     * rails among the Don'ts and asks for a small marker and a label instead.
      */
     const plan = page.getByTestId("library-wiki-wiki/quarter-plan");
     await expect(plan).toHaveAttribute("data-freshness", "stale");
-    await expect(plan.getByTestId("library-spine-stale-rim")).toBeAttached();
+    await expect(plan.getByTestId("library-spine-attention-dot")).toBeAttached();
+    await expect(plan).toContainText("Source review needed");
     await expect(page.getByTestId("library-wiki-wiki/handover")).toHaveAttribute(
       "data-freshness",
       "unverified",
     );
+    // And no row anywhere wears a rail.
+    await expect(page.getByTestId("library-spine-stale-rim")).toHaveCount(0);
+    await expect(page.getByTestId("library-spine-off-template-rim")).toHaveCount(0);
 
     /*
      * Every spine is one height — the shelf is a shelf, not a bar chart — and the only
@@ -316,14 +326,16 @@ test.describe("the Library destination", () => {
     expect(new Set(boxes.map((box) => box.h)).size).toBe(1);
 
     /*
-     * A spine truncates, so the whole title and every mark it draws are in its accessible
+     * A row truncates, so the whole title and every mark it draws are in its accessible
      * name — the reason the page missed the template included. `handover.md` has no
-     * `## Not in sources`, and its foot carries that separately from the head's freshness.
+     * `## Not in sources`, and the caption says so beside the source state rather than
+     * carrying it as a second coloured edge (2026-09-09).
      */
     const handover = page.getByTestId("library-wiki-wiki/handover");
     await expect(handover).toHaveAttribute("aria-label", /Handover notes/);
     await expect(handover).toHaveAttribute("aria-label", /section-order/);
-    await expect(handover.getByTestId("library-spine-off-template-rim")).toBeAttached();
+    await expect(handover.getByTestId("library-spine-attention-dot")).toBeAttached();
+    await expect(handover).toContainText("off-template");
     await expect(page.getByTestId("library-off-template-count")).toBeVisible();
 
     /*

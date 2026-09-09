@@ -105,12 +105,61 @@ describe("the wiki list at rest is a shelf, and every spine carries its freshnes
     );
   });
 
-  it("marks the stale page and nothing else, so the amber rim is a state and not a texture", () => {
+  /*
+   * ⚠️ **The amber rims were deleted on 2026-09-09, both of them.**
+   *
+   * They shipped as a full-bleed bar across the row's head and foot over an amber border
+   * around the card, and the owner read the head bar as *"that yellow line looks so AI"*.
+   * The first repair moved the same bar to the row's start edge and got the same reading:
+   * *"what even is that line on the left… do it our way."* Our way is written down —
+   * `docs/DESIGN-SYSTEM.md` lists **full-height coloured rails** among the canonical
+   * Don'ts and prescribes a neutral surface with a small marker and a label — and a rail
+   * moved from one edge to another is still a rail.
+   *
+   * So the state is a word on the caption line that already carried it, with one dot in
+   * front of the rows a person can act on. These cases pin that the dot stays a state and
+   * not a texture: exactly the rows that need work wear it.
+   */
+  it("marks the stale page with a dot and leaves the fresh one unmarked", () => {
     mount(<Harness />);
-    expect(screen.getAllByTestId("library-spine-stale-rim")).toHaveLength(1);
+    const dots = screen.getAllByTestId("library-spine-attention-dot");
+    expect(dots).toHaveLength(1);
     expect(
-      screen.getByTestId("library-wiki-wiki/budget").querySelector('[data-testid="library-spine-stale-rim"]'),
+      screen
+        .getByTestId("library-wiki-wiki/budget")
+        .querySelector('[data-testid="library-spine-attention-dot"]'),
     ).not.toBeNull();
+    expect(
+      screen
+        .getByTestId("library-wiki-wiki/plan")
+        .querySelector('[data-testid="library-spine-attention-dot"]'),
+    ).toBeNull();
+  });
+
+  it("draws no coloured rail on any row", () => {
+    mount(<Harness />);
+    expect(screen.queryByTestId("library-spine-stale-rim")).toBeNull();
+    expect(screen.queryByTestId("library-spine-off-template-rim")).toBeNull();
+  });
+
+  /*
+   * A page nothing has checked is not a page with something wrong: nobody has started.
+   * It keeps the quiet border for the same reason it gets no dot.
+   */
+  it("leaves an unverified page unmarked, because nothing is wrong there", () => {
+    mount(<Harness />);
+    expect(
+      screen
+        .getByTestId("library-wiki-wiki/handover")
+        .querySelector('[data-testid="library-spine-attention-dot"]'),
+    ).toBeNull();
+  });
+
+  it("says the state in words on the row itself, not only in its accessible name", () => {
+    mount(<Harness />);
+    expect(screen.getByTestId("library-wiki-wiki/budget").textContent).toContain(
+      "Source review needed",
+    );
   });
 
   it("uses one readable row shape regardless of page length", () => {

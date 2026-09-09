@@ -123,6 +123,13 @@ export function LibraryShelf({
            * title (a spine truncates), the freshness in words, the template problem's
            * own code, and the writer where it is the exception.
            */
+          /*
+           * The dot marks a row a person can act on: the source moved under the page, or
+           * the page misses the template. `unverified` gets no dot — nothing is wrong
+           * there and nobody has started, which is the same reason its row keeps the
+           * quiet border rather than a tinted one.
+           */
+          const needsAttention = freshness === "stale" || Boolean(ownProblem);
           const facts = [
             page.title,
             t(`shelf.freshness.${freshness}`),
@@ -175,30 +182,36 @@ export function LibraryShelf({
                     "hover:shadow-[var(--shadow-control-press)]",
                     active
                       ? "border-[color:var(--color-indigo-accent)] bg-[color:var(--color-indigo-a22)]"
-                      : freshness === "stale"
-                        ? "border-[color:var(--color-amber-source-a35)] bg-[color:var(--color-overlay-2)]"
-                        : freshness === "unverified"
-                          ? "border-[color:var(--color-border-soft)] bg-transparent"
-                          : "border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-2)]",
+                      : freshness === "unverified"
+                        ? "border-[color:var(--color-border-soft)] bg-transparent"
+                        : "border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-2)]",
                   ),
                 })}
               >
-                {/* The head rim: this page's source moved after it was written. Static. */}
-                {freshness === "stale" ? (
-                  <span
-                    aria-hidden
-                    data-testid="library-spine-stale-rim"
-                    className="pointer-events-none absolute inset-x-0 top-0 h-[var(--library-spine-rim)] bg-[color:var(--color-amber-source-a90)]"
-                  />
-                ) : null}
-                {/* The foot rim: the page's own shape misses the template. Static. */}
-                {ownProblem ? (
-                  <span
-                    aria-hidden
-                    data-testid="library-spine-off-template-rim"
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-[var(--library-spine-rim)] bg-[color:var(--color-amber-source-a90)]"
-                  />
-                ) : null}
+                {/*
+                  ⚠️ **The coloured bar is gone, and this is the second attempt at it.**
+
+                  It shipped as a full-bleed amber rim across the head of the card, over an
+                  amber border around the whole card, and the owner read it exactly right
+                  (2026-09-09): *"that yellow line on top looks so AI."* The first repair
+                  moved the same bar to the row's leading edge — and the owner read that
+                  too: *"what even is that line on the left… don't design it AI-ish, do it
+                  our way."*
+
+                  Our way was already written down. `docs/DESIGN-SYSTEM.md` lists
+                  **full-height coloured rails** among the canonical Don'ts, beside
+                  kind-coloured card backgrounds, and prescribes the replacement in the same
+                  breath: *a neutral surface with a small marker and a label*. Moving a rail
+                  from the top edge to the start edge is still a rail. So the bar is gone in
+                  both places, and the fact it carried moves into the line that was already
+                  under the title saying it in words.
+
+                  Both states still reach the eye, and they are still two states: the source
+                  moved (fix it by compiling again) and the page's own shape misses the
+                  template (fix it in the page). They now read as two words on one line
+                  rather than as two ends of a coloured edge, and the dot is the "small
+                  marker" the rule asks for — one shape, at the ink the state already owns.
+                */}
                 {/*
                   The title runs down the book. Its ink is the control's `tone`, so the
                   three states are one ladder the value layer owns rather than three
@@ -211,8 +224,19 @@ export function LibraryShelf({
                   <span className="line-clamp-2 break-keep text-body leading-body">
                     {page.title}
                   </span>
-                  <span className="text-label leading-label text-[color:var(--color-text-tertiary)]">
-                    {t(`shelf.state.${freshness}`)}
+                  <span className="flex min-w-0 items-center gap-1.5 text-label leading-label text-[color:var(--color-text-tertiary)]">
+                    {needsAttention ? (
+                      <span
+                        aria-hidden
+                        data-testid="library-spine-attention-dot"
+                        className="size-1.5 flex-none rounded-full bg-[color:var(--color-amber-source-a90)]"
+                      />
+                    ) : null}
+                    <span className="min-w-0 truncate">
+                      {ownProblem
+                        ? `${t(`shelf.state.${freshness}`)} · ${t("wiki.offTemplate")}`
+                        : t(`shelf.state.${freshness}`)}
+                    </span>
                   </span>
                 </span>
               </button>

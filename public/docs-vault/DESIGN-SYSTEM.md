@@ -52,6 +52,7 @@ The criterion for separation is not the topic, but **"when it is read."** All fo
 - [Absolute rules (Don'ts)](#absolute-rules-donts)
 - [Arrows carry information or they don't ship](#arrows-carry-information-or-they-dont-ship)
 - [Dimensional regularity — when content length varies](#dimensional-regularity-when-content-length-varies)
+- [The Library's ground — an object, and a field (2026-09-09)](#the-librarys-ground-an-object-and-a-field-2026-09-09)
 - [Contextual ontology writing; Studio surface retired 2026-08-21](#contextual-ontology-writing-studio-surface-retired-2026-08-21)
 - [Motion principles](#motion-principles)
 - [Page header — English caption + Korean h1](#page-header-english-caption-korean-h1)
@@ -1665,11 +1666,22 @@ The full accessible name and tooltip retain title, freshness, template problem,
 and exceptional author. Page length is not encoded by a control's width.
 
 `controlClass({ shape: 'row', size: 'md' })` owns focus, ink, and interaction.
-The selected row uses the solid indigo accent and indigo fill. A top amber rim
-marks changed or unmeasured source evidence; a bottom amber rim marks a page
-format problem. These are distinct repair tasks, and their accessible text
-states the distinction. Unverified pages keep readable ink on an unfilled row.
-The retained `--library-spine-rim` is a 2px state marker, not a book shape.
+The selected row uses the solid indigo accent and indigo fill. Unverified pages
+keep readable ink on an unfilled row.
+
+**The amber rims are gone (2026-09-09).** They marked the same two repair tasks
+they still do — the source changed under the page, and the page's own shape
+misses the template — but as a full-bleed bar across the row's head and foot,
+over an amber border around the card. The owner read the head bar as *"so AI"*,
+and read a first repair that moved it to the row's start edge the same way. A
+rail moved from one edge to another is still the **full-height coloured rail**
+this document lists among its Don'ts, and the replacement it prescribes in the
+same breath is a neutral surface with a small marker and a label. So both rims
+were deleted along with the 2px rim token they were the only consumers of: the
+caption line under the title
+carries both facts in words — `<source state> · <off-template>` — with one 6px
+amber dot in front of it when the row is one a person can act on. The state was
+already in the accessible name; it is now also the only place it is drawn.
 
 Hover uses the existing control colour and shadow transitions. There is no
 rotated label, lifted book, per-page progress chase, or resting animation.
@@ -1809,6 +1821,43 @@ regularity is for repetition.
 
 > There is no carve-out. Every Don't above holds **app-wide, including the
 > contextual editor and change-review surfaces**.
+
+## The Library's ground — an object, and a field (2026-09-09)
+
+Two ambient surfaces, both in `src/views/library/expressive/` as pure modules
+with their own tests and README, each one call from a host component. Delete
+that folder and the two hosts and the Library is a flat panel again.
+
+| Surface | Where | What it is |
+|---|---|---|
+| **Constellation** | Library, no folder open | A three.js object of a folder: cubes for documents, spheres for write-ups, indigo lines for citations, on a Fibonacci shell with each cited source drawn toward the page citing it. The folder is anonymous and deterministic. It stands **beside** the copy, never under it. |
+| **Synapse field** | Library, folder open, nothing selected | A canvas-2D network of drifting points on a jittered grid, linked when close, weight falling off with distance. Explicitly **texture**: no count, no title, no link that exists. |
+
+The split is the point. The constellation's marks are facts, so it is drawn only
+where they can be read as facts — a screen with no folder, no cards and no
+numbers competing with it. It is deliberately **not** drawn on the working pane:
+a real folder's object is small, and ten marks spread across half a pane read as
+debris drifting into the cards rather than as a ground. The field carries no
+fact at all, which is what lets it sit behind a working screen without becoming
+a third opinion about the folder.
+
+Values: `--color-canvas-a70` (the vignette that fades either surface into the
+canvas at a pane's rim), `--library-empty-max` and `--library-empty-object-max`
+(the cap on the copy-plus-object row, and on the object's own square box). Ink is
+read from the existing ramps at mount —
+`--color-text-tertiary`, `--color-text-primary`, `--color-indigo-accent`,
+`--color-indigo-brand`, `--color-text-quaternary`. No new hue.
+
+Motion obeys the map's own contract rather than a second one: both sleep through
+`ambientSleepFactor` (full speed until 30s after the last input, a 2s
+deceleration, then nothing), both freeze to a single still frame under
+`prefers-reduced-motion` — measured 2026-09-09 at **0 rAF callbacks per second**
+reduced against 120 with it off — and neither moves fast enough to cross the eye
+mid-sentence: four minutes for one turn of the object, under a tenth of a pixel
+per frame for a field point. Both are `aria-hidden` and `pointer-events-none`.
+
+Rationale and the arguments that lost: `docs/DECISIONS.md`, 2026-09-09 "The
+Library gets a ground, and its shelf loses the coloured rail".
 
 ## Contextual ontology writing; Studio surface retired 2026-08-21
 
