@@ -48,7 +48,7 @@
  */
 
 /** One mark in the object, in a unit-radius space the scene scales as it likes. */
-interface ConstellationMark {
+export interface ConstellationMark {
   kind: "source" | "page";
   x: number;
   y: number;

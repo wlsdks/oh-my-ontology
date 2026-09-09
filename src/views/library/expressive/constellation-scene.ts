@@ -39,7 +39,14 @@ import * as THREE from "three";
 
 import { ambientSleepFactor, isAmbientAsleep } from "@/widgets/ontology-map";
 
-import type { ConstellationModel } from "./constellation-model";
+import {
+  assemblyDurationMs,
+  assemblyStep,
+  LINK_ASSEMBLY,
+  PAGE_ASSEMBLY,
+  SOURCE_ASSEMBLY,
+} from "./assembly";
+import type { ConstellationMark, ConstellationModel } from "./constellation-model";
 
 export interface ConstellationHandle {
   /** Redraw with a different folder — the empty state's object becoming the person's. */
@@ -107,7 +114,19 @@ export function mountLibraryConstellation(
     (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches);
   const dim = options.dim ?? 1;
 
-  const inkSource = cssColor(tokenEl, "--color-text-tertiary", "#8a8b93");
+  /*
+   * ⚠️ **A token's text contrast is not its rendered contrast** (design-infoviz, 2026-09-09).
+   * `--color-text-tertiary` measures 6.13:1 as type on this very screen; the same value
+   * through `MeshStandardMaterial` and fog composited to **1.80:1 lit / 1.19:1 shaded** —
+   * the lighting model multiplied it down about 60%, and no ramp check can see that.
+   *
+   * The owner settled what the cube is for on the same day: *"I want the cool thing where
+   * the cubes assemble themselves."* A mark somebody is meant to watch assemble is a mark
+   * they have to be able to see, so the cube takes the primary ink and the material stops
+   * eating it — `--color-text-secondary` as the base, roughness down and emissive on, which
+   * is what lifts the shaded faces rather than only the lit one.
+   */
+  const inkSource = cssColor(tokenEl, "--color-text-secondary", "#b4b5bd");
   const inkPage = cssColor(tokenEl, "--color-text-primary", "#f7f8f8");
   const accent = cssColor(tokenEl, "--color-indigo-accent", "#7170ff");
   const line = cssColor(tokenEl, "--color-indigo-brand", "#5e6ad2");
@@ -126,7 +145,7 @@ export function mountLibraryConstellation(
    */
   const fog = new THREE.Fog(0x05070c, 2.2, 6.2);
   scene.fog = fog;
-  scene.add(new THREE.AmbientLight(0xffffff, 0.9 * dim));
+  scene.add(new THREE.AmbientLight(0xffffff, 1.25 * dim));
   const key = new THREE.DirectionalLight(0xffffff, 1.8 * dim);
   key.position.set(2, 3, 2.5);
   scene.add(key);
@@ -138,10 +157,14 @@ export function mountLibraryConstellation(
   const pageGeom = new THREE.IcosahedronGeometry(0.046, 2);
   const sourceMat = new THREE.MeshStandardMaterial({
     color: inkSource,
-    roughness: 0.55,
-    metalness: 0.15,
+    roughness: 0.38,
+    metalness: 0.1,
+    // The emissive floor is what fixes the *shaded* faces: a cube tumbling in shows its
+    // dark sides for most of its travel, and at 1.19:1 those sides were not a mark at all.
+    emissive: inkSource,
+    emissiveIntensity: 0.22 * dim,
     transparent: true,
-    opacity: 0.92,
+    opacity: 1,
   });
   const pageMat = new THREE.MeshStandardMaterial({
     color: inkPage,
@@ -163,6 +186,14 @@ export function mountLibraryConstellation(
   let sources: THREE.InstancedMesh | null = null;
   let pages: THREE.InstancedMesh | null = null;
   let links: THREE.LineSegments | null = null;
+  /** What is currently coming together, and since when. Null once everything has landed. */
+  let assembling: {
+    model: ConstellationModel;
+    pageMarks: ConstellationMark[];
+    sourceMarks: ConstellationMark[];
+    startedAt: number;
+    durationMs: number;
+  } | null = null;
   const group = new THREE.Group();
   // The model works in a unit radius; the object reads better a little wider than tall,
   // which is also what keeps its marks out from behind a 640px panel of copy.
@@ -186,6 +217,25 @@ export function mountLibraryConstellation(
     clearBuilt();
     const pageMarks = model.marks.filter((mark) => mark.kind === "page");
     const sourceMarks = model.marks.filter((mark) => mark.kind === "source");
+    /*
+     * Held so `placeAssembling` can re-place every instance each frame while the object is
+     * coming together. `build` writes the resting matrices; the assembly overwrites them
+     * for as long as it runs and then writes them one last time, exactly, so a settled
+     * object is bit-identical to one that never animated.
+     */
+    assembling = {
+      model,
+      pageMarks,
+      sourceMarks,
+      startedAt: performance.now(),
+      durationMs: reduced
+        ? 0
+        : assemblyDurationMs({
+            sources: sourceMarks.length,
+            pages: pageMarks.length,
+            links: model.links.length,
+          }),
+    };
 
     if (sourceMarks.length > 0) {
       sources = new THREE.InstancedMesh(sourceGeom, sourceMat, sourceMarks.length);
@@ -234,6 +284,84 @@ export function mountLibraryConstellation(
 
   build(initial);
 
+  /**
+   * Re-place every instance for the current moment of the arrival.
+   *
+   * Returns false once nothing is left travelling, which is the host's signal to stop
+   * stepping and hand the object to the ambient turn. The final call writes the resting
+   * matrices exactly — `assemblyStep` returns `distance: 1, spin: 0` past a mark's travel —
+   * so the settled object and the reduced-motion still frame are the same picture.
+   */
+  const placeAssembling = (now: number): boolean => {
+    if (!assembling) return false;
+    /*
+     * ⚠️ **A zero-length assembly is "already finished", not "just started."**
+     *
+     * Under reduced motion `build` sets `durationMs` to 0, and reading the clock here gave
+     * `elapsed ≈ 0` — which `assemblyStep` correctly reports as *before this mark's stride
+     * begins*: launch distance, `presence: 0`. Every mark was then placed off-frame at zero
+     * scale and the assembly cleared itself on the same call, so the reduced-motion viewer
+     * got an **empty canvas** instead of the still object. Caught by the contract case that
+     * pins one still frame, before it reached anybody.
+     */
+    const elapsed =
+      assembling.durationMs <= 0 ? Number.POSITIVE_INFINITY : now - assembling.startedAt;
+    const { sourceMarks, pageMarks, model } = assembling;
+
+    if (sources) {
+      sourceMarks.forEach((mark, index) => {
+        const step = assemblyStep(elapsed, index, SOURCE_ASSEMBLY);
+        dummy.position.set(mark.x * step.distance, mark.y * step.distance, mark.z * step.distance);
+        dummy.rotation.set(index * 0.7 + step.spin, index * 1.1 + step.spin, index * 0.3);
+        dummy.scale.setScalar(step.presence);
+        dummy.updateMatrix();
+        sources!.setMatrixAt(index, dummy.matrix);
+      });
+      sources.instanceMatrix.needsUpdate = true;
+    }
+
+    if (pages) {
+      pageMarks.forEach((mark, index) => {
+        const step = assemblyStep(elapsed, index, PAGE_ASSEMBLY);
+        dummy.position.set(mark.x * step.distance, mark.y * step.distance, mark.z * step.distance);
+        dummy.rotation.set(step.spin, step.spin, 0);
+        dummy.scale.setScalar((0.85 + mark.weight * 0.75) * step.presence);
+        dummy.updateMatrix();
+        pages!.setMatrixAt(index, dummy.matrix);
+      });
+      pages.instanceMatrix.needsUpdate = true;
+    }
+
+    if (links) {
+      /*
+       * A citation is not a thing that flies; it is what is left once both its ends have
+       * landed. So each line draws itself on from its page toward its source, which is the
+       * direction the fact runs.
+       */
+      const position = links.geometry.getAttribute("position") as THREE.BufferAttribute;
+      model.links.forEach(([pageIndex, sourceIndex], index) => {
+        const a = model.marks[pageIndex];
+        const b = model.marks[sourceIndex];
+        if (!a || !b) return;
+        const step = assemblyStep(elapsed, index, LINK_ASSEMBLY);
+        position.setXYZ(index * 2, a.x, a.y, a.z);
+        position.setXYZ(
+          index * 2 + 1,
+          a.x + (b.x - a.x) * step.progress,
+          a.y + (b.y - a.y) * step.progress,
+          a.z + (b.z - a.z) * step.progress,
+        );
+      });
+      position.needsUpdate = true;
+    }
+
+    if (elapsed >= assembling.durationMs) {
+      assembling = null;
+      return false;
+    }
+    return true;
+  };
+
   let width = 1;
   let height = 1;
   const resize = (): void => {
@@ -278,10 +406,24 @@ export function mountLibraryConstellation(
     raf = requestAnimationFrame(loop);
     const dt = Math.min(64, now - previous);
     previous = now;
+    /*
+     * The arrival outranks the sleep. `ambientSleepFactor` measures time since the last
+     * *input*, and an object that is still coming together has had no input since it
+     * started — so without this an assembly begun on a screen somebody opened and then sat
+     * still in front of would freeze halfway. An object mid-arrival is not idle.
+     */
+    const stillAssembling = placeAssembling(now);
     const factor = ambientSleepFactor(now, lastInput);
     // Asleep and settled: nothing has changed, so nothing is drawn. rAF keeps ticking so
     // any input wakes it on the very next frame, which is the map's own conservative rule.
-    if (isAmbientAsleep(factor) && Math.abs(tiltYaw - tiltYawTarget) < 1e-4) return;
+    if (
+      !stillAssembling &&
+      isAmbientAsleep(factor) &&
+      Math.abs(tiltYaw - tiltYawTarget) < 1e-4 &&
+      Math.abs(tiltPitch - tiltPitchTarget) < 1e-4
+    ) {
+      return;
+    }
     yaw += dt * TURN_RATE * factor;
     tiltYaw += (tiltYawTarget - tiltYaw) * 0.06;
     tiltPitch += (tiltPitchTarget - tiltPitch) * 0.06;
@@ -298,6 +440,9 @@ export function mountLibraryConstellation(
   };
 
   if (reduced) {
+    // `durationMs` is 0 under reduced motion, so this one call lands every mark exactly
+    // home and clears the assembly. One still frame of the same object, no arrival.
+    placeAssembling(performance.now());
     draw();
   } else {
     window.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -307,9 +452,15 @@ export function mountLibraryConstellation(
   return {
     setModel: (model: ConstellationModel) => {
       if (disposed) return;
+      // `build` re-arms the arrival, so a folder that grows assembles its new shape rather
+      // than cutting to it — which is the Library's "data accumulating" animation.
       build(model);
-      if (reduced) draw();
-      else lastInput = performance.now();
+      if (reduced) {
+        placeAssembling(performance.now());
+        draw();
+      } else {
+        lastInput = performance.now();
+      }
     },
     dispose: () => {
       disposed = true;

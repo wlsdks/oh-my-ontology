@@ -47,13 +47,32 @@ describe("관문 FX — 감속 동등물", () => {
     ).toBeGreaterThan(guard);
     expect(field.slice(0, guard)).toMatch(/\n\s*draw\(\);/);
 
+    /*
+     * ⚠️ **Pin the guarantee, not the two lines that happened to provide it** (2026-09-09).
+     * This case first matched `if (reduced) {\n draw();\n } else {` literally, and went red
+     * the moment the reduced branch gained a second correct statement — landing the
+     * self-assembly at t=0 so the still frame is the *settled* object rather than an
+     * object frozen mid-arrival. A contract that fails on a correct edit teaches people to
+     * loosen it under pressure. What must hold is: the reduced branch draws exactly one
+     * frame, and no loop or pointer listener is registered before the `else`.
+     */
     const scene = read("src/views/library/expressive/constellation-scene.ts");
-    // One frame in the reduced branch; the loop and its pointer listener only in the else.
-    expect(scene).toMatch(/if \(reduced\) \{\s*\n\s*draw\(\);\s*\n\s*\} else \{/);
-    const elseBranch = scene.slice(scene.indexOf("if (reduced) {"));
-    expect(elseBranch.indexOf("requestAnimationFrame(loop)")).toBeGreaterThan(
-      elseBranch.indexOf("} else {"),
-    );
+    const branch = scene.indexOf("if (reduced) {");
+    expect(branch, "the reduced-motion branch is gone").toBeGreaterThan(-1);
+    const elseAt = scene.indexOf("} else {", branch);
+    expect(elseAt, "the reduced branch no longer has an else").toBeGreaterThan(branch);
+    const reducedBranch = scene.slice(branch, elseAt);
+    expect(reducedBranch, "the reduced branch draws no frame").toMatch(/\n\s*draw\(\);/);
+    expect(
+      (reducedBranch.match(/\n\s*draw\(\);/g) ?? []).length,
+      "the reduced branch draws more than one frame",
+    ).toBe(1);
+    for (const forbidden of ["requestAnimationFrame", "addEventListener"]) {
+      expect(
+        reducedBranch.includes(forbidden),
+        `the reduced branch registers ${forbidden}`,
+      ).toBe(false);
+    }
   });
 
   it("(b′) 관문 등장 안무의 감속 동등물이 base 레이어 kill 규칙 뒤에 있다", () => {
