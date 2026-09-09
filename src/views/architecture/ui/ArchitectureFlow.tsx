@@ -42,6 +42,7 @@ export function ArchitectureFlow({
   edgeSentence,
   ledgerStatusLabel,
   ledgerImportsLabel,
+  deltaUnknownLabel,
   contractTrackLabel,
   observationTrackLabel,
   deltaTrackLabel,
@@ -85,6 +86,8 @@ export function ArchitectureFlow({
   /** `from>to` for each crossing the receipt counted as a violation; drawn apart from the rest. */
   violatedPairs: ReadonlySet<string>;
   ledgerImportsLabel: (count: number) => string;
+  /** What the comparison mark says before any source has been observed. */
+  deltaUnknownLabel: string;
   contractTrackLabel: string;
   observationTrackLabel: string;
   deltaTrackLabel: string;
@@ -154,6 +157,7 @@ export function ArchitectureFlow({
           violatedPairs={violatedPairs}
           ledgerStatusLabel={ledgerStatusLabel}
           ledgerImportsLabel={ledgerImportsLabel}
+          deltaUnknownLabel={deltaUnknownLabel}
           contractTrackLabel={contractTrackLabel}
           observationTrackLabel={observationTrackLabel}
           deltaTrackLabel={deltaTrackLabel}

@@ -43,6 +43,7 @@ function draw(
         ledger.state === 'clean' ? 'no violations out' : `${ledger.violated} violated`
       }
       ledgerImportsLabel={(count) => `${count} imports out`}
+      deltaUnknownLabel="not observed yet"
       contractTrackLabel="Contract"
       observationTrackLabel="Observation"
       deltaTrackLabel="Delta"
