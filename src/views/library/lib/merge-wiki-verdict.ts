@@ -1,9 +1,24 @@
+/**
+ * One finding as the surfaces carry it.
+ *
+ * `message` is the validator's English, kept because the CLI and `validate_wiki` print
+ * exactly this and an agent branches on the code beside it. `detail` is the same
+ * sentence's pieces, so a reader can be handed it in their own language instead of an
+ * English paragraph under a Korean heading (2026-09-09).
+ */
+export interface WikiProblemLike {
+  code: string;
+  message: string;
+  line?: number;
+  detail?: { key: string; values?: Record<string, string> };
+}
+
 export interface WikiVerdictLike {
   ok: boolean;
   firstProblem: string | null;
   firstProblemMessage: string | null;
   problemCount: number;
-  problems: ReadonlyArray<{ code: string; message: string; line?: number }>;
+  problems: ReadonlyArray<WikiProblemLike>;
 }
 
 /**
@@ -50,7 +65,7 @@ export function isAdvisoryWikiCode(code: string): boolean {
 /** Page problems first, folder problems after; `ok` ignores the advisory folder codes. */
 export function mergeWikiVerdict(
   page: WikiVerdictLike,
-  folderProblems: ReadonlyArray<{ code: string; message: string; line?: number }>,
+  folderProblems: ReadonlyArray<WikiProblemLike>,
 ): WikiVerdictLike {
   const own = page.problems.filter((problem) => !FOLDER_CODES.has(problem.code));
   const problems = [...own, ...folderProblems];

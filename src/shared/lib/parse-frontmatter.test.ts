@@ -214,6 +214,46 @@ describe('extractOutLinksWithContext — wikilinks inside the nested ontology/ v
   });
 });
 
+/**
+ * ⚠️ **The renderer and the folder check must fold a bare `[[slug]]` into the same
+ * name** (measured 2026-09-09).
+ *
+ * `docs/ONTOLOGY-ATLAS-SPEC.md` §11.4 says a page link is `[[wiki/<slug>]]` **or**
+ * `[[<slug>]]`, and `validateWikiFolder` has always resolved the bare form inside
+ * `wiki/`. This function did not, and the two disagreed in both directions on one
+ * folder: a bare `[[budget]]` rendered as plain text with no anchor and drew no edge on
+ * the Library graph, while the folder check reported the link as perfectly resolved. A
+ * genuinely dead link passed every gate the product has.
+ */
+describe('extractOutLinksWithContext — a bare wikilink inside wiki/ names a page in wiki/', () => {
+  it('wiki/ 문서 안의 맨 슬러그는 wiki/ 안의 페이지로 풀린다', () => {
+    const body = '분기 계획은 [[budget]] 문서를 참고.';
+    const { slugs, contexts } = extractOutLinksWithContext(body, 'wiki/quarter-plan');
+    expect(slugs).toEqual(['wiki/budget']);
+    expect(contexts[0].target).toBe('wiki/budget');
+    // The reader still shows what the author typed, not the resolved path.
+    expect(contexts[0].linkText).toBe('budget');
+  });
+
+  it('슬래시가 있는 대상은 vault 루트 기준이라 wiki/ 를 덧붙이지 않는다', () => {
+    const body = '이 글은 [[capabilities/checkout]] 과 [[wiki/budget]] 을 가리킨다.';
+    const { slugs } = extractOutLinksWithContext(body, 'wiki/quarter-plan');
+    expect(slugs).toEqual(['capabilities/checkout', 'wiki/budget']);
+  });
+
+  it('wiki/ 바깥 문서의 맨 슬러그는 종전대로 vault 루트를 가리킨다', () => {
+    const { slugs } = extractOutLinksWithContext('[[budget]] 참고.', 'capabilities/checkout');
+    expect(slugs).toEqual(['budget']);
+  });
+
+  it('폴더 검사와 같은 답을 낸다: 두 해석기가 같은 대상을 만든다', () => {
+    // The folder half normalises with `wiki-page-schema.ts`; if that boundary and this
+    // one ever part again, one of these two assertions moves and the other does not.
+    const { slugs } = extractOutLinksWithContext('[[budget]] [[wiki/budget]]', 'wiki/a');
+    expect(new Set(slugs)).toEqual(new Set(['wiki/budget']));
+  });
+});
+
 describe('extractOutLinksWithContext — a wiki citation is not a link', () => {
   it('skips [[src:sources/…#anchor]] and keeps the page links beside it', () => {
     const body = '- fact [[src:sources/plan.pdf#p2]] and see [[wiki/other]] and [[src:sources/a.csv#r3|row]]';

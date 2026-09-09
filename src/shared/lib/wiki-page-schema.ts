@@ -1,4 +1,4 @@
-import { parseFrontmatter } from './parse-frontmatter';
+import { parseFrontmatter, WIKI_DIR } from './parse-frontmatter';
 
 /**
  * The Wiki page contract, for the surfaces that render it.
@@ -16,8 +16,15 @@ import { parseFrontmatter } from './parse-frontmatter';
  * rather than validating a whole folder up front.
  */
 
-/** Vault folder holding wiki pages. */
-export const WIKI_DIR = 'wiki';
+/**
+ * Vault folder holding wiki pages.
+ *
+ * Defined beside the link resolver in `parse-frontmatter.ts` and re-exported here, so the
+ * folder half of the contract and the renderer fold a bare `[[slug]]` into the *same*
+ * name. They drifted apart once (2026-09-09) and the folder reported the opposite of what
+ * the screen drew; one constant is the cheapest guard against a second time.
+ */
+export { WIKI_DIR };
 
 /**
  * Whether a vault-relative slug names the wiki's own furniture rather than a page.
@@ -197,11 +204,33 @@ type WikiProblemCode =
   | 'orphan-page'
   | 'shared-source-unlinked';
 
+/**
+ * The parts of a finding's sentence, kept apart from the sentence.
+ *
+ * `message` is written once, in English, for the machines that consume it: the CLI's
+ * output, `validate_wiki`'s payload, and the retry an agent branches on. A **person**
+ * reading the Library gets the same finding in their own language, and reassembling a
+ * localised sentence means having the pieces rather than parsing them back out of English
+ * prose (2026-09-09 — before this, a Korean screen printed `dangling-wikilink:15` followed
+ * by a bare English paragraph).
+ *
+ * `key` names the sentence, not the code, because two codes here have two shapes:
+ * `section-order` is a different sentence when sections are missing than when they are
+ * merely out of order, and only the validator knows which one it just found.
+ */
+interface WikiProblemDetail {
+  key: string;
+  /** Values the sentence interpolates. Already human-readable; never a raw object. */
+  values?: Record<string, string>;
+}
+
 interface WikiProblem {
   code: WikiProblemCode;
   message: string;
   /** 1-based line in the file, when the problem is bound to one. */
   line?: number;
+  /** Pieces for a localised retelling. Absent means the English `message` is all there is. */
+  detail?: WikiProblemDetail;
 }
 
 export interface WikiValidation {
@@ -209,8 +238,16 @@ export interface WikiValidation {
   problems: WikiProblem[];
 }
 
-function problem(code: WikiProblemCode, message: string, line?: number): WikiProblem {
-  return line === undefined ? { code, message } : { code, message, line };
+function problem(
+  code: WikiProblemCode,
+  message: string,
+  line?: number,
+  detail?: WikiProblemDetail,
+): WikiProblem {
+  const out: WikiProblem = { code, message };
+  if (line !== undefined) out.line = line;
+  if (detail !== undefined) out.detail = detail;
+  return out;
 }
 
 function citationCandidateRegex(): RegExp {
@@ -287,6 +324,8 @@ export function validateWikiPage(
         'A wiki page must not carry `kind:`. That key is what puts a document in the graph, ' +
           'and a wiki page is a write-up about sources, not a reviewed concept. Remove it, or ' +
           'move the file out of `wiki/` if it really is a node.',
+        undefined,
+        { key: 'kind-present' },
       ),
     );
   }
@@ -295,7 +334,12 @@ export function validateWikiPage(
     if (!Object.prototype.hasOwnProperty.call(frontmatter, key)) {
       const field = WIKI_FIELDS.find((candidate) => candidate.key === key)!;
       problems.push(
-        problem(`missing-field:${key}`, `\`${key}:\` is missing. ${field.description}`),
+        problem(
+          `missing-field:${key}`,
+          `\`${key}:\` is missing. ${field.description}`,
+          undefined,
+          { key: 'missing-field', values: { field: key } },
+        ),
       );
     }
   }
@@ -308,6 +352,8 @@ export function validateWikiPage(
         '`describes:` names ontology slugs, so it says this page speaks for those concepts. ' +
           'That is a claim about the graph and it needs a person: set `status: reviewed` after ' +
           'reading the page, or remove `describes:`.',
+        undefined,
+        { key: 'describes-needs-approval' },
       ),
     );
   }
@@ -328,6 +374,13 @@ export function validateWikiPage(
           ? `The page needs all five sections in order (${expected.map((title) => `## ${title}`).join(', ')}). ` +
             `Missing: ${missing.join(', ')}. An empty section is kept, not dropped — it says "nothing here", which a missing one does not.`
           : `The five sections must appear in this order: ${expected.join(' → ')}. Found: ${foundExpected.join(' → ')}.`,
+        undefined,
+        missing.length > 0
+          ? { key: 'section-order-missing', values: { missing: missing.join(', ') } }
+          : {
+              key: 'section-order-sequence',
+              values: { expected: expected.join(' → '), found: foundExpected.join(' → ') },
+            },
       ),
     );
   }
@@ -364,6 +417,8 @@ export function validateWikiPage(
           'bad-truncation-record',
           '`sources_truncated:` is a list of the paths in `sources:` that were read only in ' +
             'part. This value is not a list of paths, so it records no boundary at all.',
+          undefined,
+          { key: 'bad-truncation-record-shape' },
         ),
       );
     } else {
@@ -375,6 +430,8 @@ export function validateWikiPage(
             `\`${path}\` is under \`sources_truncated:\` but not under \`sources:\`. The key says ` +
               "which of this page's own sources stop short, so a path the page does not cite " +
               'names a boundary no reader can place.',
+            undefined,
+            { key: 'bad-truncation-record-path', values: { path } },
           ),
         );
       }
@@ -390,6 +447,7 @@ export function validateWikiPage(
             '(`[[src:sources/<file>#p12]]`). A claim a reader cannot check against one place in ' +
             'one document belongs under `## Not in sources`.',
           bullet.line,
+          { key: 'uncited-fact' },
         ),
       );
     }
@@ -415,6 +473,7 @@ export function validateWikiPage(
             `\`[[src:${WIKI_SOURCES_DIR}/<path>#<anchor>]]\`, where the anchor is p<n>, s<n>, ` +
             's<n>r<n>, r<n>, l<n>, or h:<heading-slug>.',
           frontmatterLines + index + 1,
+          { key: 'bad-citation', values: { text: whole } },
         ),
       );
     }
@@ -433,6 +492,11 @@ export function validateWikiPage(
         absent
           ? `\`${citation.path}\` is cited but is not in this folder. A citation a reader cannot open is not a citation.`
           : `\`${citation.path}\` is cited but is not listed in this page's \`sources:\`. Add it there with its sha256, or fix the citation.`,
+        undefined,
+        {
+          key: absent ? 'citation-target-missing-folder' : 'citation-target-missing-sources',
+          values: { path: citation.path },
+        },
       ),
     );
   }
@@ -461,6 +525,15 @@ export function validateWikiPage(
  *   - `orphan-page`            no other page links to this one (two or more pages only)
  *   - `shared-source-unlinked` another page was written from a source this page lists
  *                              (or the reverse), and neither links the other
+ *
+ * ⚠️ **`dangling-wikilink` judges links into `wiki/` and nothing else** (2026-09-09).
+ * It used to be raised for *every* unresolved target, including
+ * `[[capabilities/checkout]]` — a link into the rest of the vault, which this function
+ * never receives and therefore cannot resolve. On a folder whose pages named three real
+ * concepts, the Library's status strip read *3 broken links* while the Library's own
+ * graph drew the same three as *3 concepts, 6 mentions* and the reader rendered each as
+ * a live link. Reporting a link as broken because *this* function cannot see its target is a
+ * guess wearing the clothes of a fact; the folder half judges the folder.
  */
 
 /** `[[target]]`, `[[target|text]]`, `[[target#anchor]]` — a citation (`src:`) is not a link. */
@@ -468,12 +541,32 @@ function wikiPageLinkRegex(): RegExp {
   return /\[\[([^\]|#]+?)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]/g;
 }
 
-/** A link target as the folder names a page: `wiki/<slug>` without `.md`. */
+/**
+ * A link target as the folder names a page: `wiki/<slug>` without `.md`.
+ *
+ * A bare `[[slug]]` folds into `wiki/`, which is what spec §11.4 calls a page link and
+ * what `resolveWikilinkTargetSlug` in `parse-frontmatter.ts` now does on the render side
+ * too. A target that already carries a `/` is left alone: it addresses the vault root,
+ * and `namesWikiFolder` below is what decides whether this function may judge it.
+ */
 function normalizeWikiLinkTarget(target: string | undefined): string | null {
   let slug = String(target ?? '').trim().replace(/\.md$/, '');
   if (!slug || slug.startsWith('src:')) return null;
   if (!slug.includes('/')) slug = `${WIKI_DIR}/${slug}`;
   return slug;
+}
+
+/**
+ * Whether a normalised target is a link *into this folder*, and so one this function is
+ * entitled to call broken when it is absent.
+ *
+ * Everything else — `capabilities/checkout`, `domains/commerce`, a top-level
+ * `[[CHANGELOG]]`-shaped slug — addresses the surrounding vault, which the folder half
+ * never receives. Silence there is not approval; it is the honest report of a check that
+ * was handed the folder and asked about the vault.
+ */
+function namesWikiFolder(target: string): boolean {
+  return target.startsWith(`${WIKI_DIR}/`);
 }
 
 /** Every page link in `body`, with the line it sits on, fenced code skipped. */
@@ -553,6 +646,7 @@ export function validateWikiFolder(pages: readonly WikiFolderPageInput[]): WikiF
         inbound.get(target.slug)!.add(entry.slug);
         continue;
       }
+      if (!namesWikiFolder(link.target)) continue;
       if (seen.has(link.target)) continue;
       seen.add(link.target);
       entry.problems.push(
@@ -560,6 +654,7 @@ export function validateWikiFolder(pages: readonly WikiFolderPageInput[]): WikiF
           'dangling-wikilink',
           `\`[[${link.target}]]\` names a page that is not in this folder. Link only to a page that exists, or write the page.`,
           link.line,
+          { key: 'dangling-wikilink', values: { target: link.target } },
         ),
       );
     }
@@ -572,6 +667,8 @@ export function validateWikiFolder(pages: readonly WikiFolderPageInput[]): WikiF
         problem(
           'orphan-page',
           'No other page links here. A page nobody points at is reached only by its file name; link it from the page that talks about its topic.',
+          undefined,
+          { key: 'orphan-page' },
         ),
       );
     }
@@ -600,12 +697,16 @@ export function validateWikiFolder(pages: readonly WikiFolderPageInput[]): WikiF
         problem(
           'shared-source-unlinked',
           `\`${second.path}\` also lists ${sourceList} and neither page links the other. Two write-ups of one document that do not know about each other cannot carry a disagreement between them.`,
+          undefined,
+          { key: 'shared-source-unlinked', values: { other: second.path, sources: sourceList } },
         ),
       );
       second.problems.push(
         problem(
           'shared-source-unlinked',
           `\`${first.path}\` also lists ${sourceList} and neither page links the other. Two write-ups of one document that do not know about each other cannot carry a disagreement between them.`,
+          undefined,
+          { key: 'shared-source-unlinked', values: { other: first.path, sources: sourceList } },
         ),
       );
     }

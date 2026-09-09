@@ -105,12 +105,62 @@ describe("the wiki list at rest is a shelf, and every spine carries its freshnes
     );
   });
 
-  it("marks the stale page and nothing else, so the amber rim is a state and not a texture", () => {
+  /*
+   * ⚠️ **The amber rims were deleted on 2026-09-09, both of them.**
+   *
+   * They shipped as a full-bleed bar across the row's head and foot over an amber border
+   * around the card, and the owner read the head bar as *"that yellow line looks so AI"*.
+   * The first repair moved the same bar to the row's start edge and got the same reading:
+   * *"what even is that line on the left… do it our way."* Our way is written down —
+   * `docs/DESIGN-SYSTEM.md` lists **full-height coloured rails** among the canonical
+   * Don'ts and prescribes a neutral surface with a small marker and a label — and a rail
+   * moved from one edge to another is still a rail.
+   *
+   * So the state is a word on the caption line that already carried it, with one dot in
+   * front of the rows a person can act on. These cases pin that the dot stays a state and
+   * not a texture: exactly the rows that need work wear it.
+   *
+   * ⚠️ **And "can act on" is the page's own defect, not staleness** (guardian,
+   * 2026-09-09). The first shape was `stale || ownProblem`, which on the owner's folder
+   * put the warning ink on 3 of 3 rows — staleness is the resting state of a folder
+   * somebody is working in, so the union trends to every row. Nothing on this shelf has a
+   * template problem, so nothing here wears a dot; the state is still in words on every
+   * row and in every accessible name, and `library.spec.ts` holds the positive case on a
+   * page that really does miss the template.
+   */
+  it("leaves a stale page's dot off, because staleness is where a live folder rests", () => {
     mount(<Harness />);
-    expect(screen.getAllByTestId("library-spine-stale-rim")).toHaveLength(1);
+    expect(screen.queryAllByTestId("library-spine-attention-dot")).toHaveLength(0);
+    // The fact itself did not move — it is on the row, in words, where it always was.
+    expect(screen.getByTestId("library-wiki-wiki/budget").textContent).toContain(
+      "Source review needed",
+    );
+  });
+
+  it("draws no coloured rail on any row", () => {
+    mount(<Harness />);
+    expect(screen.queryByTestId("library-spine-stale-rim")).toBeNull();
+    expect(screen.queryByTestId("library-spine-off-template-rim")).toBeNull();
+  });
+
+  /*
+   * A page nothing has checked is not a page with something wrong: nobody has started.
+   * It keeps the quiet border for the same reason it gets no dot.
+   */
+  it("leaves an unverified page unmarked, because nothing is wrong there", () => {
+    mount(<Harness />);
     expect(
-      screen.getByTestId("library-wiki-wiki/budget").querySelector('[data-testid="library-spine-stale-rim"]'),
-    ).not.toBeNull();
+      screen
+        .getByTestId("library-wiki-wiki/handover")
+        .querySelector('[data-testid="library-spine-attention-dot"]'),
+    ).toBeNull();
+  });
+
+  it("says the state in words on the row itself, not only in its accessible name", () => {
+    mount(<Harness />);
+    expect(screen.getByTestId("library-wiki-wiki/budget").textContent).toContain(
+      "Source review needed",
+    );
   });
 
   it("uses one readable row shape regardless of page length", () => {

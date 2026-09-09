@@ -920,6 +920,12 @@
   --color-surface-deep-a80: rgba(12, 14, 20, 0.8);
   --color-surface-deep-a98: rgba(12, 14, 20, 0.98);
 
+  /* Canvas with alpha, for the vignette that fades the Library's ambient fields into the
+     canvas at a pane's rim (2026-09-09). An existing rung of the alpha canon, not a new
+     stop. The matching panel step was cut with the glass panel it was written for: the
+     empty state stands its copy *beside* the object rather than over it. */
+  --color-canvas-a70: rgba(8, 9, 10, 0.7);
+
   /* drop shadow alpha — existing a22/a42/a46 siblings. Snap new literals to an 8-step canon scale (imperceptible) — Guardian verdict §⑥. */
   /* a16 was removed on 2026-08-06 — its only consumer was the hand-drawn
      drop shadow on the project selection card, and since that card is static, removing the drop made consumption zero.
@@ -2435,6 +2441,7 @@
     --color-surface-deep-a40: rgba(12, 14, 20, 0.4);
     --color-surface-deep-a80: rgba(12, 14, 20, 0.8);
     --color-surface-deep-a98: rgba(12, 14, 20, 0.98);
+    --color-canvas-a70: rgba(8, 9, 10, 0.7);
     --color-shadow-a12: rgba(0, 0, 0, 0.12);
     --color-shadow-a35: rgba(0, 0, 0, 0.35);
     --color-shadow-a50: rgba(0, 0, 0, 0.5);
@@ -2933,6 +2940,17 @@
        `motion-token-mirror.contract.test.ts` lets only `-out` / `[data-state="closed"]`
        rules reference it, only on a `*Out` keyframe, never in a `transition`. */
     --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+    /* Placement easing (2026-09-09) — a mark that was *set down*, not revealed.
+       The owner asked for blocks that trickle into a pile the way something poured into a
+       bucket settles; `--motion-ease` decelerates smoothly into place, which reads as a mark
+       appearing where it always was. This overshoots by about 8% and returns, so the block
+       arrives with weight. It is licensed on **transform only, on an arrival, on a figure
+       nobody is reading text inside** — never on a surface, a panel, or anything carrying
+       type, because a settling wobble under a sentence is the wriggle this product removed
+       from the map on 2026-09-08. The 2026-09-08 record lifted the overshoot ban; this is
+       the first token to spend it, and it names the meaning it carries.
+       Reduced motion never reaches it: both consumers draw finished on the first frame. */
+    --motion-ease-place: cubic-bezier(0.34, 1.28, 0.64, 1);
     /* --topology-card-scale is injected by SigmaSkeletonCards into container based on viewport width — CSS pipeline drops custom property without utility reference, so not declared here. */
 
     /*
@@ -2983,9 +3001,29 @@
     /* Document list aside expanded width — retract existing hardcoded w-[280px]. */
     --docs-list-width: 280px;
 
-    /* Library index state markers: source evidence at the head, page format at
-       the foot. Row geometry comes from controlClass, not the retired book ramp. */
-    --library-spine-rim: 2px;
+    /* The Library's empty state is a reading column beside its object. The row's cap keeps
+       the two from drifting apart on a wide monitor; the object's cap keeps it from
+       out-weighing the ask. The object's box is square at every width, because its vignette
+       is an ellipse fitted to the box: at 2.6:1 the clear middle measured 59px tall and
+       swallowed the object whole (2026-09-09, 768×1024). */
+    --library-empty-max: 1120px;
+    --library-empty-object-max: 440px;
+    /* One block of a vault-history column. Small enough that a hundred-node folder is a
+       stack a person can take in at a glance rather than a wall, large enough that a
+       single block still reads as a countable thing rather than as a rule (2026-09-09). */
+    --vault-history-cube: 5px;
+    /* How wide the three tracks are allowed to grow. Uncapped, eighteen columns spread
+       across a full-width band and each week became a 97px slab that merged into its
+       neighbours; the marks stopped reading as countable blocks and started reading as an
+       area chart. Capped, one week is about 40px and the stack is legible as a stack
+       (2026-09-09, measured at 1512 and 1920). */
+    --vault-history-width: 760px;
+    /* The narrowest a layer's column may be squeezed to before its own name stops fitting
+       under it — measured at the widest Korean layer label (41px) plus breathing room. Four
+       layers sharing a row equally gave the layer holding 125 files the same 175px as one
+       holding nothing, so the columns are shared out by what they hold and stop here
+       (design-responsive, 2026-09-09). */
+    --vault-layer-col-min: 72px;
     /* drawer/audit modal shared scrim, single source — same value as existing sourceTreeOpen drawer. Dark-only (no light branch). */
     --docs-scrim: rgba(0, 0, 0, 0.5);
     /*

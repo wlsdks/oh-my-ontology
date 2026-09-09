@@ -107,6 +107,8 @@ import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
 import { WikiPageHeader } from "./parts/WikiPageHeader";
 import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
+import { LibraryConstellation } from "./parts/LibraryConstellation";
+import { LibrarySynapseField } from "./parts/LibrarySynapseField";
 
 /**
  * The **Library** — project documents of any format, and the wiki pages written from
@@ -1341,19 +1343,62 @@ export function LibraryPage() {
   // ── With no folder, one centred stage rather than two empty panes. ───────────────
   if (!hasFolder) {
     return (
+      /*
+        ⚠️ **The screen a person meets before they have anything** (owner, 2026-09-09:
+        *"this screen isn't pretty… make it cool! something with motion too… three.js is
+        fine! something like geometric shapes!"*).
+
+        What was here was a left-aligned text column on an unbroken black field, and the
+        void around it was most of the viewport. The repair is not a bigger column: it is
+        giving the screen a **ground**. `LibraryConstellation` draws the Library's own
+        shape behind the copy — cubes for documents, spheres for the write-ups made from
+        them, lines for the citations — anonymous here because no folder is open, and
+        rebuilt from the person's real counts the moment one is. The picture they meet is
+        the picture they will keep.
+
+        ⚠️ **The words are beside the object, never on top of it.** The first build laid a
+        glass panel over the constellation's middle and measured badly on its own terms:
+        the panel covered the inner shell, so every write-up in the object was hidden and
+        what remained was a scatter of cubes at the edges — the structure the picture
+        exists to show was the one part nobody could see. The bright marks that did fall
+        behind the glass smeared into soft discs and read as dirt on the panel.
+
+        So the screen splits. The ask keeps the reading column it always had, at full
+        contrast on the canvas itself with no glass and nothing moving under the type; the
+        object gets its own half and is drawn whole. Below `lg` the object stands under
+        the copy at a fixed height instead of beside it — a backdrop is the first thing to
+        yield when there is one column of room.
+      */
       <main
         id="main"
         tabIndex={-1}
         data-testid="library-page"
         data-library-state="no-folder"
-        className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
       >
-        <div className={PAGE_COLUMN_STAGE}>
-          <LibraryHeader t={t} inFolder={false} />
-          {/* One step under the h1 (14px): the hierarchy gate reads a tie as two titles. */}
-          <h2 className="mt-6 text-body font-[var(--font-weight-signature)] leading-title text-[color:var(--color-text-primary)]">
+        <div className="flex w-full max-w-[var(--library-empty-max)] flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-12">
+        <div className={`${PAGE_COLUMN_STAGE} relative shrink-0`}>
+          {/*
+            ⚠️ **The state is the headline here, not the destination's name**
+            (design-lead, 2026-09-09). This column used to open with the workbench header:
+            an `h1` carrying "Library" at 14px, then the state as an `h2` at 12.5px under
+            it. Nothing on the frame was larger than 14px and the widest gap in the whole
+            type stack was 14/11 — a ratio of **1.27** on a screen whose entire job is one
+            sentence, so the eye reached the door before it had read what it was being
+            asked. The stage one step further in already settled this and measured 2.42:
+            *"there the heading is the state and the rail carries the name."* The rail
+            carries the name here too, so the two empty screens now share one shape.
+
+            The `lede` tooltip goes with the header, and loses nothing: it says the Library
+            holds gathered documents and the pages written from them, which is what the
+            two rows below say at length, with their own names for the two kinds.
+          */}
+          <p className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
+            {t("title")}
+          </p>
+          <h1 className="mt-1 text-display leading-display font-[var(--font-weight-signature)] tracking-[var(--tracking-display)] text-[color:var(--color-text-primary)] [word-break:keep-all]">
             {t("emptyTitle")}
-          </h2>
+          </h1>
           <p className="mt-2 text-body leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]">
             {t("emptyBody")}
           </p>
@@ -1393,6 +1438,26 @@ export function LibraryPage() {
               className="border-[color:var(--color-indigo-line-a35)] bg-[color:var(--color-indigo-a10)] hover:border-[color:var(--color-indigo-line-a54)] hover:bg-[color:var(--color-indigo-a16)]"
             />
           </div>
+        </div>
+        {/*
+          The object's own half.
+
+          ⚠️ **Square at every width.** Below `lg` it was given the pane's full width at a
+          fixed height, which made a 728×280 box — and its vignette is an ellipse fitted to
+          the box, so at 2.6:1 the clear middle was 59px tall and swallowed the object
+          whole. Measured at 768×1024: a correctly sized canvas drawing nothing anyone
+          could see. A square box keeps the fade concentric with the object it is fading.
+        */}
+        <div
+          data-testid="library-empty-object"
+          className="relative aspect-square w-full max-w-[var(--library-empty-object-max)] shrink-0"
+        >
+          <LibraryConstellation />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,var(--color-canvas-a70)_82%,var(--color-canvas)_100%)]"
+          />
+        </div>
         </div>
       </main>
     );
@@ -1743,8 +1808,67 @@ export function LibraryPage() {
             <span className="flex shrink-0 items-center gap-2">{graphAction}{conversationDoor}</span>
           </div>
           {!selected ? (
-            <div data-testid="library-reader-landing" className="min-h-0 flex-1 overflow-y-auto px-3 py-6">
-              <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
+            /*
+              ⚠️ **The guide used to sit at the top of a pane and leave the rest black**
+              (owner, 2026-09-09: *"this screen too — rebuild it, it's a shame… strange,
+              and so much empty space"*). Measured on the baseline frame at 1512×900: the
+              three steps ended 565px down a 1089px pane, so **48% of the surface a person
+              is looking at held nothing at all**.
+
+              Two changes, and they are one idea. The column is centred in the pane rather
+              than hung from its top, which is the same repair `PAGE_COLUMN_STAGE` was
+              given on 2026-08-12 when a top-anchored empty state read as *"severely
+              barren"*. And the space that is left is no longer nothing: the constellation
+              draws **this** folder — the person's own sources, write-ups and citations —
+              behind the steps that describe it in words. The picture and the stepper are
+              two readings of one fact, which is why the guide can sit on top of it.
+
+              `dim` takes the object down to a third: this is a working screen with three
+              live controls on it, not the empty state, and the object is the ground here
+              rather than the subject.
+            */
+            <div
+              data-testid="library-reader-landing"
+              className="relative min-h-0 flex-1 overflow-y-auto px-3 py-6"
+            >
+              {/*
+                ⚠️ **The constellation is not drawn here, and that is a measured decision**
+                (2026-09-09).
+
+                It was tried three ways on this pane: behind the column, where it had to be
+                dimmed past visibility to stay off the stepper's type; filling the pane,
+                where a sphere the size of the workbench is a subject however faint; and as
+                a ground in the lower band, which is where it failed on its own terms. A
+                working folder's object is *small* — the frame that settled this had six
+                documents and four write-ups, ten marks — and ten marks spread across half
+                a pane do not read as a ground. They read as a few shapes drifting into the
+                cards, and one of them landed on the `Read` step's own edge.
+
+                The object stays where the same data makes a picture: the empty state,
+                where the anonymous folder is drawn whole and is the screen's subject. Here
+                the emptiness was a **placement** problem, not a missing backdrop, and
+                centring the column in the pane is its whole fix. `docs/DESIGN-SYSTEM.md`'s
+                rule holds either way: a mark carries a fact or it goes.
+
+                What the centred pane got instead is `LibrarySynapseField` — the owner, on
+                the centred frame: *"the centre is good now, but the background is a bit
+                plain… something like a background of neurons connecting, or a graph
+                connecting up."* It is texture rather than data, and that is the point: it
+                draws no count and no link that exists, so there is nothing on it a person
+                could mistake for a claim about their folder. The exact picture of the real
+                folder is one chip away, and its numbers are in the three steps above.
+              */}
+              <LibrarySynapseField paused={graphOpen} />
+              {/* The field never reaches the column: it clears the middle where the steps
+                  stand and fades into the canvas at every rim. */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-canvas)_0%,var(--color-canvas-a70)_30%,transparent_56%,var(--color-canvas-a70)_88%,var(--color-canvas)_100%)]"
+              />
+              {/* The column keeps its own ground so the steps' contrast is measured
+                  against a fill rather than against whatever mark drifts behind them. */}
+              <div className="relative flex min-h-full items-center justify-center">
+                <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
                 <h2 className="mb-3 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
                   {t("stage.title")}
                 </h2>
@@ -1766,6 +1890,7 @@ export function LibraryPage() {
                   busy={busy}
                   t={t}
                 />
+                </div>
               </div>
             </div>
           ) : null}

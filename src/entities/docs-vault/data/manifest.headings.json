@@ -6489,6 +6489,31 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-09 — The growth figure is bounded, and its blocks are poured rather than revealed",
+      "slug": "2026-09-09-the-growth-figure-is-bounded-and-its-blocks-are-poured-rather-than-revealed"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The freshness tab becomes the growth tab, and architecture is counted as its own layer",
+      "slug": "2026-09-09-the-freshness-tab-becomes-the-growth-tab-and-architecture-is-counted-as-its-own-layer"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The board draws the folder it has, and never guesses whether a timestamp was work",
+      "slug": "2026-09-09-the-board-draws-the-folder-it-has-and-never-guesses-whether-a-timestamp-was-work"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The Library's object is drawn orthographically, its parallax is a duration, and its state is the headline",
+      "slug": "2026-09-09-the-librarys-object-is-drawn-orthographically-its-parallax-is-a-duration-and-its-state-is-the-headline"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The board's time claim is recomputed from Git, never stored, and drawn as three tracks that never blend",
+      "slug": "2026-09-09-the-boards-time-claim-is-recomputed-from-git-never-stored-and-drawn-as-three-tracks-that-never-blend"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — The Library canvas stands beside the page it is about",
       "slug": "2026-09-08-the-library-canvas-stands-beside-the-page-it-is-about"
     },
@@ -9391,6 +9416,16 @@
       "depth": 2,
       "text": "2026-09-09 — Filing an answer does not borrow a later source hash",
       "slug": "2026-09-09-filing-an-answer-does-not-borrow-a-later-source-hash"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The Library gets a ground, and its shelf loses the coloured rail",
+      "slug": "2026-09-09-the-library-gets-a-ground-and-its-shelf-loses-the-coloured-rail"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — Signal ink is spent where there is a signal: the Library's dot and its field",
+      "slug": "2026-09-09-signal-ink-is-spent-where-there-is-a-signal-the-librarys-dot-and-its-field"
     }
   ],
   "DEMO-SCENARIO": [
@@ -10064,6 +10099,11 @@
       "depth": 2,
       "text": "Dimensional regularity — when content length varies",
       "slug": "dimensional-regularity-when-content-length-varies"
+    },
+    {
+      "depth": 2,
+      "text": "The Library's ground — an object, and a field (2026-09-09)",
+      "slug": "the-librarys-ground-an-object-and-a-field-2026-09-09"
     },
     {
       "depth": 2,
@@ -11478,8 +11518,8 @@
     },
     {
       "depth": 4,
-      "text": "Tab 5 — Freshness",
-      "slug": "tab-5-freshness"
+      "text": "Tab 5 — Growth (formerly Freshness; `?tab=freshness` still lands here)",
+      "slug": "tab-5-growth-formerly-freshness-tabfreshness-still-lands-here"
     },
     {
       "depth": 4,

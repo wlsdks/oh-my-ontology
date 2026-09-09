@@ -18,6 +18,7 @@ import { splitHighlightSegments } from '@/shared/lib/highlight-match';
 import { useCopyFeedback } from '@/shared/lib/use-copy-feedback';
 import { useDelayedVisible } from '@/shared/lib/use-presence';
 import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
+import { resolveWikilinkTargetSlug } from '@/shared/lib/parse-frontmatter';
 import { fetchServerDocContent } from '../lib/server-doc-content';
 import { resolveDocLink } from '../lib/resolve-doc-link';
 import { getTopologyProjectHref } from '@/entities/project';
@@ -247,7 +248,19 @@ export function DocsVaultViewer({
            * normalised to NFC too; normalising one side leaves identical characters
            * that do not match). That rule is followed rather than re-decided.
            */
-          const wikiSlug = rawWikiSlug ? decodeWikilinkSlug(rawWikiSlug) : rawWikiSlug;
+          /*
+           * ⚠️ **Resolve against the document doing the linking, not against bare text**
+           * (2026-09-09). This lookup matched the typed slug straight against the vault's
+           * slug set, which made it a *third* answer to "what does `[[x]]` mean here",
+           * disagreeing with `extractOutLinksWithContext` (backlinks, the Library graph)
+           * and with `validateWikiFolder` (the folder check). Measured: `[[budget]]`
+           * inside `wiki/handover.md` rendered as plain text with no anchor while both
+           * other resolvers had it pointing at `wiki/budget`. The same blindness swallowed
+           * the nested `ontology/` vault's links, which is the case that function was
+           * written for in the first place.
+           */
+          const typedSlug = rawWikiSlug ? decodeWikilinkSlug(rawWikiSlug) : rawWikiSlug;
+          const wikiSlug = typedSlug ? resolveWikilinkTargetSlug(typedSlug, doc.slug) : typedSlug;
           // A `project:` prefix routes to the public topology route, e.g. [[project:reactor]].
           if (wikiSlug && wikiSlug.startsWith('project:')) {
             const projectSlug = wikiSlug.slice('project:'.length);
@@ -288,7 +301,7 @@ export function DocsVaultViewer({
           return (
             <span
               className="border-b border-dashed border-[color:var(--color-amber-source-a50)] text-[color:var(--color-amber-source-text-a85)]"
-              title={t('wikilinkMissing', { slug: wikiSlug })}
+              title={t('wikilinkMissing', { slug: typedSlug })}
               {...rest}
             >
               {children}

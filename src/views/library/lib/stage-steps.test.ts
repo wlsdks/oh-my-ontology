@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { libraryStepStates, libraryWaitingLine } from "./stage-steps";
+import { libraryCoverageCaption, libraryStepStates, libraryWaitingLine } from "./stage-steps";
 import type { LibraryUiModel } from "./use-library-model";
 
 /**
@@ -115,5 +115,58 @@ describe("what the waiting line says", () => {
     expect(libraryWaitingLine(counts(1, 1, 1), t)).toBe(
       'sources.needsCompileSplit({"notCompiled":1,"stale":1}) · sources.partialOnly({"count":1})',
     );
+  });
+});
+
+
+/**
+ * ⚠️ **A folder whose sources have all been written up and have since changed read
+ * "0 of 6 sources written up"** (measured 2026-09-09).
+ *
+ * `compiled` means a page exists *and* its bytes still match. Everything else was folded
+ * into the plain sentence, so the most ordinary resting state of a live folder — write-ups
+ * that have gone stale — reported the same number as a folder nobody had touched. The
+ * earlier `checking` and `partial` repairs each added their own clause and left this one.
+ */
+describe("which coverage sentence step three prints", () => {
+  const coverage = (
+    states: readonly string[],
+    counts: { partial?: number; stale?: number; checking?: number } = {},
+  ) =>
+    libraryCoverageCaption(
+      {
+        sources: states.map(source),
+        partialCount: counts.partial ?? 0,
+        staleCount: counts.stale ?? 0,
+      } as Parameters<typeof libraryCoverageCaption>[0],
+      counts.checking ?? 0,
+    );
+
+  it("names the stale sources instead of reporting a folder with pages as empty", () => {
+    const result = coverage(
+      ["stale", "stale", "stale", "stale", "stale", "not-compiled"],
+      { stale: 5 },
+    );
+    expect(result.key).toBe("coveredStale");
+    expect(result.values).toEqual({ compiled: 0, total: 6, stale: 5 });
+  });
+
+  it("keeps the plain sentence when nothing needs a qualifier", () => {
+    const result = coverage(["compiled", "compiled", "not-compiled"]);
+    expect(result.key).toBe("coveredLine");
+    expect(result.values).toEqual({ compiled: 2, total: 3 });
+  });
+
+  it("still prefers measuring over part-read over stale, so one clause is named", () => {
+    expect(coverage(["checking"], { checking: 1, partial: 1, stale: 1 }).key).toBe(
+      "coveredChecking",
+    );
+    expect(coverage(["partial"], { partial: 1, stale: 1 }).key).toBe("coveredPartial");
+    expect(coverage(["stale"], { stale: 1 }).key).toBe("coveredStale");
+  });
+
+  it("counts only `compiled` as written up, whatever else the folder holds", () => {
+    expect(coverage(["compiled", "stale", "partial"], { partial: 1, stale: 1 }).values.compiled)
+      .toBe(1);
   });
 });

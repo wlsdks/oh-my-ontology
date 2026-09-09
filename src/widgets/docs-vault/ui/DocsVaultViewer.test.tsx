@@ -200,3 +200,53 @@ describe("DocsVaultViewer", () => {
     });
   });
 });
+
+
+/**
+ * ⚠️ **A wikilink means the same thing here as everywhere else in the vault.**
+ *
+ * This lookup used to match the typed slug straight against the vault's slug set, making
+ * it a third answer to "what does `[[x]]` mean in this document" — disagreeing with
+ * `extractOutLinksWithContext` (backlinks, the Library graph) and with
+ * `validateWikiFolder` (the folder check). Measured 2026-09-09: `[[budget]]` inside
+ * `wiki/handover.md` rendered as plain text with no anchor, while the folder check
+ * reported the very same link as perfectly resolved.
+ */
+describe("DocsVaultViewer — a wikilink resolves against the document that wrote it", () => {
+  const wikiDoc: VaultDoc = { ...doc, slug: "wiki/handover", path: "wiki/handover.md" };
+
+  it("links a bare [[slug]] written inside wiki/ to the page in wiki/", async () => {
+    renderViewer("Pointing at [[budget]].", {
+      doc: wikiDoc,
+      vaultSlugs: new Set([wikiDoc.slug, "wiki/budget"]),
+    });
+    const link = await screen.findByRole("link", { name: "budget" });
+    expect(link).toBeInTheDocument();
+  });
+
+  it("still marks a bare slug unresolved when that page is not in the folder", async () => {
+    renderViewer("Pointing at [[nowhere]].", {
+      doc: wikiDoc,
+      vaultSlugs: new Set([wikiDoc.slug]),
+    });
+    await screen.findByText("Pointing at", { exact: false });
+    expect(screen.queryByRole("link", { name: "nowhere" })).toBeNull();
+  });
+
+  it("leaves a target carrying a slash addressed at the vault root", async () => {
+    renderViewer("Pointing at [[capabilities/checkout]].", {
+      doc: wikiDoc,
+      vaultSlugs: new Set([wikiDoc.slug, "capabilities/checkout"]),
+    });
+    expect(
+      await screen.findByRole("link", { name: "capabilities/checkout" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps a bare slug at the vault root for a document outside wiki/", async () => {
+    renderViewer("See [[FEATURES]].", {
+      vaultSlugs: new Set([doc.slug, "FEATURES"]),
+    });
+    expect(await screen.findByRole("link", { name: "FEATURES" })).toBeInTheDocument();
+  });
+});

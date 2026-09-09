@@ -3,7 +3,20 @@ import { isEvidenceOnlyConcept, buildContainmentParents, nearestDomainId } from 
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const HEATSTRIP_WEEKS = 12;
+/**
+ * The window every dated claim on this board is made over: **one month**.
+ *
+ * ⚠️ It was twelve weeks, and the owner rejected that on 2026-09-09: *"twelve weeks is too
+ * far, isn't it — a month, four weeks at minimum."* Three months is a quarter, and a quarter
+ * is a reporting period, not a working horizon: nothing a person does on a Tuesday is
+ * answered by what the folder looked like in June. The unit people actually plan a folder in
+ * is a month, and four weekly cells keep the weekly resolution while making the window one
+ * a reader can act inside.
+ *
+ * The number reaches the copy through `{weeks}` placeholders rather than being written into
+ * any sentence, so a later change to the window cannot leave a caption lying about it.
+ */
+const HEATSTRIP_WEEKS = 4;
 export const FRESHNESS_WINDOW_WEEKS = HEATSTRIP_WEEKS;
 const STALE_DAYS = 90;
 
@@ -94,8 +107,26 @@ function levelFromCount(count: number): FreshnessLevel {
  * Resolves a node to its update date (an ISO string). `node.evidenceIds[0]` is the vault document
  * slug the node originated from (the `derivationToInsight` contract — the evidence document is the
  * document of first appearance). `docUpdatedAtBySlug` is a lookup built from
- * `VaultManifest.docs[].updatedAt` — the real `file.lastModified` in local mode, and a build-time
- * value in static (dogfood) mode.
+ * `VaultManifest.docs[].updatedAt`.
+ *
+ * ⚠️ **What that date is, exactly — because this comment used to say it wrong.** It claimed a
+ * "build-time value in static mode", which made every date on this board look like an artifact.
+ * `scripts/build-docs-vault.mjs` in fact writes `committedDay ?? localDayStamp(mtime)`: the
+ * **commit day wins**, and mtime is the fallback for a dirty or untracked file only. The dogfood
+ * and sample boards therefore draw real authorship dates.
+ *
+ * The mode where the date is a filesystem timestamp is the **local folder in a browser**:
+ * `entities/docs-vault/lib/build-local-manifest.ts` stamps `new Date(lastModified)`. There it
+ * says when the file was last written to disk, which a clone, a checkout, an unzip or a sync
+ * client moves with nobody editing anything. Measured 2026-09-09 on this repository's own
+ * working checkout: 77 of 109 vault files carry one 60-second instant.
+ *
+ * ⚠️ **So no surface here may phrase this date as what the person did.** A count of dates is a
+ * count of dates; only Git can say what was worked on, and only the app reaches Git
+ * (`views/ontology-insights/lib/vault-history.ts`). Atlas does not try to tell a real batch of
+ * work from a checkout: po-evidence measured that no timestamp threshold separates them, because
+ * Atlas's own containment batch writes dozens of files in one loop and looks exactly like a
+ * checkout. Naming the source is never wrong; guessing its provenance is wrong on a schedule.
  */
 function resolveNodeUpdatedAt(
   node: KnowledgeGraphNode,

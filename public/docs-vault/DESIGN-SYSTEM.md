@@ -52,6 +52,7 @@ The criterion for separation is not the topic, but **"when it is read."** All fo
 - [Absolute rules (Don'ts)](#absolute-rules-donts)
 - [Arrows carry information or they don't ship](#arrows-carry-information-or-they-dont-ship)
 - [Dimensional regularity — when content length varies](#dimensional-regularity-when-content-length-varies)
+- [The Library's ground — an object, and a field (2026-09-09)](#the-librarys-ground-an-object-and-a-field-2026-09-09)
 - [Contextual ontology writing; Studio surface retired 2026-08-21](#contextual-ontology-writing-studio-surface-retired-2026-08-21)
 - [Motion principles](#motion-principles)
 - [Page header — English caption + Korean h1](#page-header-english-caption-korean-h1)
@@ -926,6 +927,7 @@ The usability motion for "verifying meaning" in the map contextual editor and in
   commit convergence/completion linger).
 - `--motion-ease: cubic-bezier(0.25,0.1,0.25,1)` — The common easing for the three above. Every **entry** rides it.
 - `--motion-ease-exit: cubic-bezier(0.4,0,1,1)` — **Exits only** (2026-09-05). Paired with the exit clock `calc(var(--motion-base) * 0.67)` (= `--motion-fast`); JS copy `MOTION_EASE_EXIT`, reached only through `EXIT_TRANSITION`. `--motion-ease` decelerates into place, so a surface leaving on it is the entrance clock played backwards, slowing down while still visible; this curve accelerates away. Measured at 120.6ms: 3.4% of the travel in the first frame, 21.3% in the last, against 61.5% first-frame for the `--topology-motion-ease-out` curve the inspector movement exit used before. Entries may not use it and a `transition:` may not reference it (a transition runs both ways on one curve); `motion-token-mirror.contract.test.ts` enforces both directions in CSS (`-out` / `[data-state="closed"]` rules on `*Out` keyframes only) and JS (no import outside `src/shared/motion`). The brightness axis of a split exit (`overlayFadeOut`) keeps `--motion-ease`: an accelerating fade holds 79% opacity into its last frame.
+- `--motion-ease-place: cubic-bezier(0.34,1.28,0.64,1)` — **Arrivals that are set down, transform only** (2026-09-09). Overshoots by about 8% and returns, so a mark reads as placed rather than revealed. Minted for the growth tab's pouring blocks, where the owner asked for pieces that "trickle into a pile like something poured into a bucket"; `--motion-ease` decelerates smoothly and made a block look as if it had always been there. Licensed on **transform only**, on an **arrival**, on a **figure with no type inside it** — never on a surface, a panel or anything carrying a sentence, because a settling wobble under text is the ambient wriggle removed from the map on 2026-09-08. It is the first token to spend the overshoot allowance the same-day record opened, and it names the meaning it carries. Reduced motion never reaches it: both consumers derive their finished state at render and register no timer. Measured on a real screen at 40ms per block: 1233ms for 31 blocks, cv 0.25, 0 stalls, one block landing per step.
 - **Entrance distance is a name too** (2026-09-08). The clock and the curve were tokens; the *place a surface starts* was a literal, copy-pasted at 16 sites in 8 files. `OVERLAY_RISE` `{opacity:0, y:8}` is the overlay grammar `dialog.tsx` already promised in words ("opacity plus an 8px rise") and is taken by the dialog primitive, the search palette, the project drawer hero and the project card; `SHEET_RISE` `{opacity:0, y:12, scale:0.985}` is the sheet grammar of the four hand-built modal surfaces (shortcut sheet, recent-changes dialog, block import, vault-open guide). Each ships its `*_SETTLED` rest state so a consumer cannot spread the start and forget to animate `scale` back, and `SHEET_RISE_REDUCED` `{opacity:0, y:0, scale:1}` is the travel-zero equivalent whose reason the shortcut sheet records. Naming both grammars does not bless the split; it makes it countable. One-off offsets (`y:4`, `y:10`, `y:-8` with `scale:.98`, the drawer's `x`/`y` pairs) stay literals — a single-consumer value is not a token. Gate: `framer-entrance-grammar.contract.test.ts` refuses a named value written as a number.
 - `--topology-motion-camera/drag-settle: 420/720ms` — **Map canvas only**
   continuity. Referencing this from a DOM surface is a defect.
@@ -1665,11 +1667,33 @@ The full accessible name and tooltip retain title, freshness, template problem,
 and exceptional author. Page length is not encoded by a control's width.
 
 `controlClass({ shape: 'row', size: 'md' })` owns focus, ink, and interaction.
-The selected row uses the solid indigo accent and indigo fill. A top amber rim
-marks changed or unmeasured source evidence; a bottom amber rim marks a page
-format problem. These are distinct repair tasks, and their accessible text
-states the distinction. Unverified pages keep readable ink on an unfilled row.
-The retained `--library-spine-rim` is a 2px state marker, not a book shape.
+The selected row uses the solid indigo accent and indigo fill. Unverified pages
+keep readable ink on an unfilled row.
+
+**The amber rims are gone (2026-09-09).** They marked the same two repair tasks
+they still do — the source changed under the page, and the page's own shape
+misses the template — but as a full-bleed bar across the row's head and foot,
+over an amber border around the card. The owner read the head bar as *"so AI"*,
+and read a first repair that moved it to the row's start edge the same way. A
+rail moved from one edge to another is still the **full-height coloured rail**
+this document lists among its Don'ts, and the replacement it prescribes in the
+same breath is a neutral surface with a small marker and a label. So both rims
+were deleted along with the 2px rim token they were the only consumers of: the
+caption line under the title
+carries both facts in words — `<source state> · <off-template>` — with one 6px
+amber dot in front of it. The state was
+already in the accessible name; it is now also the only place it is drawn.
+
+**The dot marks the page's own defect only (guardian, 2026-09-09).** It first
+shipped on `stale || off-template` and landed on 3 of 3 rows of the owner's
+folder. `--color-amber-source-a90` is `--color-status-warning`, and a warning
+ink every row wears marks nothing: staleness is the state a folder somebody is
+working in *rests* in, so a union with it trends to every row on any live shelf
+rather than 3/3 being a small sample. Staleness keeps its word on the caption
+and in the accessible name. The marker is pointed at the fact the caption can
+lose instead: the line truncates from the end, so only the trailing
+`off-template` segment can be clipped, and the dot is what survives the clip.
+`unverified` still wears nothing — nobody has started, and nothing is wrong.
 
 Hover uses the existing control colour and shadow transitions. There is no
 rotated label, lifted book, per-page progress chase, or resting animation.
@@ -1809,6 +1833,56 @@ regularity is for repetition.
 
 > There is no carve-out. Every Don't above holds **app-wide, including the
 > contextual editor and change-review surfaces**.
+
+## The Library's ground — an object, and a field (2026-09-09)
+
+Two ambient surfaces, both in `src/views/library/expressive/` as pure modules
+with their own tests and README, each one call from a host component. Delete
+that folder and the two hosts and the Library is a flat panel again.
+
+| Surface | Where | What it is |
+|---|---|---|
+| **Constellation** | Library, no folder open | A three.js object of a folder: cubes for documents, spheres for write-ups, indigo lines for citations, on a Fibonacci shell with each cited source drawn toward the page citing it. The folder is anonymous and deterministic. It stands **beside** the copy, never under it. |
+| **Synapse field** | Library, folder open, nothing selected | A canvas-2D network of drifting points on a jittered grid, linked when close, weight falling off with distance. Explicitly **texture**: no count, no title, no link that exists. |
+
+The split is the point. The constellation's marks are facts, so it is drawn only
+where they can be read as facts — a screen with no folder, no cards and no
+numbers competing with it. It is deliberately **not** drawn on the working pane:
+a real folder's object is small, and ten marks spread across half a pane read as
+debris drifting into the cards rather than as a ground. The field carries no
+fact at all, which is what lets it sit behind a working screen without becoming
+a third opinion about the folder.
+
+Values: `--color-canvas-a70` (the vignette that fades either surface into the
+canvas at a pane's rim), `--library-empty-max` and `--library-empty-object-max`
+(the cap on the copy-plus-object row, and on the object's own square box). Ink is
+read from the existing ramps at mount —
+`--color-text-tertiary`, `--color-text-primary`, `--color-indigo-accent`,
+`--color-indigo-brand`, `--color-text-quaternary`. No new hue.
+
+**The accent belongs to the object, not to the field (guardian, 2026-09-09).**
+The constellation's indigo lines are citations — marks that carry a fact — so
+they keep `--color-indigo-brand`/`--color-indigo-accent`. The field's links
+shipped in `--color-indigo-accent` too, and on this route that ink means *this
+is the one you have open*: the shelf's selected row wears it as its edge, and
+`library-graph-ink.ts` gives it to the selected node's ring on the folder graph
+one chip away. A ground that carries no fact by design must not wear the ink a
+fact wears, so the whole field — points and links — now draws in
+`--color-text-quaternary`, its own node ink. The rule generalises: a surface
+declared as texture is monochrome in a neutral ramp, and signal inks
+(`--color-status-*`, the indigo accent family) stay with marks that carry a
+state.
+
+Motion obeys the map's own contract rather than a second one: both sleep through
+`ambientSleepFactor` (full speed until 30s after the last input, a 2s
+deceleration, then nothing), both freeze to a single still frame under
+`prefers-reduced-motion` — measured 2026-09-09 at **0 rAF callbacks per second**
+reduced against 120 with it off — and neither moves fast enough to cross the eye
+mid-sentence: four minutes for one turn of the object, under a tenth of a pixel
+per frame for a field point. Both are `aria-hidden` and `pointer-events-none`.
+
+Rationale and the arguments that lost: `docs/DECISIONS.md`, 2026-09-09 "The
+Library gets a ground, and its shelf loses the coloured rail".
 
 ## Contextual ontology writing; Studio surface retired 2026-08-21
 

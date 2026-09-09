@@ -67,11 +67,11 @@ describe('Analysis shared ACP planner', () => {
     expect(planInsightsAgentPrompt({
       current,
       draftPresent: true,
-      kind: 'freshness',
+      kind: 'growth',
       text: 'Explain freshness',
     })).toEqual({
       action: 'confirm-replace',
-      request: { kind: 'freshness', text: 'Explain freshness', nonce: 4 },
+      request: { kind: 'growth', text: 'Explain freshness', nonce: 4 },
     });
   });
 });
