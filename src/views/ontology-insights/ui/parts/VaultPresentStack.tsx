@@ -47,8 +47,15 @@ import type { VaultLayer, VaultLayerCounts } from "../../lib/vault-history";
 
 const LAYER_ORDER: readonly VaultLayer[] = ["concept", "module", "writeUp", "document"];
 
-/** Blocks per row in one layer's wall. Wide enough to read as a wall, narrow enough for three. */
-const COLUMNS = 14;
+/*
+ * ⚠️ **The block has a size; the number of columns is whatever fits.** The first build fixed
+ * fourteen columns and let the block take a fourteenth of whatever width it was given, which
+ * held at a desktop width and collapsed at a phone one: measured at 390x844 the block came
+ * out **3.6px**, and a 3.6px block is texture, not a thing anybody can count. Since counting
+ * is the entire argument for one block per file, the block keeps its size and the wall
+ * re-wraps — narrower screens get fewer columns and a taller wall, which is the trade that
+ * keeps the mark honest.
+ */
 /** Past this many blocks the wall stops being countable, and a block starts meaning several files. */
 const BLOCK_CAP = 224;
 /** Between one block landing and the next. */
@@ -188,8 +195,10 @@ export function VaultPresentStack({
                         layer === "document" && "bg-[color:var(--color-text-quaternary)]",
                       )}
                       style={{
-                        width: `calc((100% - ${COLUMNS - 1}px) / ${COLUMNS})`,
-                        aspectRatio: "1 / 1",
+                        // Twice the weekly track's block: the two figures share one ramp step
+                        // so a mark means the same size wherever the surface draws one.
+                        width: "calc(var(--vault-history-cube) * 2)",
+                        height: "calc(var(--vault-history-cube) * 2)",
                         transition:
                           "opacity var(--motion-base) var(--motion-ease), transform var(--motion-settle) var(--motion-ease)",
                         opacity: up ? 1 : 0,
