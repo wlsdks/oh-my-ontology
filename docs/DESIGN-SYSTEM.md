@@ -1680,8 +1680,19 @@ same breath is a neutral surface with a small marker and a label. So both rims
 were deleted along with the 2px rim token they were the only consumers of: the
 caption line under the title
 carries both facts in words — `<source state> · <off-template>` — with one 6px
-amber dot in front of it when the row is one a person can act on. The state was
+amber dot in front of it. The state was
 already in the accessible name; it is now also the only place it is drawn.
+
+**The dot marks the page's own defect only (guardian, 2026-09-09).** It first
+shipped on `stale || off-template` and landed on 3 of 3 rows of the owner's
+folder. `--color-amber-source-a90` is `--color-status-warning`, and a warning
+ink every row wears marks nothing: staleness is the state a folder somebody is
+working in *rests* in, so a union with it trends to every row on any live shelf
+rather than 3/3 being a small sample. Staleness keeps its word on the caption
+and in the accessible name. The marker is pointed at the fact the caption can
+lose instead: the line truncates from the end, so only the trailing
+`off-template` segment can be clipped, and the dot is what survives the clip.
+`unverified` still wears nothing — nobody has started, and nothing is wrong.
 
 Hover uses the existing control colour and shadow transitions. There is no
 rotated label, lifted book, per-page progress chase, or resting animation.
@@ -1847,6 +1858,19 @@ canvas at a pane's rim), `--library-empty-max` and `--library-empty-object-max`
 read from the existing ramps at mount —
 `--color-text-tertiary`, `--color-text-primary`, `--color-indigo-accent`,
 `--color-indigo-brand`, `--color-text-quaternary`. No new hue.
+
+**The accent belongs to the object, not to the field (guardian, 2026-09-09).**
+The constellation's indigo lines are citations — marks that carry a fact — so
+they keep `--color-indigo-brand`/`--color-indigo-accent`. The field's links
+shipped in `--color-indigo-accent` too, and on this route that ink means *this
+is the one you have open*: the shelf's selected row wears it as its edge, and
+`library-graph-ink.ts` gives it to the selected node's ring on the folder graph
+one chip away. A ground that carries no fact by design must not wear the ink a
+fact wears, so the whole field — points and links — now draws in
+`--color-text-quaternary`, its own node ink. The rule generalises: a surface
+declared as texture is monochrome in a neutral ramp, and signal inks
+(`--color-status-*`, the indigo accent family) stay with marks that carry a
+state.
 
 Motion obeys the map's own contract rather than a second one: both sleep through
 `ambientSleepFactor` (full speed until 30s after the last input, a 2s

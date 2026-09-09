@@ -57,9 +57,18 @@ export function LibrarySynapseField({
 
     const root = document.documentElement;
     const styles = getComputedStyle(root);
-    const nodeInk =
+    /*
+     * ⚠️ **One ink for the whole field, and it is not the accent** (guardian, 2026-09-09).
+     * The links shipped in `--color-indigo-accent`, which on this very route means *this
+     * is the one you have open*: the shelf's selected row wears it as its edge, and
+     * `library-graph-ink.ts` gives it to the selected node's ring on the folder graph one
+     * chip away. A ground that carries no fact by design must not wear the ink a fact
+     * wears — a coloured mesh of 209 links behind a pane about a real folder is the one
+     * thing on the screen a person could read as their own graph. The field's own node
+     * ink leaves it as the dust it is.
+     */
+    const fieldInk =
       styles.getPropertyValue("--color-text-quaternary").trim() || "#61626c";
-    const linkInk = styles.getPropertyValue("--color-indigo-accent").trim() || "#7170ff";
 
     let width = 1;
     let height = 1;
@@ -96,7 +105,7 @@ export function LibrarySynapseField({
       const links = synapseLinks(nodes, reach);
 
       context.lineWidth = 1;
-      context.strokeStyle = linkInk;
+      context.strokeStyle = fieldInk;
       for (const link of links) {
         const a = nodes[link.a]!;
         const b = nodes[link.b]!;
@@ -109,7 +118,7 @@ export function LibrarySynapseField({
         context.stroke();
       }
 
-      context.fillStyle = nodeInk;
+      context.fillStyle = fieldInk;
       context.globalAlpha = 0.5;
       for (const node of nodes) {
         context.beginPath();

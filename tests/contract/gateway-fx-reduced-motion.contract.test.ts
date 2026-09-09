@@ -29,6 +29,33 @@ describe("관문 FX — 감속 동등물", () => {
     expect(fx).toMatch(/!fxLoopLive \|\| reduced/);
   });
 
+  /*
+   * The Library's two ambient canvases join this file rather than
+   * `reduced-motion-equivalent.contract.test.ts`, which scans `app/globals.css` for
+   * `animation:` and cannot see a rAF loop at all. They shipped on 2026-09-09 with the
+   * still-frame behaviour measured once (0 rAF callbacks per second) and nothing
+   * defending it; a measurement nobody can repeat is not a gate (guardian, 2026-09-09).
+   */
+  it("(c) the Library's two ambient canvases draw one still frame under reduced motion", () => {
+    const field = read("src/views/library/ui/parts/LibrarySynapseField.tsx");
+    // The still frame is drawn, then the effect returns before any loop is registered.
+    const guard = field.indexOf("if (reducedMotion || paused) return");
+    expect(guard, "the reduced-motion branch is gone").toBeGreaterThan(-1);
+    expect(
+      field.indexOf("requestAnimationFrame"),
+      "a loop is registered before the reduced-motion branch",
+    ).toBeGreaterThan(guard);
+    expect(field.slice(0, guard)).toMatch(/\n\s*draw\(\);/);
+
+    const scene = read("src/views/library/expressive/constellation-scene.ts");
+    // One frame in the reduced branch; the loop and its pointer listener only in the else.
+    expect(scene).toMatch(/if \(reduced\) \{\s*\n\s*draw\(\);\s*\n\s*\} else \{/);
+    const elseBranch = scene.slice(scene.indexOf("if (reduced) {"));
+    expect(elseBranch.indexOf("requestAnimationFrame(loop)")).toBeGreaterThan(
+      elseBranch.indexOf("} else {"),
+    );
+  });
+
   it("(b′) 관문 등장 안무의 감속 동등물이 base 레이어 kill 규칙 뒤에 있다", () => {
     const css = read("app/globals.css");
     // The carve-out must sit inside the same layer as the global kill rule

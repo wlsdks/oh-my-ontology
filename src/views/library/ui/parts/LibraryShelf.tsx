@@ -124,12 +124,23 @@ export function LibraryShelf({
            * own code, and the writer where it is the exception.
            */
           /*
-           * The dot marks a row a person can act on: the source moved under the page, or
-           * the page misses the template. `unverified` gets no dot — nothing is wrong
-           * there and nobody has started, which is the same reason its row keeps the
-           * quiet border rather than a tinted one.
+           * ⚠️ **The dot marks the page's own defect, and nothing else** (guardian,
+           * 2026-09-09). It shipped as `stale || ownProblem`, and on the owner's folder
+           * that put the warning ink — `--color-amber-source-a90` is the same value as
+           * `--color-status-warning` — on 3 of 3 rows. A mark every row wears carries
+           * nothing, and 3/3 was not a small sample: staleness is the *resting* state of
+           * a folder somebody is working in, so a union with it trends to every row on
+           * any live shelf.
+           *
+           * `stale` is not dropped; it is said in words on the caption below, where it
+           * always was, and in the accessible name. The dot is pointed at the one fact
+           * that line can lose: it reads `<source state> · <off-template>` inside
+           * `truncate`, so only the trailing off-template segment can be clipped, and the
+           * dot is what survives the clip. `unverified` still gets no dot for the older
+           * reason — nothing is wrong there and nobody has started, which is why its row
+           * keeps the quiet border rather than a tinted one.
            */
-          const needsAttention = freshness === "stale" || Boolean(ownProblem);
+          const needsAttention = Boolean(ownProblem);
           const facts = [
             page.title,
             t(`shelf.freshness.${freshness}`),
@@ -210,7 +221,8 @@ export function LibraryShelf({
                   moved (fix it by compiling again) and the page's own shape misses the
                   template (fix it in the page). They now read as two words on one line
                   rather than as two ends of a coloured edge, and the dot is the "small
-                  marker" the rule asks for — one shape, at the ink the state already owns.
+                  marker" the rule asks for — spent on the rarer of the two, because a
+                  marker on the state a working folder rests in marks nothing.
                 */}
                 {/*
                   The title runs down the book. Its ink is the control's `tone`, so the

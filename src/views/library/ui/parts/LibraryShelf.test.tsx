@@ -119,21 +119,22 @@ describe("the wiki list at rest is a shelf, and every spine carries its freshnes
    * So the state is a word on the caption line that already carried it, with one dot in
    * front of the rows a person can act on. These cases pin that the dot stays a state and
    * not a texture: exactly the rows that need work wear it.
+   *
+   * ⚠️ **And "can act on" is the page's own defect, not staleness** (guardian,
+   * 2026-09-09). The first shape was `stale || ownProblem`, which on the owner's folder
+   * put the warning ink on 3 of 3 rows — staleness is the resting state of a folder
+   * somebody is working in, so the union trends to every row. Nothing on this shelf has a
+   * template problem, so nothing here wears a dot; the state is still in words on every
+   * row and in every accessible name, and `library.spec.ts` holds the positive case on a
+   * page that really does miss the template.
    */
-  it("marks the stale page with a dot and leaves the fresh one unmarked", () => {
+  it("leaves a stale page's dot off, because staleness is where a live folder rests", () => {
     mount(<Harness />);
-    const dots = screen.getAllByTestId("library-spine-attention-dot");
-    expect(dots).toHaveLength(1);
-    expect(
-      screen
-        .getByTestId("library-wiki-wiki/budget")
-        .querySelector('[data-testid="library-spine-attention-dot"]'),
-    ).not.toBeNull();
-    expect(
-      screen
-        .getByTestId("library-wiki-wiki/plan")
-        .querySelector('[data-testid="library-spine-attention-dot"]'),
-    ).toBeNull();
+    expect(screen.queryAllByTestId("library-spine-attention-dot")).toHaveLength(0);
+    // The fact itself did not move — it is on the row, in words, where it always was.
+    expect(screen.getByTestId("library-wiki-wiki/budget").textContent).toContain(
+      "Source review needed",
+    );
   });
 
   it("draws no coloured rail on any row", () => {

@@ -303,8 +303,15 @@ test.describe("the Library destination", () => {
      */
     const plan = page.getByTestId("library-wiki-wiki/quarter-plan");
     await expect(plan).toHaveAttribute("data-freshness", "stale");
-    await expect(plan.getByTestId("library-spine-attention-dot")).toBeAttached();
     await expect(plan).toContainText("Source review needed");
+    /*
+     * ⚠️ **A stale row carries no dot** (guardian, 2026-09-09). The dot shipped on
+     * `stale || ownProblem` and landed on 3 of 3 rows of the owner's folder: a folder
+     * somebody is working in *rests* stale, so the union puts the warning ink on every
+     * row and marks nothing. The word stays; only the marker contracted to the page's own
+     * defect, which is the fact this row's caption can lose to its own truncation.
+     */
+    await expect(plan.getByTestId("library-spine-attention-dot")).toHaveCount(0);
     await expect(page.getByTestId("library-wiki-wiki/handover")).toHaveAttribute(
       "data-freshness",
       "unverified",
