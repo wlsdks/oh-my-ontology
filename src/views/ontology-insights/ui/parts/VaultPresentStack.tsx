@@ -45,7 +45,7 @@ import type { VaultLayer, VaultLayerCounts } from "../../lib/vault-history";
  * follow. Reduced motion draws the finished wall on the first frame, with no schedule.
  */
 
-const LAYER_ORDER: readonly VaultLayer[] = ["concept", "writeUp", "document"];
+const LAYER_ORDER: readonly VaultLayer[] = ["concept", "module", "writeUp", "document"];
 
 /** Blocks per row in one layer's wall. Wide enough to read as a wall, narrow enough for three. */
 const COLUMNS = 14;
@@ -173,9 +173,18 @@ export function VaultPresentStack({
                     <li
                       key={i}
                       className={cn(
-                        "block rounded-micro",
+                        /*
+                          Square, not rounded. At the size a wall of a hundred blocks puts
+                          them at — about 13px across a quarter of the figure — the smallest
+                          radius on the ramp is a third of the block, and the wall rendered
+                          as a field of dots. A brick is what the owner asked for and a
+                          brick has corners.
+                        */
+                        "block rounded-none",
                         layer === "concept" && "bg-[color:var(--color-indigo-line-a90)]",
-                        layer === "writeUp" && "bg-[color:var(--color-text-secondary)]",
+                        layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
+                        layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
+                  layer === "writeUp" && "bg-[color:var(--color-text-secondary)]",
                         layer === "document" && "bg-[color:var(--color-text-quaternary)]",
                       )}
                       style={{

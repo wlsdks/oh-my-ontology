@@ -1422,6 +1422,7 @@
         "composition": "구성",
         "connections": "연결",
         "boundaries": "경계",
+        "growth": "성장",
         "freshness": "최근 변화",
         "structure": "구조",
         "flow": "흐름"
@@ -1723,7 +1724,10 @@
       "vaultHistory": {
         "title": "폴더가 무엇을 담고 있었는지",
         "caption": "Git 이력에서 다시 계산합니다. 따로 저장하지 않습니다.",
+        "milestoneBegan": "{week}에 시작",
+        "milestoneGrew": "{week}에 {delta}개 늘어 가장 많이 자람",
         "layerConcept": "개념",
+        "layerModule": "아키텍처",
         "layerWriteUp": "위키 문서",
         "layerDocument": "원문",
         "axisStart": "이력의 시작",

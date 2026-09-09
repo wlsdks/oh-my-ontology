@@ -216,7 +216,7 @@ const RECENT_UPDATES_LIMIT = 8;
  *
  * Three is measured (1512×950, dogfood). Impact ranking puts four rows in the same
  * layer, but that card is a two-column grid so four rows fold into two lines. This
- * list is a single column, and at four rows the expanded "freshness" tab reaches
+ * list is a single column, and at four rows the expanded "growth" tab reaches
  * 1,102px in `en` — 18px short of the scroll contract (1,120px), so one longer
  * translation overflows it. Three rows returns to the 1,0xx range. The scale is
  * already stated by the toggle label and the truncation copy; what is needed here
@@ -237,7 +237,7 @@ const HANDOFF_PAYLOAD_KEY: Record<InsightsTab, keyof InsightsHandoffProse> = {
   composition: "tabComposition",
   connections: "tabConnections",
   boundaries: "tabBoundaries",
-  freshness: "tabFreshness",
+  growth: "tabFreshness",
   // The only payload whose output is prose. It reads bodies rather than running an
   // operation, because a narrative rests on what the nodes say, not on a count.
   flow: "tabFlow",
@@ -274,7 +274,7 @@ const INSIGHTS_TAB_BADGE: Record<
   // Prose, not a measurement — the same empty slot freshness uses, for the same
   // reason: a badge here would have to invent a unit the tab does not have.
   flow: () => undefined,
-  freshness: () => undefined,
+  growth: () => undefined,
 };
 
 /**
@@ -1405,7 +1405,7 @@ export function OntologyInsightsPage() {
                 : 0,
               // What an unlabelled number counts — one line, surfaced only on hover and to assistive tech.
               countTitle:
-                key === "freshness" || key === "flow" ? undefined : t(`tabCountTitle.${key}`),
+                key === "growth" || key === "flow" ? undefined : t(`tabCountTitle.${key}`),
             }))}
           />
         </nav>
@@ -1593,7 +1593,7 @@ export function OntologyInsightsPage() {
                 labels={domainCouplingLabels}
               />
             ) : null}
-            {tab === "freshness" ? (
+            {tab === "growth" ? (
               /*
                 The panel itself is a gapless `flex-col`, so two blocks put in it as
                 siblings sit flush — measured on the owner's frame: this section's border
@@ -1603,18 +1603,19 @@ export function OntologyInsightsPage() {
               */
               <div className="flex min-h-0 flex-1 flex-col gap-[var(--card-gap)]">
               {/*
-                ⚠️ **The board already carried a time claim, and it was built on the wrong
-                source.** 2026-09-06 replaced this tab's trend with a "last 12 weeks"
-                census tile, and that tile is derived from file mtime — which po-evidence
-                measured lying on this very repository (fourteen vault files carry an mtime
-                days after their last real change, moved by checkouts) and collapsing
-                entirely on a clone, where every file reads as modified today.
+                ⚠️ **This tab has a protagonist now, and it is the folder, not its file
+                dates** (owner, 2026-09-09, choosing direction C over a new eighth tab:
+                *"I'd like the growth of the wiki shown really well in one tab"*).
 
-                This is that claim with a source that survives being cloned: three counts
-                recomputed from the folder's Git history, never stored. It sits in the tab
-                where time lives rather than as a fifth tile, because a tile is a number
-                and the fact worth seeing here is a *shape* — the divergence between the
-                layers, which is the one thing a single number cannot carry.
+                It used to be "recent changes", and everything on it was derived from file
+                update dates. That answer stays, demoted to what it is — a table of when
+                files were last written — and the tab now opens with what the folder has
+                actually grown into: four layers, counted from paths, with the week-by-week
+                shape where Git can supply one.
+
+                The order is the whole of the decision. Growth is above the dated tables
+                because it is what the tab's name promises, and because it is the one claim
+                here that a clone or a checkout cannot move.
               */}
               <VaultHistorySection state={vaultHistory} t={t} />
               <FreshnessTab

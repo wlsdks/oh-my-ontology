@@ -36,14 +36,23 @@
  * path rules, and `classifyVaultPath` is the whole of the vocabulary.
  */
 
-/** The three layers a vault folder holds, in the order the product introduces them. */
-export type VaultLayer = "document" | "writeUp" | "concept";
+/**
+ * The four layers a vault folder holds, in the order the product introduces them.
+ *
+ * `module` was split out of `concept` on 2026-09-09 at the owner's request: the ask was a
+ * growth picture "combining the ontology, the Library's documents and the architecture",
+ * and architecture cannot be a third of that while it is being counted inside the first.
+ * The split changes what past weeks count, so `VAULT_HISTORY_RULES_VERSION` moves with it.
+ */
+export type VaultLayer = "document" | "writeUp" | "concept" | "module";
 
 export interface VaultLayerCounts {
   /** Files kept verbatim under `sources/` — what the Library gathers. */
   document: number;
   /** Pages under `wiki/` — what was written from those documents. */
   writeUp: number;
+  /** Markdown under `architecture/` — the implementation shape the map hangs meaning on. */
+  module: number;
   /** Every other Markdown file in the folder — the ontology the map draws. */
   concept: number;
 }
@@ -70,10 +79,11 @@ export interface VaultHistoryPoint {
  * Stamped on every series so an old picture is never silently redrawn by new rules. If
  * `classifyVaultPath` changes what it counts, this changes with it.
  */
-export const VAULT_HISTORY_RULES_VERSION = 1;
+export const VAULT_HISTORY_RULES_VERSION = 2;
 
-const WIKI_DIR = "wiki/";
-const SOURCES_DIR = "sources/";
+const WIKI_DIR = "wiki";
+const SOURCES_DIR = "sources";
+const ARCHITECTURE_DIR = "architecture";
 
 /**
  * Which layer a vault-relative path belongs to, or `null` if it is not counted.
@@ -85,17 +95,29 @@ const SOURCES_DIR = "sources/";
 export function classifyVaultPath(path: string): VaultLayer | null {
   const clean = String(path ?? "").trim().replace(/^\.\//, "");
   if (!clean || clean.startsWith(".")) return null;
-  if (clean.startsWith(SOURCES_DIR)) {
-    // A document is any format at all; that is what `sources/` means.
-    return clean.length > SOURCES_DIR.length ? "document" : null;
-  }
+  /*
+   * ⚠️ **A folder is recognised by a path *segment*, not by a prefix.** A vault-relative
+   * path starts with its folder, but the bundled sample's manifest carries a repo-relative
+   * one (`samples/storefront/architecture/…`), and a prefix test silently counted every one
+   * of those as an ordinary concept — measured on the sample board as architecture 0 beside
+   * an architecture folder that plainly exists. Matching the segment is right for both, and
+   * it is also what a reader means by "the file is in the wiki folder".
+   */
+  const segments = clean.split("/");
+  // A trailing slash is a directory, not a file in it: `sources/` names the folder itself.
+  if (!segments.at(-1)) return null;
+  const dirs = segments.slice(0, -1);
+  const inFolder = (dir: string) => dirs.includes(dir);
+  if (inFolder(SOURCES_DIR)) return "document"; // any format at all; that is what sources/ means
   if (!clean.endsWith(".md")) return null;
-  const name = clean.slice(clean.lastIndexOf("/") + 1);
+  const name = segments.at(-1) ?? "";
   if (name.startsWith("_")) return null;
-  return clean.startsWith(WIKI_DIR) ? "writeUp" : "concept";
+  if (inFolder(WIKI_DIR)) return "writeUp";
+  if (inFolder(ARCHITECTURE_DIR)) return "module";
+  return "concept";
 }
 
-const emptyCounts = (): VaultLayerCounts => ({ document: 0, writeUp: 0, concept: 0 });
+const emptyCounts = (): VaultLayerCounts => ({ document: 0, writeUp: 0, module: 0, concept: 0 });
 
 /**
  * Count what the folder holds right now, from the paths it holds right now.
@@ -196,4 +218,55 @@ export function vaultHistoryPeak(weeks: readonly VaultHistoryWeek[]): number {
     peak = Math.max(peak, week.counts.document, week.counts.writeUp, week.counts.concept);
   }
   return peak;
+}
+
+/**
+ * **What a series says besides its shape.**
+ *
+ * A curve tells a reader the direction; it does not tell them *when* anything happened, and
+ * a person cannot read a date off a column forty pixels wide. These are the two facts the
+ * series can state exactly and a picture cannot: the week a layer first existed, and the
+ * week it grew the most. Both are read straight off the same weekly points the chart draws,
+ * so a milestone can never disagree with the shape beside it.
+ */
+export interface VaultLayerMilestones {
+  layer: VaultLayer;
+  /** The first week this layer held anything at all, or null if it never has. */
+  began: { week: string; count: number } | null;
+  /** The week this layer grew the most, and by how much. Null when it never grew. */
+  grew: { week: string; delta: number } | null;
+  /** What it holds at the end of the window. */
+  latest: number;
+}
+
+/**
+ * Milestones per layer, over an ascending weekly series.
+ *
+ * ⚠️ **The first week of the window is never reported as a beginning.** A folder whose
+ * history reaches further back than the window opens with whatever it already held, and
+ * calling that "began" would date the person's work to the day the window happens to start.
+ * A beginning is a layer that was empty in one week and is not in the next.
+ */
+export function vaultLayerMilestones(
+  weeks: readonly VaultHistoryWeek[],
+  layer: VaultLayer,
+): VaultLayerMilestones {
+  let began: { week: string; count: number } | null = null;
+  let grew: { week: string; delta: number } | null = null;
+  for (let i = 1; i < weeks.length; i += 1) {
+    const previous = weeks[i - 1]?.counts[layer] ?? 0;
+    const point = weeks[i];
+    if (!point) continue;
+    const current = point.counts[layer];
+    if (!began && previous === 0 && current > 0) began = { week: point.week, count: current };
+    const delta = current - previous;
+    if (delta > 0 && (!grew || delta > grew.delta)) grew = { week: point.week, delta };
+  }
+  /*
+   * A layer that appeared and had its biggest week in the same week has one fact, not two;
+   * printing both says the same date twice. The beginning is the more specific of the pair,
+   * so it survives.
+   */
+  if (began && grew && began.week === grew.week) grew = null;
+  return { layer, began, grew, latest: weeks.at(-1)?.counts[layer] ?? 0 };
 }

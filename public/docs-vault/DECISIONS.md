@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-09 — The freshness tab becomes the growth tab, and architecture is counted as its own layer
+
+**Why**: the owner asked for the wiki's growth "shown really well, in one tab", and the growth surface built that morning was a card sitting on top of a tab named for something else. The tab's own subject was file update dates, which the same day's work established cannot say what a person did. Direction C was chosen over an eighth tab because "recent changes" and "growth" are both time claims and a reader would have had to pick between them every time.
+**Prior**: overturns the tab naming of 2026-09-06 "The insights board leads with measurement…", whose remaining clauses (four census tiles, one row per finding group) stand. Extends the same day's Git-replay and present-stack records.
+**Decision**: `freshness` becomes `growth`, with the old id kept as a live alias so saved links and `via=insights:freshness` return chips still land. Growth opens the tab; the domain heat strip and the recently-updated list stay as the supporting detail they were, below it. Architecture splits out of `concept` into a fourth layer, because the owner's ask was a picture combining the ontology, the Library and the architecture and one of the three cannot be counted inside another; the rules version moves to 2. Under the chart, in words, the two facts a forty-pixel column cannot state: the week a layer began and the week it grew most, suppressed when they are the same week.
+**Dissent**: an eighth tab gave growth the whole frame and needed no rename, but on every folder available three of the four layers are empty, so it would have shipped a tab that is mostly blank. Retiring the dated tables entirely was not taken: a per-document date is the least inferential fact on the board.
+**Falsifier**: a person opening the growth tab and reading the dated tables under it as part of the growth claim; an old `?tab=freshness` link landing anywhere but here.
+**Owner**: jinan
+
 ## 2026-09-09 — The board draws the folder it has, and never guesses whether a timestamp was work
 
 **Why**: two findings on one board. The owner opened Analysis and saw nothing new: the growth surface shipped that morning drew a chart only where Git answers, so in a browser it was a paragraph explaining an absence. And the census tile's weekly bars are file timestamps, which on this repository's own checkout cluster 77 of 109 files into one 60-second instant.

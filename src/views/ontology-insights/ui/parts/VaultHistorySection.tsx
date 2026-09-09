@@ -3,6 +3,7 @@
 import type { useTranslations } from "next-intl";
 
 import type { VaultHistoryState } from "../../lib/use-vault-history";
+import { vaultLayerMilestones, type VaultLayer } from "../../lib/vault-history";
 import { VaultHistoryTracks } from "./VaultHistoryTracks";
 import { VaultPresentStack } from "./VaultPresentStack";
 import { InsightsSectionTitle } from "./InsightsSectionTitle";
@@ -80,6 +81,7 @@ export function VaultHistorySection({
       labels={{
         layer: {
           concept: t("vaultHistory.layerConcept"),
+          module: t("vaultHistory.layerModule"),
           writeUp: t("vaultHistory.layerWriteUp"),
           document: t("vaultHistory.layerDocument"),
         },
@@ -120,6 +122,17 @@ export function VaultHistorySection({
     );
   }
 
+  /*
+   * ⚠️ **A curve says the direction; it cannot say the date.** Nobody reads a week off a
+   * column forty pixels wide, so the two facts the series can state exactly are stated in
+   * words beside it: the week a layer first existed, and the week it grew the most. Both are
+   * read off the same points the chart draws, so a milestone can never disagree with the
+   * shape above it, and a layer with nothing to report says nothing rather than a dash.
+   */
+  const milestones = (["concept", "module", "writeUp", "document"] as VaultLayer[])
+    .map((layer) => vaultLayerMilestones(state.weeks, layer))
+    .filter((m) => m.began || m.grew);
+
   return frame(
     <VaultHistoryTracks
       weeks={state.weeks}
@@ -127,6 +140,7 @@ export function VaultHistorySection({
       labels={{
         layer: {
           concept: t("vaultHistory.layerConcept"),
+          module: t("vaultHistory.layerModule"),
           writeUp: t("vaultHistory.layerWriteUp"),
           document: t("vaultHistory.layerDocument"),
         },
@@ -136,6 +150,29 @@ export function VaultHistorySection({
         axisStart: t("vaultHistory.axisStart"),
         axisEnd: t("vaultHistory.axisEnd"),
       }}
+      milestones={
+        milestones.length > 0 ? (
+          <ul
+            data-testid="vault-history-milestones"
+            className="flex flex-wrap gap-x-5 gap-y-1 border-t border-[color:var(--color-border-soft)] pt-3 text-label text-[color:var(--color-text-tertiary)]"
+          >
+            {milestones.map((m) => (
+              <li key={m.layer} className="[word-break:keep-all]">
+                <span className="text-[color:var(--color-text-secondary)]">
+                  {t(`vaultHistory.layer${m.layer === "concept" ? "Concept" : m.layer === "module" ? "Module" : m.layer === "writeUp" ? "WriteUp" : "Document"}` as "vaultHistory.layerConcept")}
+                </span>{" "}
+                {m.began
+                  ? t("vaultHistory.milestoneBegan", { week: m.began.week })
+                  : null}
+                {m.began && m.grew ? " · " : null}
+                {m.grew
+                  ? t("vaultHistory.milestoneGrew", { week: m.grew.week, delta: m.grew.delta })
+                  : null}
+              </li>
+            ))}
+          </ul>
+        ) : null
+      }
     />,
   );
 }

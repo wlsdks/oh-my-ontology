@@ -56,7 +56,7 @@ import type { VaultHistoryWeek, VaultLayer } from "../../lib/vault-history";
  * dropping the frame costs no comparison and returns the space.
  */
 
-const LAYER_ORDER: readonly VaultLayer[] = ["concept", "writeUp", "document"];
+const LAYER_ORDER: readonly VaultLayer[] = ["concept", "module", "writeUp", "document"];
 
 /** The finest a block is ever allowed to mean, so a small folder is not drawn as dust. */
 const FILES_PER_CUBE = 4;
@@ -90,10 +90,13 @@ export function VaultHistoryTracks({
   weeks,
   peak,
   labels,
+  milestones,
 }: {
   weeks: readonly VaultHistoryWeek[];
   peak: number;
   labels: VaultHistoryTracksLabels;
+  /** Dates the chart cannot state, in words, under the axis. */
+  milestones?: React.ReactNode;
 }) {
   const reducedMotion = usePrefersReducedMotion();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -225,7 +228,9 @@ export function VaultHistoryTracks({
                         className={cn(
                           "block w-full rounded-micro",
                           layer === "concept" && "bg-[color:var(--color-indigo-line-a90)]",
-                          layer === "writeUp" && "bg-[color:var(--color-text-secondary)]",
+                          layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
+                        layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
+                  layer === "writeUp" && "bg-[color:var(--color-text-secondary)]",
                           layer === "document" && "bg-[color:var(--color-text-quaternary)]",
                         )}
                         style={{
@@ -250,6 +255,7 @@ export function VaultHistoryTracks({
         <span>{labels.scaleNote(filesPerCube)}</span>
         <span>{labels.axisEnd}</span>
       </div>
+      {milestones}
     </div>
   );
 }

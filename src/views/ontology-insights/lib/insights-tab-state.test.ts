@@ -20,7 +20,7 @@ describe("parseInsightsTab", () => {
       "composition",
       "connections",
       "boundaries",
-      "freshness",
+      "growth",
       // Written by an agent rather than computed from the graph — the one tab
       // whose question ("what is this product and how does it move") is prose.
       "flow",
@@ -46,6 +46,18 @@ describe("parseInsightsTab", () => {
   });
 });
 
+describe("the freshness rename", () => {
+  /*
+   * ⚠️ Bookmarks and agent return-chip links (`via=insights:freshness`) live a long time.
+   * The tab that asked "what moved lately" now asks "what has this folder grown into", and
+   * the old name has to keep landing somewhere real rather than dumping a saved link on the
+   * default tab.
+   */
+  it("still lands an old ?tab=freshness link on the tab that replaced it", () => {
+    expect(parseInsightsTab("freshness")).toBe("growth");
+  });
+});
+
 describe("buildInsightsTabHref", () => {
   it("omits the query string for the default tab", () => {
     expect(buildInsightsTabHref("do-next")).toBe("/ontology/insights/");
@@ -55,7 +67,7 @@ describe("buildInsightsTabHref", () => {
     expect(buildInsightsTabHref("composition")).toBe("/ontology/insights/?tab=composition");
     expect(buildInsightsTabHref("connections")).toBe("/ontology/insights/?tab=connections");
     expect(buildInsightsTabHref("boundaries")).toBe("/ontology/insights/?tab=boundaries");
-    expect(buildInsightsTabHref("freshness")).toBe("/ontology/insights/?tab=freshness");
+    expect(buildInsightsTabHref("growth")).toBe("/ontology/insights/?tab=growth");
   });
 
   it("preserves the current locale pathname for native history updates", () => {

@@ -148,7 +148,7 @@ export const ONTOLOGY_DESIGN_REQUIRED_SURFACE_MARKERS = [
         '  "composition",',
         '  "connections",',
         '  "boundaries",',
-        '  "freshness",',
+        '  "growth",',
         '  "flow",',
         "] as const;",
       ].join("\n"),

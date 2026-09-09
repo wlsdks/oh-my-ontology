@@ -19,7 +19,7 @@ function Harness({ state }: { state: VaultHistoryState }) {
 }
 
 /** The folder these tests describe, as it stands — every state now carries it. */
-const PRESENT = { concept: 71, writeUp: 0, document: 11 };
+const PRESENT = { concept: 71, writeUp: 0, module: 0, document: 11 };
 
 const mount = (state: VaultHistoryState) =>
   render(
@@ -34,10 +34,10 @@ const mount = (state: VaultHistoryState) =>
  * shape the surface exists to show — a fall in one layer beside a rise in another.
  */
 const MEASURED = [
-  { week: "2026-06-29", hash: "798a74a7", counts: { concept: 107, writeUp: 0, document: 4 } },
-  { week: "2026-07-13", hash: "33357ba7", counts: { concept: 102, writeUp: 0, document: 6 } },
-  { week: "2026-07-20", hash: "57cabd36", counts: { concept: 97, writeUp: 0, document: 9 } },
-  { week: "2026-07-27", hash: "9ad54554", counts: { concept: 71, writeUp: 0, document: 11 } },
+  { week: "2026-06-29", hash: "798a74a7", counts: { concept: 107, writeUp: 0, module: 0, document: 4 } },
+  { week: "2026-07-13", hash: "33357ba7", counts: { concept: 102, writeUp: 0, module: 0, document: 6 } },
+  { week: "2026-07-20", hash: "57cabd36", counts: { concept: 97, writeUp: 0, module: 0, document: 9 } },
+  { week: "2026-07-27", hash: "9ad54554", counts: { concept: 71, writeUp: 0, module: 0, document: 11 } },
 ];
 
 describe("VaultHistorySection — the states with no time axis", () => {
@@ -113,11 +113,11 @@ describe("VaultHistorySection — the chart", () => {
 
   it("draws one track per layer, never a blended one", () => {
     mount(ready);
-    for (const layer of ["concept", "writeUp", "document"]) {
+    for (const layer of ["concept", "module", "writeUp", "document"]) {
       expect(screen.getByTestId(`vault-history-track-${layer}`)).toBeInTheDocument();
     }
     // A fourth track would be a total, which is the thing both PO seats refused.
-    expect(document.querySelectorAll('[data-testid^="vault-history-track-"]')).toHaveLength(3);
+    expect(document.querySelectorAll('[data-testid^="vault-history-track-"]')).toHaveLength(4);
   });
 
   it("ends each track on the count the folder holds now", () => {

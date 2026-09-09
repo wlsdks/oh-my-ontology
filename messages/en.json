@@ -1422,6 +1422,7 @@
         "composition": "Inventory",
         "connections": "Connections",
         "boundaries": "Boundaries",
+        "growth": "Growth",
         "freshness": "Recent changes",
         "structure": "Structure",
         "flow": "Flow"
@@ -1723,7 +1724,10 @@
       "vaultHistory": {
         "title": "What the folder held",
         "caption": "Recomputed from Git history. Nothing is stored.",
+        "milestoneBegan": "began {week}",
+        "milestoneGrew": "grew most in {week}, by {delta}",
         "layerConcept": "Concepts",
+        "layerModule": "Architecture",
         "layerWriteUp": "Wiki pages",
         "layerDocument": "Documents",
         "axisStart": "start of history",

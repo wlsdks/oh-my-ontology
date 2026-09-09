@@ -6489,6 +6489,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-09 — The freshness tab becomes the growth tab, and architecture is counted as its own layer",
+      "slug": "2026-09-09-the-freshness-tab-becomes-the-growth-tab-and-architecture-is-counted-as-its-own-layer"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-09 — The board draws the folder it has, and never guesses whether a timestamp was work",
       "slug": "2026-09-09-the-board-draws-the-folder-it-has-and-never-guesses-whether-a-timestamp-was-work"
     },

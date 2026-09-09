@@ -4,9 +4,12 @@ import {
   classifyVaultPath,
   countVaultPaths,
   replayVaultHistory,
-  vaultHistoryPeak,
-  weeklyVaultHistory,
   type VaultHistoryCommit,
+  type VaultHistoryWeek,
+  type VaultLayerCounts,
+  vaultHistoryPeak,
+  vaultLayerMilestones,
+  weeklyVaultHistory,
 } from "./vault-history";
 
 /**
@@ -81,16 +84,16 @@ describe("countVaultPaths — the present, by the same rule as the past", () => 
         "sources/budget.xlsx",
         "logo.png",
       ]),
-    ).toEqual({ concept: 2, writeUp: 1, document: 2 });
+    ).toEqual({ concept: 2, writeUp: 1, module: 0, document: 2 });
   });
 
   it("counts an empty folder as zero of everything", () => {
-    expect(countVaultPaths([])).toEqual({ concept: 0, writeUp: 0, document: 0 });
+    expect(countVaultPaths([])).toEqual({ concept: 0, writeUp: 0, module: 0, document: 0 });
   });
 });
 
 describe("replayVaultHistory — rewound from the present, not accumulated forward", () => {
-  const present = { concept: 3, writeUp: 2, document: 4 };
+  const present = { concept: 3, writeUp: 2, module: 0, document: 4 };
 
   it("returns oldest first, so a reader scans it the way time runs", () => {
     const points = replayVaultHistory(present, [
@@ -148,7 +151,7 @@ describe("replayVaultHistory — rewound from the present, not accumulated forwa
       ]),
       commit("c1", "2026-09-01T10:00:00Z", []),
     ]);
-    expect(points[0]!.counts).toEqual({ concept: 2, writeUp: 1, document: 5 });
+    expect(points[0]!.counts).toEqual({ concept: 2, writeUp: 1, module: 0, document: 5 });
   });
 
   it("ignores a path no rule counts", () => {
@@ -166,7 +169,7 @@ describe("replayVaultHistory — rewound from the present, not accumulated forwa
    * window, so it clamps.
    */
   it("never draws a folder holding a negative number of anything", () => {
-    const points = replayVaultHistory({ concept: 1, writeUp: 0, document: 0 }, [
+    const points = replayVaultHistory({ concept: 1, writeUp: 0, module: 0, document: 0 }, [
       commit("c2", "2026-09-02T10:00:00Z", [["a.md", "added"]]),
       commit("c1", "2026-09-01T10:00:00Z", [["b.md", "added"]]),
     ]);
@@ -181,9 +184,9 @@ describe("replayVaultHistory — rewound from the present, not accumulated forwa
 describe("weeklyVaultHistory — what the folder held at the end of each week", () => {
   it("keeps the last commit of a week and drops the ones before it", () => {
     const weeks = weeklyVaultHistory([
-      { isoTime: "2026-09-01T09:00:00Z", hash: "mon", counts: { concept: 1, writeUp: 0, document: 0 } },
-      { isoTime: "2026-09-04T09:00:00Z", hash: "thu", counts: { concept: 4, writeUp: 1, document: 2 } },
-      { isoTime: "2026-09-09T09:00:00Z", hash: "nextTue", counts: { concept: 6, writeUp: 2, document: 3 } },
+      { isoTime: "2026-09-01T09:00:00Z", hash: "mon", counts: { concept: 1, writeUp: 0, module: 0, document: 0 } },
+      { isoTime: "2026-09-04T09:00:00Z", hash: "thu", counts: { concept: 4, writeUp: 1, module: 0, document: 2 } },
+      { isoTime: "2026-09-09T09:00:00Z", hash: "nextTue", counts: { concept: 6, writeUp: 2, module: 0, document: 3 } },
     ]);
     expect(weeks).toHaveLength(2);
     expect(weeks[0]).toMatchObject({ week: "2026-08-31", hash: "thu" });
@@ -193,8 +196,8 @@ describe("weeklyVaultHistory — what the folder held at the end of each week", 
 
   it("sorts weeks forward whatever order the points arrived in", () => {
     const weeks = weeklyVaultHistory([
-      { isoTime: "2026-09-09T09:00:00Z", hash: "b", counts: { concept: 2, writeUp: 0, document: 0 } },
-      { isoTime: "2026-09-01T09:00:00Z", hash: "a", counts: { concept: 1, writeUp: 0, document: 0 } },
+      { isoTime: "2026-09-09T09:00:00Z", hash: "b", counts: { concept: 2, writeUp: 0, module: 0, document: 0 } },
+      { isoTime: "2026-09-01T09:00:00Z", hash: "a", counts: { concept: 1, writeUp: 0, module: 0, document: 0 } },
     ]);
     expect(weeks.map((w) => w.week)).toEqual(["2026-08-31", "2026-09-07"]);
   });
@@ -205,15 +208,15 @@ describe("weeklyVaultHistory — what the folder held at the end of each week", 
    */
   it("leaves a quiet week out rather than drawing it as empty", () => {
     const weeks = weeklyVaultHistory([
-      { isoTime: "2026-08-31T09:00:00Z", hash: "a", counts: { concept: 5, writeUp: 0, document: 0 } },
-      { isoTime: "2026-09-14T09:00:00Z", hash: "b", counts: { concept: 6, writeUp: 0, document: 0 } },
+      { isoTime: "2026-08-31T09:00:00Z", hash: "a", counts: { concept: 5, writeUp: 0, module: 0, document: 0 } },
+      { isoTime: "2026-09-14T09:00:00Z", hash: "b", counts: { concept: 6, writeUp: 0, module: 0, document: 0 } },
     ]);
     expect(weeks.map((w) => w.week)).toEqual(["2026-08-31", "2026-09-14"]);
   });
 
   it("drops a point whose timestamp cannot be read", () => {
     const weeks = weeklyVaultHistory([
-      { isoTime: "not a date", hash: "bad", counts: { concept: 1, writeUp: 0, document: 0 } },
+      { isoTime: "not a date", hash: "bad", counts: { concept: 1, writeUp: 0, module: 0, document: 0 } },
     ]);
     expect(weeks).toEqual([]);
   });
@@ -223,8 +226,8 @@ describe("vaultHistoryPeak — the shared baseline the three tracks scale to", (
   it("takes the largest count any one layer reaches", () => {
     expect(
       vaultHistoryPeak([
-        { week: "2026-09-01", hash: "a", counts: { concept: 12, writeUp: 3, document: 40 } },
-        { week: "2026-09-08", hash: "b", counts: { concept: 60, writeUp: 4, document: 41 } },
+        { week: "2026-09-01", hash: "a", counts: { concept: 12, writeUp: 3, module: 0, document: 40 } },
+        { week: "2026-09-08", hash: "b", counts: { concept: 60, writeUp: 4, module: 0, document: 41 } },
       ]),
     ).toBe(60);
   });
@@ -243,12 +246,125 @@ describe("vaultHistoryPeak — the shared baseline the three tracks scale to", (
 describe("the divergence a blended score would erase", () => {
   it("keeps the layers apart, so a fall in one is visible beside a rise in another", () => {
     const weeks = weeklyVaultHistory([
-      { isoTime: "2026-06-29T10:00:00Z", hash: "a", counts: { concept: 107, writeUp: 0, document: 50 } },
-      { isoTime: "2026-07-27T10:00:00Z", hash: "b", counts: { concept: 71, writeUp: 0, document: 61 } },
+      { isoTime: "2026-06-29T10:00:00Z", hash: "a", counts: { concept: 107, writeUp: 0, module: 0, document: 50 } },
+      { isoTime: "2026-07-27T10:00:00Z", hash: "b", counts: { concept: 71, writeUp: 0, module: 0, document: 61 } },
     ]);
     expect(weeks[0]!.counts.concept - weeks[1]!.counts.concept).toBe(36);
     expect(weeks[1]!.counts.document - weeks[0]!.counts.document).toBe(11);
     const blended = weeks.map((w) => w.counts.concept + w.counts.writeUp + w.counts.document);
     expect(blended).toEqual([157, 132]);
+  });
+});
+
+describe("vaultLayerMilestones", () => {
+  const week = (w: string, counts: Partial<VaultLayerCounts>): VaultHistoryWeek => ({
+    week: w,
+    hash: w.replace(/-/g, "").slice(0, 8),
+    counts: { concept: 0, writeUp: 0, module: 0, document: 0, ...counts },
+  });
+
+  it("names the week a layer first held anything", () => {
+    const series = [
+      week("2026-06-01", { writeUp: 0 }),
+      week("2026-06-08", { writeUp: 0 }),
+      week("2026-06-15", { writeUp: 3 }),
+      week("2026-06-22", { writeUp: 4 }),
+    ];
+    expect(vaultLayerMilestones(series, "writeUp").began).toEqual({
+      week: "2026-06-15",
+      count: 3,
+    });
+  });
+
+  /*
+   * ⚠️ The condition that keeps a milestone from lying about the person. A folder older than
+   * the window opens holding things; dating that to the window's first week would say the
+   * work started the day we happened to start looking.
+   */
+  it("never calls the window's own first week a beginning", () => {
+    const series = [
+      week("2026-06-01", { concept: 40 }),
+      week("2026-06-08", { concept: 44 }),
+    ];
+    expect(vaultLayerMilestones(series, "concept").began).toBeNull();
+  });
+
+  it("finds the week that grew the most, not the last week that grew", () => {
+    const series = [
+      week("2026-06-01", { concept: 10 }),
+      week("2026-06-08", { concept: 30 }),
+      week("2026-06-15", { concept: 33 }),
+    ];
+    expect(vaultLayerMilestones(series, "concept").grew).toEqual({
+      week: "2026-06-08",
+      delta: 20,
+    });
+  });
+
+  it("reports no growth for a layer that only ever fell", () => {
+    const series = [
+      week("2026-06-01", { concept: 30 }),
+      week("2026-06-08", { concept: 20 }),
+    ];
+    const m = vaultLayerMilestones(series, "concept");
+    expect(m.grew).toBeNull();
+    expect(m.latest).toBe(20);
+  });
+
+  it("says nothing at all about a layer that never existed", () => {
+    const series = [week("2026-06-01", {}), week("2026-06-08", {})];
+    expect(vaultLayerMilestones(series, "module")).toEqual({
+      layer: "module",
+      began: null,
+      grew: null,
+      latest: 0,
+    });
+  });
+});
+
+describe("classifyVaultPath — a folder is a path segment, not a prefix", () => {
+  /*
+   * ⚠️ Measured on the sample board: architecture read 0 beside an architecture folder that
+   * plainly existed, because the bundled manifest carries repo-relative paths
+   * (`samples/storefront/architecture/…`) and the rule tested the string's prefix.
+   */
+  it("counts a layer folder that sits under a prefix", () => {
+    expect(classifyVaultPath("samples/storefront/architecture/services.md")).toBe("module");
+    expect(classifyVaultPath("samples/storefront/wiki/onboarding.md")).toBe("writeUp");
+    expect(classifyVaultPath("samples/storefront/sources/deck.pdf")).toBe("document");
+    expect(classifyVaultPath("samples/storefront/capabilities/cart.md")).toBe("concept");
+  });
+
+  it("still reads a plain vault-relative path the same way", () => {
+    expect(classifyVaultPath("architecture/services.md")).toBe("module");
+    expect(classifyVaultPath("wiki/onboarding.md")).toBe("writeUp");
+  });
+
+  it("does not mistake a file *named* like a folder for that folder", () => {
+    expect(classifyVaultPath("capabilities/architecture.md")).toBe("concept");
+    expect(classifyVaultPath("capabilities/wiki.md")).toBe("concept");
+  });
+});
+
+describe("vaultLayerMilestones — one week, one fact", () => {
+  it("does not say the same date twice when a layer began and peaked together", () => {
+    const series: VaultHistoryWeek[] = [
+      { week: "2026-06-01", hash: "a", counts: { concept: 0, writeUp: 0, module: 0, document: 0 } },
+      { week: "2026-06-08", hash: "b", counts: { concept: 0, writeUp: 0, module: 4, document: 0 } },
+    ];
+    const m = vaultLayerMilestones(series, "module");
+    expect(m.began).toEqual({ week: "2026-06-08", count: 4 });
+    expect(m.grew).toBeNull();
+  });
+
+  it("keeps both when the biggest week came after the beginning", () => {
+    const series: VaultHistoryWeek[] = [
+      { week: "2026-06-01", hash: "a", counts: { concept: 0, writeUp: 0, module: 0, document: 0 } },
+      { week: "2026-06-08", hash: "b", counts: { concept: 0, writeUp: 0, module: 2, document: 0 } },
+      { week: "2026-06-15", hash: "c", counts: { concept: 0, writeUp: 0, module: 9, document: 0 } },
+    ];
+    const m = vaultLayerMilestones(series, "module");
+    expect(m.began?.week).toBe("2026-06-08");
+    expect(m.grew).toEqual({ week: "2026-06-15", delta: 7 });
   });
 });
