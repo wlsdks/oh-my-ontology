@@ -126,15 +126,20 @@ export function VaultHistoryTracks({
      * nobody and then sat still for the person who eventually arrived.
      */
     let timer = 0;
+    /*
+     * ⚠️ **The counter advances outside the state updater.** Scheduling the next tick inside
+     * `setState(current => ...)` starts a fresh timer chain every time React runs the
+     * updater, and React may run it more than once for one update. Measured on the sibling
+     * wall: a build that should have taken 1.13s finished in 160ms with several chains
+     * racing, which is the stagger silently not happening at all.
+     */
+    let n = 0;
     const start = () => {
-      const step = () => {
-        setReleased((current) => {
-          if (current >= weeks.length) return current;
-          timer = window.setTimeout(step, COLUMN_STRIDE_MS);
-          return current + 1;
-        });
-      };
-      step();
+      timer = window.setInterval(() => {
+        n += 1;
+        setReleased(n);
+        if (n >= weeks.length) window.clearInterval(timer);
+      }, COLUMN_STRIDE_MS);
     };
     const observer = new IntersectionObserver(
       (entries) => {
@@ -147,7 +152,7 @@ export function VaultHistoryTracks({
     observer.observe(node);
     return () => {
       observer.disconnect();
-      window.clearTimeout(timer);
+      window.clearInterval(timer);
     };
   }, [reducedMotion, canWatch, weeks.length]);
 

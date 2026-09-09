@@ -36,6 +36,7 @@ import {
   useDataSourceMode,
   VaultSourceHydrationBoundary,
   useLocalVault,
+  useStaticVaultSource,
   useVaultIdentityScope,
 } from "@/entities/vault-session";
 import { OpenVaultCta } from "@/features/docs-vault-local";
@@ -349,6 +350,7 @@ export function OntologyInsightsPage() {
   const docFreshnessIndex = useVaultDocFreshnessIndex();
   const vault = useLocalVault();
   const dataSourceMode = useDataSourceMode();
+  const staticVaultSource = useStaticVaultSource();
   const agentServer = useAgentServer();
   const acpBridgeAvailable = useSyncExternalStore(
     subscribeAcpBridge,
@@ -361,10 +363,21 @@ export function OntologyInsightsPage() {
    * are classified by the same path rule the history is — the commonest way a series like
    * this goes quietly wrong is a present counted one way and a past another.
    */
+  /*
+   * ⚠️ **The manifest the board is actually drawing, not only the local one.** The first
+   * build read `vault.manifest`, which is the folder a person opened from disk — so on the
+   * built-in sample, which is what a visitor and the owner's own browser meet first, every
+   * count came out zero and the surface said nothing at all. That is the same source
+   * selection `useVaultDocFreshnessIndex` already makes for this page's freshness numbers;
+   * two hooks on one screen answering "which folder is this" differently is how a board
+   * ends up counting two things and calling them one.
+   */
+  const historyManifest =
+    dataSourceMode === "static" ? staticVaultSource.manifest : vault.manifest;
   const vaultHistory = useVaultHistory(
     gitVaultPath,
-    vault.manifest?.docs,
-    vault.manifest?.sources?.map((source) => source.path),
+    historyManifest?.docs,
+    historyManifest?.sources?.map((source) => source.path),
   );
   const [acpRuntimes, setAcpRuntimes] = useState<ReturnType<typeof selectInsightsAgentRuntimes>>([]);
   const [acpRuntimeId, setAcpRuntimeId] = useState<string | null>(null);

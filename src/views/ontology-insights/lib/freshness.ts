@@ -94,8 +94,26 @@ function levelFromCount(count: number): FreshnessLevel {
  * Resolves a node to its update date (an ISO string). `node.evidenceIds[0]` is the vault document
  * slug the node originated from (the `derivationToInsight` contract — the evidence document is the
  * document of first appearance). `docUpdatedAtBySlug` is a lookup built from
- * `VaultManifest.docs[].updatedAt` — the real `file.lastModified` in local mode, and a build-time
- * value in static (dogfood) mode.
+ * `VaultManifest.docs[].updatedAt`.
+ *
+ * ⚠️ **What that date is, exactly — because this comment used to say it wrong.** It claimed a
+ * "build-time value in static mode", which made every date on this board look like an artifact.
+ * `scripts/build-docs-vault.mjs` in fact writes `committedDay ?? localDayStamp(mtime)`: the
+ * **commit day wins**, and mtime is the fallback for a dirty or untracked file only. The dogfood
+ * and sample boards therefore draw real authorship dates.
+ *
+ * The mode where the date is a filesystem timestamp is the **local folder in a browser**:
+ * `entities/docs-vault/lib/build-local-manifest.ts` stamps `new Date(lastModified)`. There it
+ * says when the file was last written to disk, which a clone, a checkout, an unzip or a sync
+ * client moves with nobody editing anything. Measured 2026-09-09 on this repository's own
+ * working checkout: 77 of 109 vault files carry one 60-second instant.
+ *
+ * ⚠️ **So no surface here may phrase this date as what the person did.** A count of dates is a
+ * count of dates; only Git can say what was worked on, and only the app reaches Git
+ * (`views/ontology-insights/lib/vault-history.ts`). Atlas does not try to tell a real batch of
+ * work from a checkout: po-evidence measured that no timestamp threshold separates them, because
+ * Atlas's own containment batch writes dozens of files in one loop and looks exactly like a
+ * checkout. Naming the source is never wrong; guessing its provenance is wrong on a schedule.
  */
 function resolveNodeUpdatedAt(
   node: KnowledgeGraphNode,

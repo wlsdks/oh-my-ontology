@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-09 — The board draws the folder it has, and never guesses whether a timestamp was work
+
+**Why**: two findings on one board. The owner opened Analysis and saw nothing new: the growth surface shipped that morning drew a chart only where Git answers, so in a browser it was a paragraph explaining an absence. And the census tile's weekly bars are file timestamps, which on this repository's own checkout cluster 77 of 109 files into one 60-second instant.
+**Prior**: extends the same day's "The board's time claim is recomputed from Git…"; narrows the mtime source of the "last 12 weeks" tile of 2026-09-06 without replacing it.
+**Decision**: the present is drawn in every state — one block per file, three walls that build themselves a block at a time, counted from paths and asserting nothing about when, so it needs neither Git nor timestamps. Where Git answers, the weekly tracks replace it. No predicate guesses whether timestamps are a checkout or work: every surface built on a file date now names that source in its words and its accessible name, including the do-next line, which said "you have not touched it in N days" about a number a clone moves.
+**Dissent**: I proposed detecting the artifact and refusing the claim. po-evidence killed it with a measured false positive (24.66% on 219 real commit dates, against a 25% gate) and a counter-case no threshold survives: Atlas's own containment batch writes dozens of files in one loop and is indistinguishable from a checkout, so the guard would fire hardest when Atlas's own repair had just succeeded. po-steward would have built it but widened it to the agent handoff, and named retirement as the better fork.
+**Falsifier**: a folder pair where a guard fires on a checkout and provably not across twenty real Atlas writes reopens the predicate; a person reading a wall of blocks as a claim about when retires it.
+**Owner**: jinan
+
 ## 2026-09-09 — The Library's object is drawn orthographically, its parallax is a duration, and its state is the headline
 
 **Why**: three findings the 2026-09-09 council upheld but deferred as redesign. A perspective camera divided the page-weight size channel by depth: 3 of 28 weight-ordered pairs rendered backwards and three pages of identical weight drew at 9.05, 9.05 and 12.60px, re-ordered every second by the turn. The pointer tilt moved a fixed 6% per frame, settling in 139ms at 120Hz and 556ms at 30Hz, and listened on `window`, so the backdrop leaned whenever a cursor crossed to the button. The no-folder column opened with the workbench header, spending its largest type on the destination's name at a 1.27 ratio.

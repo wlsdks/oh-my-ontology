@@ -18,6 +18,9 @@ function Harness({ state }: { state: VaultHistoryState }) {
   return <VaultHistorySection state={state} t={t} />;
 }
 
+/** The folder these tests describe, as it stands — every state now carries it. */
+const PRESENT = { concept: 71, writeUp: 0, document: 11 };
+
 const mount = (state: VaultHistoryState) =>
   render(
     <NextIntlClientProvider locale="ko" messages={ko}>
@@ -37,9 +40,27 @@ const MEASURED = [
   { week: "2026-07-27", hash: "9ad54554", counts: { concept: 71, writeUp: 0, document: 11 } },
 ];
 
-describe("VaultHistorySection — the states that draw no chart", () => {
+describe("VaultHistorySection — the states with no time axis", () => {
+  /*
+   * ⚠️ These states used to draw *nothing*, and that was the defect the owner found: in a
+   * browser, where Git is out of reach, the surface was a paragraph explaining an absence.
+   * The folder needs no history to be counted, so the present is drawn in every state; only
+   * the weekly tracks wait for Git.
+   */
+  it.each(["unavailable", "none", "loading"] as const)(
+    "draws the folder as it stands, even with no weeks to show (%s)",
+    (status) => {
+      mount({ status, present: PRESENT });
+      expect(screen.getByTestId("vault-present-stack")).toBeInTheDocument();
+      expect(screen.getByTestId("vault-present-tower-concept").textContent).toContain("71");
+      // A layer at a true zero keeps its tower, so "none" never reads as "not measured".
+      expect(screen.getByTestId("vault-present-tower-writeUp")).toBeInTheDocument();
+      expect(screen.queryByTestId("vault-history-track-concept")).toBeNull();
+    },
+  );
+
   it("says the browser cannot reach the history, and does not call that empty", () => {
-    mount({ status: "unavailable" });
+    mount({ status: "unavailable", present: PRESENT });
     const section = screen.getByTestId("vault-history");
     expect(section).toHaveAttribute("data-state", "unavailable");
     expect(section.textContent).toContain(
@@ -54,7 +75,7 @@ describe("VaultHistorySection — the states that draw no chart", () => {
    * person where the truth is a claim about the data.
    */
   it("says a folder with no commits has no history, rather than drawing zeroes", () => {
-    mount({ status: "none" });
+    mount({ status: "none", present: PRESENT });
     const section = screen.getByTestId("vault-history");
     expect(section).toHaveAttribute("data-state", "none");
     expect(section.textContent).toContain(ko.ontologyPages.insights.vaultHistory.noneTitle);
@@ -62,15 +83,15 @@ describe("VaultHistorySection — the states that draw no chart", () => {
   });
 
   it("tells the two apart, because they are different limitations", () => {
-    const { unmount } = mount({ status: "unavailable" });
+    const { unmount } = mount({ status: "unavailable", present: PRESENT });
     const first = screen.getByTestId("vault-history").textContent;
     unmount();
-    mount({ status: "none" });
+    mount({ status: "none", present: PRESENT });
     expect(screen.getByTestId("vault-history").textContent).not.toBe(first);
   });
 
   it("says it is still reading rather than showing an empty chart while it waits", () => {
-    mount({ status: "loading" });
+    mount({ status: "loading", present: PRESENT });
     expect(screen.getByTestId("vault-history")).toHaveAttribute("data-state", "loading");
     expect(screen.queryByTestId("vault-history-track-concept")).toBeNull();
   });
@@ -79,10 +100,16 @@ describe("VaultHistorySection — the states that draw no chart", () => {
 describe("VaultHistorySection — the chart", () => {
   const ready: VaultHistoryState = {
     status: "ready",
+    present: PRESENT,
     weeks: MEASURED,
     peak: 107,
     rulesVersion: 1,
   };
+
+  it("drops the present stack once the weeks can carry the same fact with a date", () => {
+    mount(ready);
+    expect(screen.queryByTestId("vault-present-stack")).toBeNull();
+  });
 
   it("draws one track per layer, never a blended one", () => {
     mount(ready);

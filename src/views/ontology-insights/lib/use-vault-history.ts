@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { gitHistory, isGitBridgeAvailable } from "@/shared/lib/tauri-git";
 import type { VaultDoc } from "@/entities/docs-vault";
@@ -12,6 +12,7 @@ import {
   weeklyVaultHistory,
   VAULT_HISTORY_RULES_VERSION,
   type VaultHistoryWeek,
+  type VaultLayerCounts,
 } from "./vault-history";
 
 /**
@@ -33,7 +34,18 @@ import {
  *   the folder was empty, a claim about the person rather than about the data.
  * - `ready` — weeks, each naming the commit it is true after.
  */
-export type VaultHistoryState =
+export type VaultHistoryState = {
+  /**
+   * What the folder holds **right now**, counted from paths by the same rule the past is.
+   *
+   * ⚠️ Always present, in every status, and that is the point. The first build drew nothing at
+   * all in three of its four states, which was honest about time and silent about the folder —
+   * so in a browser, where Git is out of reach, the surface was a paragraph explaining an
+   * absence. The present needs no history: it is the folder, counted. The time axis is the part
+   * that needs Git, and only that part waits.
+   */
+  present: VaultLayerCounts;
+} & (
   | { status: "idle" | "loading" | "unavailable" | "none" }
   | {
       status: "ready";
@@ -41,7 +53,8 @@ export type VaultHistoryState =
       peak: number;
       /** Stamped so an old picture is never silently redrawn by new counting rules. */
       rulesVersion: number;
-    };
+    }
+);
 
 /**
  * How far back to ask.
@@ -75,6 +88,17 @@ export function useVaultHistory(
     ...(sourcePaths ?? []),
   ].sort().join("\n");
 
+
+  /*
+   * Counted once per path set, and used by the effect and the return alike, so the present
+   * cannot be counted one way for the newest point of the series and another for the
+   * standalone stack. Memoised on the joined paths, which is also what the effect keys on.
+   */
+  const presentCounts = useMemo(
+    () => countVaultPaths(presentKey ? presentKey.split("\n") : []),
+    [presentKey],
+  );
+
   useEffect(() => {
     if (!reachable || !vaultPath) return;
     let cancelled = false;
@@ -82,19 +106,20 @@ export function useVaultHistory(
       const commits = await gitHistory(vaultPath, HISTORY_COMMIT_LIMIT).catch(() => null);
       if (cancelled) return;
       if (!commits || commits.length === 0) {
-        setFetched({ status: "none" });
+        setFetched({ status: "none", present: presentCounts });
         return;
       }
-      const present = countVaultPaths(presentKey ? presentKey.split("\n") : []);
+      const present = presentCounts;
       const weeks = weeklyVaultHistory(replayVaultHistory(present, commits));
       // One week is a dot, not a shape; say "no history" rather than draw a single column
       // and let it read as a trend.
       if (weeks.length < 2) {
-        setFetched({ status: "none" });
+        setFetched({ status: "none", present });
         return;
       }
       setFetched({
         status: "ready",
+        present,
         weeks,
         peak: vaultHistoryPeak(weeks),
         rulesVersion: VAULT_HISTORY_RULES_VERSION,
@@ -103,9 +128,9 @@ export function useVaultHistory(
     return () => {
       cancelled = true;
     };
-  }, [reachable, vaultPath, presentKey]);
+  }, [reachable, vaultPath, presentKey, presentCounts]);
 
-  if (!isGitBridgeAvailable()) return { status: "unavailable" };
-  if (!vaultPath) return { status: "none" };
-  return fetched ?? { status: "loading" };
+  if (!isGitBridgeAvailable()) return { status: "unavailable", present: presentCounts };
+  if (!vaultPath) return { status: "none", present: presentCounts };
+  return fetched ?? { status: "loading", present: presentCounts };
 }
