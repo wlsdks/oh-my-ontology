@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-09 — The growth figure is bounded, and its blocks are poured rather than revealed
+
+**Why**: the owner asked what one block per file looks like "when there are a lot", and design-infoviz had measured why it cannot: subitizing caps at four, so "the reader can check the count by looking" was false at 125 files by thirty times. The figure grew without bound — a slab at a hundred, dust or a silent cap at five thousand.
+**Prior**: overturns the one-block-per-file clause of the same day's "The board draws the folder it has…"; that record's other clauses and the four-layer split stand.
+**Decision**: a layer is a pile of at most 36 blocks, six across. The largest layer fills it and the others are drawn against the same block, so a block stands for a stated number of files and the figure says which in words whenever that is more than one. The same picture serves a folder of forty and one of forty thousand. Magnitude stays the numeral under each pile. Bounding bought the motion the owner asked for: at 40ms against a 120ms fall the concurrency is 3 and the longest pour is 1.44s at any folder size, so blocks land one at a time instead of the 19-block-wide wavefront the previous build rendered. `--motion-ease-place` is minted for the settle, licensed on transform only, on an arrival, on a figure carrying no type.
+**Dissent**: keeping one block per file under a cap was rejected — count and picture would disagree, the defect the mark exists to avoid. Colouring or ordering the pile by kind was rejected too: the census tile prints that breakdown 300px above.
+**Falsifier**: a folder where a smaller layer draws as one block and a reader takes it for one file; a person reading the pile as a count rather than the numeral under it.
+**Owner**: jinan
+
 ## 2026-09-09 — The freshness tab becomes the growth tab, and architecture is counted as its own layer
 
 **Why**: the owner asked for the wiki's growth "shown really well, in one tab", and the growth surface built that morning was a card sitting on top of a tab named for something else. The tab's own subject was file update dates, which the same day's work established cannot say what a person did. Direction C was chosen over an eighth tab because "recent changes" and "growth" are both time claims and a reader would have had to pick between them every time.
