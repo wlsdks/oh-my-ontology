@@ -1378,11 +1378,27 @@ export function LibraryPage() {
       >
         <div className="flex w-full max-w-[var(--library-empty-max)] flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-12">
         <div className={`${PAGE_COLUMN_STAGE} relative shrink-0`}>
-          <LibraryHeader t={t} inFolder={false} />
-          {/* One step under the h1 (14px): the hierarchy gate reads a tie as two titles. */}
-          <h2 className="mt-6 text-body font-[var(--font-weight-signature)] leading-title text-[color:var(--color-text-primary)]">
+          {/*
+            ⚠️ **The state is the headline here, not the destination's name**
+            (design-lead, 2026-09-09). This column used to open with the workbench header:
+            an `h1` carrying "Library" at 14px, then the state as an `h2` at 12.5px under
+            it. Nothing on the frame was larger than 14px and the widest gap in the whole
+            type stack was 14/11 — a ratio of **1.27** on a screen whose entire job is one
+            sentence, so the eye reached the door before it had read what it was being
+            asked. The stage one step further in already settled this and measured 2.42:
+            *"there the heading is the state and the rail carries the name."* The rail
+            carries the name here too, so the two empty screens now share one shape.
+
+            The `lede` tooltip goes with the header, and loses nothing: it says the Library
+            holds gathered documents and the pages written from them, which is what the
+            two rows below say at length, with their own names for the two kinds.
+          */}
+          <p className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
+            {t("title")}
+          </p>
+          <h1 className="mt-1 text-display leading-display font-[var(--font-weight-signature)] tracking-[var(--tracking-display)] text-[color:var(--color-text-primary)] [word-break:keep-all]">
             {t("emptyTitle")}
-          </h2>
+          </h1>
           <p className="mt-2 text-body leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]">
             {t("emptyBody")}
           </p>

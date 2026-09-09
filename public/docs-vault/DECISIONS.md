@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-09 — The Library's object is drawn orthographically, its parallax is a duration, and its state is the headline
+
+**Why**: three findings the 2026-09-09 council upheld but deferred as redesign. A perspective camera divided the page-weight size channel by depth: 3 of 28 weight-ordered pairs rendered backwards and three pages of identical weight drew at 9.05, 9.05 and 12.60px, re-ordered every second by the turn. The pointer tilt moved a fixed 6% per frame, settling in 139ms at 120Hz and 556ms at 30Hz, and listened on `window`, so the backdrop leaned whenever a cursor crossed to the button. The no-folder column opened with the workbench header, spending its largest type on the destination's name at a 1.27 ratio.
+**Prior**: pays the debt left open by 2026-09-09 "The Library canvas stands beside the page it is about", whose deferred list named these three; that record's decisions stand.
+**Decision**: orthographic camera, frustum derived from the retired 42-degree framing so both call sites keep their measured size; 0 of 28 pairs now render backwards and one weight draws one size. The tilt becomes an exponential approach over elapsed time at a 269ms constant, the value reproducing the old 60Hz feel exactly, and listens on the object's own box with a return to square on leave. The no-folder column takes the neighbouring stage's shape: the folder's name as the eyebrow, the state as the `text-display` headline, ratio 2.42; the lede tooltip goes because the two rows under it say it at length.
+**Dissent**: design-infoviz asked for labels on the constellation too; not taken, because a key naming two shapes is a legend and this object has none to hang it on. Depth cues lost with perspective are carried by fog and occlusion.
+**Falsifier**: a folder whose object reads as flat once perspective is gone; a display on which the tilt no longer feels like the recorded one; a person who reads the eyebrow as the state.
+**Owner**: jinan
+
 ## 2026-09-09 — The board's time claim is recomputed from Git, never stored, and drawn as three tracks that never blend
 
 **Why**: the board's only time claim was the "last 12 weeks" tile, and po-evidence measured its source lying on this repository: fourteen vault files carry an mtime days after their last real change because a checkout moved them, and on a fresh clone every file reads as modified today. The owner asked for a growth surface that accumulates and assembles.

@@ -23,8 +23,10 @@
  *   - it **stops dead under reduced motion** — one still frame of the same object, drawn
  *     once, with no loop registered at all.
  *
- * Pointer parallax is deliberately tiny (±0.06 rad). The object should feel like it has
- * depth when a hand moves over it, not follow the cursor.
+ * Pointer parallax is deliberately tiny (±0.06 rad) and answers only a hand inside the
+ * object's own box. The object should feel like it has depth when a hand moves over it,
+ * not follow the cursor across the screen — a backdrop that leans while somebody reaches
+ * for the button is the same wriggle under another name.
  *
  * ## Why instanced solids rather than points
  *
@@ -89,6 +91,40 @@ function cssColor(el: Element, name: string, fallback: string): THREE.Color {
 /** Radians per millisecond — one full turn in four minutes. */
 const TURN_RATE = (Math.PI * 2) / 240_000;
 
+/**
+ * How long the pointer tilt takes to cover 63% of its remaining distance.
+ *
+ * ⚠️ **A fixed per-frame fraction is a monitor setting, not a duration** (design-motion,
+ * 2026-09-09). The tilt used to move 6% of the way home every frame, which is 278ms to
+ * settle on a 60Hz display, 139ms on 120Hz and 556ms on 30Hz — the same gesture felt
+ * different on every screen, and a dropped frame changed it mid-move. This is the time
+ * constant that reproduces the old 60Hz feel exactly (`-16.67 / ln(0.94)`), now applied
+ * against real elapsed time so every display gets that one answer.
+ */
+const PARALLAX_TAU_MS = 269;
+
+/**
+ * How far the tilt travels toward its target in `dtMs` of real time, 0-1.
+ *
+ * Exported because it is the whole of the fix and the only part of it that can be checked
+ * without a GPU: feed it any division of the same elapsed time and the remaining distance
+ * is the same number, which is exactly what the fraction it replaced could not do.
+ */
+export function parallaxFollow(dtMs: number): number {
+  return 1 - Math.exp(-Math.max(0, dtMs) / PARALLAX_TAU_MS);
+}
+
+/**
+ * How large a page's sphere is drawn, relative to the geometry — the `weight` channel.
+ *
+ * Weight is how many documents the page was written from, and this is the only place it
+ * becomes a size. It is a lone function so that the two call sites (the first build and
+ * every assembling frame) cannot drift apart, and so the channel can be checked.
+ */
+export function pageScaleFor(weight: number): number {
+  return 0.85 + weight * 0.75;
+}
+
 export function mountLibraryConstellation(
   canvas: HTMLCanvasElement,
   initial: ConstellationModel,
@@ -150,8 +186,34 @@ export function mountLibraryConstellation(
   key.position.set(2, 3, 2.5);
   scene.add(key);
 
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 24);
+  /*
+   * ⚠️ **Orthographic, because a perspective camera was silently destroying an encoding**
+   * (design-infoviz, 2026-09-09). A page's sphere is scaled by `weight` over a 1.88x ramp,
+   * but under perspective its *screen* size is that ramp divided by depth, and the marks
+   * span 2.38-3.36 in depth — a 1.41x range that overlaps the signal. Measured on the
+   * shipped frame, weight 0.25 drew at 12.89px while weight 0.50 drew at 10.88px, and
+   * weight 1.00 and 0.75 differed by 0.5%. An ordered channel that does not preserve order
+   * is not an encoding, and the turn meant it was re-ordered every second on constant data.
+   *
+   * Re-measured over the whole anonymous object at 440px, projecting every page mark
+   * through both cameras: perspective renders **3 of 28** weight-ordered pairs backwards,
+   * and draws three pages of *identical* weight at 9.05, 9.05 and 12.89px — a 1.42x spread
+   * carrying no information at all. Orthographic renders **0 of 28** backwards and gives
+   * one weight one size (10.38 / 12.26 / 14.14 / 16.01 for the four weights present).
+   *
+   * An orthographic projection has no depth term, so a sphere's size on screen is its
+   * weight and nothing else, at every angle of the turn. The near and far sides are still
+   * told apart, by the two channels that survive the change: fog, and the occlusion that
+   * made solids worth drawing in the first place.
+   *
+   * The frustum is derived from the old framing rather than re-tuned, so both call sites
+   * keep the size they were measured at: half-height is `tan(42deg / 2) * distance`, the
+   * height a 42-degree lens covered at that distance.
+   */
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 24);
   const camDistance = options.distance ?? 2.95;
+  /** The frame the retired 42-degree lens covered at this distance. */
+  const halfHeight = Math.tan((42 * Math.PI) / 180 / 2) * camDistance;
 
   const sourceGeom = new THREE.BoxGeometry(0.062, 0.062, 0.062);
   const pageGeom = new THREE.IcosahedronGeometry(0.046, 2);
@@ -259,7 +321,7 @@ export function mountLibraryConstellation(
         dummy.rotation.set(0, 0, 0);
         // Weight is the object's foreground: the page that gathered the most documents is
         // half again the size of one written from a single file.
-        dummy.scale.setScalar(0.85 + mark.weight * 0.75);
+        dummy.scale.setScalar(pageScaleFor(mark.weight));
         dummy.updateMatrix();
         pages!.setMatrixAt(index, dummy.matrix);
       });
@@ -331,7 +393,7 @@ export function mountLibraryConstellation(
         const step = assemblyStep(elapsed, index, PAGE_ASSEMBLY, radiusOf(mark));
         dummy.position.set(mark.x * step.distance, mark.y * step.distance, mark.z * step.distance);
         dummy.rotation.set(step.spin, step.spin, 0);
-        dummy.scale.setScalar((0.85 + mark.weight * 0.75) * step.presence);
+        dummy.scale.setScalar(pageScaleFor(mark.weight) * step.presence);
         dummy.updateMatrix();
         pages!.setMatrixAt(index, dummy.matrix);
       });
@@ -375,7 +437,13 @@ export function mountLibraryConstellation(
     width = Math.max(1, Math.round(rect.width));
     height = Math.max(1, Math.round(rect.height));
     renderer.setSize(width, height, false);
-    camera.aspect = width / height;
+    // Fit the height and let the width follow the box, which is what the perspective
+    // camera's vertical field of view did.
+    const halfWidth = halfHeight * (width / height);
+    camera.left = -halfWidth;
+    camera.right = halfWidth;
+    camera.top = halfHeight;
+    camera.bottom = -halfHeight;
     camera.updateProjectionMatrix();
   };
   const observer = new ResizeObserver(resize);
@@ -431,8 +499,11 @@ export function mountLibraryConstellation(
       return;
     }
     yaw += dt * TURN_RATE * factor;
-    tiltYaw += (tiltYawTarget - tiltYaw) * 0.06;
-    tiltPitch += (tiltPitchTarget - tiltPitch) * 0.06;
+    // Exponential approach over elapsed time: identical at 60Hz to the fraction it
+    // replaces, and now identical to itself at 30 and 120.
+    const follow = parallaxFollow(dt);
+    tiltYaw += (tiltYawTarget - tiltYaw) * follow;
+    tiltPitch += (tiltPitchTarget - tiltPitch) * follow;
     draw();
   };
 
@@ -445,13 +516,38 @@ export function mountLibraryConstellation(
     tiltPitchTarget *= 0.12;
   };
 
+  /*
+   * Leaving the object's own box returns it to square rather than freezing it at the tilt
+   * the cursor left behind. A backdrop holding a lean nobody is causing is the same
+   * complaint as one that moves for no reason.
+   */
+  const onPointerLeave = (): void => {
+    lastInput = performance.now();
+    tiltYawTarget = 0;
+    tiltPitchTarget = 0;
+  };
+
+  /*
+   * ⚠️ **Scoped to the object's own box, never `window`** (design-motion, 2026-09-09).
+   * Listening on `window` meant the backdrop leaned every time the cursor crossed the
+   * screen on its way to the call to action or the rail — motion in answer to something
+   * that had nothing to do with the object. That is precisely the mechanism behind the
+   * 2026-09-08 complaint this file's header was written against (*"why does it wriggle
+   * whenever I put the mouse on the graph?"*), reintroduced one surface over.
+   *
+   * The parent is the target rather than the canvas itself because the vignette is laid
+   * over the canvas and takes the events; the box is the same box either way.
+   */
+  const pointerHost: HTMLElement = canvas.parentElement ?? canvas;
+
   if (reduced) {
     // `durationMs` is 0 under reduced motion, so this one call lands every mark exactly
     // home and clears the assembly. One still frame of the same object, no arrival.
     placeAssembling(performance.now());
     draw();
   } else {
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    pointerHost.addEventListener("pointermove", onPointerMove, { passive: true });
+    pointerHost.addEventListener("pointerleave", onPointerLeave, { passive: true });
     raf = requestAnimationFrame(loop);
   }
 
@@ -471,7 +567,8 @@ export function mountLibraryConstellation(
     dispose: () => {
       disposed = true;
       if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener("pointermove", onPointerMove);
+      pointerHost.removeEventListener("pointermove", onPointerMove);
+      pointerHost.removeEventListener("pointerleave", onPointerLeave);
       observer.disconnect();
       clearBuilt();
       sourceGeom.dispose();
