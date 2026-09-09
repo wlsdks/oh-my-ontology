@@ -74,6 +74,63 @@ describe("assemblyStep — one mark's arrival", () => {
   });
 });
 
+/**
+ * ⚠️ **A fixed duration makes the far marks travel faster.** IBM Carbon's motion guidance
+ * is explicit that duration follows distance on a non-linear scale; this object launches
+ * every mark from a multiple of its own resting radius, so before this the outer shell was
+ * simply moving quicker than the inner one.
+ */
+describe("travel time follows the distance a mark has to cover", () => {
+  it("gives a mark on the outer shell longer than one close to the centre", () => {
+    const t = 400;
+    const near = assemblyStep(t, 0, SOURCE_ASSEMBLY, 0.3);
+    const far = assemblyStep(t, 0, SOURCE_ASSEMBLY, 1);
+    expect(near.progress).toBeGreaterThan(far.progress);
+  });
+
+  it("keeps their speeds comparable rather than equalising their arrival", () => {
+    // Distance covered per unit time, at the same moment, for a near and a far mark.
+    const t = 300;
+    const speed = (radius: number) => {
+      const step = assemblyStep(t, 0, SOURCE_ASSEMBLY, radius);
+      return (3.4 - step.distance) * radius;
+    };
+    const ratio = speed(1) / speed(0.3);
+    // Without the scaling this ratio was the raw radius ratio (~3.3): the far mark moving
+    // more than three times as fast. Under a square-root law it lands near 2.
+    expect(ratio).toBeGreaterThan(1.4);
+    expect(ratio).toBeLessThan(2.6);
+  });
+
+  it("still lands every mark exactly home whatever its radius", () => {
+    for (const radius of [0.05, 0.3, 0.52, 1]) {
+      expect(assemblyStep(10_000, 0, SOURCE_ASSEMBLY, radius)).toEqual({
+        progress: 1,
+        distance: 1,
+        spin: 0,
+        presence: 1,
+      });
+    }
+  });
+
+  it("survives a mark at the centre without dividing by zero", () => {
+    const step = assemblyStep(200, 0, SOURCE_ASSEMBLY, 0);
+    expect(Number.isFinite(step.distance)).toBe(true);
+    expect(step.progress).toBeGreaterThan(0);
+  });
+
+  /*
+   * `assemblyDurationMs` must stay the upper bound: it is what stops the host stepping and
+   * lets the object sleep, so it may never come before the slowest mark has landed.
+   */
+  it("never outlasts the duration the host waits for", () => {
+    const duration = assemblyDurationMs({ sources: 26, pages: 8, links: 16 });
+    for (const radius of [0.05, 0.52, 1]) {
+      expect(assemblyStep(duration, 25, SOURCE_ASSEMBLY, radius).progress).toBe(1);
+    }
+  });
+});
+
 describe("the three groups arrive in the order the Library describes", () => {
   it("sends documents before the write-ups made from them, and citations last", () => {
     expect(SOURCE_ASSEMBLY.delayMs).toBeLessThan(PAGE_ASSEMBLY.delayMs);

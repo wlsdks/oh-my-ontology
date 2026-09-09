@@ -68,6 +68,22 @@ export const LINK_ASSEMBLY: AssemblySchedule = { travelMs: 620, strideMs: 14, de
 
 /** How far outside the object a mark starts, as a multiple of its resting radius. */
 const LAUNCH_RADIUS = 3.4;
+
+/**
+ * How much of a mark's travel time follows the distance it has to cover.
+ *
+ * ⚠️ **A fixed duration makes the far marks travel faster** — IBM Carbon states the rule
+ * plainly: *"the larger the change in distance or size, the longer the animation takes"*,
+ * on a non-linear scale. This object launches every mark from `LAUNCH_RADIUS × its resting
+ * radius`, so a document on the outer shell covers roughly twice the ground of a write-up
+ * on the inner one; at one fixed `travelMs` the outer marks were simply moving quicker,
+ * which is the opposite of what weight and distance should feel like.
+ *
+ * The exponent is what makes it non-linear: at 0.5 the time grows with the square root of
+ * the distance, so a mark twice as far takes about 1.4× as long rather than 2× — far
+ * enough to feel heavier, not so far that the outer shell lags behind the object.
+ */
+const DISTANCE_TIME_EXPONENT = 0.5;
 /** Turns a mark makes on the way in. */
 const LAUNCH_SPIN = Math.PI * 1.5;
 
@@ -89,15 +105,23 @@ export function assemblyStep(
   elapsedMs: number,
   index: number,
   schedule: AssemblySchedule,
+  /**
+   * The mark's resting radius, 0–1, if the caller knows it. Marks further out are given
+   * proportionally longer to arrive, so every mark travels at a comparable speed rather
+   * than the outer shell racing the inner one. Omitted, every mark takes `travelMs`.
+   */
+  restingRadius = 1,
 ): AssemblyStep {
   const started = elapsedMs - schedule.delayMs - index * schedule.strideMs;
   if (started <= 0) {
     return { progress: 0, distance: LAUNCH_RADIUS, spin: LAUNCH_SPIN, presence: 0 };
   }
-  if (started >= schedule.travelMs) {
+  const reach = Math.max(0.05, Math.min(1, restingRadius));
+  const travelMs = schedule.travelMs * reach ** DISTANCE_TIME_EXPONENT;
+  if (started >= travelMs) {
     return { progress: 1, distance: 1, spin: 0, presence: 1 };
   }
-  const eased = easeOutCubic(started / schedule.travelMs);
+  const eased = easeOutCubic(started / travelMs);
   return {
     progress: eased,
     distance: LAUNCH_RADIUS + (1 - LAUNCH_RADIUS) * eased,
@@ -120,6 +144,8 @@ export function assemblyDurationMs(counts: {
   pages: number;
   links: number;
 }): number {
+  // `travelMs` is the longest any mark can take (a mark at the full resting radius), so
+  // the unscaled value is still the correct upper bound for "everything has landed".
   const end = (schedule: AssemblySchedule, count: number) =>
     count <= 0 ? 0 : schedule.delayMs + (count - 1) * schedule.strideMs + schedule.travelMs;
   return Math.max(

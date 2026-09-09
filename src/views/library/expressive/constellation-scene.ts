@@ -292,6 +292,10 @@ export function mountLibraryConstellation(
    * matrices exactly — `assemblyStep` returns `distance: 1, spin: 0` past a mark's travel —
    * so the settled object and the reduced-motion still frame are the same picture.
    */
+  /** A mark's distance from the object's centre, which is also how far it has to travel. */
+  const radiusOf = (mark: ConstellationMark): number =>
+    Math.sqrt(mark.x * mark.x + mark.y * mark.y + mark.z * mark.z);
+
   const placeAssembling = (now: number): boolean => {
     if (!assembling) return false;
     /*
@@ -310,7 +314,9 @@ export function mountLibraryConstellation(
 
     if (sources) {
       sourceMarks.forEach((mark, index) => {
-        const step = assemblyStep(elapsed, index, SOURCE_ASSEMBLY);
+        // The mark's own radius sets how long it is given: an outer-shell document has
+        // further to come than an inner write-up and must not arrive quicker for it.
+        const step = assemblyStep(elapsed, index, SOURCE_ASSEMBLY, radiusOf(mark));
         dummy.position.set(mark.x * step.distance, mark.y * step.distance, mark.z * step.distance);
         dummy.rotation.set(index * 0.7 + step.spin, index * 1.1 + step.spin, index * 0.3);
         dummy.scale.setScalar(step.presence);
@@ -322,7 +328,7 @@ export function mountLibraryConstellation(
 
     if (pages) {
       pageMarks.forEach((mark, index) => {
-        const step = assemblyStep(elapsed, index, PAGE_ASSEMBLY);
+        const step = assemblyStep(elapsed, index, PAGE_ASSEMBLY, radiusOf(mark));
         dummy.position.set(mark.x * step.distance, mark.y * step.distance, mark.z * step.distance);
         dummy.rotation.set(step.spin, step.spin, 0);
         dummy.scale.setScalar((0.85 + mark.weight * 0.75) * step.presence);
