@@ -2940,6 +2940,17 @@
        `motion-token-mirror.contract.test.ts` lets only `-out` / `[data-state="closed"]`
        rules reference it, only on a `*Out` keyframe, never in a `transition`. */
     --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+    /* Placement easing (2026-09-09) — a mark that was *set down*, not revealed.
+       The owner asked for blocks that trickle into a pile the way something poured into a
+       bucket settles; `--motion-ease` decelerates smoothly into place, which reads as a mark
+       appearing where it always was. This overshoots by about 8% and returns, so the block
+       arrives with weight. It is licensed on **transform only, on an arrival, on a figure
+       nobody is reading text inside** — never on a surface, a panel, or anything carrying
+       type, because a settling wobble under a sentence is the wriggle this product removed
+       from the map on 2026-09-08. The 2026-09-08 record lifted the overshoot ban; this is
+       the first token to spend it, and it names the meaning it carries.
+       Reduced motion never reaches it: both consumers draw finished on the first frame. */
+    --motion-ease-place: cubic-bezier(0.34, 1.28, 0.64, 1);
     /* --topology-card-scale is injected by SigmaSkeletonCards into container based on viewport width — CSS pipeline drops custom property without utility reference, so not declared here. */
 
     /*
@@ -3007,6 +3018,12 @@
        area chart. Capped, one week is about 40px and the stack is legible as a stack
        (2026-09-09, measured at 1512 and 1920). */
     --vault-history-width: 760px;
+    /* The narrowest a layer's column may be squeezed to before its own name stops fitting
+       under it — measured at the widest Korean layer label (41px) plus breathing room. Four
+       layers sharing a row equally gave the layer holding 125 files the same 175px as one
+       holding nothing, so the columns are shared out by what they hold and stop here
+       (design-responsive, 2026-09-09). */
+    --vault-layer-col-min: 72px;
     /* drawer/audit modal shared scrim, single source — same value as existing sourceTreeOpen drawer. Dark-only (no light branch). */
     --docs-scrim: rgba(0, 0, 0, 0.5);
     /*

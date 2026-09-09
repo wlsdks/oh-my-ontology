@@ -79,3 +79,31 @@ describe("buildInsightsTabHref", () => {
     );
   });
 });
+
+describe("switching tabs keeps the rest of the address", () => {
+  /*
+   * ⚠️ The old form returned `${pathname}?tab=${tab}`, which replaced the whole query, so a
+   * single tab click dropped `guides=off` and the first-run overlay came back mid-session.
+   * `/architecture` pins the same property; these two must not drift.
+   */
+  it("preserves orthogonal flags across a switch", () => {
+    expect(buildInsightsTabHref("growth", "/ontology/insights/", "?guides=off")).toBe(
+      "/ontology/insights/?guides=off&tab=growth",
+    );
+  });
+
+  it("still drops ?tab= entirely for the default tab, flags and all kept", () => {
+    expect(buildInsightsTabHref("do-next", "/ontology/insights/", "?guides=off&tab=growth")).toBe(
+      "/ontology/insights/?guides=off",
+    );
+    expect(buildInsightsTabHref("do-next", "/ontology/insights/", "?tab=growth")).toBe(
+      "/ontology/insights/",
+    );
+  });
+
+  it("replaces a stale tab rather than appending a second one", () => {
+    expect(buildInsightsTabHref("flow", "/ontology/insights/", "?tab=growth")).toBe(
+      "/ontology/insights/?tab=flow",
+    );
+  });
+});

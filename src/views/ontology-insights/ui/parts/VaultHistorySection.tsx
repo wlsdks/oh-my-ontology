@@ -101,7 +101,7 @@ export function VaultHistorySection({
     />
   );
 
-  if (state.status === "idle" || state.status === "loading") {
+  if (state.status === "loading") {
     return frame(
       <div className="flex flex-col gap-3">
         {stack}
@@ -116,7 +116,12 @@ export function VaultHistorySection({
   // and then say, in their own words, why the weeks are missing — and the difference between
   // them is whose limitation that is.
   if (state.status !== "ready") {
-    const key = state.status === "unavailable" ? "unavailable" : "none";
+    const key =
+      state.status === "unavailable"
+        ? "unavailable"
+        : state.status === "failed"
+          ? "failed"
+          : "none";
     return frame(
       <div className="flex flex-col gap-4">
         {stack}

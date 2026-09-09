@@ -47,7 +47,7 @@ describe("VaultHistorySection — the states with no time axis", () => {
    * The folder needs no history to be counted, so the present is drawn in every state; only
    * the weekly tracks wait for Git.
    */
-  it.each(["unavailable", "none", "loading"] as const)(
+  it.each(["unavailable", "none", "loading", "failed"] as const)(
     "draws the folder as it stands, even with no weeks to show (%s)",
     (status) => {
       mount({ status, present: PRESENT });
@@ -166,5 +166,25 @@ describe("VaultHistorySection — the chart", () => {
   it("states the scale, so a block is never mistaken for a file", () => {
     mount(ready);
     expect(screen.getByTestId("vault-history").textContent).toContain("블록 하나");
+  });
+});
+
+describe("a failed read is not an empty folder", () => {
+  /*
+   * ⚠️ A thrown Git bridge used to be folded into "none", whose copy says the folder has no
+   * commits — a factual claim about somebody's folder that may be false. This file's own
+   * argument about zeroes applies to it: an error and an absence have to look different.
+   */
+  it("says the read failed, and does not say the folder has no commits", () => {
+    mount({ status: "failed", present: PRESENT });
+    const section = screen.getByTestId("vault-history");
+    expect(section).toHaveAttribute("data-state", "failed");
+    expect(section.textContent).toContain(ko.ontologyPages.insights.vaultHistory.failedTitle);
+    expect(section.textContent).not.toContain(ko.ontologyPages.insights.vaultHistory.noneTitle);
+  });
+
+  it("still draws the folder it can count without Git", () => {
+    mount({ status: "failed", present: PRESENT });
+    expect(screen.getByTestId("vault-present-tower-concept").textContent).toContain("71");
   });
 });

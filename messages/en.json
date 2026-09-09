@@ -1738,6 +1738,8 @@
         "loading": "Reading the history.",
         "unavailableTitle": "The history cannot be read here",
         "unavailableBody": "The weekly counts are recomputed from the folder's Git history. A browser cannot reach it; the Mac app can.",
+        "failedTitle": "Reading the history failed",
+        "failedBody": "Something went wrong reading this folder’s Git history. It does not mean the folder has no commits. Reopening this usually reads it.",
         "noneTitle": "There is no history to show yet",
         "noneBody": "This folder has no commits. Atlas keeps no record of its own, so until there are commits there is no way to show earlier weeks. Drawing zeroes would say the folder was empty, which is not true."
       }

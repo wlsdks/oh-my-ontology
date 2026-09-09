@@ -25,17 +25,12 @@ import { EMPTY_LAYER_RULE, LAYER_INK } from "./VaultHistoryTracks";
  * Git and no timestamps, on a fact that a clone or a checkout cannot move. Where Git *does*
  * answer, this is replaced by the tracks, which say the same thing and say when as well.
  *
- * ## Why one block per file
+ * ## Why a bounded pile
  *
- * The owner asked for cubes that put themselves together. A block standing for four files
- * is a bar in disguise: it needs a legend, and nothing about it is countable. A block
- * standing for **one file** needs no legend at all — the count is the blocks, the reader
- * can check it by looking, and adding a document to the folder adds a block to the wall.
- * That is what makes the picture accumulate rather than merely measure.
- *
- * Above `BLOCK_CAP` blocks the wall would stop being countable and start being texture, so
- * past that one block carries several files and the figure says so in words. A folder that
- * large has left the range where counting by eye was the point.
+ * The owner asked for cubes that put themselves together, and the first build read that as
+ * one block per file. It does not survive a real folder — see `BLOCKS_MAX`. The pile keeps
+ * the blocks and drops the promise that you can count them: the number under it is the
+ * magnitude, and the pile is what accumulation and proportion look like.
  *
  * ## The build
  *
@@ -49,48 +44,51 @@ import { EMPTY_LAYER_RULE, LAYER_INK } from "./VaultHistoryTracks";
 /** One list, shared with every aggregate, so a fifth layer cannot be forgotten here. */
 const LAYER_ORDER = VAULT_LAYERS;
 
-/*
- * ⚠️ **The block has a size; the number of columns is whatever fits.** The first build fixed
- * fourteen columns and let the block take a fourteenth of whatever width it was given, which
- * held at a desktop width and collapsed at a phone one: measured at 390x844 the block came
- * out **3.6px**, and a 3.6px block is texture, not a thing anybody can count. Since counting
- * is the entire argument for one block per file, the block keeps its size and the wall
- * re-wraps — narrower screens get fewer columns and a taller wall, which is the trade that
- * keeps the mark honest.
- */
-/** Past this many blocks the wall stops being countable, and a block starts meaning several files. */
-const BLOCK_CAP = 224;
 /**
- * How long the whole wall takes to build, however many blocks it holds.
+ * **The figure is a fixed size; a block's meaning is what moves.**
  *
- * ⚠️ **Per-block staging was never what rendered** (design-motion, 2026-09-09). Sampling
- * per-block luminance found **19-20 blocks mid-transition at every instant** — exactly the
- * 180ms gesture divided by the 9ms stride — so what a person saw was a soft luminance
- * wavefront about thirteen blocks wide wiping upward, not blocks being laid. The docblock
- * that cited the four-object tracking limit was describing a schedule, not a picture.
+ * ⚠️ **One block per file does not survive a real folder.** The owner asked the question
+ * that settles it — *"what does this look like when there are a lot? that's odd, isn't
+ * it"* — and design-infoviz had already measured why: subitizing caps at four, so "the
+ * reader can check the count by looking" was false at 125 by roughly thirty times. The
+ * argument was wrong, and the figure built on it grew without bound: a hundred files is a
+ * slab, five thousand is either dust or a cap that quietly lies.
  *
- * It cannot be rescued by retuning: discreteness needs gesture/stride around 2 or less, so
- * even at the shortest legal gesture the stride must be 60ms, and 126 blocks would take 7.6
- * seconds. Per-block staging is arithmetically dead at this cardinality.
+ * Magnitude was never the wall's job. It is printed under every pile at 17.9:1. What the
+ * pile carries is **accumulation and proportion** — how much this layer holds against the
+ * others — and that needs a bounded figure, not a faithful one.
  *
- * So the wall builds **row by row**, and the row is the thing the eye was following anyway.
- * The span is fixed rather than per-block, because the old stride made duration a function
- * of folder size: 360ms for forty files, 8.3 seconds for four capped layers, and 45 seconds
- * for an architecture-heavy folder once the missing `module` term is restored. 600ms and not
- * the ~1s of Heer and Robertson's staged transitions, because this is an arrival from
- * nothing rather than a change between two data states: there is no correspondence to track,
- * and it replays on every entry to the tab.
+ * So the pile holds at most `BLOCKS_MAX` blocks, the largest layer fills it, and every other
+ * layer is drawn against the same block. A block therefore stands for a stated number of
+ * files, and the figure says which in words whenever that is more than one. The picture is
+ * the same size for a folder of forty and a folder of forty thousand; only the sentence
+ * under it changes. That is the same contract the weekly tracks keep, and the two figures
+ * now agree instead of arguing.
  */
-const BUILD_SPAN_MS = 600;
+const BLOCKS_MAX = 36;
+/** Blocks across one pile, so a full pile is a square rather than a stripe. */
+const PILE_COLUMNS = 6;
 /**
- * Blocks brought up together in one build step.
+ * Between one block landing and the next, inside a pile.
  *
- * Measured column counts across the bands run 4 (at 320) to 16 (at 1024 and up), so a dozen
- * is about one row at a desktop width and rather more than one on a phone. It is a schedule
- * number, not a layout one: a step's blocks arrive together whatever the wrap does with them,
- * and it is what holds concurrency under the four-object tracking limit at every folder size.
+ * The owner asked for blocks that trickle into a pile the way something poured into a bucket
+ * settles, each layer on its own. That needs blocks a person can actually see land, and until
+ * the pile was bounded it was arithmetically impossible: design-motion measured the previous
+ * build putting **19-20 blocks mid-transition at every instant** — a soft wavefront, nothing
+ * landing — and proved no stride fixes it at 126 blocks, because discreteness wants
+ * `gesture / stride` near 2 and 126 blocks would then take 7.6 seconds.
+ *
+ * Bounding the pile is what bought the motion. At 40ms against a 120ms fall the concurrency
+ * is 3, under the four-object tracking limit, and the longest possible pour is `BLOCKS_MAX`
+ * blocks = **1.44s** — for a folder of any size, because a bigger folder puts more files in a
+ * block rather than more blocks in the pile.
+ *
+ * The four piles pour at once and each stops when its own blocks run out, so a layer holding
+ * a little finishes early while the largest keeps going. That is the picture: four buckets
+ * filling side by side at one rate, which is also what makes their depths readable against
+ * each other while they fill.
  */
-const ROW_ESTIMATE = 12;
+const POUR_STRIDE_MS = 40;
 
 export interface VaultPresentStackLabels {
   layer: Record<VaultLayer, string>;
@@ -120,20 +118,17 @@ export function VaultPresentStack({
 
   // Every layer, from the shared list — the hand-written subset here omitted `module`, which
   // is the same defect three council seats found in three other aggregates.
+  // Every layer, from the shared list — the hand-written subset here omitted `module`, which
+  // is the same defect three council seats found in three other aggregates.
   const largest = Math.max(...LAYER_ORDER.map((layer) => present[layer]), 1);
-  const filesPerBlock = Math.max(1, Math.ceil(largest / BLOCK_CAP));
-  const blocksOf = (count: number) => (count === 0 ? 0 : Math.max(1, Math.round(count / filesPerBlock)));
+  const filesPerBlock = Math.max(1, Math.ceil(largest / BLOCKS_MAX));
+  // A layer holding anything is never drawn as nothing; only a true zero reaches zero.
+  const blocksOf = (count: number) =>
+    count === 0 ? 0 : Math.max(1, Math.round(count / filesPerBlock));
   const blocks = LAYER_ORDER.map((layer) => blocksOf(present[layer]));
-  const total = blocks.reduce((sum, n) => sum + n, 0);
-  /*
-   * How many blocks a row actually holds is a fact of the rendered width, which this
-   * component does not know — the wall wraps. `ROW_ESTIMATE` decides only how many *steps*
-   * the build takes, and therefore how many blocks come up together. It bounds concurrency;
-   * it lays nothing out.
-   */
-  const rows = Math.max(1, Math.ceil(total / ROW_ESTIMATE));
-  const perStep = Math.ceil(total / rows);
-  const built = reducedMotion || !canWatch ? total : Math.min(total, landed * perStep);
+  /** The deepest pile decides how long the pour runs; the others stop when they run out. */
+  const deepest = Math.max(...blocks, 0);
+  const poured = reducedMotion || !canWatch ? deepest : landed;
 
   useEffect(() => {
     if (reducedMotion || !canWatch) return;
@@ -151,7 +146,7 @@ export function VaultPresentStack({
     const step = () => {
       n += 1;
       setLanded(n);
-      if (n >= rows) window.clearInterval(timer);
+      if (n >= deepest) window.clearInterval(timer);
     };
     /*
      * The wall builds when it is actually looked at, not when it mounts. This board has tabs
@@ -162,7 +157,7 @@ export function VaultPresentStack({
       (entries) => {
         if (!entries.some((entry) => entry.isIntersecting)) return;
         observer.disconnect();
-        timer = window.setInterval(step, Math.max(16, Math.round(BUILD_SPAN_MS / rows)));
+        timer = window.setInterval(step, POUR_STRIDE_MS);
       },
       /*
        * ⚠️ **A threshold that a tall card cannot reach leaves the figure blank.** At 0.3,
@@ -182,16 +177,7 @@ export function VaultPresentStack({
       observer.disconnect();
       window.clearInterval(timer);
     };
-  }, [reducedMotion, canWatch, rows]);
-
-  /**
-   * Where each layer's wall starts in the single build order — computed up front rather than
-   * accumulated while rendering, so the offsets are the same on every render.
-   */
-  const startOf = blocks.reduce<number[]>(
-    (acc, size, index) => [...acc, (acc[index] ?? 0) + size],
-    [0],
-  );
+  }, [reducedMotion, canWatch, deepest]);
 
   return (
     <div
@@ -199,17 +185,34 @@ export function VaultPresentStack({
       data-testid="vault-present-stack"
       className="flex flex-col gap-3"
     >
-      <div className="flex items-end justify-between gap-5">
+      {/*
+        ⚠️ **A layer's column is shared out by what it holds.** Four equal shares gave the
+        layer holding 125 files the same 175px as the three holding nothing — measured, 525
+        of 760px, 69% of the figure, carrying one block and two rules — so the wall that had
+        something to show grew downward as a chimney while most of the row stood empty
+        (design-lead, design-infoviz and design-responsive, independently, 2026-09-09).
+        `flex-grow` is the block count, floored at `--vault-layer-col-min` so a name always
+        fits under its column.
+
+        Below the same width where four labelled columns stop fitting at all (4 x 72 + gaps
+        exceeds the room at 390), the figure turns: one layer per row, its name and count on
+        the left, its wall taking the rest. Measured there at 390 the card falls 503 -> 359.
+      */}
+      <div className="flex flex-col gap-3 @min-[640px]/insights:flex-row @min-[640px]/insights:items-end @min-[640px]/insights:justify-between @min-[640px]/insights:gap-5">
         {LAYER_ORDER.map((layer, index) => {
           const count = present[layer];
           const size = blocks[index] ?? 0;
-          const start = startOf[index] ?? 0;
           return (
             <section
               key={layer}
               data-testid={`vault-present-tower-${layer}`}
               aria-label={labels.towerSummary(labels.layer[layer], count)}
-              className="flex min-w-0 flex-1 flex-col items-center gap-2"
+              /*
+                `row-reverse` puts the name and count at the left of the row while keeping
+                the wall first in the DOM, so the reading order a screen reader gets is the
+                same one the wide layout shows: the picture, then what it counts.
+              */
+              className="flex min-w-0 flex-row-reverse items-end gap-3 @min-[640px]/insights:flex-col @min-[640px]/insights:items-center @min-[640px]/insights:gap-2"
             >
               {/*
                 `flex-wrap-reverse` fills from the bottom row upward, so the wall grows the
@@ -218,15 +221,19 @@ export function VaultPresentStack({
               */}
               <ol
                 aria-hidden
+                /* Six blocks across, so a full pile is a square and not a stripe. */
+                style={{
+                  width: `calc(${PILE_COLUMNS} * var(--vault-history-cube) * 2 + ${PILE_COLUMNS - 1}px)`,
+                }}
                 className={cn(
-                  "flex w-full flex-wrap-reverse content-start justify-start gap-px",
+                  "flex flex-wrap-reverse content-start justify-start gap-px",
                   // A layer at a true zero keeps a floor rather than vanishing: an absent
                   // wall would read as "not counted", a floor reads as "counted, and none".
                   size === 0 && `min-h-px ${EMPTY_LAYER_RULE}`,
                 )}
               >
                 {Array.from({ length: size }, (_, i) => {
-                  const up = start + i < built;
+                  const up = i < poured;
                   return (
                     <li
                       key={i}
@@ -245,17 +252,17 @@ export function VaultPresentStack({
                         width: "calc(var(--vault-history-cube) * 2)",
                         height: "calc(var(--vault-history-cube) * 2)",
                         transition:
-                          "opacity var(--motion-fast) var(--motion-ease), transform var(--motion-fast) var(--motion-ease)",
+                          "opacity var(--motion-fast) var(--motion-ease), transform var(--motion-fast) var(--motion-ease-place)",
                         opacity: up ? 1 : 0,
                         // A block drops the last of the way onto the wall rather than fading
                         // in where it will end up; it is put in place, not revealed.
-                        transform: up ? "none" : "translateY(-6px)",
+                        transform: up ? "none" : "translateY(calc(var(--vault-history-cube) * -2.8))",
                       }}
                     />
                   );
                 })}
               </ol>
-              <div className="flex flex-col items-center gap-0.5">
+              <div className="flex w-16 shrink-0 flex-col items-start gap-0.5 @min-[640px]/insights:w-auto @min-[640px]/insights:items-center">
                 <span className="font-mono text-body-lg tabular-nums text-[color:var(--color-text-primary)]">
                   {count}
                 </span>

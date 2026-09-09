@@ -32,6 +32,10 @@ import {
  * - `none` — the bridge answered and there is no history: a folder nobody ran `git init`
  *   in, or one with no commits yet. **Distinct from a series of zeroes**, which would say
  *   the folder was empty, a claim about the person rather than about the data.
+ * - `failed` — the bridge threw. ⚠️ This used to be folded into `none`, so a read that broke
+ *   printed *"this folder has no commits"* — a factual claim about somebody's folder that may
+ *   simply be false (design-interaction, 2026-09-09). The rule this file states about zeroes
+ *   applies to itself: an error and an absence have to look different.
  * - `ready` — weeks, each naming the commit it is true after.
  */
 export type VaultHistoryState = {
@@ -46,7 +50,7 @@ export type VaultHistoryState = {
    */
   present: VaultLayerCounts;
 } & (
-  | { status: "idle" | "loading" | "unavailable" | "none" }
+  | { status: "loading" | "unavailable" | "none" | "failed" }
   | {
       status: "ready";
       weeks: VaultHistoryWeek[];
@@ -103,8 +107,14 @@ export function useVaultHistory(
     if (!reachable || !vaultPath) return;
     let cancelled = false;
     void (async () => {
-      const commits = await gitHistory(vaultPath, HISTORY_COMMIT_LIMIT).catch(() => null);
+      const commits = await gitHistory(vaultPath, HISTORY_COMMIT_LIMIT).catch(
+        () => "failed" as const,
+      );
       if (cancelled) return;
+      if (commits === "failed") {
+        setFetched({ status: "failed", present: presentCounts });
+        return;
+      }
       if (!commits || commits.length === 0) {
         setFetched({ status: "none", present: presentCounts });
         return;

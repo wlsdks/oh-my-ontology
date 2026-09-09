@@ -36,6 +36,37 @@ describe("관문 FX — 감속 동등물", () => {
    * still-frame behaviour measured once (0 rAF callbacks per second) and nothing
    * defending it; a measurement nobody can repeat is not a gate (guardian, 2026-09-09).
    */
+  /*
+   * The insights board's two staged figures join the same roster for the same reason: they
+   * animate from JavaScript timers, so `reduced-motion-equivalent.contract.test.ts`, which
+   * scans `app/globals.css` for `animation:`, cannot see them at all. design-motion measured
+   * both paths on 2026-09-09 — forced `prefers-reduced-motion` and a deleted
+   * `IntersectionObserver` — and found the finished figure on the first painted frame with
+   * **zero** build timers in each. A measurement nobody can repeat is not a gate.
+   */
+  it("(d) the growth figures draw finished on the first frame, with no schedule", () => {
+    for (const rel of [
+      "src/views/ontology-insights/ui/parts/VaultPresentStack.tsx",
+      "src/views/ontology-insights/ui/parts/VaultHistoryTracks.tsx",
+    ]) {
+      const source = read(rel);
+      // The finished state is *derived at render*, not written from an effect — that is what
+      // makes the still frame the first frame rather than one that arrives after one.
+      // The finished value is whatever the figure calls "all of it"; what this pins is that
+      // it is chosen *in the render expression*, not written by an effect.
+      expect(source, `${rel}: reduced motion is not derived`).toMatch(
+        /reducedMotion \|\| !canWatch \? [\w.]+ :/,
+      );
+      // Both escapes return before any timer is registered.
+      const guard = source.indexOf("if (reducedMotion || !canWatch) return");
+      expect(guard, `${rel}: the reduced-motion guard is gone`).toBeGreaterThan(-1);
+      expect(
+        source.indexOf("setInterval"),
+        `${rel}: a timer is registered before the reduced-motion guard`,
+      ).toBeGreaterThan(guard);
+    }
+  });
+
   it("(c) the Library's two ambient canvases draw one still frame under reduced motion", () => {
     const field = read("src/views/library/ui/parts/LibrarySynapseField.tsx");
     // The still frame is drawn, then the effect returns before any loop is registered.
