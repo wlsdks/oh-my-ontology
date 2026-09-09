@@ -2397,20 +2397,36 @@ function StepList({
               <span className="flex min-w-0 items-center gap-2.5 truncate text-body-lg font-[var(--font-weight-emphasis)] text-[color:var(--color-text-primary)]">
                 {stepConcepts.length > 0 ? (
                   <>
+                    {/*
+                      ⚠️ **The name is truncated by design; being unrecoverable was not.**
+                      The row height is fixed (`--git-step-h`) and the slot count deliberate, so
+                      that a repeated set's rhythm is not set by how long somebody's concept names
+                      happen to be — the same rule `forbidden.md` states for cards. Wrapping these
+                      to a second line would break it, so the width stays and the text becomes
+                      recoverable instead.
+
+                      Measured on the installed app 2026-09-09 at 1512x949: two slots plus the time
+                      and reason columns left four characters of a name standing — rows read
+                      "AI 에이...", "온보딩·배...", "코드베이스 ...". Four characters is not a name,
+                      and there was nothing to hover.
+                    */}
                     {stepConcepts.slice(0, STEP_CONCEPT_SLOTS).map((concept) => (
                       <span key={concept.id} className="inline-flex min-w-0 shrink items-center gap-1.5">
                         <OntologyMapKindGlyph kind={concept.kind} size={12} />
-                        <span className="truncate">{concept.label}</span>
+                        <span className="truncate" title={concept.label}>{concept.label}</span>
                       </span>
                     ))}
                     {stepConcepts.length > STEP_CONCEPT_SLOTS ? (
-                      <span className="shrink-0 text-label font-normal text-[color:var(--color-text-quaternary)]">
+                      <span
+                        className="shrink-0 text-label font-normal text-[color:var(--color-text-quaternary)]"
+                        title={stepConcepts.slice(STEP_CONCEPT_SLOTS).map((concept) => concept.label).join(", ")}
+                      >
                         {t("moreSlugs", { count: stepConcepts.length - STEP_CONCEPT_SLOTS })}
                       </span>
                     ) : null}
                   </>
                 ) : (
-                  <span className="truncate">{headline}</span>
+                  <span className="truncate" title={headline}>{headline}</span>
                 )}
               </span>
               {/* The third column is **why**. It is not stacked into two lines

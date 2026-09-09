@@ -1131,6 +1131,9 @@ export function useAcpSession({
     askUser,
     finishTurn,
     keepDiagnostic,
+    // The handoff prompt names the interface language, so a locale switch has to reach a
+    // session started after it — not only the next full remount.
+    locale,
     mcpServers,
     noteModeMoved,
     push,
