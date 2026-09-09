@@ -1525,8 +1525,23 @@ export function LibraryPage() {
         tabIndex={-1}
         data-testid="library-page"
         data-library-state="empty-folder"
-        className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
       >
+        {/*
+          ⚠️ **The two empty screens share one shape, so they share the ground too.**
+          The stage above says these two now share a shape, and on 2026-09-09 the no-folder
+          half was given a ground because "the void around it was most of the viewport".
+          This half was left on the unbroken field: measured on the installed app at
+          1512x949, the card ended at 61.5% of the window and the bottom 38.5% was empty.
+          Same complaint, same repair — the object is the Library's own shape, drawn from
+          this folder's real counts once there are any, and here there are none yet, which
+          is exactly what the anonymous form already draws.
+
+          The card keeps everything the 2026-08-12 empty-state verdict gave it. Only the
+          field behind it changes, and the object stays beside the words rather than under
+          them, for the reason the other half records: nothing moves under the type.
+        */}
+        <div className="flex w-full max-w-[var(--library-empty-max)] flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-12">
         <LibraryStartStage
           vaultLabel={nativeVaultRootPath ?? handle.name}
           busy={busy}
@@ -1535,6 +1550,17 @@ export function LibraryPage() {
           onImportFromService={openImport}
           t={t}
         />
+        <div
+          data-testid="library-empty-object"
+          className="relative aspect-square w-full max-w-[var(--library-empty-object-max)] shrink-0"
+        >
+          <LibraryConstellation />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,var(--color-canvas-a70)_82%,var(--color-canvas)_100%)]"
+          />
+        </div>
+        </div>
         {importDialog}
         {/* The same dialog the workbench uses: discovery proposes, a person approves. */}
         <FindDocumentsDialog

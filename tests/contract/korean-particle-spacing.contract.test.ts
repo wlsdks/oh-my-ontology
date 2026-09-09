@@ -20,8 +20,17 @@ import ko from "../../messages/ko.json";
  * determiners, listed literally so a new one has to be looked at rather than
  * absorbed by a widened pattern.
  */
-const PARTICLE =
+const PARTICLE_BASE =
   "(?:에서|으로|로서|로써|로|를|을|의|와|과|이라고|이라|이며|이고|이나|이|가|은|는|에게|에|도|만|부터|까지|보다|처럼|밖에|나)";
+
+/**
+ * Particles stack: `에도`, `으로도`, `로만`, `에만`, `이라는`. The first pattern written for this
+ * gate matched only the head and its lookahead then saw a Hangul syllable, so every stacked one
+ * was excused — six of them survived the first sweep of the bundle.
+ */
+const PARTICLE_TAIL = "(?:도|만|은|는|이|가|를|을|의|와|과|나|라도|서)";
+
+const PARTICLE = `${PARTICLE_BASE}${PARTICLE_TAIL}*`;
 
 /** A word can end in a letter, a digit, a closing bracket, a quote, or a slash. */
 const WORD_END = "[A-Za-z0-9\\)\\]\\}/\"'»”]";
