@@ -1525,27 +1525,37 @@ export function LibraryPage() {
         tabIndex={-1}
         data-testid="library-page"
         data-library-state="empty-folder"
-        className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
       >
         {/*
-          ⚠️ **This empty screen is deliberately *not* the other one's shape, and the
-          difference is measured.**
+          ⚠️ **A ground, but the texture one — not the other empty screen's object.**
 
-          Both empty screens open on the same sentence, and it is tempting to give this one
-          the ground the no-folder half received on 2026-09-09 — its card ends at 61.5% of a
-          1512x949 window with the bottom 38.5% empty, which is the same complaint that
-          started the other repair. Tried, and it fails on the terms already recorded here.
-          The 2026-08-12 empty-state verdict is that "barren" is about whether the block is
-          anchored, and `tests/e2e/library.spec.ts` holds the stage's centre within half a
-          column of the viewport's. An object beside the card pushes the card off that
-          centre; an object behind it is the glass-panel arrangement the no-folder half
-          measured and rejected, because the card covers the middle of the object and what
-          is left is a scatter at the edges.
+          Both empty screens open on the same sentence, and this one was left on an unbroken
+          field when the other was given a ground: measured on the installed app at
+          1512x949, its card ended at 61.5% of the window with the bottom 38.5% empty.
 
-          The no-folder half has room for two columns because it has no card. This one is
-          the card. If the void is to be answered here it needs a direction that keeps a
-          centred anchor, not a copy of the other screen.
+          The object is the wrong piece to move here, for the reason its own decision gives.
+          `buildConstellation` takes a folder; the anonymous one is drawn **where nobody has
+          opened one**. Here a folder *is* open and holds nothing, so ten marks beside the
+          sentence "nothing gathered yet" would be a picture contradicting the words next to
+          it — the falsifier that decision already names. Passing this folder's real counts
+          draws nothing at all, because they are zero.
+
+          `LibrarySynapseField` is the piece minted for exactly this: texture, not data. It
+          draws no count and no link that exists, so there is nothing on it to mistake for a
+          claim about the folder. The guided pane reached the same place from the same
+          complaint, and takes the same mask — the field clears the middle where the column
+          stands and fades into the canvas at every rim.
+
+          The card does not move. `tests/e2e/library.spec.ts` holds this stage's centre
+          within half a column of the viewport's, and a backdrop behind it keeps that.
         */}
+        <LibrarySynapseField paused={findOpen} />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-canvas)_0%,var(--color-canvas-a70)_30%,transparent_56%,var(--color-canvas-a70)_88%,var(--color-canvas)_100%)]"
+        />
+        <div className="relative">
         <LibraryStartStage
           vaultLabel={nativeVaultRootPath ?? handle.name}
           busy={busy}
@@ -1554,6 +1564,7 @@ export function LibraryPage() {
           onImportFromService={openImport}
           t={t}
         />
+        </div>
         {importDialog}
         {/* The same dialog the workbench uses: discovery proposes, a person approves. */}
         <FindDocumentsDialog
