@@ -110,6 +110,16 @@ vi.mock('@/shared/lib/tauri-acp', () => ({
 
 import { useAcpSession } from './use-acp-session';
 
+/*
+ * The hook reads the interface language so a button-started turn has one to answer in.
+ * These tests render it bare, with no provider, which is the repository's usual shape for a
+ * model hook — so the locale is mocked here the same way 27 other suites mock next-intl.
+ */
+vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
+  useTranslations: () => (key: string) => key,
+}));
+
 afterEach(() => {
   bridge.starts = 0;
   bridge.release = null;
@@ -600,8 +610,17 @@ describe('세션 지시문 — 실측으로 얻은 네 줄이 실제로 실린�
     );
     // ④ If ambiguous, ask — the line changed most in actual measurement
     expect(prompt, '애매할 때 묻지 않고 만들게 된다').toMatch(/Ask first/);
-    // ⑤ answer in the language the person wrote in
-    expect(prompt, '한국어로 물었는데 영어로 답한다').toMatch(/language the person wrote in/);
+    /*
+     * ⑤ the answer's language. This used to read "the language the person wrote in", which
+     * covers everything typed into the composer and nothing started by pressing a button —
+     * where the person wrote nothing and the only text in the turn is this app's own English.
+     * Measured 2026-09-09 on /ko/architecture: the source-check button returned a full English
+     * report to a Korean interface. So the interface language is now named outright, and what
+     * the person types still wins over it.
+     */
+    expect(prompt, '한국어 화면인데 답할 언어를 정해 주지 않는다').toMatch(/Answer in Korean/);
+    expect(prompt, '사람이 쓴 언어가 화면 언어를 못 이긴다').toMatch(/write to you in another language, follow theirs/);
+    expect(prompt, '버튼으로 시작한 턴이라는 사정이 빠졌다').toMatch(/arrived from a button/);
     // ⑥ compiler declarations and map lines are different censuses; collapsing them made 222 and
     // 141 look like contradictory answers in the installed app on 2026-09-03.
     expect(prompt, 'MCP 선언 수와 지도 선 수를 같은 관계 수로 말하게 된다').toMatch(

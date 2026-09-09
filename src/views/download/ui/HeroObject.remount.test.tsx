@@ -20,6 +20,8 @@ vi.mock('../lib/hero-object-engine', () => ({
 }));
 vi.mock('next-intl', () => ({ useTranslations: () => (key: string) => key }));
 
+useLocale: () => 'en',
+
 import { HeroObject } from './HeroObject';
 
 describe('HeroObject — a remounted engine hears the headline', () => {

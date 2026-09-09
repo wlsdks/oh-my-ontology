@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { VaultSourceHydrationBoundary } from './VaultSourceHydrationBoundary';
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations: () => (key: string) => key,
 }));
 

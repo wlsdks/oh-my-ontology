@@ -26,6 +26,8 @@ vi.mock('sonner', () => ({
 
 vi.mock('next-intl', () => ({ useTranslations: () => (k: string) => k }));
 
+useLocale: () => 'en',
+
 import { useToast } from './toast';
 
 function show(...args: Parameters<ReturnType<typeof useToast>['show']>) {

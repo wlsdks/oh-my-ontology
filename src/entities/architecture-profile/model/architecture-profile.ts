@@ -429,9 +429,24 @@ export function buildArchitectureAgentPrompt(
           'No persisted receipt is bound to this screen. Do not search the filesystem for one. Treat it as absent, report the fresh inspection, and state that `atlas architecture --record` would create the optional local receipt.',
         ];
 
+  /*
+   * ⚠️ **The readable sentence goes first, and the packet is not it.**
+   *
+   * `splitAppRequest` folds an app-composed request at the first line that opens with a known
+   * marker, and returns everything as lead when that line is index 0 — there is no readable half
+   * to stand on. The packet used to be line 1, so the panel drew the whole thing: a Korean
+   * interface got a bubble opening `{"contract":"architectureAgentTask:v1","kind":"verify"` with
+   * no wrap (the bubble is `break-keep`, which will not break a token that long) and ten English
+   * instruction sentences under it, with a "full request" disclosure below that folded almost
+   * nothing. Measured on the installed app 2026-09-09.
+   *
+   * Nothing is removed and nothing is reworded — the 2026-08-24 decision that a caller may send
+   * on somebody's behalf rests on the exact text landing in the transcript as their own turn.
+   * Only the order changes, so that the one line meant for a person is the one standing.
+   */
   return [
-    `Architecture task context: ${JSON.stringify(packet)}`,
     `Start from the reviewed architecture profile ${profile.slug}.`,
+    `Architecture task context: ${JSON.stringify(packet)}`,
     `Call inspect_architecture with ${JSON.stringify(inspectArguments)} before opening implementation files.`,
     cliFallback,
     'The visible receipt may be stale. This inspection is the current observation receipt for this revision; the reviewed profile remains architecture intent.',
