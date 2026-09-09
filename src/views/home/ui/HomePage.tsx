@@ -60,7 +60,7 @@ import { describeVaultShape } from "@/shared/lib/vault-shape";
 import { useLocale, useTranslations } from "next-intl";
 // `History as HistoryIcon` avoids colliding with the global DOM `History`
 // constructor (same aliasing as `AtlasGitPanel`).
-import { Compass, FolderOpen, HelpCircle, History as HistoryIcon, MessageCircle, X, Play } from "lucide-react";
+import { Compass, FolderOpen, HelpCircle, History as HistoryIcon, MessageCircle, ScanSearch, X, Play } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { useTypingShortcuts } from "@/shared/lib/use-typing-shortcut";
 import { useProjects } from "@/features/project-data-source";
@@ -4690,8 +4690,15 @@ function HomePageImpl() {
                         className="relative flex items-center gap-[var(--topology-utility-lane-gap)]"
                         data-testid="topology-utility-action-row"
                       >
+                    {/* ScanSearch, not HelpCircle: this chip opens the meaning workbench, which is
+                        not help. Measured on the installed app 2026-09-09 — the same circled question
+                        mark sat here and two slots down on the support rail, where it really is the
+                        shortcut sheet, so one glyph carried a product action and a help sheet on one
+                        screen. MessageCircle was not free either; the Agent chip next to it owns that.
+                        The node panel's primary button for the same action moved to the same glyph.
+                        Gate: tests/contract/map-chrome-icon-roles.contract.test.ts */}
                     <ChromeChip
-                      icon={<HelpCircle />}
+                      icon={<ScanSearch />}
                       aria-label={tWorkbench('meaningTitle')}
                       title={tWorkbench('meaningTitle')}
                       active={meaningWorkbenchOpen}

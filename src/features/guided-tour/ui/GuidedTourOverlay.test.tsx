@@ -6,6 +6,7 @@ import { useGuidedTour } from "../model/use-guided-tour";
 import { GUIDED_TOUR_STATUS_KEY } from "../model/tour-storage";
 
 vi.mock("next-intl", () => ({
+  useLocale: () => 'en',
   useTranslations: () => (key: string, params?: Record<string, unknown>) =>
     params ? `${key}:${JSON.stringify(params)}` : key,
 }));

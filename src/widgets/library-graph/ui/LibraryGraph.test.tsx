@@ -138,7 +138,7 @@ describe("the library graph section", () => {
   it("says the kind, the position and what Enter will do — a bare name says none of it", () => {
     renderGraph();
     fireEvent.keyDown(canvas(), { key: "ArrowRight" });
-    expect(screen.getByText("원문 plan.pdf, 3개 중 1번째. Enter 를 누르면 여기서 엽니다.")).toBeTruthy();
+    expect(screen.getByText("원문 plan.pdf, 3개 중 1번째. Enter를 누르면 여기서 엽니다.")).toBeTruthy();
   });
 
   it("leaves for the map only on a concept, and says so before the key is pressed", () => {

@@ -3125,6 +3125,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         labelCapability: tokens.labelCapability,
         labelElement: tokens.labelElement,
         amberHub: tokens.amberHub,
+        labelHalo: tokens.canvasBgNear,
       },
     );
   }

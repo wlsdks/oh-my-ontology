@@ -356,6 +356,7 @@ export function ArchitectureSketch({
   edgeSentence,
   ledgerStatusLabel,
   ledgerImportsLabel,
+  deltaUnknownLabel,
   contractTrackLabel,
   observationTrackLabel,
   deltaTrackLabel,
@@ -406,6 +407,8 @@ export function ArchitectureSketch({
   /** The ledger's first half, already worded by the locale — never assembled here. */
   ledgerStatusLabel: (ledger: RoleLedger) => string;
   ledgerImportsLabel: (count: number) => string;
+  /** What the comparison mark says before any source has been observed. */
+  deltaUnknownLabel: string;
   contractTrackLabel: string;
   observationTrackLabel: string;
   deltaTrackLabel: string;
@@ -2025,8 +2028,28 @@ export function ArchitectureSketch({
                       )}
                       data-testid={`architecture-delta-marker-${box.id}`}
                       data-delta-state={ledger?.state ?? 'missing'}
-                      aria-hidden
+                      role="img"
+                      aria-label={ledger ? ledgerStatusLabel(ledger) : deltaUnknownLabel}
                     >
+                      {/*
+                        ⚠️ **A tick is the loudest pass mark a screen has, and this one is scoped.**
+                        `role-ledger.ts` is explicit that a box never claims a per-role verdict: it
+                        states what its own outgoing edges did, and "the wording stays edge-shaped
+                        so the two can never be confused". That protection lived on the role face
+                        (which prints the glyph beside `ledgerStatusLabel`) and not here, where the
+                        same glyph stood alone under a lane heading, `aria-hidden`, with no wording
+                        at all.
+
+                        Measured on the installed app 2026-09-09: seven ticks down this gutter while
+                        the profile badge read "unknown" and the agent's own answer opened with 92
+                        unmapped edges. Both statements were true — the ticks are about rules these
+                        roles declare, the badge about edges no rule covers — and nothing on the
+                        mark said which was which.
+
+                        The glyph does not change. It carries the same edge-shaped sentence the role
+                        face already uses, so it can be hovered and read aloud instead of guessed at.
+                      */}
+                      <title>{ledger ? ledgerStatusLabel(ledger) : deltaUnknownLabel}</title>
                       {ledger ? LEDGER_GLYPH[ledger.state] : '○'}
                     </text>
                   ) : (

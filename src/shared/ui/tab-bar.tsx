@@ -305,13 +305,29 @@ export function TabBar({
                 : "border-transparent text-[color:var(--color-text-quaternary)] hover:text-[color:var(--color-text-secondary)]")
             }
           >
-            {item.label}
+            {/*
+              ⚠️ **Both halves are real boxes with the same leading, so the underline's
+              distance does not depend on which glyphs a tab happens to hold.**
+
+              The label used to be a bare text node — an anonymous flex item taking the
+              button's own metrics — beside a count in an explicit `font-mono` span. While
+              every tab was mono that was one font and one box height. It stopped being one
+              once the caps device stood down for Hangul: the label resolved to the sans
+              stack and the count stayed monospace, and the two no longer ended at the same
+              place. Measured at the coarse-pointer width: tabs carrying a count kept the
+              10px the `pb-2.5` promises, while the two label-only tabs measured 12px, so
+              the marker for "which tab is selected" sat further from one word than another.
+
+              Naming the leading on both makes the line box the ramp's paired value rather
+              than whatever the resolved font reports.
+            */}
+            <span className="leading-label">{item.label}</span>
             {item.count !== undefined ? (
               // The number is already in the button's `aria-label`; leaving it in the
               // accessibility tree as well would read it twice.
               <span
                 aria-hidden
-                className="font-mono text-label font-[var(--font-weight-emphasis)] tracking-[var(--tracking-label)] tabular-nums text-[color:var(--color-text-tertiary)]"
+                className="font-mono text-label leading-label font-[var(--font-weight-emphasis)] tracking-[var(--tracking-label)] tabular-nums text-[color:var(--color-text-tertiary)]"
               >
                 {item.count}
               </span>

@@ -943,6 +943,7 @@ export function ArchitectureWorkbench({
                           })
                 }
                 ledgerImportsLabel={(count) => t('roleLedgerImports', { count })}
+                deltaUnknownLabel={t('deltaUnknown')}
                 contractTrackLabel={t('contractTrackLabel')}
                 observationTrackLabel={t('observationTrackLabel')}
                 deltaTrackLabel={t('deltaLabel')}

@@ -164,7 +164,7 @@ describe('VaultAgentSetupPanel', () => {
       screen.getByText('고치기 전에 확인 명령을 돌려 「되나」와 「빠른가」를 따로 봅니다.'),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('에이전트를 연 폴더에서 mcp-verify 를 돌려 현재 도구 목록이 맞는지 확인합니다.'),
+      screen.getByText('에이전트를 연 폴더에서 mcp-verify를 돌려 현재 도구 목록이 맞는지 확인합니다.'),
     ).toBeInTheDocument();
     expect(
       screen.getByText('처음 고치기 전에 폴더 요약(workspace-brief · agent-brief)을 먼저 읽습니다.'),
@@ -195,20 +195,20 @@ describe('VaultAgentSetupPanel', () => {
     expect(screen.getAllByText('연결 파일 상태').length).toBeGreaterThan(0);
     expect(
       screen.getByText(
-        'agent-setup --json 이 고치기 전에 도구별 연결 파일이 준비됐는지 알려줘요.',
+        'agent-setup --json이 고치기 전에 도구별 연결 파일이 준비됐는지 알려줘요.',
       ),
     ).toBeInTheDocument();
     expect(screen.getByText('서버 연결')).toBeInTheDocument();
     expect(
-      screen.getByText('mcp-verify 가 로컬 서버를 띄우고 현재 도구 목록을 확인한 뒤, 이 폴더를 실제로 읽어 봅니다.'),
+      screen.getByText('mcp-verify가 로컬 서버를 띄우고 현재 도구 목록을 확인한 뒤, 이 폴더를 실제로 읽어 봅니다.'),
     ).toBeInTheDocument();
     expect(screen.getByText('확인 명령')).toBeInTheDocument();
     expect(
-      screen.getByText('agent-brief --verify-fallbacks --json --exit-zero 이 고치기 전에 「되나」와 「빠른가」를 알려줘요.'),
+      screen.getByText('agent-brief --verify-fallbacks --json --exit-zero이 고치기 전에 「되나」와 「빠른가」를 알려줘요.'),
     ).toBeInTheDocument();
     expect(screen.getByText('폴더 요약')).toBeInTheDocument();
     expect(
-      screen.getByText('workspace-brief 와 agent-brief --graph-db-pack 이 같은 폴더를 각각 설명해요.'),
+      screen.getByText('workspace-brief와 agent-brief --graph-db-pack이 같은 폴더를 각각 설명해요.'),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText('쓰는 방식'),
@@ -218,7 +218,7 @@ describe('VaultAgentSetupPanel', () => {
     expect(screen.getByText('그래프 묶음')).toBeInTheDocument();
     expect(screen.getByText('먼저 확인')).toBeInTheDocument();
     expect(
-      screen.getByText('Claude Code·Codex·Cursor 가 서버의 현재 도구를 직접 부르고, 고칠 때 안전장치를 받아요.'),
+      screen.getByText('Claude Code·Codex·Cursor가 서버의 현재 도구를 직접 부르고, 고칠 때 안전장치를 받아요.'),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText('서버 연결 확인 명령 미리보기'),
@@ -328,8 +328,8 @@ describe('VaultAgentSetupPanel', () => {
     // The per-tool «how do I check» is step 3's content — it appears when 「Check connection」 opens.
     fireEvent.click(screen.getByTestId('agent-setup-step-3-toggle'));
     const step3 = screen.getByTestId('agent-setup-step-3');
-    expect(within(step3).getByText('/mcp 로 확인')).toBeInTheDocument();
-    expect(within(step3).getByText('codex mcp list 로 확인')).toBeInTheDocument();
+    expect(within(step3).getByText('/mcp로 확인')).toBeInTheDocument();
+    expect(within(step3).getByText('codex mcp list로 확인')).toBeInTheDocument();
   });
 
   it('AI agent setup gate proof에 validation 결과를 반영한다', () => {
@@ -445,7 +445,7 @@ describe('VaultAgentSetupPanel', () => {
     expect(screen.queryByText('누락')).toBeNull();
     expect(screen.getByText('연결 파일 1/2개 준비됨')).toBeInTheDocument();
     expect(
-      screen.getByText('· 점검: .codex/config.toml 는 Ontology Atlas 연결 설정이 아니에요'),
+      screen.getByText('· 점검: .codex/config.toml는 Ontology Atlas 연결 설정이 아니에요'),
     ).toBeInTheDocument();
     expect(screen.getByText('점검 필요')).toBeInTheDocument();
     expect(
@@ -702,7 +702,7 @@ describe('VaultAgentSetupPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('Tauri vault 경로가 있으면 연결 설정이 selected path 를 사용한다', async () => {
+  it('Tauri vault 경로가 있으면 연결 설정이 selected path를 사용한다', async () => {
     copyTextMock.mockResolvedValue(true);
     renderPanel({
       handle: {
@@ -773,7 +773,7 @@ describe('VaultAgentSetupPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('Tauri vault 경로가 있으면 codebase-root agent-setup 명령에 selected path 를 넣는다', async () => {
+  it('Tauri vault 경로가 있으면 codebase-root agent-setup 명령에 selected path를 넣는다', async () => {
     copyTextMock.mockResolvedValue(true);
     renderPanel({
       handle: {
@@ -823,7 +823,7 @@ describe('VaultAgentSetupPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('Tauri vault 경로가 있으면 setup state 확인 명령에 selected path 를 넣는다', async () => {
+  it('Tauri vault 경로가 있으면 setup state 확인 명령에 selected path를 넣는다', async () => {
     copyTextMock.mockResolvedValue(true);
     renderPanel({
       handle: {
@@ -847,7 +847,7 @@ describe('VaultAgentSetupPanel', () => {
     );
   });
 
-  it('AI agent 설정 패널에서 CLI graph runbook 을 복사한다', async () => {
+  it('AI agent 설정 패널에서 CLI graph runbook을 복사한다', async () => {
     copyTextMock.mockResolvedValue(true);
     renderPanel({
       agentConfigStatus: {
@@ -902,7 +902,7 @@ describe('VaultAgentSetupPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('Tauri vault 경로가 있으면 CLI graph runbook 을 절대경로 기준으로 복사한다', async () => {
+  it('Tauri vault 경로가 있으면 CLI graph runbook을 절대경로 기준으로 복사한다', async () => {
     copyTextMock.mockResolvedValue(true);
     renderPanel({
       handle: {
@@ -1044,7 +1044,7 @@ describe('VaultAgentSetupPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('Tauri vault 경로가 있으면 첫 연결 증거 패킷이 selected path 를 사용한다', async () => {
+  it('Tauri vault 경로가 있으면 첫 연결 증거 패킷이 selected path를 사용한다', async () => {
     copyTextMock.mockResolvedValue(true);
     renderPanel({
       handle: {
@@ -1337,7 +1337,7 @@ describe('VaultAgentSetupPanel', () => {
     );
 
     expect(
-      screen.queryByText('이 폴더에 .mcp.json 을 만들었어요'),
+      screen.queryByText('이 폴더에 .mcp.json을 만들었어요'),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Claude Code에 연결' }),

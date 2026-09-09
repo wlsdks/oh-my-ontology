@@ -5,6 +5,7 @@ import type { OntologyChangeItem, OntologyChangeSet } from '@/entities/knowledge
 import { OntologyChangeReview } from './OntologyChangeReview';
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations: () => (key: string) => key,
 }));
 

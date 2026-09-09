@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocale } from 'next-intl';
 
 import {
   acpPermissionVerdict,
@@ -222,6 +223,39 @@ function workReceipt({
  * It is appended rather than replacing the default instructions: those instructions are what make
  * that tool itself, and we have no grounds to rewrite them.
  */
+/**
+ * Where the answer-language rule is spliced in.
+ *
+ * ⚠️ **"the language the person wrote in" has a hole, and a button falls straight through it.**
+ * That was the whole rule until 2026-09-09. It works for anything typed into the composer and
+ * fails for everything started by pressing something: the architecture workbench's source check,
+ * the insights tab's "analyse with AI", the map's meaning review. Those send a prompt this app
+ * wrote, in English, and the person wrote nothing at all — so the most recent language in the
+ * conversation is English and the agent answers in English.
+ *
+ * Measured on the installed app at /ko/architecture: pressing the source-check button returned
+ * a full report opening "92 unmapped edges. The brief reports the count but not their identity"
+ * to a Korean interface, on a Korean vault, with every visible label in Korean.
+ *
+ * So the interface language is stated outright, and what the person types still overrides it —
+ * someone writing English into a Korean build is asking for English.
+ */
+const ANSWER_LANGUAGE_SLOT = '__ANSWER_LANGUAGE__';
+
+/** The language name in English, so the instruction reads to the model as an instruction. */
+function languageName(locale: string): string {
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'language' }).of(locale) ?? locale;
+  } catch {
+    return locale;
+  }
+}
+
+function answerLanguageSentence(locale: string): string {
+  const name = languageName(locale);
+  return `Answer in ${name} — that is the language this person's interface is set to, and it is the language of the folder they are looking at. If they write to you in another language, follow theirs instead. This matters most when the request arrived from a button rather than something they typed: there is no message of theirs to take the language from, and the instruction you are reading is itself in English.`;
+}
+
 const VAULT_HANDOFF_BASE = [
   'You are working inside an Ontology Atlas vault opened in the Atlas app.',
   /*
@@ -237,7 +271,7 @@ const VAULT_HANDOFF_BASE = [
    * they are the same?". A node is more expensive to remove than to create.
    */
   'If you are unsure whether two things are the same concept, that is a question for the person, not a judgement call for you. Ask first: an extra node is harder to remove than to add.',
-  'Answer in the language the person wrote in.',
+  ANSWER_LANGUAGE_SLOT,
   /*
    * ⚠️ **Say what happened, do not paste what came back** (owner's screen, 2026-08-24: *"there are
    * times it shows the user `{}` JSON like this — that should not happen, right? an explanation is
@@ -271,8 +305,11 @@ const VAULT_HANDOFF_BASE = [
 const VAULT_MCP_SENTENCE =
   'The `atlas-vault` MCP server is already connected to this exact folder. Use it for everything about this graph. Do not shell out, list directories, or open the markdown files yourself to find your way around — the tools already answer those questions, and reading the files by hand is how stale and duplicated nodes get made. When you report counts, keep their units explicit and treat `query_ontology` health `relationCensus` as the authority: MCP `graph.edges` and `internalEdges` count compiled frontmatter relation declarations, so parent and child declarations can describe the same containment twice; the map\'s canonical relation census counts deduplicated normalized typed edges across the loaded ontology, not the current view filter. The MCP process does not know that app-side numeric census. Neither number is wrong, and never present them as the same census.';
 
-function vaultHandoffPrompt(hasVaultMcp: boolean): string {
-  return (hasVaultMcp ? [VAULT_HANDOFF_BASE[0], VAULT_MCP_SENTENCE, ...VAULT_HANDOFF_BASE.slice(1)] : VAULT_HANDOFF_BASE).join(' ');
+function vaultHandoffPrompt(hasVaultMcp: boolean, locale: string): string {
+  const rules = hasVaultMcp
+    ? [VAULT_HANDOFF_BASE[0], VAULT_MCP_SENTENCE, ...VAULT_HANDOFF_BASE.slice(1)]
+    : VAULT_HANDOFF_BASE;
+  return rules.map((rule) => (rule === ANSWER_LANGUAGE_SLOT ? answerLanguageSentence(locale) : rule)).join(' ');
 }
 
 /** The value before anything is known. "None" and "not offered" share one screen. */
@@ -305,6 +342,11 @@ export function useAcpSession({
   autoDecide,
   resumeLatest = false,
 }: UseAcpSessionOptions) {
+  /*
+   * The interface language, handed to the agent so a button-started turn has one to answer in.
+   * See {@link ANSWER_LANGUAGE_SLOT}.
+   */
+  const locale = useLocale();
   const [status, setStatus] = useState<AcpSessionStatus>('idle');
   /*
    * ⚠️ When the open turn last spoke, so the screen can tell "still working" from "stopped
@@ -973,7 +1015,7 @@ export function useAcpSession({
             cwd: vaultRoot,
             mcpServers,
             // Resuming does not change the rules — same instructions as a new conversation.
-            appendSystemPrompt: vaultHandoffPrompt(hasVaultMcp),
+            appendSystemPrompt: vaultHandoffPrompt(hasVaultMcp, locale),
           });
         } catch {
           keepDiagnostic('resume-failed');
@@ -983,7 +1025,7 @@ export function useAcpSession({
       session ??= await client.newSession({
         cwd: vaultRoot,
         mcpServers,
-        appendSystemPrompt: vaultHandoffPrompt(hasVaultMcp),
+        appendSystemPrompt: vaultHandoffPrompt(hasVaultMcp, locale),
       });
       sessionIdRef.current = session.sessionId;
 
@@ -1089,6 +1131,9 @@ export function useAcpSession({
     askUser,
     finishTurn,
     keepDiagnostic,
+    // The handoff prompt names the interface language, so a locale switch has to reach a
+    // session started after it — not only the next full remount.
+    locale,
     mcpServers,
     noteModeMoved,
     push,

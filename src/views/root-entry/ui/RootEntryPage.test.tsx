@@ -19,6 +19,7 @@ vi.mock('@/entities/vault-session/model/LocalVaultProvider', async (importOrigin
 }));
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations: () => (key: string, values?: Record<string, string>) => {
     if (key === 'lostVaultMissing') return `Cannot find ${values?.name ?? ''}`;
     if (key === 'lostVaultUnreadable') return 'Could not reopen the folder';
