@@ -1476,7 +1476,7 @@
       "recentBarsAria": "파일 갱신일 기준으로 최근 {weeks}주에 {total}건, 주마다 막대 하나. 갱신일은 파일이 디스크에 마지막으로 쓰인 때라, 내려받기나 브랜치 전환도 갱신일을 옮깁니다",
       "heroDensityGloss": "개념 1개당 평균 연결 {ratio}개",
       "heroMembershipLabel": "도메인에 담김",
-      "heroHealth": "건강",
+      "heroHealth": "점검",
       "healthOrphan": "외톨이 개념",
       "healthCycle": "서로 얽힌 고리",
       "healthEvidenceLinked": "근거 연결",
@@ -1722,7 +1722,7 @@
         "request": "Atlas의 온톨로지 읽기 도구만 사용해 이 온톨로지의 비즈니스 흐름을 설명해줘. shell·파일·소스·웹·다른 도구는 호출하지 마.\n\n정확히 여섯 개의 ### 제목과 각 한 문단으로 답해:\n1) 이 제품이 왜 존재하는가.\n2) 어느 도메인이 무엇을 책임지는가.\n3) 주요 capability가 어떤 비즈니스 흐름을 만드는가.\n4) 그 capability가 element나 path에서 어떻게 구현되는가.\n5) 선언된 dependency가 어떤 영향을 설명하며 무엇이 unknown인가.\n6) 다음 사람이 유지해야 할 partial, visible-gap, stale, unverified 한계는 무엇인가.\n\n규칙:\n- 먼저 전체 지도를 보고 대표 의미→구현 체인 하나를 골라. 모든 노드를 열거하지 마.\n- get_concept(body: full) 또는 get_concepts(body: full)는 합쳐서 최대 12개 개념만 읽어.\n- 모든 문단은 이번 턴에 본문 전체를 읽은 정확한 전체 노드 슬러그를 하나 이상 적어.\n- from --type--> to 관계는 현재 온톨로지에 실제로 있을 때만 적어.\n- partial, visible-gap, unknown 한정을 끝까지 유지해.\n- capability의 제외를 제품 전체 범위로 넓히지 마.\n- 답할 수 없으면 이유와 함께 모른다고 말하고, 다른 지식으로 메우지 마."
       },
       "vaultHistory": {
-        "title": "폴더가 무엇을 담고 있었는지",
+        "title": "폴더가 담고 있는 것",
         "caption": "Git 이력에서 다시 계산합니다. 따로 저장하지 않습니다.",
         "milestoneBegan": "{week}에 시작",
         "milestoneGrew": "{week}에 {delta}개 늘어 가장 많이 자람",

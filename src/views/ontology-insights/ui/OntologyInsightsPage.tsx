@@ -237,7 +237,7 @@ const HANDOFF_PAYLOAD_KEY: Record<InsightsTab, keyof InsightsHandoffProse> = {
   composition: "tabComposition",
   connections: "tabConnections",
   boundaries: "tabBoundaries",
-  growth: "tabFreshness",
+  growth: "tabGrowth",
   // The only payload whose output is prose. It reads bodies rather than running an
   // operation, because a narrative rests on what the nodes say, not on a count.
   flow: "tabFlow",

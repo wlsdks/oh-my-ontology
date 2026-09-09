@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  VAULT_LAYERS,
   classifyVaultPath,
   countVaultPaths,
   replayVaultHistory,
@@ -366,5 +367,61 @@ describe("vaultLayerMilestones — one week, one fact", () => {
     const m = vaultLayerMilestones(series, "module");
     expect(m.began?.week).toBe("2026-06-08");
     expect(m.grew).toEqual({ week: "2026-06-15", delta: 7 });
+  });
+});
+
+describe("every aggregate folds over every layer", () => {
+  /*
+   * ⚠️ Three council seats found the same defect independently on 2026-09-09: the fourth
+   * layer reached the type and both renderers and none of the aggregates. These pin the
+   * property rather than the four names, so a fifth layer fails here instead of shipping.
+   */
+  const week = (counts: Partial<VaultLayerCounts>): VaultHistoryWeek => ({
+    week: "2026-06-01",
+    hash: "aaaaaaaa",
+    counts: { concept: 0, writeUp: 0, module: 0, document: 0, ...counts },
+  });
+
+  it("scales the peak to whichever layer is largest, architecture included", () => {
+    for (const layer of VAULT_LAYERS) {
+      expect(vaultHistoryPeak([week({ [layer]: 42 })])).toBe(42);
+    }
+  });
+
+  it("counts a path into every layer the vocabulary has", () => {
+    const seen = new Set(
+      ["capabilities/a.md", "architecture/b.md", "wiki/c.md", "sources/d.pdf"].map(
+        (p) => classifyVaultPath(p),
+      ),
+    );
+    expect([...seen].sort()).toEqual([...VAULT_LAYERS].sort());
+  });
+
+  it("clamps a negative count in every layer, not only the first three", () => {
+    // One deletion inside the window for a file added before it — the rename-pair case.
+    const commits = [
+      {
+        hash: "c1",
+        isoTime: "2026-06-02T00:00:00Z",
+        files: VAULT_LAYERS.map((layer) => ({
+          path:
+            layer === "module"
+              ? "architecture/x.md"
+              : layer === "writeUp"
+                ? "wiki/x.md"
+                : layer === "document"
+                  ? "sources/x.pdf"
+                  : "capabilities/x.md",
+          status: "added" as const,
+        })),
+      },
+    ];
+    const points = replayVaultHistory(
+      { concept: 0, writeUp: 0, module: 0, document: 0 },
+      commits,
+    );
+    for (const point of points) {
+      for (const layer of VAULT_LAYERS) expect(point.counts[layer]).toBeGreaterThanOrEqual(0);
+    }
   });
 });

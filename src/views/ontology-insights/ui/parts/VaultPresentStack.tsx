@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/shared/lib/use-prefers-reduced-motion";
 import { cn } from "@/shared/lib/cn";
 
-import type { VaultLayer, VaultLayerCounts } from "../../lib/vault-history";
+import { VAULT_LAYERS, type VaultLayer, type VaultLayerCounts } from "../../lib/vault-history";
+import { EMPTY_LAYER_RULE, LAYER_INK } from "./VaultHistoryTracks";
 
 /**
  * **What the folder holds now — one block per file, assembling itself.**
@@ -45,7 +46,8 @@ import type { VaultLayer, VaultLayerCounts } from "../../lib/vault-history";
  * follow. Reduced motion draws the finished wall on the first frame, with no schedule.
  */
 
-const LAYER_ORDER: readonly VaultLayer[] = ["concept", "module", "writeUp", "document"];
+/** One list, shared with every aggregate, so a fifth layer cannot be forgotten here. */
+const LAYER_ORDER = VAULT_LAYERS;
 
 /*
  * ⚠️ **The block has a size; the number of columns is whatever fits.** The first build fixed
@@ -58,8 +60,37 @@ const LAYER_ORDER: readonly VaultLayer[] = ["concept", "module", "writeUp", "doc
  */
 /** Past this many blocks the wall stops being countable, and a block starts meaning several files. */
 const BLOCK_CAP = 224;
-/** Between one block landing and the next. */
-const BLOCK_STRIDE_MS = 9;
+/**
+ * How long the whole wall takes to build, however many blocks it holds.
+ *
+ * ⚠️ **Per-block staging was never what rendered** (design-motion, 2026-09-09). Sampling
+ * per-block luminance found **19-20 blocks mid-transition at every instant** — exactly the
+ * 180ms gesture divided by the 9ms stride — so what a person saw was a soft luminance
+ * wavefront about thirteen blocks wide wiping upward, not blocks being laid. The docblock
+ * that cited the four-object tracking limit was describing a schedule, not a picture.
+ *
+ * It cannot be rescued by retuning: discreteness needs gesture/stride around 2 or less, so
+ * even at the shortest legal gesture the stride must be 60ms, and 126 blocks would take 7.6
+ * seconds. Per-block staging is arithmetically dead at this cardinality.
+ *
+ * So the wall builds **row by row**, and the row is the thing the eye was following anyway.
+ * The span is fixed rather than per-block, because the old stride made duration a function
+ * of folder size: 360ms for forty files, 8.3 seconds for four capped layers, and 45 seconds
+ * for an architecture-heavy folder once the missing `module` term is restored. 600ms and not
+ * the ~1s of Heer and Robertson's staged transitions, because this is an arrival from
+ * nothing rather than a change between two data states: there is no correspondence to track,
+ * and it replays on every entry to the tab.
+ */
+const BUILD_SPAN_MS = 600;
+/**
+ * Blocks brought up together in one build step.
+ *
+ * Measured column counts across the bands run 4 (at 320) to 16 (at 1024 and up), so a dozen
+ * is about one row at a desktop width and rather more than one on a phone. It is a schedule
+ * number, not a layout one: a step's blocks arrive together whatever the wrap does with them,
+ * and it is what holds concurrency under the four-object tracking limit at every folder size.
+ */
+const ROW_ESTIMATE = 12;
 
 export interface VaultPresentStackLabels {
   layer: Record<VaultLayer, string>;
@@ -87,12 +118,22 @@ export function VaultPresentStack({
    */
   const canWatch = typeof IntersectionObserver !== "undefined";
 
-  const largest = Math.max(present.concept, present.writeUp, present.document, 1);
+  // Every layer, from the shared list — the hand-written subset here omitted `module`, which
+  // is the same defect three council seats found in three other aggregates.
+  const largest = Math.max(...LAYER_ORDER.map((layer) => present[layer]), 1);
   const filesPerBlock = Math.max(1, Math.ceil(largest / BLOCK_CAP));
   const blocksOf = (count: number) => (count === 0 ? 0 : Math.max(1, Math.round(count / filesPerBlock)));
   const blocks = LAYER_ORDER.map((layer) => blocksOf(present[layer]));
   const total = blocks.reduce((sum, n) => sum + n, 0);
-  const built = reducedMotion || !canWatch ? total : landed;
+  /*
+   * How many blocks a row actually holds is a fact of the rendered width, which this
+   * component does not know — the wall wraps. `ROW_ESTIMATE` decides only how many *steps*
+   * the build takes, and therefore how many blocks come up together. It bounds concurrency;
+   * it lays nothing out.
+   */
+  const rows = Math.max(1, Math.ceil(total / ROW_ESTIMATE));
+  const perStep = Math.ceil(total / rows);
+  const built = reducedMotion || !canWatch ? total : Math.min(total, landed * perStep);
 
   useEffect(() => {
     if (reducedMotion || !canWatch) return;
@@ -110,7 +151,7 @@ export function VaultPresentStack({
     const step = () => {
       n += 1;
       setLanded(n);
-      if (n >= total) window.clearInterval(timer);
+      if (n >= rows) window.clearInterval(timer);
     };
     /*
      * The wall builds when it is actually looked at, not when it mounts. This board has tabs
@@ -121,16 +162,27 @@ export function VaultPresentStack({
       (entries) => {
         if (!entries.some((entry) => entry.isIntersecting)) return;
         observer.disconnect();
-        timer = window.setInterval(step, BLOCK_STRIDE_MS);
+        timer = window.setInterval(step, Math.max(16, Math.round(BUILD_SPAN_MS / rows)));
       },
-      { threshold: 0.3 },
+      /*
+       * ⚠️ **A threshold that a tall card cannot reach leaves the figure blank.** At 0.3,
+       * design-responsive measured the wall still at `opacity: 0` on all 126 blocks after
+       * three seconds at rest at 320, 390 and 844x390 — the card is taller than the room
+       * above the fold there, so the fraction visible peaks at 0.111 and the build never
+       * fires. The figure was not slow on a phone; it was absent.
+       *
+       * Any part of it being on screen is the honest trigger: the question this answers is
+       * "has a person had the chance to see it", and a sliver is a chance. `rootMargin`
+       * arms it slightly before it arrives so the first row is not already past.
+       */
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     observer.observe(node);
     return () => {
       observer.disconnect();
       window.clearInterval(timer);
     };
-  }, [reducedMotion, canWatch, total]);
+  }, [reducedMotion, canWatch, rows]);
 
   /**
    * Where each layer's wall starts in the single build order — computed up front rather than
@@ -170,8 +222,7 @@ export function VaultPresentStack({
                   "flex w-full flex-wrap-reverse content-start justify-start gap-px",
                   // A layer at a true zero keeps a floor rather than vanishing: an absent
                   // wall would read as "not counted", a floor reads as "counted, and none".
-                  size === 0 &&
-                    "min-h-px border-t border-dashed border-[color:var(--color-border-soft)]",
+                  size === 0 && `min-h-px ${EMPTY_LAYER_RULE}`,
                 )}
               >
                 {Array.from({ length: size }, (_, i) => {
@@ -182,17 +233,11 @@ export function VaultPresentStack({
                       className={cn(
                         /*
                           Square, not rounded. At the size a wall of a hundred blocks puts
-                          them at — about 13px across a quarter of the figure — the smallest
-                          radius on the ramp is a third of the block, and the wall rendered
-                          as a field of dots. A brick is what the owner asked for and a
-                          brick has corners.
+                          them at, the smallest radius on the ramp is a third of the block
+                          and the wall rendered as a field of dots. A brick has corners.
                         */
                         "block rounded-none",
-                        layer === "concept" && "bg-[color:var(--color-indigo-line-a90)]",
-                        layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
-                        layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
-                  layer === "writeUp" && "bg-[color:var(--color-text-secondary)]",
-                        layer === "document" && "bg-[color:var(--color-text-quaternary)]",
+                        LAYER_INK[layer],
                       )}
                       style={{
                         // Twice the weekly track's block: the two figures share one ramp step
@@ -200,7 +245,7 @@ export function VaultPresentStack({
                         width: "calc(var(--vault-history-cube) * 2)",
                         height: "calc(var(--vault-history-cube) * 2)",
                         transition:
-                          "opacity var(--motion-base) var(--motion-ease), transform var(--motion-settle) var(--motion-ease)",
+                          "opacity var(--motion-fast) var(--motion-ease), transform var(--motion-fast) var(--motion-ease)",
                         opacity: up ? 1 : 0,
                         // A block drops the last of the way onto the wall rather than fading
                         // in where it will end up; it is put in place, not revealed.

@@ -46,6 +46,18 @@
  */
 export type VaultLayer = "document" | "writeUp" | "concept" | "module";
 
+/**
+ * Every layer, once.
+ *
+ * ⚠️ **Three council seats independently found the same defect on 2026-09-09**: `module` was
+ * added to `VaultLayer` and to both renderers and to **none** of the aggregates — not the
+ * peak the tracks are scaled against, not the negative clamp, not the block-size divisor.
+ * A folder whose `architecture/` dominates was drawn against a scale that did not know it
+ * existed. The lists were written out by hand at each site, so the type could not catch it.
+ * Anything that folds over the layers reads this.
+ */
+export const VAULT_LAYERS: readonly VaultLayer[] = ["concept", "module", "writeUp", "document"];
+
 export interface VaultLayerCounts {
   /** Files kept verbatim under `sources/` — what the Library gathers. */
   document: number;
@@ -165,7 +177,7 @@ export function replayVaultHistory(
   // earlier commit outside the window had already added — a rename pair split across the
   // boundary, most often. Clamp rather than draw a folder holding minus three documents.
   for (const point of points) {
-    for (const layer of ["document", "writeUp", "concept"] as const) {
+    for (const layer of VAULT_LAYERS) {
       if (point.counts[layer] < 0) point.counts[layer] = 0;
     }
   }
@@ -215,7 +227,7 @@ export function weeklyVaultHistory(
 export function vaultHistoryPeak(weeks: readonly VaultHistoryWeek[]): number {
   let peak = 0;
   for (const week of weeks) {
-    peak = Math.max(peak, week.counts.document, week.counts.writeUp, week.counts.concept);
+    for (const layer of VAULT_LAYERS) peak = Math.max(peak, week.counts[layer]);
   }
   return peak;
 }

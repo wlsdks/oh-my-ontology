@@ -3,7 +3,20 @@ import { isEvidenceOnlyConcept, buildContainmentParents, nearestDomainId } from 
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const HEATSTRIP_WEEKS = 12;
+/**
+ * The window every dated claim on this board is made over: **one month**.
+ *
+ * ⚠️ It was twelve weeks, and the owner rejected that on 2026-09-09: *"twelve weeks is too
+ * far, isn't it — a month, four weeks at minimum."* Three months is a quarter, and a quarter
+ * is a reporting period, not a working horizon: nothing a person does on a Tuesday is
+ * answered by what the folder looked like in June. The unit people actually plan a folder in
+ * is a month, and four weekly cells keep the weekly resolution while making the window one
+ * a reader can act inside.
+ *
+ * The number reaches the copy through `{weeks}` placeholders rather than being written into
+ * any sentence, so a later change to the window cannot leave a caption lying about it.
+ */
+const HEATSTRIP_WEEKS = 4;
 export const FRESHNESS_WINDOW_WEEKS = HEATSTRIP_WEEKS;
 const STALE_DAYS = 90;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { KnowledgeGraphEdge, KnowledgeGraphNode } from "@/entities/knowledge-graph";
-import { computeFreshnessSummary } from "./freshness";
+import { FRESHNESS_WINDOW_WEEKS, computeFreshnessSummary } from "./freshness";
 
 function node(id: string, kind: string, opts: Partial<KnowledgeGraphNode> = {}): KnowledgeGraphNode {
   return {
@@ -28,7 +28,7 @@ describe("computeFreshnessSummary", () => {
     ];
     const edges = [edge("domain:views", "capability:a", "contains")];
     const docs = new Map([
-      ["domain-views", "2026-05-01T00:00:00.000Z"],
+      ["domain-views", "2026-06-27T00:00:00.000Z"], // 3 weeks ago -> the window's first bucket
       ["capability-a", "2026-07-17T00:00:00.000Z"], // 1 day ago -> current week
     ]);
 
@@ -37,14 +37,15 @@ describe("computeFreshnessSummary", () => {
     expect(summary.domainRows).toHaveLength(1);
     const row = summary.domainRows[0];
     expect(row.domainId).toBe("domain:views");
-    expect(row.weeks).toHaveLength(12);
-    expect(row.weeks[11].isCurrentWeek).toBe(true);
-    expect(row.weeks[11].level).toBeGreaterThanOrEqual(1);
+    expect(row.weeks).toHaveLength(FRESHNESS_WINDOW_WEEKS);
+    // Indices are read from the end, so the window's length is stated in one place only.
+    expect(row.weeks.at(-1)?.isCurrentWeek).toBe(true);
+    expect(row.weeks.at(-1)?.level).toBeGreaterThanOrEqual(1);
     // The source of truth for the cell tooltip — `level` saturates at 3, so the raw count is exposed too.
-    expect(row.weeks[11].count).toBe(1);
-    // domain-views' own update (5/1, 11 weeks ago) lands in the weeks[0] bucket — the weeks between are 0.
-    expect(row.weeks[0].count).toBe(1);
-    expect(row.weeks[5].count).toBe(0);
+    expect(row.weeks.at(-1)?.count).toBe(1);
+    // domain-views' own update lands in the window's oldest bucket; the weeks between are 0.
+    expect(row.weeks[0]?.count).toBe(1);
+    expect(row.weeks[1]?.count).toBe(0);
     expect(row.daysAgo).toBe(1);
     expect(row.stale).toBe(false);
   });
@@ -102,7 +103,7 @@ describe("computeFreshnessSummary", () => {
       recentEvidence: [],
       recentEvidenceTotal: 0,
       staleCount: 0,
-      weeklyTotals: new Array(12).fill(0),
+      weeklyTotals: new Array(FRESHNESS_WINDOW_WEEKS).fill(0),
     });
   });
 
@@ -124,10 +125,10 @@ describe("computeFreshnessSummary", () => {
 
     const summary = computeFreshnessSummary(nodes, edges, docs, NOW);
 
-    expect(summary.weeklyTotals).toHaveLength(12);
+    expect(summary.weeklyTotals).toHaveLength(FRESHNESS_WINDOW_WEEKS);
     // both updates land in the current (last) week bucket, summed across domains
-    expect(summary.weeklyTotals[11]).toBe(2);
-    expect(summary.weeklyTotals.slice(0, 11).every((n) => n === 0)).toBe(true);
+    expect(summary.weeklyTotals.at(-1)).toBe(2);
+    expect(summary.weeklyTotals.slice(0, -1).every((n) => n === 0)).toBe(true);
   });
   it("최근 갱신은 자기 문서를 가진 개념만 세운다 — 파생 이름은 접힌 근거 계층으로", () => {
     // A derived node's "update date" is not its own but the mtime of the document that cited it.
@@ -162,5 +163,17 @@ describe("computeFreshnessSummary", () => {
       ".claude/hooks/inject-ontology-summary.sh",
       ".codex/hooks/inject-ontology-summary.sh",
     ]);
+  });
+});
+
+describe("the window is a month, and only one place says so", () => {
+  /*
+   * ⚠️ The owner rejected twelve weeks on 2026-09-09 — "isn't twelve weeks too far; a month,
+   * four weeks at minimum". Three tests had the old number typed into them, which is how a
+   * window change ships with captions still claiming the old one. They read the constant now,
+   * and this pins the constant itself so the next change is a decision rather than a drift.
+   */
+  it("measures four weeks", () => {
+    expect(FRESHNESS_WINDOW_WEEKS).toBe(4);
   });
 });

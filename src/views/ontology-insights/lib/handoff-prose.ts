@@ -29,7 +29,12 @@ export interface InsightsHandoffProse extends DoNextHandoffProse, MeaningGapPros
   tabComposition: string;
   tabConnections: string;
   tabBoundaries: string;
-  tabFreshness: string;
+  /*
+   * ⚠️ Renamed with the tab on 2026-09-09. The key kept pointing at a *maintenance* plan
+   * after the tab became growth, so the one act-out on the screen handed an agent orphan
+   * hunting while the figure beside it drew four accumulating layers (design-interaction).
+   */
+  tabGrowth: string;
   tabFlow: string;
 }
 
@@ -73,8 +78,8 @@ const EN: InsightsHandoffProse = {
     'query_ontology({operation:"centrality"}) → query_ontology({operation:"blast_radius", slug:"«hub-slug»"})',
   tabBoundaries:
     'query_ontology({operation:"domain_matrix"}) → cross-domain examples via query_ontology({operation:"match_edges"})',
-  tabFreshness:
-    'query_ontology({operation:"maintenance_plan"}) → find_orphans({}) → query_ontology({operation:"growth_plan"})',
+  tabGrowth:
+    'query_ontology({operation:"growth_plan"}) → list_kinds({}) for what the folder holds now → git_history({limit:200}) on the app for when each layer arrived',
   tabFlow:
     'list_concepts({summary:true}) → get_concepts({body:"full"}) for the project and domain bodies → cite slugs in every paragraph',
 };
@@ -119,8 +124,8 @@ const KO: InsightsHandoffProse = {
     'query_ontology({operation:"centrality"}) → query_ontology({operation:"blast_radius", slug:"«hub-slug»"})',
   tabBoundaries:
     'query_ontology({operation:"domain_matrix"}) → 교차 예시는 query_ontology({operation:"match_edges"})',
-  tabFreshness:
-    'query_ontology({operation:"maintenance_plan"}) → find_orphans({}) → query_ontology({operation:"growth_plan"})',
+  tabGrowth:
+    'query_ontology({operation:"growth_plan"}) → 지금 담고 있는 것은 list_kinds({}) → 각 층이 언제 생겼는지는 앱에서 git_history({limit:200})',
   tabFlow:
     'list_concepts({summary:true}) → get_concepts({body:"full"}) 로 project 와 domain 본문 → 문단마다 슬러그 인용',
 };

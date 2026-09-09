@@ -58,9 +58,19 @@ export function VaultHistorySection({
         >
           {t("vaultHistory.title")}
         </InsightsSectionTitle>
-        <span className="font-mono text-label text-[color:var(--color-text-quaternary)] @min-[640px]/insights:ml-auto">
-          {t("vaultHistory.caption")}
-        </span>
+        {/*
+          ⚠️ **The source line only appears over the figure it describes.** "Recomputed from
+          Git history" sat above the present walls in every state, including the one whose
+          own body says the history cannot be read here — so on the web it was a claim about
+          something not on screen, directly above a sentence contradicting it (design-lead,
+          2026-09-09). The present is counted from paths; only the weekly tracks come from
+          Git, and only they carry the line.
+        */}
+        {state.status === "ready" ? (
+          <span className="font-mono text-label text-[color:var(--color-text-quaternary)] @min-[640px]/insights:ml-auto">
+            {t("vaultHistory.caption")}
+          </span>
+        ) : null}
       </div>
       <div className="mt-3 min-h-0 flex-1">{children}</div>
       </div>

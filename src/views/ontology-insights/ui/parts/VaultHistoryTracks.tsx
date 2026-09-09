@@ -58,6 +58,38 @@ import type { VaultHistoryWeek, VaultLayer } from "../../lib/vault-history";
 
 const LAYER_ORDER: readonly VaultLayer[] = ["concept", "module", "writeUp", "document"];
 
+/**
+ * Two inks, not four.
+ *
+ * ⚠️ **Four values asserted an order the data does not have** (design-infoviz, 2026-09-09).
+ * Value is an ordered channel, so four steps claim a rank; composited over the card the four
+ * came out wiki 0.669 > concept 0.283 > source 0.226 > architecture 0.110, matching neither
+ * the layer order nor the counts. Architecture also measured **2.90:1** against the card,
+ * under the 3:1 floor, while its 125 siblings sat at 6.04.
+ *
+ * What is real here is one nominal split: indigo for the layers the map draws, neutral for
+ * the layers the Library holds — the boundary `classifyVaultPath` is the definition of.
+ * Identity is already carried by position and a direct label beside every count, and the
+ * marks never touch across layers, so two inks lose nothing and stop claiming a rank.
+ */
+export const LAYER_INK: Record<VaultLayer, string> = {
+  concept: "bg-[color:var(--color-indigo-line-a90)]",
+  module: "bg-[color:var(--color-indigo-line-a90)]",
+  writeUp: "bg-[color:var(--color-text-secondary)]",
+  document: "bg-[color:var(--color-text-secondary)]",
+};
+
+/**
+ * The rule a genuinely empty layer keeps.
+ *
+ * ⚠️ It was `--color-border-soft`, which composites to **1.15:1** — the mark that carries
+ * "measured, and none" was not perceivable at all, so the distinction it exists to draw did
+ * not reach anybody. `--color-text-tertiary` measures 5.86:1 and is not any block's ink, so
+ * a rule can never be mistaken for a mark.
+ */
+export const EMPTY_LAYER_RULE =
+  "border-t border-dashed border-[color:var(--color-text-tertiary)]";
+
 /** The finest a block is ever allowed to mean, so a small folder is not drawn as dust. */
 const FILES_PER_CUBE = 4;
 /**
@@ -150,7 +182,9 @@ export function VaultHistoryTracks({
         observer.disconnect();
         start();
       },
-      { threshold: 0.25 },
+      // Same reason as the wall's: a threshold a tall card cannot reach leaves the figure
+      // blank rather than late. Any sliver on screen is the chance to have seen it.
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     observer.observe(node);
     return () => {
@@ -163,7 +197,17 @@ export function VaultHistoryTracks({
   // scale lives, not in a shared frame. The peak only decides how coarse the block has to
   // be for the tallest track to fit.
   const filesPerCube = Math.max(FILES_PER_CUBE, Math.ceil(peak / MAX_CUBES));
-  const cubesOf = (count: number) => Math.round(count / filesPerCube);
+  /*
+   * ⚠️ **A layer that holds a file is never drawn as none.** Rounding alone put counts of 1
+   * and 2 at zero cubes once a block meant five files, and a zero-cube track draws the
+   * dashed rule whose documented meaning is "measured, and none" — so on this repository's
+   * own folder, which holds exactly one `architecture/` file, the surface asserted the layer
+   * was empty. That is the lie the dashed rule exists to prevent, committed by the mark that
+   * prevents it (design-infoviz, 2026-09-09). Anything present is at least one cube; only a
+   * true zero reaches zero.
+   */
+  const cubesOf = (count: number) =>
+    count === 0 ? 0 : Math.max(1, Math.round(count / filesPerCube));
 
   return (
     <div ref={containerRef} className="flex flex-col gap-4">
@@ -199,8 +243,7 @@ export function VaultHistoryTracks({
               */
               className={cn(
                 "flex items-end gap-px",
-                trackCubes === 0 &&
-                  "border-t border-[color:var(--color-border-soft)] border-dashed",
+                trackCubes === 0 && EMPTY_LAYER_RULE,
               )}
               style={{ height: `calc(${trackCubes} * var(--vault-history-cube))` }}
             >
@@ -227,19 +270,24 @@ export function VaultHistoryTracks({
                         key={cube}
                         className={cn(
                           "block w-full rounded-micro",
-                          layer === "concept" && "bg-[color:var(--color-indigo-line-a90)]",
-                          layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
-                        layer === "module" && "bg-[color:var(--color-indigo-line-a54)]",
-                  layer === "writeUp" && "bg-[color:var(--color-text-secondary)]",
-                          layer === "document" && "bg-[color:var(--color-text-quaternary)]",
+                          LAYER_INK[layer],
                         )}
                         style={{
                           height: "calc(var(--vault-history-cube) - 1px)",
                           transition: `transform ${COLUMN_RISE_MS}ms var(--motion-ease)`,
-                          // Cubes rise from the baseline; the one at the bottom arrives
-                          // first because it has least distance, which is the same
-                          // distance-follows-duration rule the constellation keeps.
-                          transform: up ? "none" : "translateY(6px)",
+                          /*
+                            ⚠️ The comment that stood here claimed the bottom cube arrived
+                            first "because it has least distance". The code never did that:
+                            every cube in a column shares one `up`, one displacement and one
+                            duration, so they arrive together (design-motion, 2026-09-09). A
+                            column rises as a column, and saying so is the fix — a per-cube
+                            delay would be a new schedule and belongs to its own pass.
+
+                            3px, not 6: the cube is 4px tall, so 6px was 1.5x its own height
+                            and cubes travelled through each other. 3px is 0.75x, the same
+                            ratio the wall's block keeps.
+                          */
+                          transform: up ? "none" : "translateY(3px)",
                         }}
                       />
                     ))}
