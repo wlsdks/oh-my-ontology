@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-10 — The Library's other waiting screen gets the texture, not the object
+
+**Why**: the owner, on the folder-open empty screen: *"was the waiting screen always this? I thought there were shapes beside it."* There are, on the other waiting screen. Measured at 1512x949, this one's card ends at 61.5% of the window with 38.5% empty below — the complaint that started the other repair, on a screen it never reached.
+**Prior**: extends 2026-09-09 "The Library gets a ground, and its shelf loses the coloured rail". Its scope for the **constellation** stands untouched: the anonymous object is drawn only where no folder is open. What extends is the **synapse field**, from behind the guided pane to behind this stage as well.
+**Decision**: `LibrarySynapseField` and the guided pane's radial mask go behind the folder-open empty stage. The stage does not move: `library.spec.ts` holds its centre within half a column of the viewport's, and a backdrop keeps it. The object was tried here first and reverted — a folder **is** open here and holds nothing, so ten anonymous marks beside "nothing gathered yet" is a picture arguing with the words beside it, and real counts draw nothing because they are zero.
+**Dissent**: that one destination should have one backdrop and the object should be that backdrop everywhere, which the 2026-09-09 record already cut after three builds for the working pane. Kept: the two waiting screens now differ in which piece they carry, and a reader who meets both may read that as two products rather than two states.
+**Falsifier**: someone reading a synapse link as a citation in their folder, or reading the field as a picture of what they have gathered; the field painting after the sleep delay or moving under reduced motion; a walker who reports the screen as still plain.
+**Owner**: jinan
+
 ## 2026-09-09 — The growth figure is bounded, and its blocks are poured rather than revealed
 
 **Why**: the owner asked what one block per file looks like "when there are a lot", and design-infoviz had measured why it cannot: subitizing caps at four, so "the reader can check the count by looking" was false at 125 files by thirty times. The figure grew without bound — a slab at a hundred, dust or a silent cap at five thousand.

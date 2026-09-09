@@ -117,7 +117,7 @@ accepted meaning merely because an agent produced it: it lands as Markdown and
 a Git diff a person can correct, reject, or keep.
 
 Architecture is a separate reviewed contract rather than another ontology layer,
-and unknown coverage is never shown as green. [Step 4](#4-plan-against-reviewed-architecture)
+and unknown coverage is never shown as green. [Step 5](#5-plan-against-reviewed-architecture)
 walks it.
 
 The exact five-kind discriminator, relation support matrix, direct `is_a` test,
@@ -373,7 +373,22 @@ normal 2D map, **Cone** hangs each parent's children on a cone directly under
 it with height as the containment tier, and **Cloud** lets relations determine
 all three axes. Changing the view never changes the graph.
 
-### 4. Plan against reviewed architecture
+### 4. Gather what the folder is about
+
+A codebase's meaning is rarely only in the codebase. The plan, the spreadsheet,
+the slide deck, the page somebody wrote on a wiki — the Library is where those
+land, and it keeps them as they are: a copy under `sources/`, byte for byte, in
+the same folder as everything else. Nothing is parsed on arrival and nothing is
+opened until you ask for it.
+
+What is written *from* them is the other half. A wiki page cites its source on
+every fact, from the same template whether a person writes it or the in-app
+agent does, and `wiki-validate` names the lines that do not carry a citation
+rather than grading the page. The graph beside the list draws exactly that
+relationship — a source with no page yet has no line, which is the backlog
+stated as a picture rather than as a number.
+
+### 5. Plan against reviewed architecture
 
 ![The current Architecture screen in the installed macOS app, comparing the seven reviewed roles of this repository, numbered from Routes down to Shared foundation with what each role is in two lines, against the imports observed in code beside each one, a check in the Delta column where they agree, every stroke stating its rule as a sentence and the measured crossing with its import count, and the reviewed structure and inspection receipt named above with Re-inspect source and Roles and rules](docs/assets/readme/architecture-flow.png)
 
@@ -402,7 +417,7 @@ Pattern names such as Feature-Sliced Design, Hexagonal, Clean Architecture, or
 MVP are reviewed declarations. Atlas derives conformance from source evidence;
 it does not infer a fashionable label from folder names.
 
-### 5. Review a relation beside its node
+### 6. Review a relation beside its node
 
 ![The current relation review beside the map, showing the source, relation type, target and the reason typed for it, then what the concept depends on as a Now list and an After list and the connection reason that will be written, above Keep editing and Confirm and write](docs/assets/readme/relation-review.png)
 
@@ -411,13 +426,13 @@ the map, then a compact review of the source, type, target, reason, and exact
 frontmatter fields. **Confirm and write** is the only point that changes the
 Markdown file; returning to edit or cancelling changes nothing.
 
-### 6. Review the change, then record it
+### 7. Review the change, then record it
 
 ![The current History screen in the installed macOS app, showing one unsaved concept change, the exact Markdown diff of the dependencies and relation_notes lines, the current branch and its remote with Fetch, Pull and Push, earlier vault commits, and the explicit save action](docs/assets/readme/history-review.png)
 
 Whatever wrote — you, the map editor, the CLI, or an agent over MCP — lands here
 first as a diff you read before it becomes history. The change above is the one
-confirmed in step 5: two frontmatter lines, still unsaved, waiting for a person
+confirmed in step 6: two frontmatter lines, still unsaved, waiting for a person
 to look at them.
 
 A command writes the same two lines, and it says what it would do to the graph
@@ -454,9 +469,9 @@ before it writes rather than after.
 Git is scoped to the vault. Files outside the folder you picked are never
 touched, and the screen says so.
 
-### 7. Keep it healthy
+### 8. Keep it healthy
 
-![The current Insights screen in the installed macOS app, with four measurements above the tabs (concepts by kind, relations by type, health in words, the last twelve weeks), the Do next, Not held, Inventory, Connections, Boundaries, Recent changes and Flow tabs, and eight things to fix grouped by kind with the first group open on a pair whose names overlap](docs/assets/readme/graph-insights.png)
+![The current Analysis screen in the installed macOS app, with four measurements above the tabs (concepts by kind, relations by type, health in words, the last four weeks), the Do next, Not held, Inventory, Connections, Boundaries, Growth, Recent changes, Structure and Flow tabs, and the things to fix grouped by kind with the first group open on a pair whose names overlap](docs/assets/readme/graph-insights.png)
 
 Insights opens on four measurements above the tabs: how many concepts and of
 which kinds, how many relations and of which types, the folder's health in
@@ -466,14 +481,27 @@ shows the documents behind it; the counts add up to the title, always. Where
 every missing back-link can be repaired from two facts already on disk, one
 sheet names each file it would touch, and nothing is written until you apply.
 The other tabs answer the standing questions: Inventory for what the folder is
-made of, Connections and Boundaries for how it hangs together, Recent changes
-and Flow for what moved. In the installed app, every Analysis tab can seat its
+made of, Connections and Boundaries for how it hangs together, Structure for
+how it is laid out, Recent changes and Flow for what moved.
+
+**Growth** answers the one question the folder cannot answer about itself: what
+was here before. It replays the folder's own Git history week by week and draws
+four counts — concepts, architecture profiles, wiki pages and gathered
+documents — as stacked blocks, with the week each layer began and the week it
+grew most named underneath. It stores nothing: the caption on the chart says so,
+and the numbers are recomputed from commits every time the tab opens. A folder
+with no commits is told there is no history to show rather than drawn as a row
+of zeroes, because a zero would claim the folder was empty. This is a desktop
+capability — a browser cannot reach Git — and the tab says that too instead of
+failing quietly.
+
+In the installed app, every Analysis tab can seat its
 question in one shared ACP conversation without changing tabs or navigating to
 the map. Flow can turn the qualified answer into a scene-by-scene presentation
 in that same dock; opening a cited fact on the map remains optional. Every number
 branches from the same compiled graph.
 
-### 8. See the shape of the whole project
+### 9. See the shape of the whole project
 
 ![The current Projects screen in the installed macOS app, showing the Online Store project, its derived capability, element, domain, document and relation totals, nine aligned domain composition rows, and routes back to details and the map](docs/assets/readme/projects-coverage.png)
 

@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-09-09",
+  "generatedAt": "2026-09-10",
   "docs": [
     {
       "slug": "AGENT-DESIGN-METHOD",
@@ -874,8 +874,8 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 123656,
-      "updatedAt": "2026-09-09",
+      "wordCount": 123960,
+      "updatedAt": "2026-09-10",
       "linksOut": [
         "wiki/…",
         "wiki/<slug>",
