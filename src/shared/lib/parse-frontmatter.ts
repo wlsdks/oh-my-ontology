@@ -483,6 +483,15 @@ export interface LinkContext {
 }
 
 /**
+ * Vault folder holding wiki pages — the one name a bare `[[slug]]` folds into.
+ *
+ * It lives here rather than in `wiki-page-schema.ts` because that module already
+ * imports this one; re-exporting it from there keeps the dependency running one way
+ * and both link resolvers reading the same constant.
+ */
+export const WIKI_DIR = 'wiki';
+
+/**
  * Normalises a wikilink `[[slug]]` target against the vault the document belongs
  * to.
  *
@@ -497,10 +506,31 @@ export interface LinkContext {
  * lookup. Wikilinks in top-level documents outside `ontology/` (such as
  * `[[FEATURES]]` in `docs/CHANGELOG.md`) are already root-relative and are left
  * alone.
+ *
+ * ⚠️ **`wiki/` is a second such namespace, and this function used to miss it**
+ * (measured 2026-09-09). `docs/ONTOLOGY-ATLAS-SPEC.md` §11.4 defines a wiki page
+ * link as `[[wiki/<slug>]]` **or** `[[<slug>]]`, and `validateWikiFolder` resolves
+ * the bare form inside `wiki/` exactly that way. This function did not, so the two
+ * disagreed in both directions on the same folder: `[[budget]]` inside
+ * `wiki/quarter-plan.md` rendered as **plain text** and drew no edge while the
+ * folder check called it resolved, and every genuinely resolved link the Library
+ * graph drew was still reported as `dangling-wikilink` because the check judged
+ * targets it could not see. One vault, one resolution: a bare slug written inside
+ * `wiki/` names a page in `wiki/`.
+ *
+ * Only the bare form is folded — a target that already carries a `/`
+ * (`[[capabilities/checkout]]`, `[[wiki/budget]]`) is vault-root relative and is
+ * left alone, which is the same boundary `normalizeWikiLinkTarget` draws in
+ * `wiki-page-schema.ts`. The two must keep agreeing;
+ * `tests/contract/wiki-page-schema.contract.test.ts` holds the folder half and
+ * `parse-frontmatter.test.ts` holds this one.
  */
-function resolveWikilinkTargetSlug(targetSlug: string, fromSlug: string): string {
+export function resolveWikilinkTargetSlug(targetSlug: string, fromSlug: string): string {
   if (fromSlug.startsWith('ontology/') && !targetSlug.startsWith('ontology/')) {
     return `ontology/${targetSlug}`;
+  }
+  if (fromSlug.startsWith(`${WIKI_DIR}/`) && !targetSlug.includes('/')) {
+    return `${WIKI_DIR}/${targetSlug}`;
   }
   return targetSlug;
 }

@@ -2,6 +2,8 @@
 
 import type { useTranslations } from "next-intl";
 
+import { isWikiFolderCode } from "../../lib/merge-wiki-verdict";
+
 /**
  * **Why a page does not fit the wiki template, said where the page is.**
  *
@@ -20,34 +22,65 @@ import type { useTranslations } from "next-intl";
  *
  * The code stays beside each sentence: it is what `ontology-atlas wiki-validate` prints
  * and what an agent branches on, so one word means one thing on every surface.
+ *
+ * ## Two findings, two headings (2026-09-09)
+ *
+ * ⚠️ **One heading used to cover both, and it named the wrong one.** Every finding was
+ * printed under *This page does not fit the wiki template* — including the folder half,
+ * which says nothing about the page's shape. Measured on a folder whose four pages all
+ * fit the template: the status strip correctly showed **no** off-template clause, and
+ * this panel simultaneously told the reader the page was off-template. Same screen, same
+ * page, two answers, and the one in larger type was the wrong one.
+ *
+ * The split is the same one `merge-wiki-verdict` already draws for the row's marks and
+ * the header's clauses, read from the same predicate. A page's own shape is fixed by
+ * editing that page; a folder finding is fixed by editing the folder around it, and a
+ * person who has just been told their page is malformed will go looking inside it.
+ *
+ * ## The sentence is rebuilt here, not shipped from the validator
+ *
+ * `problem.message` is written once, in English, for the machines that read it. A person
+ * gets `problem.detail` — the sentence's pieces — reassembled in their own language.
+ * Before this, a Korean reader was handed `dangling-wikilink:15` followed by an English
+ * paragraph. `detail` is optional on purpose: a finding that has not been given a
+ * localised retelling yet still says something true rather than nothing at all.
  */
 export interface WikiTemplateProblem {
   code: string;
   message: string;
   line?: number;
+  /** `{ key, values }` for a localised retelling; absent falls back to `message`. */
+  detail?: { key: string; values?: Record<string, string> };
 }
 
-export function WikiTemplateProblems({
+/** One heading, one explanation, one list — used twice with different subjects. */
+function ProblemGroup({
   problems,
+  ariaLabel,
+  title,
+  body,
+  testId,
   t,
 }: {
   problems: ReadonlyArray<WikiTemplateProblem>;
+  ariaLabel: string;
+  title: string;
+  body: string;
+  testId: string;
   t: ReturnType<typeof useTranslations<"library">>;
 }) {
   if (problems.length === 0) return null;
   return (
     <section
-      aria-label={t("wiki.offTemplateAriaLabel")}
-      data-testid="library-wiki-problems"
+      aria-label={ariaLabel}
+      data-testid={testId}
       className="mx-auto mt-4 max-w-[var(--measure-doc-column)] px-6 md:px-10"
     >
       <div className="rounded-chip border border-[color:var(--color-border-strong)] bg-[color:var(--color-overlay-1)] px-4 py-3">
         <p className="text-body font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-          {t("wiki.offTemplateTitle")}
+          {title}
         </p>
-        <p className="mt-1 text-label text-[color:var(--color-text-tertiary)]">
-          {t("wiki.offTemplateBody")}
-        </p>
+        <p className="mt-1 text-label text-[color:var(--color-text-tertiary)]">{body}</p>
         <ul className="mt-2 flex flex-col gap-1 font-sans">
           {problems.map((problem, index) => (
             <li
@@ -59,11 +92,62 @@ export function WikiTemplateProblems({
                 {problem.code}
                 {problem.line ? `:${problem.line}` : ""}
               </span>{" "}
-              {problem.message}
+              {describeWikiProblem(problem, t)}
             </li>
           ))}
         </ul>
       </div>
     </section>
+  );
+}
+
+/**
+ * The finding in the reader's language, or the validator's English when there is no
+ * translation for it yet.
+ *
+ * `t.has` rather than a table of known keys: the validator owns which sentence it just
+ * found, and a key it grows before this file learns about it should degrade to the
+ * English message rather than render a raw `library.wiki.problem.…` path.
+ */
+function describeWikiProblem(
+  problem: WikiTemplateProblem,
+  t: ReturnType<typeof useTranslations<"library">>,
+): string {
+  const key = problem.detail?.key;
+  if (!key) return problem.message;
+  const path = `wiki.problem.${key}` as "wiki.problem.orphan-page";
+  if (!t.has(path)) return problem.message;
+  return t(path, problem.detail?.values ?? {});
+}
+
+export function WikiTemplateProblems({
+  problems,
+  t,
+}: {
+  problems: ReadonlyArray<WikiTemplateProblem>;
+  t: ReturnType<typeof useTranslations<"library">>;
+}) {
+  if (problems.length === 0) return null;
+  const ownShape = problems.filter((problem) => !isWikiFolderCode(problem.code));
+  const folder = problems.filter((problem) => isWikiFolderCode(problem.code));
+  return (
+    <>
+      <ProblemGroup
+        problems={ownShape}
+        ariaLabel={t("wiki.offTemplateAriaLabel")}
+        title={t("wiki.offTemplateTitle")}
+        body={t("wiki.offTemplateBody")}
+        testId="library-wiki-problems"
+        t={t}
+      />
+      <ProblemGroup
+        problems={folder}
+        ariaLabel={t("wiki.linkFindingsAriaLabel")}
+        title={t("wiki.linkFindingsTitle")}
+        body={t("wiki.linkFindingsBody")}
+        testId="library-wiki-link-findings"
+        t={t}
+      />
+    </>
   );
 }

@@ -4,6 +4,7 @@ import {
   buildTopologyDeeplinkForDoc,
   type ReviewQueueRow,
   type VaultDoc,
+  isWikiPage,
 } from "@/entities/docs-vault";
 import { Link } from "@/i18n/navigation";
 import { estimateReadingMinutes } from "./reading-minutes";
@@ -119,7 +120,17 @@ export function DocMetaBar({
    * Not moved into a tooltip: on a touch device there is no hover, so it would effectively vanish,
    * which becomes "hiding a typed fact".
    */
-  const proofBody = inGraph ? null : t("notOnMapBody");
+  /*
+   * ⚠️ **A wiki page is off the map *by contract*, so it must not be told to fix that**
+   * (2026-09-09). `wiki/` holds write-ups about sources, and the one thing that keeps
+   * them out of the graph is the absence of `kind:` — `isWikiPage` is that absence.
+   * This line nevertheless read *fill in what the diagnostic above says is missing and
+   * it will appear there*, which is wrong twice over: the diagnostic above is not
+   * rendered for such a page (`DocFrontmatterBlock` returns null), and the only way to
+   * follow the advice is to add the very key `validateWikiPage` reports as
+   * `kind-present`. A person doing as they were told would break the page.
+   */
+  const proofBody = inGraph ? null : t(isWikiPage(doc) ? "notOnMapWikiBody" : "notOnMapBody");
 
   return (
     <section
