@@ -2406,9 +2406,9 @@ function StepList({
                       recoverable instead.
 
                       Measured on the installed app 2026-09-09 at 1512x949: two slots plus the time
-                      and reason columns left four characters of a name standing — rows read
-                      "AI 에이...", "온보딩·배...", "코드베이스 ...". Four characters is not a name,
-                      and there was nothing to hover.
+                      and reason columns left about four characters of a name standing before the
+                      ellipsis, on eight of the eleven rows on screen. Four characters is not a
+                      name, and there was nothing to hover.
                     */}
                     {stepConcepts.slice(0, STEP_CONCEPT_SLOTS).map((concept) => (
                       <span key={concept.id} className="inline-flex min-w-0 shrink items-center gap-1.5">

@@ -4410,8 +4410,8 @@ body *::-webkit-scrollbar {
  * `uppercase` does nothing to Hangul — that was already written down beside
  * `SETTINGS_SECTION_LABEL`. `font-mono` does something worse. Font fallback is per glyph, so
  * Hangul drops to Pretendard while **the space between the words is still drawn by JetBrains
- * Mono**, at a monospace advance. Measured on the installed app's "이 컴퓨터에서 확인됐어요 (3)"
- * eyebrow: syllable gaps 2-5px, word gaps 17-18px at 2x — roughly three times a proportional
+ * Mono**, at a monospace advance. Measured on the installed app's tool-list eyebrow (three
+ * Hangul words and a count): syllable gaps 2-5px, word gaps 17-18px at 2x — three times a
  * space. It reads as a label with broken word spacing, and it was reported as a tracking bug
  * twice before the gaps were actually measured.
  *

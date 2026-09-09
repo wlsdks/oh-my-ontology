@@ -3,30 +3,30 @@ import { describe, expect, it } from "vitest";
 import ko from "../../messages/ko.json";
 
 /**
- * A Korean particle (조사) attaches to the word in front of it, with no space —
- * including after a Latin word, a digit, a closing bracket, or an interpolation
- * placeholder. `Cursor를`, `MCP로`, `{version}이`, `Finder에서`.
+ * A Korean particle attaches to the word in front of it, with no space — including after a
+ * Latin word, a digit, a closing bracket, or an interpolation placeholder. The pattern below
+ * is the list of particles; the rule is that none of them may be preceded by a space.
  *
  * This is not a taste rule. Measured on 2026-09-09 the bundle was split almost
  * evenly: 151 spaced against 127 attached, and 23 identical letter+particle pairs
- * appeared **both ways**. One screen showed "Atlas 가 이 컴퓨터에…" one paragraph
- * above "Atlas가 온톨로지 쓰기를…". Whichever style wins, a bundle that uses both
- * for the same pair is wrong, so this gate fixes the one that is orthographically
- * correct rather than the one that happened to be more common.
+ * appeared **both ways**. The Agents screen showed the product name spaced from its subject
+ * particle one paragraph above the same name attached to it. Whichever style wins, a bundle
+ * that uses both for the same pair is wrong, so this gate keeps the one that is
+ * orthographically correct rather than the one that happened to be more common.
  *
- * ⚠️ **`이` is the trap.** It is a subject particle *and* the determiner "this".
- * `{version} 이 나왔어요` is a particle; `을(를) 이 컴퓨터에서 숨깁니다` is "this
- * computer" and must keep its space. The exemptions below are the five measured
- * determiners, listed literally so a new one has to be looked at rather than
- * absorbed by a widened pattern.
+ * ⚠️ **One syllable is the trap.** The subject particle and the determiner "this" are spelled
+ * the same. After an interpolated value it is usually the particle and must attach; in front of
+ * a noun it is the determiner and must keep its space. The exemptions below are the four
+ * measured determiners, listed literally so a new one has to be looked at rather than absorbed
+ * by a widened pattern.
  */
 const PARTICLE_BASE =
   "(?:에서|으로|로서|로써|로|를|을|의|와|과|이라고|이라|이며|이고|이나|이|가|은|는|에게|에|도|만|부터|까지|보다|처럼|밖에|나)";
 
 /**
- * Particles stack: `에도`, `으로도`, `로만`, `에만`, `이라는`. The first pattern written for this
- * gate matched only the head and its lookahead then saw a Hangul syllable, so every stacked one
- * was excused — six of them survived the first sweep of the bundle.
+ * Particles stack, two or three deep. The first pattern written for this gate matched only the
+ * head, and its lookahead then saw a Hangul syllable, so every stacked one was excused — six of
+ * them survived the first sweep of the bundle.
  */
 const PARTICLE_TAIL = "(?:도|만|은|는|이|가|를|을|의|와|과|나|라도|서)";
 
@@ -38,7 +38,7 @@ const WORD_END = "[A-Za-z0-9\\)\\]\\}/\"'»”]";
 const SPACED = new RegExp(`${WORD_END} ${PARTICLE}(?![A-Za-z가-힣])`, "g");
 
 /**
- * `이` as a determiner ("this X"), not a particle — these keep their space.
+ * The determiner reading ("this X"), not a particle — these keep their space.
  *
  * Matched against a window around the offending position rather than the whole
  * string, so one determiner inside a long prompt does not excuse the rest of it.
