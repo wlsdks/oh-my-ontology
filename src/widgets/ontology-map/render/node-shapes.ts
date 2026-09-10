@@ -22,6 +22,7 @@
 import { smoothstep } from "../model/altitude";
 import { FONT_WEIGHT } from "@/shared/ui/font-weight";
 import { computeHoverShimmer } from "../model/hover-shimmer";
+import { drawStarEmission } from "@/shared/lib/star-emission";
 
 export interface Point {
   x: number;
@@ -540,6 +541,78 @@ function minCornerRadius(kind: NodeShapeDrawState["kind"], r: number): number {
  * one-shot commit pulse, and the hover preview ring — all five are the same
  * primitive at a different radius/color/width/alpha.
  */
+/**
+ * **The walked path's star: the node, emitting.**
+ *
+ * ⚠️ Two builds got this wrong before it worked, and both failures were the same mistake in
+ * different clothes — painting a *mark* instead of making the node *bright*.
+ *
+ * 1. A small star glyph beside the node. That is the footprint notation in another shape:
+ *    still an object to find and tie back to what it belongs to.
+ * 2. A pale outline stroke. The owner's verdict was exact — *"it's just dark grey"* — and it
+ *    was, because paint on a dark canvas is paint. Light on a dark canvas has to **add**.
+ *
+ * So this composites with `lighter`, the one operation that turns strokes into emission, and
+ * builds the star the way the map already builds one: a radial bloom for the light it
+ * throws, `drawDiffractionSpike`'s four-point cross for the signature every bright node on
+ * this canvas already wears, and the node's own kind outline for the edge. The face is never
+ * filled — a wash covers the node's numeral, and a visited node ended up harder to read than
+ * an unvisited one (measured 2026-09-10).
+ *
+ * ⚠️ That last sentence was **false for three days**. The bloom was a `createRadialGradient`
+ * from `radius * 0.35` painted with `ctx.arc(x, y, reach)`, and a radial gradient fills
+ * everything inside its inner circle with stop 0 — so the face took a solid additive wash at
+ * α 0.62. design-infoviz measured a scanline through a walked node on 2026-09-10 and found
+ * every sample from −15 px to +21 px at `rgb(255,255,255)`: the engraved child count against
+ * its own face at **1.00:1**, erased, on exactly the nodes a person had just walked. The
+ * defect the comment recorded as fixed was what shipped. The bloom is now an **annulus** —
+ * the disc is cut back out of the path — so the sentence is true by construction rather than
+ * by a gradient stop that happened to be low.
+ *
+ * `design.md` reserves node-outline overlays for material rather than emission, and that rule
+ * stands for the five that mark state on a node you are already looking at. This one is not
+ * state: it says the node *is a star*, on a canvas whose own `starfield.ts` says magnitude
+ * by brightness, and only inside a lens the person opened.
+ *
+ * ⚠️ That sentence cited a rule which, until 2026-09-10, **existed in no rules file** — four
+ * comments here had been quoting it for months while `docs:comment-refs` validated only the
+ * path they cited, never the sentence. It is written down now, with a gate:
+ * `tests/contract/canvas-composite-license.contract.test.ts`.
+ */
+export function drawNodeStar(
+  ctx: CanvasRenderingContext2D,
+  kind: NodeShapeDrawState["kind"],
+  x: number,
+  y: number,
+  radius: number,
+  farT: number,
+  ink: string,
+  lit: number,
+  swell = 1,
+): void {
+  // The map's only contribution is the silhouette: a hexagon, square or circle that converges
+  // with altitude. The light is `shared/lib/star-emission.ts`, so the settings preview and this
+  // canvas cannot drift apart again.
+  drawStarEmission(ctx, {
+    x,
+    y,
+    radius,
+    ink,
+    lit,
+    swell,
+    tracePath: (target, r) => {
+      const points = bodyPointsScratch(kind, x, y, r);
+      if (points === null || farT > FULL_CIRCLE_FAR_T) target.arc(x, y, r, 0, Math.PI * 2);
+      else roundedPolygonPath(target, points, interpolateCornerRadius(minCornerRadius(kind, r), r, farT));
+    },
+  });
+}
+
+
+
+
+
+
 function strokeKindOutline(
   ctx: CanvasRenderingContext2D,
   kind: NodeShapeDrawState["kind"],

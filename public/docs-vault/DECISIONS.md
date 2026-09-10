@@ -54,6 +54,24 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-10 — Brightness says walked, not when; the ordinal keeps the order
+
+**Why**: two seats measured one encoding failing from both ends. design-infoviz found the numeral inside a walked node erased at **1.00:1** — the bloom filled the face it was documented as never touching — and proved the recency ramp cannot rank: additive light clips, so the adjacent-step ratio is 1.41 at two stops and 1.17 at four, under any threshold even at zero twinkle. A seven-step walk read 5 > 6 > 7 > 3. design-motion found the destination missing: the focused node was cut from the star set, so the newest stop drew 19x darker than the ones behind it.
+**Prior**: overturns three clauses of today's "The walked path is a constellation" — that the stars hold still, that brightness means recency, and that one clock may drive every walked relation. Its ink, notation and lens licence stand.
+**Decision**: the bloom becomes an annulus, so the face is never washed and the numeral returns to 5.3:1. Every walked star settles at one level: **walked** is all brightness says. Order lives on the ordinal and the popover list, both position on a common scale; the walk's end is the cross, turned 45 degrees off the magnitude spike so the two part by form, not by hue at 1.68:1. The node you stand on is lit in the selection's own indigo — walked and here-now on two channels instead of a hole. The travelling light takes a slice of its lap proportional to each relation's length, so one light walks the path in order at one speed instead of three at a 2.9x spread, and a static chevron carries direction for a still frame and for reduced motion.
+**Dissent**: design-motion argued for keeping recency in brightness under a length-aware twinkle depth. Rejected on design-infoviz's arithmetic: at thirty stops that depth is 0.022, invisible, and the ranking still fails.
+**Falsifier**: a reader who ranks two walked stars by brightness and is right; a numeral unreadable inside a walked node; the walked cross mistaken for a magnitude spike; two travelling lights at once.
+**Owner**: jinan
+
+## 2026-09-10 — The walked path is a constellation, in the ink the map already paints stars with
+
+**Why**: the owner asked *"what if it were white light, twinkling, like a constellation"*, and the map had been asking for it. `render/starfield.ts` already paints far-field dust and diffraction spikes at `rgba(236,236,240)` under a header naming the language: "B1 constellation DNA". The walked path was the one mark outside it, on the fourth amber role the 2026-08-02 record flagged as "no room left: indigo=selection · amber=hub · #e8c47a=walked".
+**Prior**: keeps the notation decision of 2026-07-29 — a mark outside the circle grammar, beside the line, carrying order and direction — and changes only which mark. Amends the trail-ink clause of `.claude/rules/design.md`.
+**Decision**: the mark becomes a four-point diffraction star in `--color-footprint-trail-star`, the starfield's own value, default for new folders; yellow and indigo stay selectable. Position keeps two facts apart — a magnitude spike sits on a node, a walked star beside it. The shoe print carried a heading in its toes and a star has none, so **direction moved onto the line**: a light travels each walked relation the way the person went, one clock for the whole trail, four seconds a lap. The stars hold still, because their brightness means how recently each was visited and a twinkling star would argue with its own encoding. A walked relation's ambient comet stands down while that light runs.
+**Dissent**: replacing the two existing tones was rejected — both were deliberate owner choices and neither is broken, so this moves the default rather than removing a setting. Twinkling the stars, closer to the literal request, was rejected on the encoding conflict above.
+**Falsifier**: a person who cannot tell which way they walked; a walked star mistaken for a magnitude spike; ambient motion on this canvas outside an open trail lens.
+**Owner**: jinan
+
 ## 2026-09-10 — The Library's other waiting screen gets the texture, not the object
 
 **Why**: the owner, on the folder-open empty screen: *"was the waiting screen always this? I thought there were shapes beside it."* There are, on the other waiting screen. Measured at 1512x949, this one's card ends at 61.5% of the window with 38.5% empty below — the complaint that started the other repair, on a screen it never reached.

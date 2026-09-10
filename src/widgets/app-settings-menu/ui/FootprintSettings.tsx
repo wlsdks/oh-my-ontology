@@ -18,8 +18,11 @@ import {
   writeFootprint,
   type FootprintPreference,
   type FootprintPresetName,
+  FOOTPRINT_TONE_FALLBACK,
+  FOOTPRINT_TONE_TOKEN,
 } from '@/shared/lib/appearance-preferences';
-import { drawEdgeFootprints, drawNodeFootprint } from '@/shared/lib/footprint-glyph';
+import { drawFootprintSteps } from '@/shared/lib/footprint-glyph';
+import { drawStarEmission } from '@/shared/lib/star-emission';
 
 /**
  * Footprint settings — the 「Map」 subview's second segment.
@@ -70,25 +73,45 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
       const raw = root.getPropertyValue(name).trim();
       return raw === '' ? fallback : raw;
     };
-    const hex = read(pref.tone === 'indigo' ? '--color-footprint-trail-indigo' : '--color-footprint-trail', '#e8c47a');
+    /*
+     * ⚠️ **The same map the canvas reads.** This branched two ways after a third tone landed,
+     * so picking starlight painted the preview amber while the map painted white — and this
+     * module's own header says a preview that drifts stops being a preview. There is one
+     * table now (`FOOTPRINT_TONE_TOKEN`), and its fallback carries the same three values.
+     */
+    const fallback = FOOTPRINT_TONE_FALLBACK[pref.tone];
+    const hex = read(FOOTPRINT_TONE_TOKEN[pref.tone], '');
     const parsed = /^#?([0-9a-f]{6})$/i.exec(hex);
-    const n = parsed ? parseInt(parsed[1], 16) : 0xe8c47a;
-    const ink = [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const;
+    const ink = parsed
+      ? ([
+          (parseInt(parsed[1], 16) >> 16) & 255,
+          (parseInt(parsed[1], 16) >> 8) & 255,
+          parseInt(parsed[1], 16) & 255,
+        ] as const)
+      : fallback;
 
     ctx.fillStyle = read('--map-canvas-bg-near', '#0a0a0d');
     ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);
 
-    // Two nodes plus one relation line — both places a footprint sits on the map.
+    /*
+     * ⚠️ **This preview used to draw a different mark from the map**, and the caption three
+     * lines above it described the map. It stamped the star *glyph* — a sparkle beside each
+     * node and a row of them along the relation — while the topology canvas lit the node
+     * itself, so the panel's words and its picture disagreed and the picture showed the
+     * notation the owner had already turned down (design-infoviz, 2026-09-10). It now paints
+     * two walked stops: the same emission the map paints (`shared/lib/star-emission.ts`), the
+     * same walked line, the same ordinals, the same chevron.
+     */
     const r = 15;
     const inset = 76;
     const a = { x: inset, y: PREVIEW_H / 2 };
     const b = { x: PREVIEW_W - inset, y: PREVIEW_H / 2 };
-    ctx.strokeStyle = read('--map-edge-dim', 'rgba(255,255,255,0.11)');
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.stroke();
+    const inkHex = parsed ? `#${parsed[1]}` : `#${fallback.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+    const trace = (target: CanvasRenderingContext2D, radius: number, at: { x: number; y: number }) => {
+      target.roundRect(at.x - radius, at.y - radius, radius * 2, radius * 2, 5);
+    };
+
+    // The node bodies first, so the light lands on them rather than under them.
     for (const p of [a, b]) {
       ctx.beginPath();
       ctx.roundRect(p.x - r, p.y - r, r * 2, r * 2, 5);
@@ -98,10 +121,53 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
       ctx.stroke();
     }
 
+    // The walked relation: a halo under the ink, in the same star ink, and the direction
+    // chevron past its midpoint — the one mark that says which way the walk went in a still
+    // frame and for a reader who has asked for reduced motion.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = pref.opacity * 0.3;
+    ctx.strokeStyle = inkHex;
+    ctx.lineWidth = 1 + 3.2 * 2;
+    // From silhouette to silhouette, the way the map draws a relation — a line run to the node
+    // centres would show through the bloom's hole and read as a notch in the node.
+    ctx.beginPath();
+    ctx.moveTo(a.x + r, a.y);
+    ctx.lineTo(b.x - r, b.y);
+    ctx.stroke();
+    ctx.globalAlpha = pref.opacity;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(a.x + r, a.y);
+    ctx.lineTo(b.x - r, b.y);
+    ctx.stroke();
+    const headX = a.x + (b.x - a.x) * 0.62;
+    const arm = 5;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(headX - arm, a.y - arm * 0.86);
+    ctx.lineTo(headX + arm * 0.4, a.y);
+    ctx.lineTo(headX - arm, a.y + arm * 0.86);
+    ctx.stroke();
+    ctx.restore();
+
+    // The two stops.
+    for (const p of [a, b]) {
+      drawStarEmission(ctx, {
+        x: p.x,
+        y: p.y,
+        radius: r,
+        ink: inkHex,
+        lit: pref.opacity,
+        tracePath: (target, radius) => trace(target, radius, p),
+      });
+    }
+
+    // The ordinals — the channel that actually carries the walk's order.
     const paint = { ctx, pref, ink: ink as unknown as readonly [number, number, number] };
-    if (pref.onEdges) drawEdgeFootprints(paint, a.x, a.y, b.x, b.y, pref.opacity);
-    drawNodeFootprint(paint, a.x, a.y, r, pref.opacity);
-    drawNodeFootprint(paint, b.x, b.y, r, pref.opacity);
+    drawFootprintSteps(paint, a.x, a.y, r, pref.opacity, [1], inkHex);
+    drawFootprintSteps(paint, b.x, b.y, r, pref.opacity, [2], inkHex);
   }, [pref]);
 
   return (
@@ -186,29 +252,6 @@ export function FootprintSettings() {
             format={(v) => `${v}px`}
             onChange={(size) => set({ size })}
           />
-          <Choice
-            label={t('fillLabel')}
-            testId="app-settings-footprint-fill"
-            value={pref.filled}
-            options={[
-              { value: true, label: t('fillSolid') },
-              { value: false, label: t('fillOutline') },
-            ]}
-            onChange={(filled) => set({ filled })}
-          />
-          {/* Border width is visible **only in outline mode** — in the filled state it
-              has no effect on screen, so leaving it exposed makes it "a control that
-              does nothing when you touch it". */}
-          {pref.filled ? null : (
-            <Slider
-              label={t('strokeWidth')}
-              testId="app-settings-footprint-stroke"
-              value={pref.strokeWidth}
-              range={FOOTPRINT_RANGES.strokeWidth}
-              format={(v) => `${v.toFixed(1)}px`}
-              onChange={(strokeWidth) => set({ strokeWidth })}
-            />
-          )}
           <Slider
             label={t('opacity')}
             testId="app-settings-footprint-opacity"
@@ -222,18 +265,11 @@ export function FootprintSettings() {
             testId="app-settings-footprint-tone"
             value={pref.tone}
             options={[
+              { value: 'star' as const, label: t('toneStar') },
               { value: 'amber' as const, label: t('toneAmber') },
               { value: 'indigo' as const, label: t('toneIndigo') },
             ]}
             onChange={(tone) => set({ tone })}
-          />
-          <Slider
-            label={t('bloom')}
-            testId="app-settings-footprint-bloom"
-            value={pref.bloom}
-            range={FOOTPRINT_RANGES.bloom}
-            format={(v) => (v === 0 ? t('bloomOff') : `${v}px`)}
-            onChange={(bloom) => set({ bloom })}
           />
           <Slider
             label={t('gap')}
@@ -243,40 +279,14 @@ export function FootprintSettings() {
             format={(v) => `${v}px`}
             onChange={(gap) => set({ gap })}
           />
-          <Choice
-            label={t('onEdgesLabel')}
-            testId="app-settings-footprint-on-edges"
-            value={pref.onEdges}
-            options={[
-              { value: true, label: t('onEdgesYes') },
-              { value: false, label: t('onEdgesNo') },
-            ]}
-            onChange={(onEdges) => set({ onEdges })}
-          />
-          {pref.onEdges ? (
-            <>
-              <Choice
-                label={t('densityLabel')}
-                testId="app-settings-footprint-density"
-                value={pref.edgeDensity}
-                options={[
-                  { value: 'sparse' as const, label: t('densitySparse') },
-                  { value: 'dense' as const, label: t('densityDense') },
-                ]}
-                onChange={(edgeDensity) => set({ edgeDensity })}
-              />
-              <Choice
-                label={t('placementLabel')}
-                testId="app-settings-footprint-placement"
-                value={pref.placement}
-                options={[
-                  { value: 'right' as const, label: t('placementRight') },
-                  { value: 'both' as const, label: t('placementBoth') },
-                ]}
-                onChange={(placement) => set({ placement })}
-              />
-            </>
-          ) : null}
+          {/*
+            ⚠️ Six controls stood here until 2026-09-10: fill, outline weight, bloom, whether
+            the mark repeated along the relation, how densely, and on which side. Every one of
+            them shaped a *glyph* the map no longer draws — the owner asked for the footprint to
+            go and for the node itself to light — so each was a control a person could spend
+            attention on and get nothing back from. `FootprintPreference` records what happens
+            to a preference saved while they existed.
+          */}
           <button
             type="button"
             data-testid="app-settings-footprint-reset"

@@ -45,19 +45,26 @@ export interface ScreenDisc {
 
 const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
 
-/** The bloom under one node. Restores `shadowBlur` and `globalAlpha` before returning. */
+/**
+ * The bloom under one node. Restores `shadowBlur` and `globalAlpha` before returning.
+ *
+ * `ink` overrides the indigo pair — the walked path lights its nodes in star ink so a node
+ * a person visited reads as a star rather than as a second kind of focus (2026-09-10).
+ * Omitted, the light is the ego indigo it has always been.
+ */
 export function drawNodeBloom(
   ctx: CanvasRenderingContext2D,
   disc: ScreenDisc,
   ramp: number,
   tokens: Pick<EgoLightTokens, "indigo" | "indigoBright" | "nodeBloomBlurPx" | "nodeBloomAlpha">,
+  ink?: { core: string; halo: string },
 ): void {
   const k = clamp01(ramp);
   if (k <= 0.001) return;
   const prevAlpha = ctx.globalAlpha;
-  ctx.shadowColor = hexWithAlpha(tokens.indigoBright, 0.9 * k);
+  ctx.shadowColor = hexWithAlpha(ink?.halo ?? tokens.indigoBright, 0.9 * k);
   ctx.shadowBlur = tokens.nodeBloomBlurPx * k;
-  ctx.fillStyle = hexWithAlpha(tokens.indigo, tokens.nodeBloomAlpha * k);
+  ctx.fillStyle = hexWithAlpha(ink?.core ?? tokens.indigo, tokens.nodeBloomAlpha * k);
   ctx.beginPath();
   ctx.arc(disc.x, disc.y, disc.r * 1.05, 0, Math.PI * 2);
   ctx.fill();
@@ -73,10 +80,12 @@ export function beginEdgeGlow(
   ctx: CanvasRenderingContext2D,
   ramp: number,
   tokens: Pick<EgoLightTokens, "indigo" | "egoGlowBlurPx" | "egoGlowAlpha">,
+  /** Overrides the ego indigo — the walked path glows in star ink. */
+  ink?: string,
 ): boolean {
   const k = clamp01(ramp);
   if (k <= 0.001) return false;
-  ctx.shadowColor = hexWithAlpha(tokens.indigo, tokens.egoGlowAlpha * k);
+  ctx.shadowColor = hexWithAlpha(ink ?? tokens.indigo, tokens.egoGlowAlpha * k);
   ctx.shadowBlur = tokens.egoGlowBlurPx * k;
   return true;
 }

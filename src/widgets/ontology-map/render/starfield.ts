@@ -237,43 +237,4 @@ export function drawStarDust(ctx: CanvasRenderingContext2D, state: StarDustDrawS
   }
 }
 
-export interface DiffractionSpikeDrawState {
-  screenX: number;
-  screenY: number;
-  /** Node's own screen-space draw radius — spike arm lengths scale off this (`r*2.6`/`r*1.5`). */
-  screenRadius: number;
-  color: string;
-  /** farT-gated — spike is invisible at farT<=0.02, fully present by farT=1 (prototype: `alpha = farT`). */
-  alpha: number;
-}
-
-/** Draws one crisp 4-point diffraction spike — solid tapering slivers, no gradient/blur/glow. */
-export function drawDiffractionSpike(ctx: CanvasRenderingContext2D, state: DiffractionSpikeDrawState): void {
-  if (state.alpha <= 0.01) return;
-  const { screenX: cx, screenY: cy, screenRadius: r, color, alpha } = state;
-  const long = r * 2.6;
-  const short = r * 1.5;
-  const baseW = Math.max(0.6, r * 0.09);
-
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = color;
-
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - long);
-  ctx.lineTo(cx + baseW, cy);
-  ctx.lineTo(cx, cy + long);
-  ctx.lineTo(cx - baseW, cy);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(cx - short, cy);
-  ctx.lineTo(cx, cy - baseW);
-  ctx.lineTo(cx + short, cy);
-  ctx.lineTo(cx, cy + baseW);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.restore();
-}
+export { drawDiffractionSpike } from "@/shared/lib/diffraction-spike";

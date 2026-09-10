@@ -192,6 +192,15 @@ export interface OntologyMapTokens {
    */
   focusDimTau: number;
   /**
+   * How long the trail lens takes to fade in and out **under reduced motion**, in ms.
+   *
+   * Reduced motion suppresses the ignition sweep, the twinkle and the travelling light, and
+   * used to suppress the transition itself as well — the lens ramp snapped 0 to 1 in one
+   * frame. A cut is the one thing the preference did not ask for; an opacity crossfade carries
+   * no travel and no vestibular signal (design-motion, 2026-09-10).
+   */
+  trailReducedFadeMs: number;
+  /**
    * `--map-cluster-reveal-tau` — the cluster expand/collapse reveal ramp
    * time constant (rank7). One symmetric τ so a collapsed parent's child subtree
    * fades IN (0→1) on expand and OUT (1→0) on collapse instead of hard-cutting,
@@ -239,6 +248,10 @@ export interface OntologyMapTokens {
   massDropMaxPx: number;
   /** `--map-ego-glow-blur-px` — canvas shadow blur (px) for the focused node's bloom and its lines' glow. */
   egoGlowBlurPx: number;
+  /** `--map-trail-glow-alpha` — the walked line's glow, stronger than the ego glow. */
+  trailGlowAlpha: number;
+  /** `--map-trail-glow-blur-px` */
+  trailGlowBlurPx: number;
   /** `--map-ego-glow-alpha` — alpha of the glow under the focused node's relation lines. */
   egoGlowAlpha: number;
   /** `--map-node-bloom-blur-px` — canvas shadow blur (px) of the bloom disc itself, wider than the line glow. */
@@ -389,6 +402,7 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "emphasisRiseTau", cssVar: "--map-emphasis-rise-tau", kind: "number" },
   { key: "emphasisDecayTau", cssVar: "--map-emphasis-decay-tau", kind: "number" },
   { key: "focusDimTau", cssVar: "--map-focus-dim-tau", kind: "number" },
+  { key: "trailReducedFadeMs", cssVar: "--map-trail-reduced-fade-ms", kind: "number" },
   { key: "spotlightRestAlpha", cssVar: "--map-spotlight-rest-alpha", kind: "number" },
   { key: "spotlightRingSpeed", cssVar: "--map-spotlight-ring-speed", kind: "number" },
   { key: "clusterRevealTau", cssVar: "--map-cluster-reveal-tau", kind: "number" },
@@ -408,6 +422,8 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "massHeavyZeta", cssVar: "--map-mass-heavy-zeta", kind: "number" },
   { key: "massDropMaxPx", cssVar: "--map-mass-drop-max-px", kind: "number" },
   { key: "egoGlowBlurPx", cssVar: "--map-ego-glow-blur-px", kind: "number" },
+  { key: "trailGlowAlpha", cssVar: "--map-trail-glow-alpha", kind: "number" },
+  { key: "trailGlowBlurPx", cssVar: "--map-trail-glow-blur-px", kind: "number" },
   { key: "egoGlowAlpha", cssVar: "--map-ego-glow-alpha", kind: "number" },
   { key: "nodeBloomBlurPx", cssVar: "--map-node-bloom-blur-px", kind: "number" },
   { key: "nodeBloomAlpha", cssVar: "--map-node-bloom-alpha", kind: "number" },

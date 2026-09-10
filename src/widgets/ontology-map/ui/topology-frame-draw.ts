@@ -7,6 +7,7 @@
 
 import type { CameraAxes } from "../engine/camera";
 import { collectDomeAncestry, domeAncestryEdgeKey } from "../model/dome-ancestry";
+import { buildTrailGlintLegs, trailGlintLocalPhase } from "../model/footprint-steps";
 import { rankEgoNeighborsByDOI, resolveEdgeEgoStateWithPair, resolveNodeEgoStateWithPair, resolveTrailLensNodeEgoState, trailNodeInkStrength, type EdgeEgoState, type EdgePairFocus, type NodeEgoState } from "../model/focus-state";
 import { resolveFreshnessVisual } from "../model/freshness";
 import { backgroundParallaxOrigin, resolveBackgroundOrigin } from "../model/background-parallax";
@@ -17,9 +18,7 @@ import {
   type TopologyMapLensKind,
 } from "../model/path-lens";
 import {
-  drawEdgeFootprints,
   drawFootprintSteps,
-  drawNodeFootprint,
   footprintScaleFor,
   type FootprintInk,
 } from "@/shared/lib/footprint-glyph";
@@ -83,7 +82,7 @@ import {
   type ReservedBox,
   type SafeRect,
 } from "../render/label-layout";
-import { draw as nodeShapesDraw } from "../render/node-shapes";
+import { draw as nodeShapesDraw, drawNodeStar } from "../render/node-shapes";
 import { clusterChipOccupancyRect, drawClusterChip, clusterChipScale, type ClusterBarLabels } from "../render/cluster-chips";
 import type { ClusterChip } from "../model/density-gate";
 import { drawDiffractionSpike, drawRealmCosmos, drawStarDust, type DustPoint } from "../render/starfield";
@@ -505,6 +504,143 @@ function resolveNodeVisual(
   };
 }
 
+/**
+ * How long the trail light takes to travel one relation.
+ *
+ * Four seconds, and deliberately slow. The travelling light is the only thing on this canvas
+ * allowed to move on its own, and it is allowed because it answers a question the person
+ * asked by opening the trail lens. A fast one would be a second thing to read while they are
+ * trying to read the path.
+ */
+const TRAIL_GLINT_PERIOD_MS = 4000;
+
+/**
+ * How far the bloom swells at the peak of its ignition, as a fraction of its reach.
+ *
+ * Raised from 0.5 only once `starSwellCurve` moved the peak off the brightness peak. At the
+ * old phase the extra reach measured as **+10% apparent radius** and vanished inside the
+ * fade-up, so the amplitude was not wrong, it was spent where nothing could see it
+ * (design-motion, 2026-09-10).
+ */
+const TRAIL_STAR_SWELL = 0.7;
+/**
+ * The ignition sweep: how long one star takes to come up, and how long the whole walk takes.
+ *
+ * Opening the lens redraws the path in the order it was walked. The span is fixed rather
+ * than per-step, because a stride would make a twenty-stop walk take four seconds — the same
+ * defect measured on the growth wall, where a fixed stride turned duration into a function of
+ * how much the person had done. Inside a second, whatever the walk's length.
+ */
+const TRAIL_IGNITE_MS = 360;
+const TRAIL_IGNITE_SPAN_MS = 900;
+
+/**
+ * When the star at step `n` of an `total`-stop walk starts coming up, in ms after the lens
+ * opened.
+ *
+ * ⚠️ **`TRAIL_IGNITE_SPAN_MS` was never a span.** It was divided into a per-step stride and
+ * then had one whole `TRAIL_IGNITE_MS` added on the end, so the number in the constant was
+ * never the number on the screen: design-motion measured 1000 ms for a four-stop walk against
+ * a declared 1400, and derived 1453 at six stops, 1640 at ten and 1827 at thirty (2026-09-10).
+ * A budget that drifts with how much the person has done is the same defect the growth wall
+ * shipped and had to take back.
+ *
+ * The stride is now whatever is left of the budget after the last star's own rise, so the
+ * total equals the budget at every length: `(total − 1) · stride + TRAIL_IGNITE_MS = SPAN`.
+ *
+ * The replay is deliberately past the 400 ms Doherty threshold and that is not an oversight —
+ * it is a *narrative* replay of a walk, and the acknowledgement a person actually waits on is
+ * the popover, which completes in 133 ms. What the budget buys is that the narration cannot
+ * grow into a wait.
+ */
+function trailIgniteStartMs(step: number, total: number): number {
+  const stride = (TRAIL_IGNITE_SPAN_MS - TRAIL_IGNITE_MS) / Math.max(1, total - 1);
+  return Math.max(0, step - 1) * stride;
+}
+
+/**
+ * The ignition curve — a star coming out of the dark, not a value going from 0 to 1.
+ *
+ * ⚠️ **Linear is what makes a light look like a progress bar.** A star does not brighten at a
+ * constant rate: it is nothing for a moment, comes up fast through the middle, and settles
+ * into place. `smoothstep` is that shape, and the whole difference between "an element
+ * appeared" and "something lit" is which of the two curves the alpha rode.
+ */
+function igniteCurve(t: number): number {
+  const u = t < 0 ? 0 : t > 1 ? 1 : t;
+  return u * u * (3 - 2 * u);
+}
+
+/**
+ * The star's own core, which lights faster than it settles.
+ *
+ * ⚠️ `igniteCurve` is **symmetric** — design-motion measured 133 ms to the halfway point and
+ * 167 ms back out — and an ignition in nature is not. Symmetry is exactly why the star read as
+ * "a competent fade-up" rather than as a flare (2026-09-10). A cubic ease-out is the same
+ * total duration spent differently: most of the light in the first third, then a long settle.
+ * The bloom keeps the smoothstep, so the core arrives ahead of the light it throws.
+ */
+function starAttackCurve(t: number): number {
+  const u = t < 0 ? 0 : t > 1 ? 1 : t;
+  const inv = 1 - u;
+  return 1 - inv * inv * inv;
+}
+
+/**
+ * The swell — how far the bloom reaches, over the star's rise.
+ *
+ * A half-sine, so the reach leaves at 1 and returns to 1 and the settled constellation is
+ * dimensionally still. The exponent moves its peak from the middle of the rise to **0.72** of
+ * it: at the middle the reach peaked at the same instant as the brightness and the whole
+ * gesture measured as +10% apparent radius, invisible inside the fade-up. A star throws its
+ * light *after* it lights (design-motion, 2026-09-10).
+ */
+function starSwellCurve(t: number): number {
+  const u = t < 0 ? 0 : t > 1 ? 1 : t;
+  return Math.sin(Math.PI * Math.pow(u, TRAIL_SWELL_PHASE_EXP));
+}
+
+/** `0.72 ** e = 0.5` — the exponent that puts the half-sine's peak at 0.72 of the rise. */
+const TRAIL_SWELL_PHASE_EXP = 2.11;
+/**
+ * How far a star's light swings as it twinkles, as a fraction of its own level.
+ *
+ * ⚠️ **This number was twice the subject of a false comment, for the same reason both times:
+ * brightness was carrying the walk's order, and a twinkle is noise on whatever channel it
+ * rides.** The first version compared the *earliest* stop to the newest — the easy pair — and
+ * called the order safe. design-lead measured the pair that decides it: on a seven-step walk
+ * adjacent stops differed by 1.10:1 while a 0.18 depth swung each star through 1.44:1, so
+ * signal-to-noise was **1.04** and a fifth stop at its peak genuinely out-shone the newest at
+ * its trough. Narrowing the swing to 0.05 bought 3.2 and a duller sky.
+ *
+ * design-infoviz then measured why that trade was not worth making: **no depth fixes it.**
+ * Non-overlap needs an adjacent ratio above `(1+d)/(1−d)`, while the ramp can only offer
+ * `1/(floor + (1−floor)·(n−1)/n)` — 1.41 at two stops, 1.17 at four, 1.06 at ten. It fails
+ * for every walk of length ≥ 2 even at zero depth, because additive light on a dark canvas
+ * clips: the measured on-screen order of a seven-step walk was 5 > 6 > 7 > 3.
+ *
+ * So brightness stopped carrying order. It is now binary — *walked* — and order lives where
+ * it was always exact and already direct-labelled: the step ordinal beside the node and the
+ * popover's list, both position-on-a-common-scale rather than shading. The twinkle modulates
+ * nothing that means anything, which is the only condition under which a sky is allowed to
+ * sparkle at all.
+ */
+const TRAIL_STAR_TWINKLE = 0.14;
+/**
+ * One twinkle cycle: this base plus up to `TRAIL_STAR_TWINKLE_SPREAD_MS`, per node.
+ *
+ * Slow enough to read as a star rather than as a blinking indicator — and **varied**, which is
+ * the part the first version missed. Every star ran on one 3600 ms clock and differed only in
+ * phase, which design-motion named exactly: a sky varies in rate, not only in phase
+ * (2026-09-10). The period comes off the same id hash the phase does, so a given node always
+ * breathes at its own speed.
+ */
+const TRAIL_STAR_TWINKLE_MS = 3200;
+const TRAIL_STAR_TWINKLE_SPREAD_MS = 1400;
+/** The walked line's halo — a wider copy of the curve laid under the ink, in star ink. */
+const TRAIL_HALO_PX = 3.2;
+const TRAIL_HALO_ALPHA = 0.3;
+
 export interface FrameDrawParams {
   ctx: CanvasRenderingContext2D;
   world: TopologyWorld;
@@ -722,6 +858,15 @@ export interface FrameDrawParams {
    * are laid only on those pairs that are real edges. Null = no edge footprints.
    */
   walkedEdgeKeys?: ReadonlySet<string> | null;
+  /**
+   * Which way the walk crossed each relation, same keys as `walkedEdgeKeys`.
+   *
+   * The star mark has no heading, so direction travels the line instead
+   * (`model/footprint-steps.ts#buildWalkedEdgeDirections`, 2026-09-10).
+   */
+  walkedEdgeDirections?: ReadonlyMap<string, boolean> | null;
+  /** Step at which the walk arrived along each relation — the line's place in the sweep. */
+  walkedEdgeArrivalStep?: ReadonlyMap<string, number> | null;
   /** Footprint ink RGB — the caller reads it from `--color-footprint-trail` or the indigo token. */
   footprintInk?: FootprintInk;
   /** Ordinal text colour — one step brighter than the footprint ink; small glyphs need more contrast. */
@@ -733,6 +878,22 @@ export interface FrameDrawParams {
    */
   footprintNewestId?: string | null;
   footprintAppear?: number;
+  /**
+   * Star ink for the walked path's light, as `#rrggbb`. `null` keeps the map dark — the
+   * light is the whole notation now, so an absent ink means no trail marking at all.
+   */
+  trailStarInk?: string | null;
+  /** The highest step ordinal in the walk, so recency can be a fraction of it. */
+  footprintNewestStep?: number;
+  /**
+   * When the trail lens opened (`performance.now()`), or 0 while closed.
+   *
+   * Opening the lens **replays the walk**: stars ignite in the order they were made and the
+   * lines follow them. That is the one motion on this canvas that is also an answer — the
+   * order and the direction of the path are stated by the sweep itself, not only by the
+   * ordinals beside the nodes.
+   */
+  trailLensOpenedAtMs?: number;
   /**
    * The trail lens — non-null **only** while the trail popover is open. The visited
    * nodes (including the current focus) replace the ego keep-set: they hold their
@@ -920,10 +1081,15 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     footprintStepsById,
     footprintPref = null,
     walkedEdgeKeys = null,
+    walkedEdgeDirections = null,
+    walkedEdgeArrivalStep = null,
     footprintInk = [232, 196, 122],
     footprintStepColor = "#e8c47a",
     footprintNewestId = null,
     footprintAppear = 1,
+    trailStarInk = null,
+    footprintNewestStep = 1,
+    trailLensOpenedAtMs = 0,
     trailLensIds = null,
     spotlightIds,
     mapLensKind,
@@ -975,6 +1141,50 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
   const trailRamp = trailLensActive
     ? Math.min(1, Math.max(0, trailLensRamp ?? 1))
     : 0;
+  /*
+   * Phase of the light travelling every walked relation, 0-1.
+   *
+   * One clock for the whole trail rather than one per edge, so the path reads as a single
+   * thing being retraced instead of a scatter of dots each on its own errand. Four seconds
+   * a lap: slow enough that it never competes with reading.
+   *
+   * ⚠️ **This is a lap position, not a per-line position.** `buildTrailGlintLegs` cuts the lap
+   * into slices proportional to each walked relation's length, so exactly one light exists at
+   * a time and it walks the path in order at one constant speed. The previous shape — this
+   * same number handed to every line at once — put three lights on screen simultaneously at a
+   * 2.9x speed spread; the arithmetic is in that function's header.
+   *
+   * ⚠️ The claim that once stood here — that four seconds is "the rule this canvas lives under
+   * since the ambient drift came off it on 2026-09-08" — was a **misattributed citation**. That
+   * decision is *"The Library graph stands still; hover changes ink, never position"*, it
+   * governs the Library's canvas rather than this one, and its own falsifier is "any rAF over
+   * three idle seconds on a settled canvas" — which this loop fails for as long as the lens is
+   * open (design-motion, 2026-09-10). The real licence is narrower and is stated where it
+   * belongs, on the travelling light itself in `render/traces.ts`: a lens the person
+   * deliberately opened may animate; a canvas nobody asked about may not.
+   */
+  const trailGlint = trailRamp > 0.001 ? ((now % TRAIL_GLINT_PERIOD_MS) / TRAIL_GLINT_PERIOD_MS) : 0;
+  /*
+   * The lap's division between the walked relations, rebuilt per frame from world-space chords
+   * (the camera scales every edge alike, so world proportions are screen proportions). Null
+   * with the lens shut, which is also the cheap path: no allocation on an ordinary frame.
+   */
+  const trailGlintLegs =
+    trailRamp > 0.001 && walkedEdgeArrivalStep !== null && walkedEdgeArrivalStep.size > 0
+      ? buildTrailGlintLegs(
+          [...walkedEdgeArrivalStep.entries()]
+            .sort((left, right) => left[1] - right[1])
+            .map(([key]) => {
+              const [sourceId, targetId] = key.split(" ");
+              const from = world.nodeById.get(sourceId ?? "");
+              const to = world.nodeById.get(targetId ?? "");
+              return {
+                key,
+                length: from && to ? Math.hypot(to.x - from.x, to.y - from.y) : 0,
+              };
+            }),
+        )
+      : null;
   const isTrailKept = (nodeId: string): boolean => trailLensKeepIds !== null && trailLensKeepIds.has(nodeId);
   /** Lens on: classify against the visited keep-set. Lens off: the usual ego/pair classification. */
   const lensNodeEgoState = (nodeId: string, focusId: string | null, neighbors: ReadonlySet<string>, pair: EdgePairFocus | null): NodeEgoState =>
@@ -1715,16 +1925,41 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
       // relation line**. The latter is structurally guaranteed because this loop
       // iterates `world.edges`, the same contract the footprints already rely on.
       // With the lens off the ramp is 0 and the value is unchanged.
+      const walkedKey =
+        edge.sourceId < edge.targetId
+          ? `${edge.sourceId} ${edge.targetId}`
+          : `${edge.targetId} ${edge.sourceId}`;
+      /*
+       * A line waits for the star it arrives at. During the ignition sweep the path draws
+       * itself node by node, so the eye follows the walk in the order it happened instead of
+       * being handed the finished shape all at once — which is the difference between a
+       * picture of a path and a replay of one.
+       */
+      const walkedSweep =
+        trailLensOpenedAtMs > 0 && footprintNewestStep > 0
+          ? igniteCurve(
+              (now -
+                trailLensOpenedAtMs -
+                trailIgniteStartMs(walkedEdgeArrivalStep?.get(walkedKey) ?? 1, footprintNewestStep)) /
+                TRAIL_IGNITE_MS,
+            )
+          : 1;
       const walkedTrail =
-        trailRamp > 0.001 &&
-        walkedEdgeKeys !== null &&
-        walkedEdgeKeys.has(
-          edge.sourceId < edge.targetId
-            ? `${edge.sourceId} ${edge.targetId}`
-            : `${edge.targetId} ${edge.sourceId}`,
-        )
-          ? trailRamp
+        trailRamp > 0.001 && walkedEdgeKeys !== null && walkedEdgeKeys.has(walkedKey)
+          ? trailRamp * walkedSweep
           : 0;
+      /*
+       * The stored direction is in key order (low id → high id); the line is drawn from
+       * `edge.sourceId` to `edge.targetId`. When those disagree the light has to run the
+       * other way, or it would confidently point at the wrong end.
+       */
+      const walkedLowToHigh = walkedEdgeDirections?.get(walkedKey);
+      const trailDirection =
+        walkedLowToHigh === undefined
+          ? undefined
+          : edge.sourceId < edge.targetId
+            ? walkedLowToHigh
+            : !walkedLowToHigh;
       // 3D fog exemption — relationships highlighted by interaction are not buried by depth.
       const domeEdgeExempt = emphasized || isSelectedEdge || isPathEdge || edgeEgoState === "ego";
       // Omit distant details — same rule as fog exemption: relationships brightened for reading
@@ -1783,10 +2018,43 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         edgeHaloScratch.px = domeHaloWidthPx;
         edgeHaloScratch.alpha = Math.min(DOME_HALO_ALPHA_CAP, ctx.globalAlpha * DOME_HALO_ALPHA_GAIN);
       }
+      /*
+       * ⚠️ **The walked line's own light, laid under it.** A canvas shadow alone was measured
+       * too faint to read as glow on a dashed relation — the line came out white but flat.
+       * The depth halo already strokes a wider copy of the exact same curve beneath the ink,
+       * which is a real light rather than a blur hint, so a walked relation borrows it in
+       * star ink. It overrides the dome halo for the same edge on purpose: while the lens is
+       * open, what this line is *for* outranks how far away it is.
+       */
+      if (walkedTrail > 0.01 && trailStarInk !== null) {
+        edgeHaloScratch.color = trailStarInk;
+        edgeHaloScratch.px = TRAIL_HALO_PX * walkedTrail;
+        edgeHaloScratch.alpha = TRAIL_HALO_ALPHA * walkedTrail;
+      }
       // Ego line glow — a blurred copy of the line under itself, indigo, on the centre's
       // focus ramp. Only the ego lines carry it (≤ degree per frame), so the blur's cost
       // stays bounded; everything else draws exactly as before.
-      const edgeGlows = edgeEgoState === "ego" && !trailLensActive && beginEdgeGlow(ctx, egoGlowRamp, tokens);
+      /*
+       * ⚠️ **The walked line glows, and it is the only line that does while the lens is on.**
+       * The owner asked for the connecting lines to light up with the nodes; the ego glow
+       * stands down under the lens for the reason it always did — two glows in two inks on
+       * one canvas would make the reader decide which light they are being shown.
+       */
+      const edgeGlows =
+        walkedTrail > 0.01 && trailStarInk !== null
+          ? beginEdgeGlow(
+              ctx,
+              walkedTrail,
+              // The trail's own glow values, not the ego's — a constellation line is light,
+              // and at the ego alpha it read as a slightly brighter dash.
+              {
+                ...tokens,
+                egoGlowAlpha: tokens.trailGlowAlpha,
+                egoGlowBlurPx: tokens.trailGlowBlurPx,
+              },
+              trailStarInk,
+            )
+          : edgeEgoState === "ego" && !trailLensActive && beginEdgeGlow(ctx, egoGlowRamp, tokens);
       tracesDraw(
         ctx,
         {
@@ -1801,6 +2069,11 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
           egoState: edgeEgoState,
           selected: (isSelectedEdge || isPathEdge) && !trailLensActive,
           trailWalked: walkedTrail,
+          trailDirection,
+          trailGlint:
+            trailGlintLegs === null
+              ? null
+              : trailGlintLocalPhase(trailGlintLegs.get(walkedKey), trailGlint),
           farT,
           t: edge.t,
           emphasized,
@@ -1837,26 +2110,14 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
        * guaranteed here, because this loop iterates `world.edges`. Two unrelated
        * nodes visited back to back never reach this point.
        */
-      if (
-        footprintPref !== null &&
-        footprintPref.onEdges &&
-        walkedEdgeKeys !== null &&
-        walkedEdgeKeys.has(edge.sourceId < edge.targetId ? `${edge.sourceId} ${edge.targetId}` : `${edge.targetId} ${edge.sourceId}`)
-      ) {
-        drawEdgeFootprints(
-          { ctx, pref: footprintPref, ink: footprintInk, scale: footprintScale },
-          a.x,
-          a.y,
-          b.x,
-          b.y,
-          edgeAlpha * footprintPref.opacity,
-          // The same control point `tracesDraw` above received, so the prints follow the
-          // curve that is actually drawn. On the dome this is the meridian control point
-          // (`projectEdgePoints`), which is exactly why it is read from `points` rather
-          // than recomputed here.
-          control,
-        );
-      }
+      /*
+       * ⚠️ **No marks along the line.** Marks strung down a relation were the last of the
+       * footprint notation — small objects a reader had to find and tie back to the line
+       * they sat on. The owner cut them on 2026-09-10 (*"get rid of the footprint thing"*),
+       * and the line does the work instead: a walked relation glows in star ink, which is
+       * what a constellation line is. Nothing is drawn here at all now; the paint happens
+       * in `tracesDraw` above, under the edge glow this frame turns on for it.
+       */
       // Always-on comets: the tail is drawn by `tracesDraw` off `edge.t`, together
       // with the edge curve, regardless of focus (dim edges excluded). This pass
       // no longer lays separate firefly points on top.
@@ -2370,6 +2631,14 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     // free.
     // perf 2026-08-19 — the `farT` test moved first, so at circuit altitude
     // (farT = 0) even the Set lookup is skipped. Same logic.
+    /*
+     * ⚠️ **This spike used to stand down on a walked node, and no longer needs to.** For one day
+     * the walked star wore this same four-point cross, so a node that was both walked and bright
+     * drew two of them at one point in two inks (design-system, 2026-09-10) and the walked one
+     * won. The walked star has no cross now — `shared/lib/star-emission.ts` says why — so there
+     * is nothing to collide with, and suppressing magnitude here would delete a fact to avoid a
+     * conflict that has already been removed.
+     */
     if (farT > 0.02 && (world.brightStarIds.has(node.id) || node.kind === "project")) {
       drawDiffractionSpike(ctx, {
         screenX: screen.x,
@@ -2381,32 +2650,114 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     }
 
     /**
-     * Footprints — a pair of shoe prints plus the visit ordinal, at the visited
-     * node's top right.
+     * **A node you walked is lit like a star** (owner, 2026-09-10: *"I meant the node's own
+     * border lighting up so it looks like a real star — get rid of the footprint thing, and
+     * make the lines glow too"*).
      *
-     * This used to be a concentric hairline ring. A ring shares **the circle
-     * grammar** of the selection ring, the expand aura, and the warding circle, so
-     * it became a fourth circle whose meaning had to be relearned every time, and
-     * it could carry neither order nor direction. Prints sit outside that grammar,
-     * so nothing collides.
+     * Two notations came before this one and both put a *second object* beside the node: a
+     * concentric hairline ring, which became a fourth circle in a grammar already holding
+     * the selection ring, the expand aura and the warding circle; then a pair of shoe
+     * prints, which escaped that collision but was still a mark you had to find, read, and
+     * relate back to the node it belonged to.
      *
-     * The node's tier, dim, and realm-clarity alphas all multiply in, so prints
-     * recede naturally with an ego dim or a transition.
+     * The light is neither. It is the node, brighter — nothing to find, nothing to relate,
+     * and it costs no space on a canvas whose whole problem is space. It is also the map's
+     * own idiom: `render/starfield.ts` already says magnitude by brightness under a header
+     * naming the language ("B1 constellation DNA"), so a walked node reading as a bright
+     * star is this canvas finishing a sentence it had already started.
+     *
+     * **Brightness is binary: walked.** It said *recency* for one day and could not — see
+     * `TRAIL_STAR_TWINKLE` for the arithmetic, but the short version is that additive light
+     * on a dark canvas clips, so the ramp's own adjacent ratio falls under any discrimination
+     * threshold by the second stop and the measured on-screen order of a seven-step walk came
+     * out 5 > 6 > 7 > 3. Order is carried by the step ordinal beside the node and by the
+     * popover's list; the end of the walk is carried by the cross, a categorical mark. One
+     * fact per channel, and none of them shading.
      */
     const footprintSteps = footprintStepsById.get(node.id);
-    if (footprintSteps !== undefined && footprintPref !== null) {
+    if (footprintSteps !== undefined && footprintPref !== null && trailStarInk !== null) {
       const layerAlpha = tierAlpha * realmClarityAlpha * backgroundDim * appearRevealAlpha;
-      const paint = {
+      // The stop's own place in the walk, used only to give the ignition sweep its order —
+      // never to set a level. Every walked star settles at the same brightness.
+      const newest = Math.max(...footprintSteps);
+      /*
+       * The step just taken **ignites** rather than being there already: its light comes up
+       * on the same ramp the old prints used to slide out on, so arriving somewhere still
+       * reads as an event. Every earlier star is settled at 1 and does not re-animate,
+       * which is what stops the whole path flickering each time a step is added.
+       */
+      /*
+       * The sweep. Each star waits for its turn in the walk, then comes up over
+       * `TRAIL_IGNITE_MS`. Once the lens has been open past the span everything is at 1, so
+       * this costs nothing in the settled state — and `footprintAppear` still owns the case
+       * that matters after that: a step taken *while* the lens is open ignites on its own.
+       */
+      let sweepT = 1;
+      /*
+       * ⚠️ **Reduced motion takes the constellation settled, not swept.** The twinkle and the
+       * travelling light were gated; this was not, and it drives a *size* animation through
+       * `drawNodeStar`'s swell — the one kind of movement the preference exists to remove.
+       * Nothing is lost by skipping it: brightness-carries-recency is a static encoding, so
+       * the order of the walk is fully readable on the first frame (design-system, 2026-09-10).
+       */
+      if (!reducedMotion && trailLensOpenedAtMs > 0 && footprintNewestStep > 0) {
+        const startAt = trailIgniteStartMs(newest, footprintNewestStep);
+        sweepT = (now - trailLensOpenedAtMs - startAt) / TRAIL_IGNITE_MS;
+        sweepT = sweepT < 0 ? 0 : sweepT > 1 ? 1 : sweepT;
+      }
+      // The core takes the fast attack; the bloom's reach keeps the smoothstep, one curve
+      // behind it, so the light is thrown after it is struck.
+      const ignite = (node.id === footprintNewestId ? footprintAppear : 1) * starAttackCurve(sweepT);
+      /*
+       * Each star keeps its own phase, derived from its id, so the constellation shimmers
+       * rather than blinking in unison — a chorus of lights on one clock reads as a warning,
+       * not as a sky. Still under reduced motion: the level stays, the swing goes.
+       */
+      let twinkle = 1;
+      if (!reducedMotion) {
+        let h = 0;
+        for (let i = 0; i < node.id.length; i += 1) h = (h * 31 + node.id.charCodeAt(i)) % 6283;
+        const periodMs = TRAIL_STAR_TWINKLE_MS + (h % TRAIL_STAR_TWINKLE_SPREAD_MS);
+        twinkle = 1 + TRAIL_STAR_TWINKLE * Math.sin((now / periodMs) * Math.PI * 2 + h / 1000);
+      }
+      const lit = layerAlpha * footprintPref.opacity * trailRamp * ignite * twinkle;
+      /*
+       * ⚠️ **The node you are standing on is lit too, in the selection's own ink.**
+       *
+       * It used to be cut out of the walk entirely — `use-topology-loop` deleted the focused
+       * node's step — under a rule written when the mark was a shoe print *beside* the node
+       * and would have sat in the selection ring's own orbit. The mark became the node, the
+       * collision went with it, and the deletion stayed: design-lead measured the stop a
+       * person had just arrived at rendering **19x darker than the ones behind it**, so the
+       * end of the walk read as a gap in it.
+       *
+       * Two facts, two channels, no gap: the emission says *walked*, the hue says *here now*.
+       * The selection's double ring keeps the silhouette underneath, and lighting the same
+       * node in the same indigo strengthens it rather than arguing with it — which the star
+       * ink, at 2.95:1 against that indigo and clipping to white over it, did.
+       */
+      const starInk = node.id === focusedNodeId ? tokens.selectionRingIndigo : trailStarInk;
+      drawNodeStar(
         ctx,
-        pref: footprintPref,
-        ink: footprintInk,
-        scale: footprintScale,
-        // Only the **step just taken** ramps; the rest were already there and are settled.
-        appear: node.id === footprintNewestId ? footprintAppear : 1,
-      };
-      drawNodeFootprint(paint, screen.x, screen.y, screenRadius, layerAlpha * footprintPref.opacity);
-      drawFootprintSteps(
-        paint,
+        node.kind,
+        screen.x,
+        screen.y,
+        // The light swells out of the node as it ignites and settles back — a star arriving
+        // has a size, not only a brightness. It reaches 1 by the time the sweep is done, so
+        // the settled constellation is dimensionally still.
+        screenRadius,
+        farT,
+        starInk,
+        lit,
+        1 + TRAIL_STAR_SWELL * starSwellCurve(sweepT),
+      );
+      /*
+       * ⚠️ Gated on the ramp, not only on the ink. With the lens closed these survived their
+       * own stars — measured as orphan 11px numerals floating up-right of unmarked nodes
+       * (design-lead, 2026-09-10). A label outliving the thing it labels is not a label.
+       */
+      if (trailRamp > 0.001) drawFootprintSteps(
+        { ctx, pref: footprintPref, ink: footprintInk, scale: footprintScale },
         screen.x,
         screen.y,
         screenRadius,

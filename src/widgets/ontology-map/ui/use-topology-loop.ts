@@ -53,7 +53,12 @@ import { DEPTH_DOT_LAYERS, buildDepthDotPattern, buildGridPattern } from "../ren
 import { orbitButtonRect, type ClusterBarLabels } from "../render/cluster-chips";
 import { createAnimatedBackground, type AnimatedBackground } from "../render/animated-background";
 import { buildDustPoints, buildRealmCosmosPoints, computeStarDustCount, type DustPoint } from "../render/starfield";
-import { DEFAULT_EXPAND, DEFAULT_MAP_ARRANGEMENT } from "@/shared/lib/appearance-preferences";
+import {
+  DEFAULT_EXPAND,
+  DEFAULT_MAP_ARRANGEMENT,
+  FOOTPRINT_TONE_FALLBACK,
+  FOOTPRINT_TONE_TOKEN,
+} from "@/shared/lib/appearance-preferences";
 import type { CanvasBackground, ExpandPreference, FootprintPreference, GlyphSet, MapArrangement } from "@/shared/lib/appearance-preferences";
 import { centerForInsets, computeClusterFitTarget, computeDomeFitCameraTarget, computeDomeFocusCameraTarget, computeEffectiveCameraScaleMax, computeEffectiveCameraScaleMin, computeFocusCameraTarget, computeOverviewCameraTarget, computeOverviewFitScale, fitWorldTarget, hasAnyNodeOnScreen, worldToScreen } from "./topology-camera-math";
 import { drawTopologyFrame, lastDrawnLabelBoxes, lastDrawnNodeCount, lastDrawnRelationCaptions } from "./topology-frame-draw";
@@ -63,7 +68,12 @@ import { relaxNewlyVisible } from "../model/layout";
 import { computeTopologyClusterState } from "./topology-cluster-state";
 import type { ClusterChip } from "../model/density-gate";
 import { clusterMoreChipId, EGO_NEIGHBOR_CHIP_ID, parseClusterMoreChipId, rankEgoNeighborsByDOI, scheduleRipple, selectiveEgoNeighbors, stepEmphasis, stepFocusRamp, type EgoNeighborRankEntry } from "../model/focus-state";
-import { buildFootprintSteps, buildWalkedEdgeKeys } from "../model/footprint-steps";
+import {
+  buildFootprintSteps,
+  buildWalkedEdgeArrivalSteps,
+  buildWalkedEdgeDirections,
+  buildWalkedEdgeKeys,
+} from "../model/footprint-steps";
 import type { FootprintInk } from "@/shared/lib/footprint-glyph";
 import {
   INITIAL_REALM_TRANSITION_STATE,
@@ -1213,6 +1223,14 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
    * than cutting.
    */
   const trailLensRampRef = useRef(0);
+  /**
+   * When the trail lens last opened (`performance.now()`), or 0 while it is closed.
+   *
+   * The lens ramp alone cannot stage the walk: it is one exponential approach for the whole
+   * lens, so every star would light at once. This is the clock the ignition sweep runs off —
+   * stars come up in the order they were walked, which is the order the person made them.
+   */
+  const trailLensOpenedAtRef = useRef(0);
   /** Mirror the tier-change callback into a ref for the rAF closure, and
    * track the last emitted tier so the callback fires only on transitions. */
   const onZoomTierChangeRef = useRef<typeof onZoomTierChange>(onZoomTierChange);
@@ -1569,9 +1587,9 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     footprintPrefRef.current = footprint;
     if (!footprint) return;
     const rootStyle = getComputedStyle(document.documentElement);
-    const hex = rootStyle
-      .getPropertyValue(footprint.tone === "indigo" ? "--color-footprint-trail-indigo" : "--color-footprint-trail")
-      .trim();
+    // The shared map — `FOOTPRINT_TONE_TOKEN` is the only place a tone names its token, so
+    // the settings preview and this loop cannot disagree about what a tone looks like.
+    const hex = rootStyle.getPropertyValue(FOOTPRINT_TONE_TOKEN[footprint.tone]).trim();
     const parsed = /^#?([0-9a-f]{6})$/i.exec(hex);
     if (parsed) {
       const n = parseInt(parsed[1], 16);
@@ -1580,8 +1598,9 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     } else {
       // Token missing or in rgba() form — fall back to the default ink, which
       // beats footprints disappearing.
-      footprintInkRef.current = footprint.tone === "indigo" ? [200, 210, 255] : [232, 196, 122];
-      footprintStepColorRef.current = footprint.tone === "indigo" ? "#c8d2ff" : "#e8c47a";
+      const [r, g, bl] = FOOTPRINT_TONE_FALLBACK[footprint.tone];
+      footprintInkRef.current = [r, g, bl];
+      footprintStepColorRef.current = `rgb(${r}, ${g}, ${bl})`;
     }
   }, [footprint]);
 
@@ -3170,6 +3189,16 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
             Math.abs(
               trailLensRampRef.current - ((trailLensPropRef.current?.current ?? false) ? 1 : 0),
             ) > 0.01,
+          /*
+           * The lens is open on a walk that has relations in it — so the twinkle and the
+           * light travelling each line have something to move. Same class as the depends
+           * comets: an ambient animation the ambient-sleep guard may stop, but the idle gate
+           * must not, or the constellation freezes the moment the sweep lands.
+           */
+          trailMotionActive:
+            (trailLensPropRef.current?.current ?? false) &&
+            !reducedMotionRef.current &&
+            visitedTrailRef.current.length > 1,
           // The fresh breathe is almost always true in this product's **normal
           // state**, where an agent edits the vault daily (council
           // measurement), which made this flag one of the two causes of the
@@ -5148,13 +5177,22 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
       // hit in lockstep.
       realmTierKindsRef.current = realmTierKinds;
 
-      // Footprint trail: this frame's visit ordinal per node, starting at 1.
-      // The focused node is excluded because the selection ring already holds
-      // that position — this avoids marking it twice and preserves the
-      // hierarchy (selection over footprint). The array is short (≤30), so
-      // recomputing it per frame costs nothing.
+      /*
+       * Footprint trail: this frame's visit ordinal per node, starting at 1. The array is
+       * short (≤30), so recomputing it per frame costs nothing.
+       *
+       * ⚠️ **The focused node used to be deleted from this map and is not any more.** The
+       * reason it was — "the selection ring already holds that position" — was true of a
+       * shoe print, which sat *beside* the node in the ring's own orbit. Since 2026-09-10 the
+       * mark is the node emitting, and the two occupy different geometry: the ring strokes
+       * the silhouette and the r+6 hairline, the star throws light outward from it. Keeping
+       * the deletion after that cost the walk its last stop — usually the node the person had
+       * just clicked — so the end of the path was a hole, and the "here is where the walk
+       * ends" cross could almost never draw because the star it rides on was missing.
+       * `topology-frame-draw` separates the two by ink instead: indigo on the focused node,
+       * star ink on the rest.
+       */
       const footprintStepsById = buildFootprintSteps(visitedTrailRef.current);
-      if (focusedNodeId !== null) footprintStepsById.delete(focusedNodeId);
 
       // A longer trail stamps the arrival motion's start time; a shorter one
       // (cleared) drops the ramp.
@@ -5182,11 +5220,42 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         speedPxPerMs: tokens.spotlightRingSpeed,
       });
 
-      // Trail lens on/off ramp, reusing the same easing and token.
-      // Reduced-motion arrives immediately — same contract as the spotlight.
-      trailLensRampRef.current = reducedMotionRef.current
-        ? (trailLensActive ? 1 : 0)
-        : stepFocusRamp(trailLensRampRef.current, trailLensActive, dt, tokens.focusDimTau);
+      /*
+       * Trail lens on/off ramp, reusing the same easing and token. Reduced-motion arrives
+       * immediately — same contract as the spotlight.
+       *
+       * ⚠️ **The clock outlives the close, and that is the whole fix for the interruption
+       * flash.** It used to zero on the closing frame, which made `sweep` fall back to its
+       * default of 1 for every star the ignition had not reached yet — so closing the lens
+       * *mid-sweep* lit the entire constellation for the two or three frames the ramp took to
+       * fade it. design-motion recorded it: a star jumped 28.2 → 42.6 luminance in one 33 ms
+       * frame, **+51%**, on the way out (2026-09-10). Holding the clock until the ramp is
+       * spent lets an interrupted open fade from wherever the sweep actually got to, which is
+       * the difference between a transition that can be interrupted and one that must be
+       * waited out.
+       */
+      if (trailLensActive && trailLensOpenedAtRef.current === 0) trailLensOpenedAtRef.current = now;
+      else if (!trailLensActive && trailLensRampRef.current < 0.01) trailLensOpenedAtRef.current = 0;
+      if (reducedMotionRef.current) {
+        /*
+         * ⚠️ **Reduced motion asked for no travel, not for a cut.** This used to be
+         * `trailLensActive ? 1 : 0`, and design-motion measured the result: the constellation
+         * went 22.25 → 51.9 luminance **in one 33 ms frame** (2026-09-10). Everything the
+         * preference is actually for is still suppressed — the ignition sweep, the twinkle,
+         * the travelling light — and none of them comes back here. What comes back is an
+         * opacity crossfade over `--motion-settle`, which carries no position, no scale and
+         * no vestibular signal; it is the same fade a `prefers-reduced-motion` stylesheet
+         * would leave in place of a slide.
+         */
+        const stepPerMs = 1 / Math.max(1, tokens.trailReducedFadeMs);
+        const target = trailLensActive ? 1 : 0;
+        const delta = target - trailLensRampRef.current;
+        const stride = dt * 1000 * stepPerMs;
+        trailLensRampRef.current =
+          Math.abs(delta) <= stride ? target : trailLensRampRef.current + Math.sign(delta) * stride;
+      } else {
+        trailLensRampRef.current = stepFocusRamp(trailLensRampRef.current, trailLensActive, dt, tokens.focusDimTau);
+      }
 
       // One animated-background step, refreshing its own buffer **before** the
       // draw. It receives `ambientFactor` directly, so it decelerates to a stop
@@ -5283,7 +5352,11 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         realmCosmosPoints: realmWarding ? cosmosPointsRef.current : null,
         footprintStepsById,
         footprintPref: footprintPrefRef.current,
+        trailStarInk: footprintStepColorRef.current,
+        footprintNewestStep: visitedTrailRef.current.length,
         walkedEdgeKeys: buildWalkedEdgeKeys(visitedTrailRef.current),
+        walkedEdgeDirections: buildWalkedEdgeDirections(visitedTrailRef.current),
+        walkedEdgeArrivalStep: buildWalkedEdgeArrivalSteps(visitedTrailRef.current),
         footprintInk: footprintInkRef.current,
         footprintStepColor: footprintStepColorRef.current,
         footprintNewestId,
@@ -5295,6 +5368,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         trailLensIds:
           trailLensActive || trailLensRampRef.current > 0.01 ? visitedTrailSetRef.current : null,
         trailLensRamp: trailLensRampRef.current,
+        trailLensOpenedAtMs: trailLensOpenedAtRef.current,
         spotlightIds: spotlightIdsRef.current,
         mapLensKind: mapLensKindRef.current,
         pathEdgeIds: pathEdgeIdsRef.current,

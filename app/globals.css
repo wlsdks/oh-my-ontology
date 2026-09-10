@@ -1188,6 +1188,28 @@
      * Reserved width follows — `computeGatewaySafeInset` takes **origin** as argument, so changing gutter auto-adjusts camera. No need to recalculate arithmetic.
      */
 
+/*
+ * **A lens dims what has already said it is not the point.**
+ *
+ * The trail lens publishes `data-trail-lens="on"` on the document element (see
+ * `views/home/model/use-footprint-trail.ts`, which explains why it is an attribute and not
+ * React state). Any surface carrying `data-attention-role="supporting-detail"` recedes for as
+ * long as a lens is open and returns the moment it is hovered or focused — so nothing becomes
+ * unreachable, and a keyboard user restores it by tabbing into it.
+ *
+ * It keys on the *declared role*, not on one component: a surface that calls itself supporting
+ * detail now has to behave like one, and the next one to declare it inherits the rule.
+ */
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"] {
+  opacity: var(--lens-demoted-opacity);
+  transition: opacity var(--motion-settle) var(--motion-ease);
+}
+
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"]:hover,
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"]:focus-within {
+  opacity: 1;
+}
+
 @layer base {
   /*
    * **Focus moved by route navigation does not draw a ring** (2026-08-01).
@@ -2926,6 +2948,14 @@
     --motion-fast: 120ms;
     --motion-base: 180ms;
     --motion-settle: 240ms;
+    /* How far a surface that has declared itself supporting recedes while a lens is open.
+       0.46 rather than a token step because it is measured, not chosen: the detail panel was
+       beating the constellation it sits beside 5.3:1 for attention, and 66.9% of the first
+       frame after the trail trigger was clicked was that panel moving (design-lead and
+       design-motion, independently, 2026-09-10). At 0.46 the panel is still legible enough to
+       read at a glance and no longer the loudest thing on a screen the person opened to look
+       at something else; hover and focus take it straight back to 1. */
+    --lens-demoted-opacity: 0.46;
     --motion-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
     /* Exit easing (design-system seat, 2026-09-05) — the one licensed second family.
        `--motion-ease` decelerates into place, which is right for arriving. A leaving
@@ -3117,6 +3147,27 @@
     /* Footprint indigo — reason for not using `--color-indigo-accent`(#7170ff) is
        **contrast**. On canvas (#0a0a0d), the lowest selectable saturation (0.5) yields 2.08:1, failing to reach 3:1, creating "invisible footprint" flaw. Edge selection same pale indigo hits 3.93:1 at same value — not a new hue but another value within charter's "selection color ladder". */
     --color-footprint-trail-indigo: #c8d2ff;
+    /* Trail starlight (2026-09-10, owner: *"what if it were white light, twinkling, like a
+       constellation"*) — and it is not a new hue, it is **the map's own**. `render/starfield.ts`
+       already paints far-field star dust and diffraction spikes at `rgba(236,236,240,…)`, and
+       its header names the language: "B1 constellation DNA". The walked path was the one mark
+       standing outside that language, on the fourth amber role the 2026-08-02 record itself
+       flagged when it wrote "no room left: indigo=selection · amber=hub · #e8c47a=walked".
+       Star ink collides with none of them: measured 16.78:1 over `--map-canvas-bg-near` at
+       full opacity and 4.69:1 at the lowest intensity a person can select, against amber's
+       3.61 and indigo's 3.93. (An earlier version of this comment claimed 15.7:1, which
+       matched no canvas token — a number in a comment is checked by nothing.)
+
+       ⚠️ It also claimed the walked star and the magnitude spike were "separated by position,
+       beside the node vs on it". Two commits later the mark became the node itself, so that
+       separation was void and a node that was both walked and bright drew two diffraction
+       crosses at one point. Precedence was tried next — the walked star lit, the magnitude
+       spike standing down — and 45-degree rotation after that. Both were arbitration between
+       two marks that meant different things, and the second rendered as an X drawn across the
+       node. The walked star wears **no cross at all** now, so there is nothing to arbitrate and
+       the magnitude spike keeps its fact; `shared/lib/star-emission.ts` carries the reasoning.
+       Gate: `tests/contract/canvas-composite-license.contract.test.ts`. */
+    --color-footprint-trail-star: #ececf0;
     --map-numeral-shadow: #08080a;
     --map-numeral-face: #8c8c94;
     /*
@@ -3465,6 +3516,17 @@
     /* Ego light — the focused node blooms (a soft indigo disc under it, blurred by `-glow-blur-px`) and its relation lines carry a glow of the same blur, both on the focus ramp; the hovered node carries the bloom at `-node-bloom-alpha` on its emphasis ramp. Light says "this is the one your hand is on"; nothing at rest glows. */
     --map-ego-glow-blur-px: 22;
     --map-ego-glow-alpha: 0.55;
+    /* The walked line's glow, stronger than the ego glow it stands in for: a constellation
+       line is light, not an emphasised relation, and at the ego value it read as a slightly
+       brighter dash rather than something lit (owner, 2026-09-10 — "make the lines glow
+       too"). Only ever spent inside an open trail lens. */
+    --map-trail-glow-alpha: 0.85;
+    --map-trail-glow-blur-px: 26;
+    /* The trail lens's reduced-motion crossfade — see `--motion-settle`, whose value this
+       mirrors for a canvas that cannot read a CSS transition. Reduced motion asked for no
+       travel, not for a hard cut; the ramp was snapping 0 -> 1 in a single frame
+       (design-motion, 2026-09-10). */
+    --map-trail-reduced-fade-ms: 240;
     /* The bloom's own blur, wider than the line glow because a disc under a node has to read past the node's edge while a line's glow must stay a line. Named rather than written as `-ego-glow-blur-px * 1.4` in the canvas: a multiplier in TypeScript is a second blur step nobody can find (design council, 2026-09-08). */
     --map-node-bloom-blur-px: 31;
     --map-node-bloom-alpha: 0.35;
