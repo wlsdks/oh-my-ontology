@@ -63,6 +63,31 @@ try {
   const { buildLibraryModel } = await server.ssrLoadModule('/src/entities/docs-vault/lib/vault-library.ts');
   const { buildCompileBrief } = await server.ssrLoadModule('/src/features/library/lib/compile-brief.ts');
   const notices = { roundCap: 'round cap', noToolCall: () => 'no tool', aborted: 'aborted', networkFailed: 'network', timedOut: 'timeout', rateLimited: 'rate', rejected: 'rejected', auditBlocked: 'audit', providerRefused: 'refused', failed: 'failed' };
+  const readWikiCompletely = async (execute, slug) => {
+    let cursor;
+    for (;;) {
+      const args = cursor === undefined ? { slug } : { slug, cursor };
+      const result = await execute({ id: 'read-wiki', name: 'read_wiki_page', args, argsInvalid: false });
+      if (result.isError) throw new Error('read_wiki_page failed: ' + result.summary);
+      const payload = JSON.parse(result.content);
+      if (payload.complete === true) {
+        if (typeof payload.receipt !== 'string' || payload.receipt.length === 0) {
+          throw new Error('The complete Wiki read did not return a replacement receipt.');
+        }
+        return { payload, receipt: payload.receipt };
+      }
+      const nextCursor = payload.nextCursor;
+      if (
+        typeof nextCursor !== 'number'
+        || !Number.isSafeInteger(nextCursor)
+        || nextCursor < 0
+        || (cursor !== undefined && nextCursor <= cursor)
+      ) {
+        throw new Error('The incomplete Wiki read did not return a forward cursor.');
+      }
+      cursor = nextCursor;
+    }
+  };
   for (const fixture of selected) {
     const began = Date.now();
     const pages = [...distractors, fixture.existing];
@@ -106,9 +131,9 @@ try {
         turn = result.turn;
       } else {
         for (const sourcePath of Object.keys(fixture.sources)) await execute({ id: sourcePath, name: 'read_source_text', args: { path: sourcePath }, argsInvalid: false });
-        await execute({ id: 'read', name: 'read_wiki_page', args: { slug: fixture.existing.slug }, argsInvalid: false });
+        const wikiRead = await readWikiCompletely(execute, fixture.existing.slug);
         await execute({ id: 'propose', name: 'propose_wiki_page', args: { slug: fixture.existing.slug, title: fixture.existing.title,
-          summary: fixture.existing.title, ...fixture.oracle, not_in_sources: [] }, argsInvalid: false });
+          summary: fixture.existing.title, ...fixture.oracle, not_in_sources: [], receipt: wikiRead.receipt }, argsInvalid: false });
       }
     } catch (caught) { error = String(caught); }
     const card = buildCompileConsentCard(executor.proposals(), { vaultIsGit: false, labels: { createFile: (p) => `create ${p}`, modifyFile: (p) => `edit ${p}` } });

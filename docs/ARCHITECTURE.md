@@ -281,6 +281,15 @@ graph. The separation is a property of the **walk**, not a filter applied later.
 - `tests/contract/library-never-enters-the-graph.contract.test.ts` runs one fixture
   folder through both walkers and the derivation, so neither file kind can become a node
   by accident.
+- Local Compile has its own source read, existing-Wiki read and proposal catalogue in
+  `src/features/vault-agent/model/compile-tool-catalog.ts`. Existing Markdown reaches
+  the model as untrusted context, with sequential coverage and a current snapshot
+  receipt required for replacement. Raw-source reads alone supply citation provenance.
+  `use-local-compile.ts` rechecks consented before text and timestamp before handing the
+  selected writes to the existing applier. `LibraryPage` owns the current local work
+  view independently of first-run guidance and preserves the previous reader selection
+  while the narrow index stands aside. This is separate from ACP agent permissions
+  and from the MCP-mirrored ontology tool catalogue.
 - `src-tauri/src/library.rs` owns the native half: hashing, the native picker, the import
   copy, metadata-only discovery, and Finder reveal. It writes nothing outside
   `<vault>/sources/`, and its discovery walk contains no writer.
@@ -293,17 +302,25 @@ graph. The separation is a property of the **walk**, not a filter applied later.
   above did not change — only which screen draws them.
 - The reader owns the pane; the Library graph mounts only inside the shared
   viewport Dialog after an explicit Graph action. Its close path preserves
-  selection and scroll and restores the opener. The unselected landing uses the
-  existing LibraryStage guidance; there is no permanent graph/reader split.
+  selection and scroll and restores the opener. The unselected landing lists
+  retained questions and their evidence state; an empty history keeps the existing
+  LibraryStage guidance. There is no permanent graph/reader split.
 - Filed answers retain citations with `unmeasured` source receipts. Passive
   hashing describes current files, not the bytes used by an older answer. App
   writes register with the vault session's existing one-shot self-write ledger,
   so the polling toaster reports external changes without duplicating File's
   success and Undo feedback.
+- Retained answer refresh lives in `src/features/library/lib/answer-revision.ts`
+  and `answer-revision-store.ts`; view hooks own the proposal and comparison
+  lifecycle. ACP returns a draft, and an explicit save exclusively creates its
+  Markdown revision after checking previous text and observed source bytes.
+  These observations are separate from source-read provenance. The record and
+  concurrency limits are defined in [Retained answers](RETAINED-ANSWERS.md).
+
 - `vault-library.ts` keeps source coverage separate from per-page freshness.
-  `reviewPages` names stale or unmeasured citing pages even when another write-up
-  covers current bytes; Compile target selection and the waiting caption share that
-  work. `compile-wiki-reader.ts` bounds local model reads to inventoried wiki paths,
+  `reviewPages` names stale or unmeasured ordinary Wiki pages even when another write-up
+  covers current bytes; reserved answer histories use their separate refresh workflow; Compile target selection and the waiting caption share that
+  work. The local Compile reader bounds reads to permitted inventoried wiki paths,
   retains one complete snapshot per turn, and requires contiguous reads before a
   replacement. The consent card exposes both texts and `applyProposal` receives that
   snapshot's mtime. Source receipts hash the complete read buffer, so a later disk

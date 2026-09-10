@@ -196,7 +196,7 @@ test("desktop readiness check proves Tauri macOS shell prerequisites", () => {
   );
   assert.match(
     result.stdout,
-    /✓ root README states the brand, hosted demo, desktop Tauri bridge, and browser local-folder path without routing users to retired surfaces/,
+    /✓ root README links to the configured download and release destinations/,
   );
   assert.match(
     result.stdout,

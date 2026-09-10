@@ -25,12 +25,15 @@ checks, and atomic rename. Thus, a parent name changing to an external symbolic 
 does not redirect a current vault write outside its opened directory. Windows reparse-point races are still
 unproven and provide no guarantee beyond static link checks.
 
+## Library Compile correction context
+
+Local Compile has a separate source-read, existing-Wiki-read and page-proposal catalogue. Compile requests name the selected writer and its execution contract: the local request uses the runner's bounded readable targets and Atlas-owned metadata, while ACP keeps its source readers and Markdown template. Both share the same knowledge-maintenance rules; the Library write mode and runtime permissions still govern ACP approval. It returns existing Markdown as untrusted context in bounded sequential chunks, and requires a complete-read receipt plus an exact current text/timestamp match before replacing a page. Current raw-source reads alone supply citation support; prior human notes are attributed context, not source proof or instructions. The same turn budget includes both source and Wiki text. A later refused attempt invalidates an earlier ready proposal for the same identifiable page.
+
+The local consent card exposes the exact proposed and previous Markdown. Its current work view is independent of first-run guidance and the selected document; the narrow index stands aside, and closing the work view returns to the previous selection. Before applying selected replacements, the hook rechecks their prior text and fresh file timestamps; a detected correction stops those selected writes. Reading and receipts do not establish semantic preservation or human approval, and the sequential write path is not a transaction. The Library still lets the person choose its separate Claude Code or Codex ACP route; this local read contract does not govern an ACP agent's independent filesystem access.
+
 ## Identity Boundary
 
-The "interactive agent in the app" mentioned here is the single vault-agent panel owned by this capability:
-it's a provider-neutral loop attaching to keys entered by users or local runners, calling only vault tools. The app
-launching a coding agent with a verified permission gate (currently Claude Agent) directly over ACP is a separate capability owned by `capabilities/acp-runtime`.
-That side has different layers for config isolation and permission gates, and the surface the user opens today differs with just one "executor" section in settings.
+The interactive vault agent owned here is a provider-neutral loop using a configured model or local runner and calling the vault tool catalogue. Launching Claude Code or Codex over ACP belongs to `capabilities/acp-runtime`. That separate capability records configuration isolation, the requests handled by the app's permission gate, and the limits on an agent's independent filesystem writes. A runtime mode label or app callback is not an operating-system filesystem sandbox.
 
 ## Evidence
 - src/features/vault-agent: provider-neutral agent loop, tool execution, evidence citation
@@ -51,9 +54,9 @@ high (0.92)
 
 ## Incremental Library compilation
 
-The local Compile route can read an inventoried existing wiki page or filed answer in contiguous chunks before proposing a replacement at its exact address. Prior wiki text is context, not a source-read receipt. Source receipts hash the complete bytes handed to the model, and the page snapshot's modification time protects the approved replacement against a concurrent edit. The approval card shows the full current and proposed text; model compliance does not establish preservation of human notes.
+The local Compile route can read a safe inventoried existing Wiki page, including nested and non-ASCII addresses, in contiguous chunks before proposing a replacement at its exact address. Reserved retained-answer histories under `wiki/answers/` stay outside ordinary Compile and use explicit, create-only revisions. Prior wiki text is context, not a source-read receipt. Source receipts hash the complete bytes handed to the model, and the page snapshot's modification time protects the approved replacement against a concurrent edit. The approval card shows the full current and proposed text; model compliance does not establish preservation of human notes.
 
-A current source write-up does not complete revision work for every citing page. Known changed or unmeasured page receipts keep affected pages in the Compile brief and source queue. The local route targets one source when existing pages need context, within its unchanged three-page/ten-round limit. Unfinished revisions remain work rather than being marked current.
+A current source write-up does not complete revision work for every citing page. Known changed or unmeasured ordinary Wiki page receipts keep affected pages in the Compile brief and source queue; retained-answer histories keep their separate refresh workflow. The local route targets one source when existing pages need context, within its unchanged three-page/ten-round limit. Unfinished revisions remain work rather than being marked current.
 
 Evidence: `src/entities/docs-vault/lib/vault-library.ts`, `src/features/library/lib/compile-brief.ts`, `src/features/vault-agent/model/compile-wiki-reader.ts`, `src/features/vault-agent/model/compile-executor.ts`, `src/features/vault-agent/model/use-local-compile.ts`, `src/views/library/ui/parts/LocalCompileCard.tsx`, and `tests/e2e/library-incremental-compile.spec.ts`.
 
