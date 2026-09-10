@@ -234,25 +234,25 @@ test.describe("the Library destination", () => {
     );
   });
 
-  test("says compiled, not compiled or stale from the file rather than the claim", async ({
+  test("distinguishes unwritten sources from source versions needing review", async ({
     page,
   }) => {
     await openLibrary(page);
 
     const planRow = page.getByTestId("library-source-sources/quarter-plan.pdf");
-    // A page cites it, so it is not "not compiled" — and the recorded hash does not match
-    // these bytes, so the honest word is "stale".
-    await expect(planRow).toContainText("stale");
+    // A page cites it, but its all-zero YAML value is not a usable string receipt.
+    // The screen asks for review without asserting a proven byte change.
+    await expect(planRow).toContainText("needs review");
 
     const budgetRow = page.getByTestId("library-source-sources/budget.xlsx");
     await expect(budgetRow).toContainText("not compiled");
 
     // The honest count, in the section rather than in a tooltip — and the two states apart:
     // one source nobody wrote up, one whose page has fallen behind its bytes. "2 not written
-    // up" was the sentence this line used to accept, and it was false for the stale one.
+    // up" was the sentence this line used to accept, and it was false for the cited one.
     const footer = page.getByTestId("library-needs-compile");
     await expect(footer).toContainText("1 not written up yet");
-    await expect(footer).toContainText("1 page behind its source");
+    await expect(footer).toContainText("1 source version needs review");
   });
 
   test("says read in part when the page matches the bytes but stopped short", async ({
@@ -266,7 +266,7 @@ test.describe("the Library destination", () => {
     await expect(page.getByTestId("library-source-state-partial")).toHaveText("read in part", {
       timeout: 25_000,
     });
-    await expect(row).not.toContainText("stale");
+    await expect(row).not.toContainText("needs review");
 
     // And the folder's own summary line counts it as work Compile can still do, in its own
     // clause — never folded into "not written up yet", which is false of a file with a page.
@@ -393,15 +393,15 @@ test.describe("the Library destination", () => {
      *
      * This fixture's page records a 64-zero `source_hash`, which the frontmatter parser
      * types as a number rather than a string, so no usable hash reaches the model: the
-     * source reads `stale` and its write-up reads `behind`, which are the same fact said
-     * from the two ends. Asserting both is what would catch them drifting apart.
+     * source asks for review and its write-up reads `behind`. Neither can establish
+     * current coverage without a usable receipt. Both ends must expose that gap.
      */
     const writeUp = page.getByTestId("library-source-writeup-wiki/quarter-plan");
     await expect(writeUp).toBeVisible();
     await expect(writeUp).toContainText("Quarter plan");
     await expect(writeUp).toContainText("behind");
     await expect(writeUp).toHaveAttribute("title", "wiki/quarter-plan");
-    await expect(summary).toContainText("stale");
+    await expect(summary).toContainText("needs review");
     // The one door: a browser cannot reveal in Finder, so it offers the bytes instead.
     await expect(page.getByTestId("library-source-open")).toBeVisible();
   });
