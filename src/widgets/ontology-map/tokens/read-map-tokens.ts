@@ -192,6 +192,15 @@ export interface OntologyMapTokens {
    */
   focusDimTau: number;
   /**
+   * How long the trail lens takes to fade in and out **under reduced motion**, in ms.
+   *
+   * Reduced motion suppresses the ignition sweep, the twinkle and the travelling light, and
+   * used to suppress the transition itself as well — the lens ramp snapped 0 to 1 in one
+   * frame. A cut is the one thing the preference did not ask for; an opacity crossfade carries
+   * no travel and no vestibular signal (design-motion, 2026-09-10).
+   */
+  trailReducedFadeMs: number;
+  /**
    * `--map-cluster-reveal-tau` — the cluster expand/collapse reveal ramp
    * time constant (rank7). One symmetric τ so a collapsed parent's child subtree
    * fades IN (0→1) on expand and OUT (1→0) on collapse instead of hard-cutting,
@@ -393,6 +402,7 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "emphasisRiseTau", cssVar: "--map-emphasis-rise-tau", kind: "number" },
   { key: "emphasisDecayTau", cssVar: "--map-emphasis-decay-tau", kind: "number" },
   { key: "focusDimTau", cssVar: "--map-focus-dim-tau", kind: "number" },
+  { key: "trailReducedFadeMs", cssVar: "--map-trail-reduced-fade-ms", kind: "number" },
   { key: "spotlightRestAlpha", cssVar: "--map-spotlight-rest-alpha", kind: "number" },
   { key: "spotlightRingSpeed", cssVar: "--map-spotlight-ring-speed", kind: "number" },
   { key: "clusterRevealTau", cssVar: "--map-cluster-reveal-tau", kind: "number" },

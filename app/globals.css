@@ -1188,6 +1188,28 @@
      * Reserved width follows — `computeGatewaySafeInset` takes **origin** as argument, so changing gutter auto-adjusts camera. No need to recalculate arithmetic.
      */
 
+/*
+ * **A lens dims what has already said it is not the point.**
+ *
+ * The trail lens publishes `data-trail-lens="on"` on the document element (see
+ * `views/home/model/use-footprint-trail.ts`, which explains why it is an attribute and not
+ * React state). Any surface carrying `data-attention-role="supporting-detail"` recedes for as
+ * long as a lens is open and returns the moment it is hovered or focused — so nothing becomes
+ * unreachable, and a keyboard user restores it by tabbing into it.
+ *
+ * It keys on the *declared role*, not on one component: a surface that calls itself supporting
+ * detail now has to behave like one, and the next one to declare it inherits the rule.
+ */
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"] {
+  opacity: var(--lens-demoted-opacity);
+  transition: opacity var(--motion-settle) var(--motion-ease);
+}
+
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"]:hover,
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"]:focus-within {
+  opacity: 1;
+}
+
 @layer base {
   /*
    * **Focus moved by route navigation does not draw a ring** (2026-08-01).
@@ -2926,6 +2948,14 @@
     --motion-fast: 120ms;
     --motion-base: 180ms;
     --motion-settle: 240ms;
+    /* How far a surface that has declared itself supporting recedes while a lens is open.
+       0.46 rather than a token step because it is measured, not chosen: the detail panel was
+       beating the constellation it sits beside 5.3:1 for attention, and 66.9% of the first
+       frame after the trail trigger was clicked was that panel moving (design-lead and
+       design-motion, independently, 2026-09-10). At 0.46 the panel is still legible enough to
+       read at a glance and no longer the loudest thing on a screen the person opened to look
+       at something else; hover and focus take it straight back to 1. */
+    --lens-demoted-opacity: 0.46;
     --motion-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
     /* Exit easing (design-system seat, 2026-09-05) — the one licensed second family.
        `--motion-ease` decelerates into place, which is right for arriving. A leaving
@@ -3488,6 +3518,11 @@
        line is light, not an emphasised relation, and at the ego value it read as a slightly
        brighter dash rather than something lit (owner, 2026-09-10 — "make the lines glow
        too"). Only ever spent inside an open trail lens. */
+    /* The trail lens's reduced-motion crossfade — see `--motion-settle`, whose value this
+       mirrors for a canvas that cannot read a CSS transition. Reduced motion asked for no
+       travel, not for a hard cut; the ramp was snapping 0 -> 1 in a single frame
+       (design-motion, 2026-09-10). */
+    --map-trail-reduced-fade-ms: 240;
     --map-trail-glow-alpha: 0.85;
     --map-trail-glow-blur-px: 26;
     /* The bloom's own blur, wider than the line glow because a disc under a node has to read past the node's edge while a line's glow must stay a line. Named rather than written as `-ego-glow-blur-px * 1.4` in the canvas: a multiplier in TypeScript is a second blur step nobody can find (design council, 2026-09-08). */

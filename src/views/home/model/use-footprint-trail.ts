@@ -193,6 +193,26 @@ export function useFootprintTrail({
   const footprintBrushNodeIdRef = useRef<string | null>(null);
   const handleFootprintLens = useCallback((active: boolean) => {
     footprintLensActiveRef.current = active;
+    /*
+     * ⚠️ **The lens also has to reach the DOM, because the DOM was winning the screen.**
+     *
+     * Two council seats measured the same thing from opposite ends on 2026-09-10: the detail
+     * panel beats the constellation for attention **5.3:1** (design-lead), and on the first
+     * frame after the trigger is clicked **66.9% of everything that changed was that panel**
+     * against 3.5% for the first star (design-motion). The panel already declares itself
+     * `data-attention-role="supporting-detail"`; it simply never acted on the declaration, so
+     * the one screen a person opens to look at their walk opened on a list with a solid
+     * indigo call to action on it.
+     *
+     * An attribute rather than React state for the same reason the flag beside it is a ref:
+     * as state, one toggle re-rendered the whole page tree at ~100 ms. A dataset write plus a
+     * CSS opacity transition costs no render at all, and the panel comes straight back on
+     * hover or focus, so nothing in it becomes unreachable.
+     */
+    if (typeof document !== "undefined") {
+      if (active) document.documentElement.dataset.trailLens = "on";
+      else delete document.documentElement.dataset.trailLens;
+    }
   }, []);
   const handleFootprintBrush = useCallback((id: string | null) => {
     footprintBrushNodeIdRef.current = id;

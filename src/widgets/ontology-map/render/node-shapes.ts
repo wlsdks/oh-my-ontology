@@ -559,6 +559,16 @@ function minCornerRadius(kind: NodeShapeDrawState["kind"], r: number): number {
  * filled — a wash covers the node's numeral, and a visited node ended up harder to read than
  * an unvisited one (measured 2026-09-10).
  *
+ * ⚠️ That last sentence was **false for three days**. The bloom was a `createRadialGradient`
+ * from `radius * 0.35` painted with `ctx.arc(x, y, reach)`, and a radial gradient fills
+ * everything inside its inner circle with stop 0 — so the face took a solid additive wash at
+ * α 0.62. design-infoviz measured a scanline through a walked node on 2026-09-10 and found
+ * every sample from −15 px to +21 px at `rgb(255,255,255)`: the engraved child count against
+ * its own face at **1.00:1**, erased, on exactly the nodes a person had just walked. The
+ * defect the comment recorded as fixed was what shipped. The bloom is now an **annulus** —
+ * the disc is cut back out of the path — so the sentence is true by construction rather than
+ * by a gradient stop that happened to be low.
+ *
  * `design.md` reserves node-outline overlays for material rather than emission, and that rule
  * stands for the five that mark state on a node you are already looking at. This one is not
  * state: it says the node *is a star*, on a canvas whose own `starfield.ts` says magnitude
@@ -597,19 +607,27 @@ export function drawNodeStar(
   // The light it throws. A gradient rather than a shadow blur: `shadowBlur` on a hairline
   // spends almost all of itself on nothing, which is exactly why the outline read as grey.
   const reach = radius * STAR_GLOW_REACH * swell;
-  const glow = ctx.createRadialGradient(x, y, radius * 0.35, x, y, reach);
-  glow.addColorStop(0, withAlpha(ink, 0.62 * k));
-  glow.addColorStop(0.32, withAlpha(ink, 0.14 * k));
-  glow.addColorStop(0.62, withAlpha(ink, 0.035 * k));
+  const inner = radius * STAR_GLOW_INNER;
+  const glow = ctx.createRadialGradient(x, y, inner, x, y, reach);
+  glow.addColorStop(0, withAlpha(ink, 0.5 * k));
+  glow.addColorStop(0.26, withAlpha(ink, 0.14 * k));
+  glow.addColorStop(0.58, withAlpha(ink, 0.035 * k));
   glow.addColorStop(1, withAlpha(ink, 0));
   ctx.globalAlpha = 1;
   ctx.fillStyle = glow;
+  // The annulus: the outer disc, then the node's own disc cut back out of it counter-clockwise
+  // so the non-zero winding rule leaves a hole. Without the hole the gradient's inner circle
+  // is filled solid with stop 0 and the face takes the wash this function's header forbids.
   ctx.beginPath();
   ctx.arc(x, y, reach, 0, Math.PI * 2);
+  ctx.arc(x, y, inner, 0, Math.PI * 2, true);
   ctx.fill();
 
   // The signature. Same primitive the far-field bright stars wear, so a walked node and a
   // big node are the same *kind* of thing — separated by the lens, not by inventing a mark.
+  // The arms are turned 45° and clamped short of the label ring: within one open-lens frame
+  // both crosses are on screen, and form is the only channel that separates them for every
+  // reader (see `DiffractionSpikeDrawState.rotation`).
   if (spikes) {
     drawDiffractionSpike(ctx, {
       screenX: x,
@@ -617,6 +635,8 @@ export function drawNodeStar(
       screenRadius: radius,
       color: ink,
       alpha: 0.72 * k,
+      rotation: WALKED_SPIKE_ROTATION,
+      maxLong: radius + WALKED_SPIKE_LABEL_CLEARANCE,
     });
   }
 
@@ -635,6 +655,32 @@ export function drawNodeStar(
  * down and the falloff steepened, so most of the light lives inside the first third.
  */
 const STAR_GLOW_REACH = 2.0;
+
+/**
+ * Where the bloom starts, in node radii — and therefore where the hole in it ends.
+ *
+ * Just outside the silhouette rather than on it: at exactly 1.0 the antialiased edge of the
+ * hole and the 1.8 px outline stroke land on the same pixels and the seam reads as a notch.
+ */
+const STAR_GLOW_INNER = 1.04;
+
+/**
+ * The walked cross is turned 45° off the magnitude spike's upright arms.
+ *
+ * Rotation, not ink: the two crosses were separated by hue at 1.68:1, which survives neither
+ * a colour-vision deficiency nor the dim tier. Form is nominal-safe (design-infoviz,
+ * 2026-09-10).
+ */
+const WALKED_SPIKE_ROTATION = Math.PI / 4;
+
+/**
+ * How far past the silhouette the walked cross's long arm may reach, in px.
+ *
+ * `LABEL_OFFSET.domain` is 17, so an arm stopping at r+13 clears the label anchor by 4 px.
+ * Unclamped the arm ran to `r*2.6` — 60 px on a 23 px node, straight through the label row
+ * and brighter than any glyph in it.
+ */
+const WALKED_SPIKE_LABEL_CLEARANCE = 13;
 
 /** `#rrggbb` → `rgba(...)`, which a gradient stop takes where a `var()` cannot. */
 function withAlpha(hex: string, alpha: number): string {

@@ -230,7 +230,11 @@ export interface TraceDrawState {
    * Phase of the travelling light, 0-1, supplied by the caller's clock so every walked
    * relation glints in step rather than each keeping its own drift.
    */
-  trailGlint?: number;
+  /**
+   * Where the travelling light is **on this relation**, 0–1 — or `null` when the one light on
+   * the walk is somewhere else in its lap. See `model/footprint-steps.ts#buildTrailGlintLegs`.
+   */
+  trailGlint?: number | null;
 }
 
 export interface TraceTokens {
@@ -495,12 +499,23 @@ export function draw(ctx: CanvasRenderingContext2D, state: TraceDrawState, token
    * the whole of its licence. This canvas had its ambient drift removed on 2026-09-08 after
    * the owner found it hard to look at, and nothing here reopens that: the light exists in a
    * lens a person deliberately opened, it moves along a path they themselves walked, and it
-   * is answering a question they asked. It is also the one place brightness may move —
-   * the stars beside the nodes hold still because *their* brightness means how recently each
-   * was visited, and a twinkling star would argue with its own encoding.
+   * is answering a question they asked. That is the whole licence, and it is narrower than the
+   * one this file used to cite: the 2026-09-08 drift removal governs the *Library's* canvas,
+   * and quoting it here claimed an authority this loop does not have (design-motion,
+   * 2026-09-10).
+   *
+   * ⚠️ The second half of that sentence was **also wrong on both of its facts**. It said the
+   * stars hold still, and that they hold still because brightness means recency. They twinkle,
+   * and brightness means *walked* — order moved to the ordinal on 2026-09-10 precisely because
+   * additive light cannot rank. A twinkle argues with nothing now, which is the only reason it
+   * is allowed to exist. See `TRAIL_STAR_TWINKLE` in `ui/topology-frame-draw.ts`.
+   *
+   * ⚠️ **One light on the walk, not one per line.** `state.trailGlint` is `null` on every
+   * relation the light is not currently crossing, so a walk's lines take their turn in the
+   * order they were walked, all at one speed.
    */
-  if (glint > 0.01 && tokens.edgeTrail && state.reducedMotion !== true) {
-    const phase = clamp01(state.trailGlint ?? 0);
+  if (glint > 0.01 && tokens.edgeTrail && state.reducedMotion !== true && state.trailGlint != null) {
+    const phase = clamp01(state.trailGlint);
     // Direction is which end the walk left from; absent, the light runs a→b.
     const u = state.trailDirection === false ? 1 - phase : phase;
     const at = bezierPoint(a, control, b, u);
@@ -514,6 +529,58 @@ export function draw(ctx: CanvasRenderingContext2D, state: TraceDrawState, token
     ctx.arc(at.x, at.y, Math.max(0.9, width * 0.9), 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = prevAlpha;
+  }
+
+  /*
+   * **The chevron — the walk's direction, standing still.**
+   *
+   * ⚠️ Before this mark, the *only* thing on a walked relation that said which way the walk
+   * went was the travelling light, and both council seats measured the same consequence
+   * independently: a reduced-motion reader was handed **no per-relation direction at all**
+   * (peak-over-median in the edge band falls 192 → 4 with the light gated off), and even with
+   * motion on, the light is dark 13% of every lap and wants about a second of watching before
+   * its direction is legible. A still frame of this surface could not be read either.
+   *
+   * The endpoint ordinals are not a fallback: on a walk that revisits a node they read
+   * "2·5" and "4·7", so a line between those two stops could be 2→4, 4→5 or 5→7.
+   *
+   * It is a permitted arrow, not a decorative one — `forbidden.md` bans the trailing `Open →`
+   * flourish and explicitly keeps arrows that convey path, order or causality, which is the
+   * entire content of this one. Placed at 0.62 rather than the midpoint so it never sits under
+   * the relation caption, and drawn at the line's own alpha so it arrives with the line during
+   * the ignition sweep instead of being a second event.
+   */
+  if (glint > 0.01 && tokens.edgeTrail) {
+    const forward = state.trailDirection !== false;
+    const head = bezierPoint(a, control, b, forward ? TRAIL_CHEVRON_AT : 1 - TRAIL_CHEVRON_AT);
+    const tailAt = forward ? TRAIL_CHEVRON_AT - TRAIL_CHEVRON_SPAN : 1 - TRAIL_CHEVRON_AT + TRAIL_CHEVRON_SPAN;
+    const tail = bezierPoint(a, control, b, tailAt);
+    const dx = head.x - tail.x;
+    const dy = head.y - tail.y;
+    const len = Math.hypot(dx, dy);
+    if (len > 0.5) {
+      const ux = dx / len;
+      const uy = dy / len;
+      const arm = Math.max(3, width * TRAIL_CHEVRON_ARM);
+      const prevAlpha = ctx.globalAlpha;
+      const prevCap = ctx.lineCap;
+      const prevJoin = ctx.lineJoin;
+      ctx.globalAlpha = prevAlpha * glint;
+      ctx.strokeStyle = tokens.edgeTrail;
+      ctx.lineWidth = Math.max(1, width * 0.9);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      // Two arms swept back from the head — an open chevron, never a filled triangle, so it
+      // stays the same weight of mark as the line it rides on.
+      ctx.moveTo(head.x - (ux * 0.72 + uy * 0.62) * arm, head.y - (uy * 0.72 - ux * 0.62) * arm);
+      ctx.lineTo(head.x, head.y);
+      ctx.lineTo(head.x - (ux * 0.72 - uy * 0.62) * arm, head.y - (uy * 0.72 + ux * 0.62) * arm);
+      ctx.stroke();
+      ctx.globalAlpha = prevAlpha;
+      ctx.lineCap = prevCap;
+      ctx.lineJoin = prevJoin;
+    }
   }
 
   if (isDepends) {
@@ -588,3 +655,15 @@ export function draw(ctx: CanvasRenderingContext2D, state: TraceDrawState, token
     ctx.fill();
   }
 }
+
+/**
+ * Where along a walked relation the direction chevron sits.
+ *
+ * Past the midpoint, so it clears the relation caption; short of the target, so it is not
+ * mistaken for something belonging to the node it points at.
+ */
+const TRAIL_CHEVRON_AT = 0.62;
+/** How far back along the curve the chevron takes its heading from. */
+const TRAIL_CHEVRON_SPAN = 0.08;
+/** Arm length as a multiple of the line's own width, floored at 3px so it survives a hairline. */
+const TRAIL_CHEVRON_ARM = 3.4;

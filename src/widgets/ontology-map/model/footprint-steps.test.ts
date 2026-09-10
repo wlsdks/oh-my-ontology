@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildFootprintSteps,
-  buildWalkedEdgeArrivalSteps,
-  buildWalkedEdgeDirections,
-  buildWalkedEdgeKeys,
-  walkedEdgeKey,
-} from "./footprint-steps";
+import { buildFootprintSteps, buildTrailGlintLegs, buildWalkedEdgeArrivalSteps, buildWalkedEdgeDirections, buildWalkedEdgeKeys, trailGlintLocalPhase, walkedEdgeKey } from "./footprint-steps";
 
 describe("buildFootprintSteps", () => {
   it("재방문 노드는 순번을 여러 개 갖는다(1부터)", () => {
@@ -95,5 +89,68 @@ describe("buildWalkedEdgeArrivalSteps", () => {
     expect([...buildWalkedEdgeArrivalSteps(trail).keys()].sort()).toEqual(
       [...buildWalkedEdgeKeys(trail)].sort(),
     );
+  });
+});
+
+describe("buildTrailGlintLegs", () => {
+  /**
+   * The whole point of the allocator: one speed. A leg twice as long must own twice as much
+   * of the lap, or the two lights the eye sees together move at different speeds — which is
+   * the defect it replaced (2.9x spread, measured 2026-09-10).
+   */
+  it("gives each relation a share of the lap proportional to its length", () => {
+    const legs = buildTrailGlintLegs([
+      { key: "a b", length: 100 },
+      { key: "b c", length: 300 },
+    ]);
+    expect(legs.get("a b")).toEqual({ start: 0, end: 0.25 });
+    expect(legs.get("b c")).toEqual({ start: 0.25, end: 1 });
+  });
+
+  it("lays the legs end to end in the order it was given, covering the whole lap", () => {
+    const legs = buildTrailGlintLegs([
+      { key: "a b", length: 7 },
+      { key: "b c", length: 11 },
+      { key: "c d", length: 3 },
+    ]);
+    expect(legs.get("a b")!.start).toBe(0);
+    expect(legs.get("a b")!.end).toBeCloseTo(legs.get("b c")!.start, 10);
+    expect(legs.get("b c")!.end).toBeCloseTo(legs.get("c d")!.start, 10);
+    expect(legs.get("c d")!.end).toBeCloseTo(1, 10);
+  });
+
+  it("falls back to equal slices when every stop sits at one point", () => {
+    // A degenerate walk must still traverse in order rather than divide by zero.
+    const legs = buildTrailGlintLegs([
+      { key: "a b", length: 0 },
+      { key: "b c", length: 0 },
+    ]);
+    expect(legs.get("a b")).toEqual({ start: 0, end: 0.5 });
+    expect(legs.get("b c")).toEqual({ start: 0.5, end: 1 });
+  });
+
+  it("ignores a non-finite length rather than poisoning every share", () => {
+    const legs = buildTrailGlintLegs([
+      { key: "a b", length: Number.NaN },
+      { key: "b c", length: 50 },
+    ]);
+    expect(legs.get("b c")).toEqual({ start: 0, end: 1 });
+  });
+});
+
+describe("trailGlintLocalPhase", () => {
+  it("rewrites the lap position in the relation's own coordinates", () => {
+    const leg = { start: 0.25, end: 0.75 };
+    expect(trailGlintLocalPhase(leg, 0.25)).toBeCloseTo(0, 10);
+    expect(trailGlintLocalPhase(leg, 0.5)).toBeCloseTo(0.5, 10);
+    expect(trailGlintLocalPhase(leg, 0.75)).toBeCloseTo(1, 10);
+  });
+
+  /** One light on the walk: every other relation must report *nothing to draw*, not 0 or 1. */
+  it("is null while the light is somewhere else on the walk", () => {
+    const leg = { start: 0.25, end: 0.75 };
+    expect(trailGlintLocalPhase(leg, 0.1)).toBeNull();
+    expect(trailGlintLocalPhase(leg, 0.9)).toBeNull();
+    expect(trailGlintLocalPhase(undefined, 0.5)).toBeNull();
   });
 });

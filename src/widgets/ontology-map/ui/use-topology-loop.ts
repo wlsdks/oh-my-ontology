@@ -5177,13 +5177,22 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
       // hit in lockstep.
       realmTierKindsRef.current = realmTierKinds;
 
-      // Footprint trail: this frame's visit ordinal per node, starting at 1.
-      // The focused node is excluded because the selection ring already holds
-      // that position — this avoids marking it twice and preserves the
-      // hierarchy (selection over footprint). The array is short (≤30), so
-      // recomputing it per frame costs nothing.
+      /*
+       * Footprint trail: this frame's visit ordinal per node, starting at 1. The array is
+       * short (≤30), so recomputing it per frame costs nothing.
+       *
+       * ⚠️ **The focused node used to be deleted from this map and is not any more.** The
+       * reason it was — "the selection ring already holds that position" — was true of a
+       * shoe print, which sat *beside* the node in the ring's own orbit. Since 2026-09-10 the
+       * mark is the node emitting, and the two occupy different geometry: the ring strokes
+       * the silhouette and the r+6 hairline, the star throws light outward from it. Keeping
+       * the deletion after that cost the walk its last stop — usually the node the person had
+       * just clicked — so the end of the path was a hole, and the "here is where the walk
+       * ends" cross could almost never draw because the star it rides on was missing.
+       * `topology-frame-draw` separates the two by ink instead: indigo on the focused node,
+       * star ink on the rest.
+       */
       const footprintStepsById = buildFootprintSteps(visitedTrailRef.current);
-      if (focusedNodeId !== null) footprintStepsById.delete(focusedNodeId);
 
       // A longer trail stamps the arrival motion's start time; a shorter one
       // (cleared) drops the ramp.
@@ -5211,13 +5220,42 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         speedPxPerMs: tokens.spotlightRingSpeed,
       });
 
-      // Trail lens on/off ramp, reusing the same easing and token.
-      // Reduced-motion arrives immediately — same contract as the spotlight.
+      /*
+       * Trail lens on/off ramp, reusing the same easing and token. Reduced-motion arrives
+       * immediately — same contract as the spotlight.
+       *
+       * ⚠️ **The clock outlives the close, and that is the whole fix for the interruption
+       * flash.** It used to zero on the closing frame, which made `sweep` fall back to its
+       * default of 1 for every star the ignition had not reached yet — so closing the lens
+       * *mid-sweep* lit the entire constellation for the two or three frames the ramp took to
+       * fade it. design-motion recorded it: a star jumped 28.2 → 42.6 luminance in one 33 ms
+       * frame, **+51%**, on the way out (2026-09-10). Holding the clock until the ramp is
+       * spent lets an interrupted open fade from wherever the sweep actually got to, which is
+       * the difference between a transition that can be interrupted and one that must be
+       * waited out.
+       */
       if (trailLensActive && trailLensOpenedAtRef.current === 0) trailLensOpenedAtRef.current = now;
-      else if (!trailLensActive) trailLensOpenedAtRef.current = 0;
-      trailLensRampRef.current = reducedMotionRef.current
-        ? (trailLensActive ? 1 : 0)
-        : stepFocusRamp(trailLensRampRef.current, trailLensActive, dt, tokens.focusDimTau);
+      else if (!trailLensActive && trailLensRampRef.current < 0.01) trailLensOpenedAtRef.current = 0;
+      if (reducedMotionRef.current) {
+        /*
+         * ⚠️ **Reduced motion asked for no travel, not for a cut.** This used to be
+         * `trailLensActive ? 1 : 0`, and design-motion measured the result: the constellation
+         * went 22.25 → 51.9 luminance **in one 33 ms frame** (2026-09-10). Everything the
+         * preference is actually for is still suppressed — the ignition sweep, the twinkle,
+         * the travelling light — and none of them comes back here. What comes back is an
+         * opacity crossfade over `--motion-settle`, which carries no position, no scale and
+         * no vestibular signal; it is the same fade a `prefers-reduced-motion` stylesheet
+         * would leave in place of a slide.
+         */
+        const stepPerMs = 1 / Math.max(1, tokens.trailReducedFadeMs);
+        const target = trailLensActive ? 1 : 0;
+        const delta = target - trailLensRampRef.current;
+        const stride = dt * 1000 * stepPerMs;
+        trailLensRampRef.current =
+          Math.abs(delta) <= stride ? target : trailLensRampRef.current + Math.sign(delta) * stride;
+      } else {
+        trailLensRampRef.current = stepFocusRamp(trailLensRampRef.current, trailLensActive, dt, tokens.focusDimTau);
+      }
 
       // One animated-background step, refreshing its own buffer **before** the
       // draw. It receives `ambientFactor` directly, so it decelerates to a stop
