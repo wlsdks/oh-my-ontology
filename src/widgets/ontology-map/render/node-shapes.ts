@@ -402,9 +402,19 @@ function resolveBodyFill(
 }
 
 /** Ported from the prototype's `roundedPolygonPath()` — traces a closed polygon path with each corner rounded to `min(rad, adjacentEdgeLen*0.45)`. */
-function roundedPolygonPath(ctx: CanvasRenderingContext2D, points: readonly Point[], rad: number): void {
+/**
+ * A path that can be traced into — a live context, or a `Path2D` being composed.
+ *
+ * ⚠️ This used to be a `CanvasRenderingContext2D` and used to call `beginPath()` itself, which
+ * made the shape impossible to combine with anything. `drawStarEmission` clips to "the box
+ * minus this node's body" so its halo can hug the real silhouette, and the silent `beginPath()`
+ * threw the box away — the clip became the body alone, so the light landed *inside* the node in
+ * concentric bands (2026-09-10). Starting the path is the caller's business now.
+ */
+type PathSink = Pick<Path2D, "moveTo" | "lineTo" | "quadraticCurveTo" | "closePath">;
+
+function roundedPolygonPath(ctx: PathSink, points: readonly Point[], rad: number): void {
   const n = points.length;
-  ctx.beginPath();
   for (let i = 0; i < n; i += 1) {
     const p0 = points[(i - 1 + n) % n];
     const p1 = points[i];
@@ -600,10 +610,14 @@ export function drawNodeStar(
     ink,
     lit,
     swell,
-    tracePath: (target, r) => {
+    // A `Path2D` rather than a draw call, so the emitter can both stroke the silhouette and
+    // subtract it from a clip region without tracing it twice or knowing what shape it is.
+    bodyPath: (r) => {
+      const path = new Path2D();
       const points = bodyPointsScratch(kind, x, y, r);
-      if (points === null || farT > FULL_CIRCLE_FAR_T) target.arc(x, y, r, 0, Math.PI * 2);
-      else roundedPolygonPath(target, points, interpolateCornerRadius(minCornerRadius(kind, r), r, farT));
+      if (points === null || farT > FULL_CIRCLE_FAR_T) path.arc(x, y, r, 0, Math.PI * 2);
+      else roundedPolygonPath(path, points, interpolateCornerRadius(minCornerRadius(kind, r), r, farT));
+      return path;
     },
   });
 }
@@ -630,6 +644,7 @@ function strokeKindOutline(
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
   } else {
+    ctx.beginPath();
     roundedPolygonPath(ctx, points, interpolateCornerRadius(minCornerRadius(kind, radius), radius, farT));
   }
   const prevAlpha = ctx.globalAlpha;
@@ -690,6 +705,7 @@ function drawHoverShimmer(
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
   } else {
+    ctx.beginPath();
     roundedPolygonPath(ctx, points, interpolateCornerRadius(minCornerRadius(kind, radius), radius, farT));
   }
   ctx.setLineDash([...dash]);
@@ -757,6 +773,7 @@ export function draw(ctx: CanvasRenderingContext2D, state: NodeShapeDrawState, t
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
   } else {
+    ctx.beginPath();
     roundedPolygonPath(ctx, points, interpolateCornerRadius(minCornerRadius(kind, r), r, farT));
   }
   // Line set: a flat dark body (hole-fill) rather than transparency, so edges
