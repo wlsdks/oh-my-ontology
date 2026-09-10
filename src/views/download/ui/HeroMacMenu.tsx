@@ -58,14 +58,50 @@ export function HeroMacMenu({
     return () => document.removeEventListener('pointerdown', onPointerDown, true);
   }, [open, close]);
 
-  // Focus lands on the first row once the surface has mounted.
+  /*
+   * Focus lands on the first row **the moment the surface attaches**, via a callback ref
+   * rather than a frame timer.
+   *
+   * ⚠️ The timer lost a race it could never win. `Surface` gates on `usePanelPresence`, which
+   * sets `mounted` inside an effect — so on the render where `open` flips true the surface
+   * returns `null`, and `menuRef.current` is still null when the next frame arrives. Measured
+   * on the built export: 420 ms after the trigger was clicked, `document.activeElement` was
+   * still the trigger button. Nothing focused the menu, ever.
+   *
+   * That is why the menu did not close on Escape: `onMenuKeyDown` sits inside the surface and
+   * reads keys that bubble up from a focused row, and no row was focused, so the key landed on
+   * the trigger — whose own handler answers only ArrowDown. The same silence broke ArrowDown,
+   * ArrowUp, Home and End inside the menu, which nothing was checking.
+   *
+   * A callback ref fires exactly when React attaches the node, so there is no window to miss.
+   */
+  const attachMenu = useCallback((node: HTMLElement | null) => {
+    menuRef.current = node;
+    // The node exists only while the menu is open — `usePanelPresence` mounts it on open and
+    // drops it after the exit window — so attaching *is* the open signal, and reading `open`
+    // here would only be a second, later copy of the same fact.
+    node?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+  }, []);
+
+  /*
+   * Escape closes wherever focus happens to be.
+   *
+   * The handler inside the surface stays — it is the one that also runs the arrow keys — but
+   * Escape must not depend on focus having arrived somewhere in particular. A person who opens
+   * a menu and immediately presses Escape is asking for it to go away, and "it went away only
+   * if the focus move had already landed" is the class of defect this whole surface contract
+   * exists to catch.
+   */
   useEffect(() => {
     if (!open) return;
-    const id = requestAnimationFrame(() => {
-      menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
-    });
-    return () => cancelAnimationFrame(id);
-  }, [open]);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      event.preventDefault();
+      close(true);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open, close]);
 
   const onMenuKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     const items = Array.from(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
@@ -121,7 +157,7 @@ export function HeroMacMenu({
       </Button>
       <Surface
         open={open}
-        ref={menuRef}
+        ref={attachMenu}
         id={menuId}
         role="menu"
         aria-label={t('heroMacMenuLabel')}
