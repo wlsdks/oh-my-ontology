@@ -18,6 +18,8 @@ import {
   writeFootprint,
   type FootprintPreference,
   type FootprintPresetName,
+  FOOTPRINT_TONE_FALLBACK,
+  FOOTPRINT_TONE_TOKEN,
 } from '@/shared/lib/appearance-preferences';
 import { drawEdgeFootprints, drawNodeFootprint } from '@/shared/lib/footprint-glyph';
 
@@ -70,10 +72,22 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
       const raw = root.getPropertyValue(name).trim();
       return raw === '' ? fallback : raw;
     };
-    const hex = read(pref.tone === 'indigo' ? '--color-footprint-trail-indigo' : '--color-footprint-trail', '#e8c47a');
+    /*
+     * ⚠️ **The same map the canvas reads.** This branched two ways after a third tone landed,
+     * so picking starlight painted the preview amber while the map painted white — and this
+     * module's own header says a preview that drifts stops being a preview. There is one
+     * table now (`FOOTPRINT_TONE_TOKEN`), and its fallback carries the same three values.
+     */
+    const fallback = FOOTPRINT_TONE_FALLBACK[pref.tone];
+    const hex = read(FOOTPRINT_TONE_TOKEN[pref.tone], '');
     const parsed = /^#?([0-9a-f]{6})$/i.exec(hex);
-    const n = parsed ? parseInt(parsed[1], 16) : 0xe8c47a;
-    const ink = [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const;
+    const ink = parsed
+      ? ([
+          (parseInt(parsed[1], 16) >> 16) & 255,
+          (parseInt(parsed[1], 16) >> 8) & 255,
+          parseInt(parsed[1], 16) & 255,
+        ] as const)
+      : fallback;
 
     ctx.fillStyle = read('--map-canvas-bg-near', '#0a0a0d');
     ctx.fillRect(0, 0, PREVIEW_W, PREVIEW_H);

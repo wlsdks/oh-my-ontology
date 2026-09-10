@@ -90,6 +90,8 @@ const FIXTURE_VALUES: Record<string, string> = {
   "--map-mass-drop-max-px": "14",
   "--map-ego-glow-blur-px": "22",
   "--map-ego-glow-alpha": "0.55",
+  "--map-trail-glow-alpha": "0.85",
+  "--map-trail-glow-blur-px": "26",
   "--map-node-bloom-blur-px": "31",
   "--map-node-bloom-alpha": "0.35",
   "--map-press-angfreq": "16",

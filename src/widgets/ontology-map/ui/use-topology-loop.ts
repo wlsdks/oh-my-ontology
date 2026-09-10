@@ -53,7 +53,12 @@ import { DEPTH_DOT_LAYERS, buildDepthDotPattern, buildGridPattern } from "../ren
 import { orbitButtonRect, type ClusterBarLabels } from "../render/cluster-chips";
 import { createAnimatedBackground, type AnimatedBackground } from "../render/animated-background";
 import { buildDustPoints, buildRealmCosmosPoints, computeStarDustCount, type DustPoint } from "../render/starfield";
-import { DEFAULT_EXPAND, DEFAULT_MAP_ARRANGEMENT } from "@/shared/lib/appearance-preferences";
+import {
+  DEFAULT_EXPAND,
+  DEFAULT_MAP_ARRANGEMENT,
+  FOOTPRINT_TONE_FALLBACK,
+  FOOTPRINT_TONE_TOKEN,
+} from "@/shared/lib/appearance-preferences";
 import type { CanvasBackground, ExpandPreference, FootprintPreference, GlyphSet, MapArrangement } from "@/shared/lib/appearance-preferences";
 import { centerForInsets, computeClusterFitTarget, computeDomeFitCameraTarget, computeDomeFocusCameraTarget, computeEffectiveCameraScaleMax, computeEffectiveCameraScaleMin, computeFocusCameraTarget, computeOverviewCameraTarget, computeOverviewFitScale, fitWorldTarget, hasAnyNodeOnScreen, worldToScreen } from "./topology-camera-math";
 import { drawTopologyFrame, lastDrawnLabelBoxes, lastDrawnNodeCount, lastDrawnRelationCaptions } from "./topology-frame-draw";
@@ -1582,19 +1587,9 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     footprintPrefRef.current = footprint;
     if (!footprint) return;
     const rootStyle = getComputedStyle(document.documentElement);
-    // One place the three tones name their token, so a fourth cannot be added in one
-    // branch and forgotten in the fallback below.
-    const TONE_TOKEN = {
-      star: "--color-footprint-trail-star",
-      indigo: "--color-footprint-trail-indigo",
-      amber: "--color-footprint-trail",
-    } as const;
-    const TONE_FALLBACK = {
-      star: [236, 236, 240],
-      indigo: [200, 210, 255],
-      amber: [232, 196, 122],
-    } as const;
-    const hex = rootStyle.getPropertyValue(TONE_TOKEN[footprint.tone]).trim();
+    // The shared map — `FOOTPRINT_TONE_TOKEN` is the only place a tone names its token, so
+    // the settings preview and this loop cannot disagree about what a tone looks like.
+    const hex = rootStyle.getPropertyValue(FOOTPRINT_TONE_TOKEN[footprint.tone]).trim();
     const parsed = /^#?([0-9a-f]{6})$/i.exec(hex);
     if (parsed) {
       const n = parseInt(parsed[1], 16);
@@ -1603,7 +1598,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     } else {
       // Token missing or in rgba() form — fall back to the default ink, which
       // beats footprints disappearing.
-      const [r, g, bl] = TONE_FALLBACK[footprint.tone];
+      const [r, g, bl] = FOOTPRINT_TONE_FALLBACK[footprint.tone];
       footprintInkRef.current = [r, g, bl];
       footprintStepColorRef.current = `rgb(${r}, ${g}, ${bl})`;
     }
@@ -3194,6 +3189,16 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
             Math.abs(
               trailLensRampRef.current - ((trailLensPropRef.current?.current ?? false) ? 1 : 0),
             ) > 0.01,
+          /*
+           * The lens is open on a walk that has relations in it — so the twinkle and the
+           * light travelling each line have something to move. Same class as the depends
+           * comets: an ambient animation the ambient-sleep guard may stop, but the idle gate
+           * must not, or the constellation freezes the moment the sweep lands.
+           */
+          trailMotionActive:
+            (trailLensPropRef.current?.current ?? false) &&
+            !reducedMotionRef.current &&
+            visitedTrailRef.current.length > 1,
           // The fresh breathe is almost always true in this product's **normal
           // state**, where an agent edits the vault daily (council
           // measurement), which made this flag one of the two causes of the

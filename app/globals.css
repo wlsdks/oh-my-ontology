@@ -3123,10 +3123,18 @@
        its header names the language: "B1 constellation DNA". The walked path was the one mark
        standing outside that language, on the fourth amber role the 2026-08-02 record itself
        flagged when it wrote "no room left: indigo=selection · amber=hub · #e8c47a=walked".
-       Star ink collides with none of them and, at 15.7:1 over the canvas, it is the highest
-       contrast any trail tone has ever had. Value matches the star dust exactly, so a walked
-       star and a bright star are the same white — they are separated by position (beside the
-       node vs on it), which is the separation the shoe prints already used. */
+       Star ink collides with none of them: measured 16.78:1 over `--map-canvas-bg-near` at
+       full opacity and 4.69:1 at the lowest intensity a person can select, against amber's
+       3.61 and indigo's 3.93. (An earlier version of this comment claimed 15.7:1, which
+       matched no canvas token — a number in a comment is checked by nothing.)
+
+       ⚠️ It also claimed the walked star and the magnitude spike were "separated by position,
+       beside the node vs on it". Two commits later the mark became the node itself, so that
+       separation was void and a node that was both walked and bright drew two diffraction
+       crosses at one point. They are separated by **precedence** instead: while the lens is
+       open the walked star is lit and the magnitude spike stands down, the same rule a walked
+       relation already applies to its ambient comet. Gate:
+       `tests/contract/canvas-composite-license.contract.test.ts`. */
     --color-footprint-trail-star: #ececf0;
     --map-numeral-shadow: #08080a;
     --map-numeral-face: #8c8c94;

@@ -559,10 +559,15 @@ function minCornerRadius(kind: NodeShapeDrawState["kind"], r: number): number {
  * filled — a wash covers the node's numeral, and a visited node ended up harder to read than
  * an unvisited one (measured 2026-09-10).
  *
- * `design.md` reserves node-outline overlays for "material, not emission", and that rule
+ * `design.md` reserves node-outline overlays for material rather than emission, and that rule
  * stands for the five that mark state on a node you are already looking at. This one is not
  * state: it says the node *is a star*, on a canvas whose own `starfield.ts` says magnitude
  * by brightness, and only inside a lens the person opened.
+ *
+ * ⚠️ That sentence cited a rule which, until 2026-09-10, **existed in no rules file** — four
+ * comments here had been quoting it for months while `docs:comment-refs` validated only the
+ * path they cited, never the sentence. It is written down now, with a gate:
+ * `tests/contract/canvas-composite-license.contract.test.ts`.
  */
 export function drawNodeStar(
   ctx: CanvasRenderingContext2D,

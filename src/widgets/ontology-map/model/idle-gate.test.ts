@@ -24,6 +24,7 @@ const IDLE: CanvasActivityFlags = {
   focusFadeSettling: false,
   spotlightSettling: false,
   trailLensSettling: false,
+  trailMotionActive: false,
 };
 
 describe("isCanvasActive", () => {
@@ -253,5 +254,23 @@ describe("isDomeSpinAnimating", () => {
 
   it("조립 램프가 덜 찼으면 자율 회전은 아직 아니다", () => {
     expect(isDomeSpinAnimating({ ...SPINNING, assembled: false })).toBe(false);
+  });
+});
+
+describe("걸어온 길이 열려 있는 동안은 루프가 자지 않는다", () => {
+  /*
+   * ⚠️ Written after the defect. `trailLensSettling` buys a frame when the lens *toggles*,
+   * and nothing kept the loop awake after that — the constellation was measured byte-identical
+   * over 2.0s with the lens open, so the twinkle and the light that carries direction had
+   * never run at all (design-lead, 2026-09-10).
+   */
+  it("렌즈가 열려 있고 걸은 관계가 있으면 활성이다", () => {
+    expect(isCanvasActive({ ...IDLE, trailMotionActive: true })).toBe(true);
+  });
+
+  it("정착 플래그만으로는 켜지지 않는다 — 그게 얼어붙은 원인이었다", () => {
+    expect(isCanvasActive({ ...IDLE, trailLensSettling: false, trailMotionActive: false })).toBe(
+      false,
+    );
   });
 });

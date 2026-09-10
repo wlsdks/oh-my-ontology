@@ -520,11 +520,9 @@ const TRAIL_GLINT_PERIOD_MS = 4000;
  * at which point the light stops saying "you were here a while ago" and starts saying "you
  * were never here". A floor is what keeps the whole path visible while still ordering it.
  */
-const TRAIL_STAR_FLOOR = 0.42;
+const TRAIL_STAR_FLOOR = 0.28;
 /** How far the bloom swells at the peak of its ignition, as a fraction of its reach. */
 const TRAIL_STAR_SWELL = 0.5;
-/** Recency above which a star also wears the map's four-point diffraction cross. */
-const TRAIL_SPIKE_FROM = 0.7;
 /**
  * The ignition sweep: how long one star takes to come up, and how long the whole walk takes.
  *
@@ -551,18 +549,20 @@ function igniteCurve(t: number): number {
 /**
  * How far a star's light swings as it twinkles, as a fraction of its own level.
  *
- * ⚠️ **Twinkle rides on recency; it does not replace it.** Brightness carries how recently
- * each stop was made, and the walk spans 0.42 to 1.0 of the light — a 58% spread. At 0.18
- * the shimmer moves a star inside a band that never reaches its neighbour's: the earliest
- * stop peaks at 0.50 and the newest troughs at 0.82, so the order of the walk survives every
- * frame of the sparkle. A larger depth would look livelier and start lying about the order.
+ * ⚠️ **Twinkle rides on recency, and the first version of this comment was wrong.** It
+ * argued the order survived by comparing the *earliest* star to the newest — the easy pair.
+ * design-lead measured the pair that matters: on a seven-step walk **adjacent** stops differ
+ * by only 1.10:1 while a 0.18 depth swings each star through 1.44:1, so signal-to-noise was
+ * **1.04** and a fifth stop at its peak genuinely out-shone the newest at its trough. The
+ * claim was measurably false (2026-09-10).
+ *
+ * Two numbers moved together: the floor to 0.28, widening the order range to 3.57:1, and the
+ * depth to 0.05, narrowing the swing to 1.11:1. Signal-to-noise 3.2. The sparkle is quieter
+ * than it was, which is the price of it not lying.
  */
-const TRAIL_STAR_TWINKLE = 0.18;
+const TRAIL_STAR_TWINKLE = 0.05;
 /** One twinkle cycle. Slow enough to read as a star, not as a blinking indicator. */
 const TRAIL_STAR_TWINKLE_MS = 3600;
-/** `--map-trail-glow-alpha` / `--map-trail-glow-blur-px`, read once rather than per edge. */
-const TRAIL_GLOW_ALPHA = 0.85;
-const TRAIL_GLOW_BLUR_PX = 26;
 /** The walked line's halo — a wider copy of the curve laid under the ink, in star ink. */
 const TRAIL_HALO_PX = 3.2;
 const TRAIL_HALO_ALPHA = 0.3;
@@ -1941,8 +1941,8 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
               // and at the ego alpha it read as a slightly brighter dash.
               {
                 ...tokens,
-                egoGlowAlpha: TRAIL_GLOW_ALPHA,
-                egoGlowBlurPx: TRAIL_GLOW_BLUR_PX,
+                egoGlowAlpha: tokens.trailGlowAlpha,
+                egoGlowBlurPx: tokens.trailGlowBlurPx,
               },
               trailStarInk,
             )
@@ -2520,7 +2520,19 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     // free.
     // perf 2026-08-19 — the `farT` test moved first, so at circuit altitude
     // (farT = 0) even the Set lookup is skipped. Same logic.
-    if (farT > 0.02 && (world.brightStarIds.has(node.id) || node.kind === "project")) {
+    /*
+     * ⚠️ **One cross per node.** The magnitude spike says "this node is large"; the walked
+     * star wears the same primitive to say "you were here". They used to be separated by
+     * position — spike on the node, mark beside it — and that separation went when the mark
+     * became the node itself, so a node that is both walked and bright drew **two crosses at
+     * one point**, same shape, same radius, in two inks (design-system, 2026-09-10).
+     *
+     * The walked one wins while its lens is open, which is the rule this file already applies
+     * to the ambient comet on a walked relation: what a mark is *for* outranks what it is.
+     * Closing the lens gives the magnitude spike straight back.
+     */
+    const walkedStarHere = trailStarInk !== null && trailRamp > 0.001 && footprintStepsById.has(node.id);
+    if (!walkedStarHere && farT > 0.02 && (world.brightStarIds.has(node.id) || node.kind === "project")) {
       drawDiffractionSpike(ctx, {
         screenX: screen.x,
         screenY: screen.y,
@@ -2573,7 +2585,14 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
        * that matters after that: a step taken *while* the lens is open ignites on its own.
        */
       let sweep = 1;
-      if (trailLensOpenedAtMs > 0 && footprintNewestStep > 0) {
+      /*
+       * ⚠️ **Reduced motion takes the constellation settled, not swept.** The twinkle and the
+       * travelling light were gated; this was not, and it drives a *size* animation through
+       * `drawNodeStar`'s swell — the one kind of movement the preference exists to remove.
+       * Nothing is lost by skipping it: brightness-carries-recency is a static encoding, so
+       * the order of the walk is fully readable on the first frame (design-system, 2026-09-10).
+       */
+      if (!reducedMotion && trailLensOpenedAtMs > 0 && footprintNewestStep > 0) {
         const stride = Math.min(TRAIL_IGNITE_MS * 0.6, TRAIL_IGNITE_SPAN_MS / footprintNewestStep);
         const startAt = (newest - 1) * stride;
         sweep = igniteCurve((now - trailLensOpenedAtMs - startAt) / TRAIL_IGNITE_MS);
@@ -2614,13 +2633,30 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         farT,
         trailStarInk,
         lit,
-        recency > TRAIL_SPIKE_FROM,
+        /*
+         * ⚠️ **The cross marks the one you are on, not every stop.** At `long = r*2.6` it
+         * draws a 101px flare on a 44px node — 2.3x the node's own width, in clipped white
+         * under `lighter`, and identical to the magnitude spike's own call. Four of those is
+         * the stock sparkle sky, and it collided with the ordinals besides (design-lead,
+         * 2026-09-10). On the newest star alone it becomes a categorical mark for "here is
+         * the end of the walk", which is a stronger channel for rank than an alpha that
+         * clips — and every older star's footprint drops back to the node's own size.
+         *
+         * Still gated on altitude: below `farT` 0.02 this canvas's constellation language is
+         * off, and a cross there is a word from a vocabulary the view is not speaking.
+         */
+        node.id === footprintNewestId && farT > 0.02,
         // Spikes on the recent half of the walk only: every node wearing a cross turns the
         // signature into wallpaper, and the ones a person is still thinking about are the
         // recent ones.
         1 + TRAIL_STAR_SWELL * Math.sin(Math.PI * sweep),
       );
-      drawFootprintSteps(
+      /*
+       * ⚠️ Gated on the ramp, not only on the ink. With the lens closed these survived their
+       * own stars — measured as orphan 11px numerals floating up-right of unmarked nodes
+       * (design-lead, 2026-09-10). A label outliving the thing it labels is not a label.
+       */
+      if (trailRamp > 0.001) drawFootprintSteps(
         { ctx, pref: footprintPref, ink: footprintInk, scale: footprintScale },
         screen.x,
         screen.y,

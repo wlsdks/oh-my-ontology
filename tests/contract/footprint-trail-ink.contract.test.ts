@@ -194,15 +194,30 @@ describe("별빛 톤은 지도가 이미 쓰는 별 잉크와 같은 값이다",
    * ends up with two whites that mean nearly the same thing, which is the drift the whole
    * change exists to end.
    */
-  it("starfield 이 칠하는 값과 어긋나지 않는다", () => {
+  /*
+   * ⚠️ **This assertion could not fail, and shipped claiming it had been probed red**
+   * (design-system, 2026-09-10). It searched the whole file for the value's `rgba(...)`, and
+   * `starfield.ts` line 3 *documents* its own literal in a comment — so the comment alone
+   * satisfied the match. Rewriting both painted lines to a peach left it green: the map
+   * would paint peach dust beside a white trail, which is the exact two-whites failure this
+   * test names. It now strips comments, and asserts **every** painted literal rather than
+   * the existence of one, so a second white cannot be added either, and a length floor
+   * catches the way a text-presence gate really dies — the literals being deleted.
+   */
+  it("starfield 이 칠하는 모든 값과 어긋나지 않는다", () => {
     const css = read("app/globals.css");
     const trail = /--color-footprint-trail-star:\s*(#[0-9a-fA-F]{6})/.exec(css)![1].toLowerCase();
-    const starfield = read("src/widgets/ontology-map/render/starfield.ts");
     const rgb = hexRgb(trail);
-    const painted = new RegExp(`rgba\\(\\s*${rgb[0]}\\s*,\\s*${rgb[1]}\\s*,\\s*${rgb[2]}\\s*,`);
-    expect(
-      painted.test(starfield),
-      `별빛 톤 ${trail} 이 starfield 의 rgba 와 다르다 — 흰색이 두 개가 된다`,
-    ).toBe(true);
+    const code = read("src/widgets/ontology-map/render/starfield.ts")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1");
+    const painted = [...code.matchAll(/rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,/g)];
+    expect(painted.length, "starfield 이 아무 색도 칠하지 않는다 — 게이트가 죽었다").toBeGreaterThan(0);
+    for (const m of painted) {
+      expect(
+        [Number(m[1]), Number(m[2]), Number(m[3])],
+        `별빛 톤 ${trail} 이 starfield 가 칠하는 rgba(${m[1]},${m[2]},${m[3]}) 와 다르다 — 흰색이 두 개가 된다`,
+      ).toEqual(rgb);
+    }
   });
 });

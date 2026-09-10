@@ -239,6 +239,10 @@ export interface OntologyMapTokens {
   massDropMaxPx: number;
   /** `--map-ego-glow-blur-px` — canvas shadow blur (px) for the focused node's bloom and its lines' glow. */
   egoGlowBlurPx: number;
+  /** `--map-trail-glow-alpha` — the walked line's glow, stronger than the ego glow. */
+  trailGlowAlpha: number;
+  /** `--map-trail-glow-blur-px` */
+  trailGlowBlurPx: number;
   /** `--map-ego-glow-alpha` — alpha of the glow under the focused node's relation lines. */
   egoGlowAlpha: number;
   /** `--map-node-bloom-blur-px` — canvas shadow blur (px) of the bloom disc itself, wider than the line glow. */
@@ -408,6 +412,8 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "massHeavyZeta", cssVar: "--map-mass-heavy-zeta", kind: "number" },
   { key: "massDropMaxPx", cssVar: "--map-mass-drop-max-px", kind: "number" },
   { key: "egoGlowBlurPx", cssVar: "--map-ego-glow-blur-px", kind: "number" },
+  { key: "trailGlowAlpha", cssVar: "--map-trail-glow-alpha", kind: "number" },
+  { key: "trailGlowBlurPx", cssVar: "--map-trail-glow-blur-px", kind: "number" },
   { key: "egoGlowAlpha", cssVar: "--map-ego-glow-alpha", kind: "number" },
   { key: "nodeBloomBlurPx", cssVar: "--map-node-bloom-blur-px", kind: "number" },
   { key: "nodeBloomAlpha", cssVar: "--map-node-bloom-alpha", kind: "number" },

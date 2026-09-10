@@ -534,7 +534,29 @@ type FootprintPlacement = "right" | "both";
  * value on the selection ladder, pale enough to clear contrast where the accent did not.
  * A person who prefers either keeps it; what changed is which one a folder opens with.
  */
-type FootprintTone = "amber" | "indigo" | "star";
+export type FootprintTone = "amber" | "indigo" | "star";
+
+/**
+ * The one place a tone names its token.
+ *
+ * ⚠️ There used to be three: the map loop, the settings preview, and a bare hex default. The
+ * preview still branched two ways after the star tone landed, so picking "starlight" painted
+ * **amber** in the preview while the map painted white — and that module's own header says a
+ * preview that drifts stops being a preview (design-system, 2026-09-10). Every consumer reads
+ * this, so a fourth tone cannot be added to the union and forgotten in one of them.
+ */
+export const FOOTPRINT_TONE_TOKEN: Record<FootprintTone, string> = {
+  star: "--color-footprint-trail-star",
+  indigo: "--color-footprint-trail-indigo",
+  amber: "--color-footprint-trail",
+};
+
+/** Last-resort ink per tone, byte-equal to the tokens above, for a missing custom property. */
+export const FOOTPRINT_TONE_FALLBACK: Record<FootprintTone, readonly [number, number, number]> = {
+  star: [236, 236, 240],
+  indigo: [200, 210, 255],
+  amber: [232, 196, 122],
+};
 
 /**
  * Density, not a numeric slider. The count is decoration — an even division of
