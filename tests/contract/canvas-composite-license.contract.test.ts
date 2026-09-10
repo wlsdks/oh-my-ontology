@@ -20,10 +20,24 @@ import { describe, expect, it } from "vitest";
 const repoRoot = join(import.meta.dirname, "..", "..");
 const read = (rel: string): string => readFileSync(join(repoRoot, rel), "utf8");
 
+/**
+ * Source with every comment removed.
+ *
+ * ⚠️ **A gate that reads comments cannot fail.** The first starfield-parity assertion in this
+ * repository matched a sentence in a doc comment and was therefore permanently green; the
+ * *second* time, on 2026-09-10, this file's own "no cross on the walked star" assertion went
+ * red against the comment explaining why the cross had been removed. Both times the code was
+ * correct and the gate was reading prose. Every assertion here runs on the stripped source.
+ */
+const readCode = (rel: string): string =>
+  read(rel)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+
 /** Each entry states why this file is allowed to emit. */
 const LICENSED = {
   "src/views/download/ui/GatewayFx.tsx": "the gateway hero — the field is light itself",
-  "src/widgets/ontology-map/render/node-shapes.ts":
+  "src/shared/lib/star-emission.ts":
     "the walked-path star, inside a lens the person opened",
 } as const;
 
@@ -38,7 +52,7 @@ describe("캔버스 합성 — 발광은 허가된 곳에서만", () => {
   it.each(Object.entries(LICENSED))(
     "%s 는 이전 합성 모드를 같은 함수 안에서 되돌린다",
     (rel) => {
-      const source = read(rel);
+      const source = readCode(rel);
       const uses = (source.match(/globalCompositeOperation\s*=/g) ?? []).length;
       // One assignment turns it on, one puts it back. An odd count means a region leaked its
       // mode into everything drawn after it.
@@ -53,16 +67,16 @@ describe("캔버스 합성 — 발광은 허가된 곳에서만", () => {
   );
 
   /*
-   * Two crosses at one point is the defect this catches: the magnitude spike and the walked
-   * star are the same primitive at the same radius, so a node that is both must draw one.
+   * Two crosses at one point was the defect, and it is now prevented by subtraction rather
+   * than by arbitration: the walked star does not wear a cross, so nothing has to stand down.
+   * The gate therefore holds the *absence*, which is the condition the rule now rests on — if
+   * the cross ever comes back to the star, "one cross per node" needs deciding again first.
    */
-  it("걸어온 별이 켜지면 크기 스파이크는 물러난다", () => {
-    const frame = read("src/widgets/ontology-map/ui/topology-frame-draw.ts");
+  it("걸어온 별은 십자를 달지 않는다 — 물러날 것이 없다", () => {
+    const star = readCode("src/shared/lib/star-emission.ts");
     expect(
-      /!walkedStarHere\s*&&[\s\S]{0,80}drawDiffractionSpike|walkedStarHere[\s\S]{0,200}drawDiffractionSpike/.test(
-        frame,
-      ),
-      "크기 스파이크가 걸어온 별과 무관하게 그려진다 — 한 점에 십자 두 개",
-    ).toBe(true);
+      /drawDiffractionSpike/.test(star),
+      "걸어온 별이 다시 십자를 그린다 — 크기 스파이크와 한 점에서 겹친다",
+    ).toBe(false);
   });
 });

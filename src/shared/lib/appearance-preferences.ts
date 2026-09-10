@@ -515,13 +515,6 @@ export function useMutedAgentNotificationKinds(): ReadonlySet<string> {
 /* ── Footprints (the path walked) ───────────────────────────────────────── */
 
 /**
- * - `right` — a single line to the right of travel. Says "someone passed here"
- *   without covering the edge.
- * - `both` — alternating either side of the edge, closest to a real gait.
- */
-type FootprintPlacement = "right" | "both";
-
-/**
  * Three named tones, not a colour picker.
  *
  * `star` is the default and the map's own ink: `render/starfield.ts` already paints its
@@ -559,26 +552,6 @@ export const FOOTPRINT_TONE_FALLBACK: Record<FootprintTone, readonly [number, nu
 };
 
 /**
- * Density, not a numeric slider. The count is decoration — an even division of
- * edge length — but exposed as a number it reads as data ("this path was walked
- * 4 times"), a promise the screen never made. Two steps only.
- */
-export type FootprintEdgeDensity = "sparse" | "dense";
-
-/** Density step → marks stamped along one edge. */
-export const FOOTPRINT_EDGE_COUNT: Readonly<Record<FootprintEdgeDensity, number>> = {
-  sparse: 2,
-  dense: 5,
-};
-
-/**
- * A constant, deliberately not a preference: opened up it multiplies with the
- * mark size and lets an edge footprint grow larger than the smallest node (34px
- * diameter).
- */
-export const FOOTPRINT_EDGE_SCALE = 0.9;
-
-/**
  * Footprint appearance — the values the owner tunes directly (2026-07-29).
  *
  * **Shape is not a preference.** It is fixed to a two-foot shoe print: letting
@@ -594,36 +567,39 @@ export const FOOTPRINT_EDGE_SCALE = 0.9;
  * Field names describe what is seen, not the value behind it ("Intensity" rather
  * than "alpha") — a settings screen is not a code review.
  */
+/**
+ * What a person may choose about their walked path.
+ *
+ * ⚠️ **Six of these were retired on 2026-09-10 and the reason is worth keeping.** They
+ * described a *glyph* — its fill, its outline weight, its bloom, whether it repeated along the
+ * relation, how densely, and on which side. There is no glyph: the owner asked for the
+ * footprint mark to go and for the node's own border to light instead, so the walked path is
+ * now the node emitting, a line, and a number. A control whose value nothing reads is worse
+ * than a missing one, because a person spends attention setting it and gets nothing back.
+ *
+ * Stored preferences carrying the old keys still load — `resolveFootprint` reads the fields it
+ * knows and ignores the rest — so nobody's saved settings break; the retired values simply
+ * stop being consulted.
+ */
 export interface FootprintPreference {
-  /** Long-axis length of one foot, in px. */
+  /**
+   * How far the step number sits from the node, in px, before the gap is added.
+   *
+   * It sized the glyph once. It now only places the ordinal, which is why the settings screen
+   * no longer calls it "star size": the star is the node, and the node's size is the map's.
+   */
   size: number;
-  /** Off draws the outline only. */
-  filled: boolean;
-  /** Stroke width in px. **Only visible when unfilled** — a dead value otherwise. */
-  strokeWidth: number;
-  /** Offset from node *and* edge, in px. One value because it is one sentence to the user. */
+  /** Extra offset for the step number, in px. */
   gap: number;
   opacity: number;
   tone: FootprintTone;
-  /** Bloom in px; 0 by default. The cap is low because this is the charter's one
-   *  glow exception (a static halo). */
-  bloom: number;
-  onEdges: boolean;
-  edgeDensity: FootprintEdgeDensity;
-  placement: FootprintPlacement;
 }
 
 export const DEFAULT_FOOTPRINT: FootprintPreference = {
   size: 13,
-  filled: true,
-  strokeWidth: 1.5,
   gap: 8,
   opacity: 0.7,
   tone: "star",
-  bloom: 0,
-  onEdges: true,
-  edgeDensity: "dense",
-  placement: "right",
 };
 
 /**
@@ -637,10 +613,8 @@ export const DEFAULT_FOOTPRINT: FootprintPreference = {
  */
 export const FOOTPRINT_RANGES = {
   size: { min: 9, max: 26, step: 1 },
-  strokeWidth: { min: 0.5, max: 1.8, step: 0.1 },
   gap: { min: 0, max: 28, step: 1 },
   opacity: { min: 0.5, max: 1, step: 0.05 },
-  bloom: { min: 0, max: 6, step: 1 },
 } as const satisfies Record<string, { min: number; max: number; step: number }>;
 
 /**
@@ -649,9 +623,9 @@ export const FOOTPRINT_RANGES = {
  * 「Manual Tuning」 (the manual-tuning disclosure).
  */
 export const FOOTPRINT_PRESETS = {
-  subtle: { size: 10, opacity: 0.5, bloom: 0, edgeDensity: "sparse" },
-  default: { size: 13, opacity: 0.7, bloom: 0, edgeDensity: "dense" },
-  bold: { size: 17, opacity: 0.95, bloom: 3, edgeDensity: "dense" },
+  subtle: { size: 10, opacity: 0.5 },
+  default: { size: 13, opacity: 0.7 },
+  bold: { size: 17, opacity: 0.95 },
 } as const satisfies Record<string, Partial<FootprintPreference>>;
 
 export type FootprintPresetName = keyof typeof FOOTPRINT_PRESETS;
@@ -672,23 +646,21 @@ export function resolveFootprint(raw: unknown): FootprintPreference {
     if (typeof v !== "number" || !Number.isFinite(v)) return DEFAULT_FOOTPRINT[key];
     return clamp(v, FOOTPRINT_RANGES[key].min, FOOTPRINT_RANGES[key].max);
   };
+  /*
+   * Only the four live fields are read. A preference saved before 2026-09-10 still carries
+   * `filled`, `strokeWidth`, `bloom`, `onEdges`, `edgeDensity` and `placement`; they are
+   * ignored rather than migrated, because there is nothing to migrate them *to* — the glyph
+   * they described no longer exists. Ignoring is also what keeps this function total: a stored
+   * shape from any version resolves, and no key is required to be present.
+   */
   return {
     size: num("size"),
-    filled: typeof src.filled === "boolean" ? src.filled : DEFAULT_FOOTPRINT.filled,
-    strokeWidth: num("strokeWidth"),
     gap: num("gap"),
     opacity: num("opacity"),
     tone:
       src.tone === "indigo" || src.tone === "amber" || src.tone === "star"
         ? src.tone
         : DEFAULT_FOOTPRINT.tone,
-    bloom: num("bloom"),
-    onEdges: typeof src.onEdges === "boolean" ? src.onEdges : DEFAULT_FOOTPRINT.onEdges,
-    edgeDensity:
-      src.edgeDensity === "sparse" || src.edgeDensity === "dense"
-        ? src.edgeDensity
-        : DEFAULT_FOOTPRINT.edgeDensity,
-    placement: src.placement === "both" || src.placement === "right" ? src.placement : DEFAULT_FOOTPRINT.placement,
   };
 }
 

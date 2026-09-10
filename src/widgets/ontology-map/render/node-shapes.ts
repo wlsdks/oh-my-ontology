@@ -22,7 +22,7 @@
 import { smoothstep } from "../model/altitude";
 import { FONT_WEIGHT } from "@/shared/ui/font-weight";
 import { computeHoverShimmer } from "../model/hover-shimmer";
-import { drawDiffractionSpike } from "./starfield";
+import { drawStarEmission } from "@/shared/lib/star-emission";
 
 export interface Point {
   x: number;
@@ -588,108 +588,30 @@ export function drawNodeStar(
   farT: number,
   ink: string,
   lit: number,
-  spikes: boolean,
-  /**
-   * Multiplier on the bloom's reach while the star is igniting.
-   *
-   * A star arriving has a size, not only a brightness — the light swells out and settles
-   * back. It returns to 1 once the ignition is over, so a settled constellation is
-   * dimensionally still and nothing on the canvas keeps breathing.
-   */
   swell = 1,
 ): void {
-  if (lit <= 0.01) return;
-  const k = Math.min(1, lit);
-  const prevOp = ctx.globalCompositeOperation;
-  const prevAlpha = ctx.globalAlpha;
-  ctx.globalCompositeOperation = "lighter";
-
-  // The light it throws. A gradient rather than a shadow blur: `shadowBlur` on a hairline
-  // spends almost all of itself on nothing, which is exactly why the outline read as grey.
-  const reach = radius * STAR_GLOW_REACH * swell;
-  const inner = radius * STAR_GLOW_INNER;
-  const glow = ctx.createRadialGradient(x, y, inner, x, y, reach);
-  glow.addColorStop(0, withAlpha(ink, 0.5 * k));
-  glow.addColorStop(0.26, withAlpha(ink, 0.14 * k));
-  glow.addColorStop(0.58, withAlpha(ink, 0.035 * k));
-  glow.addColorStop(1, withAlpha(ink, 0));
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = glow;
-  // The annulus: the outer disc, then the node's own disc cut back out of it counter-clockwise
-  // so the non-zero winding rule leaves a hole. Without the hole the gradient's inner circle
-  // is filled solid with stop 0 and the face takes the wash this function's header forbids.
-  ctx.beginPath();
-  ctx.arc(x, y, reach, 0, Math.PI * 2);
-  ctx.arc(x, y, inner, 0, Math.PI * 2, true);
-  ctx.fill();
-
-  // The signature. Same primitive the far-field bright stars wear, so a walked node and a
-  // big node are the same *kind* of thing — separated by the lens, not by inventing a mark.
-  // The arms are turned 45° and clamped short of the label ring: within one open-lens frame
-  // both crosses are on screen, and form is the only channel that separates them for every
-  // reader (see `DiffractionSpikeDrawState.rotation`).
-  if (spikes) {
-    drawDiffractionSpike(ctx, {
-      screenX: x,
-      screenY: y,
-      screenRadius: radius,
-      color: ink,
-      alpha: 0.72 * k,
-      rotation: WALKED_SPIKE_ROTATION,
-      maxLong: radius + WALKED_SPIKE_LABEL_CLEARANCE,
-    });
-  }
-
-  // The edge itself, on the node's real silhouette — never a circle over a square.
-  strokeKindOutline(ctx, kind, x, y, radius, farT, ink, 1.8, k);
-  ctx.globalCompositeOperation = prevOp;
-  ctx.globalAlpha = prevAlpha;
+  // The map's only contribution is the silhouette: a hexagon, square or circle that converges
+  // with altitude. The light is `shared/lib/star-emission.ts`, so the settings preview and this
+  // canvas cannot drift apart again.
+  drawStarEmission(ctx, {
+    x,
+    y,
+    radius,
+    ink,
+    lit,
+    swell,
+    tracePath: (target, r) => {
+      const points = bodyPointsScratch(kind, x, y, r);
+      if (points === null || farT > FULL_CIRCLE_FAR_T) target.arc(x, y, r, 0, Math.PI * 2);
+      else roundedPolygonPath(target, points, interpolateCornerRadius(minCornerRadius(kind, r), r, farT));
+    },
+  });
 }
 
-/**
- * How far the star's bloom reaches, in node radii.
- *
- * ⚠️ 3.2 with a gentle falloff was measured reading as **fog** rather than as a star — a
- * soft blob wide enough to touch its neighbours, with the diffraction cross drowned inside
- * it. A star is a point of light: bright and tight at the core, gone quickly. The reach came
- * down and the falloff steepened, so most of the light lives inside the first third.
- */
-const STAR_GLOW_REACH = 2.0;
 
-/**
- * Where the bloom starts, in node radii — and therefore where the hole in it ends.
- *
- * Just outside the silhouette rather than on it: at exactly 1.0 the antialiased edge of the
- * hole and the 1.8 px outline stroke land on the same pixels and the seam reads as a notch.
- */
-const STAR_GLOW_INNER = 1.04;
 
-/**
- * The walked cross is turned 45° off the magnitude spike's upright arms.
- *
- * Rotation, not ink: the two crosses were separated by hue at 1.68:1, which survives neither
- * a colour-vision deficiency nor the dim tier. Form is nominal-safe (design-infoviz,
- * 2026-09-10).
- */
-const WALKED_SPIKE_ROTATION = Math.PI / 4;
 
-/**
- * How far past the silhouette the walked cross's long arm may reach, in px.
- *
- * `LABEL_OFFSET.domain` is 17, so an arm stopping at r+13 clears the label anchor by 4 px.
- * Unclamped the arm ran to `r*2.6` — 60 px on a 23 px node, straight through the label row
- * and brighter than any glyph in it.
- */
-const WALKED_SPIKE_LABEL_CLEARANCE = 13;
 
-/** `#rrggbb` → `rgba(...)`, which a gradient stop takes where a `var()` cannot. */
-function withAlpha(hex: string, alpha: number): string {
-  const h = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
-  const r = parseInt(h.slice(1, 3), 16);
-  const g = parseInt(h.slice(3, 5), 16);
-  const b = parseInt(h.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${Math.max(0, Math.min(1, alpha)).toFixed(3)})`;
-}
 
 function strokeKindOutline(
   ctx: CanvasRenderingContext2D,

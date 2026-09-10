@@ -181,12 +181,13 @@ Shape, radius, magnitude, and embedded-count rules live only in
 assumed.** Node and edge overlays are *material* — they mark state on something a
 person is already looking at, and material does not glow. `globalCompositeOperation
 = "lighter"` is permitted only where the mark's meaning **is** light: the gateway
-hero, and the walked-path star inside a lens the person opened. Every `lighter`
-region restores the previous operation in the same function, and a node carries at
-most one diffraction cross per frame — the magnitude spike stands down while a
-walked star is lit, the same way a walked relation's ambient comet does. This
-sentence is written down because four comments cited it for months while it existed
-nowhere (design-system, 2026-09-10). Gate:
+hero, and the walked-path star (`shared/lib/star-emission.ts`) inside a lens the
+person opened. Every `lighter` region restores the previous operation in the same
+function, and a node carries at most one diffraction cross per frame. That second
+clause is now satisfied by subtraction: the walked star wears no cross at all, so
+the magnitude spike never has to stand down for it. This sentence is written down
+because four comments cited it for months while it existed nowhere (design-system,
+2026-09-10). Gate:
 `tests/contract/canvas-composite-license.contract.test.ts`.
 
 Do not invent a visual for bridge nodes before `design-infoviz` decides it. The

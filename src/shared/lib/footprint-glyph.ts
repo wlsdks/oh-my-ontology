@@ -35,11 +35,7 @@ import { FONT_WEIGHT } from "@/shared/ui/font-weight";
  * line means a relation.
  */
 
-import {
-  FOOTPRINT_EDGE_COUNT,
-  FOOTPRINT_EDGE_SCALE,
-  type FootprintPreference,
-} from "./appearance-preferences";
+import { type FootprintPreference } from "./appearance-preferences";
 
 /** Footprint ink as an RGB triple — the caller reads it from a token and passes it in. */
 export type FootprintInk = readonly [number, number, number];
@@ -128,93 +124,14 @@ export function footprintSizeFor(baseSize: number, screenNodeRadius: number): nu
   return Math.max(FOOTPRINT_MIN_SIZE, Math.min(baseSize, capped));
 }
 
-/**
- * How deep the star's waist is, as a fraction of its arm length.
- *
- * The whole difference between a sparkle and a fat diamond is this number. At 0.22 the
- * arms are needles that read as light; much above 0.3 the mark closes into a rhombus and
- * stops looking like a star at all, and much below it the waist pinches to nothing and the
- * mark breaks into four slivers at small sizes.
- */
-const STAR_WAIST = 0.22;
 
-/**
- * A four-point diffraction star — the map's own notation for a star, at mark size.
- *
- * ⚠️ **Same family as the far-field spikes `render/starfield.ts` already draws, and
- * deliberately not the same mark.** That spike means *magnitude* — this node is large. This
- * one means *you were here*. Two facts may share a visual family, but they may not share a
- * mark, so they are separated on position: the magnitude spike sits **on** the node, this
- * one sits **beside** it, in the upper-right quadrant the label never uses — which is the
- * anchor the shoe prints already used, kept for exactly that reason.
- *
- * Built with quadratic curves through the waist rather than straight chords, so the arms
- * taper the way a lens flare does instead of reading as a folded polygon.
- */
-function starPath(ctx: CanvasRenderingContext2D, s: number): void {
-  const arm = s * 0.62;
-  const waist = arm * STAR_WAIST;
-  ctx.beginPath();
-  for (let i = 0; i < 4; i += 1) {
-    const a = (i * Math.PI) / 2;
-    const next = a + Math.PI / 2;
-    const mid = a + Math.PI / 4;
-    const px = Math.cos(a) * arm;
-    const py = Math.sin(a) * arm;
-    const nx = Math.cos(next) * arm;
-    const ny = Math.sin(next) * arm;
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-    ctx.quadraticCurveTo(Math.cos(mid) * waist, Math.sin(mid) * waist, nx, ny);
-  }
-  ctx.closePath();
-}
+
 
 /**
  * Draws a footprint at the current transform origin. With `singleFoot`, one foot (for
  * edges); without it, both (for nodes).
  */
-/**
- * Draws the mark at the current transform origin.
- *
- * One star, not a pair. The shoe prints came in twos because a stride needs two feet to
- * read as a stride; a star is a star, and the direction the pair used to carry now travels
- * along the line instead (`drawTrailGlint`), where it can say which way without asking a
- * 10px mark to encode a heading.
- */
-function drawStar(ctx: CanvasRenderingContext2D, pref: FootprintPreference, size: number): void {
-  starPath(ctx, size);
-  if (pref.filled) ctx.fill();
-  else ctx.stroke();
-}
 
-/**
- * Sets ink, stroke width and bloom, then runs `draw`.
- *
- * ⚠️ `bloom` goes out as `shadowBlur`. The charter forbids glow, so the **default is
- * always 0** and this branch never executes while it is 0 — turning it on is an
- * explicit user choice.
- */
-function withFootprintInk(
-  { ctx, pref, ink }: FootprintPaintContext,
-  alpha: number,
-  draw: () => void,
-): void {
-  const rgb = `${ink[0]}, ${ink[1]}, ${ink[2]}`;
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.strokeStyle = `rgb(${rgb})`;
-  ctx.fillStyle = `rgb(${rgb})`;
-  ctx.lineWidth = pref.strokeWidth;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  if (pref.bloom > 0) {
-    ctx.shadowColor = `rgba(${rgb}, 0.9)`;
-    ctx.shadowBlur = pref.bloom;
-  }
-  draw();
-  ctx.restore();
-}
 
 /**
  * Radius (px) the mark occupies.
@@ -250,26 +167,6 @@ export function footprintAnchor(
   return { x: x + off, y: y - off };
 }
 
-/** Stamps one pair of prints beside a node. */
-export function drawNodeFootprint(
-  paint: FootprintPaintContext,
-  x: number,
-  y: number,
-  nodeRadius: number,
-  alpha: number,
-): void {
-  const k = paint.scale ?? 1;
-  const size = footprintSizeFor(paint.pref.size * k, nodeRadius);
-  const at = footprintAnchor(x, y, nodeRadius, paint.pref.gap * k, size);
-  // The entrance is expressed as **position**: the foot slides out from the node as if
-  // stepping away. Growing it in would read as a marker that keeps animating.
-  const appear = paint.appear ?? 1;
-  const slide = (1 - appear) * size * 0.45;
-  withFootprintInk(paint, alpha * appear, () => {
-    paint.ctx.translate(at.x - slide * Math.SQRT1_2, at.y + slide * Math.SQRT1_2);
-    drawStar(paint.ctx, paint.pref, size);
-  });
-}
 
 /**
  * Display string for visit-order numbers. A revisited node has several, and joining them
@@ -316,195 +213,8 @@ export function drawFootprintSteps(
   ctx.restore();
 }
 
-/** One print's position on an edge. */
-export interface EdgeFootprintPlacement {
-  x: number;
-  y: number;
-  angle: number;
-  mirror: boolean;
-  fade: number;
-}
 
-/**
- * A control point this far off the chord (px) or less draws as a straight line, so the
- * chord maths — exact, and the only shape the settings preview ever has — still runs.
- */
-const FOOTPRINT_STRAIGHT_BOW_PX = 0.01;
-/**
- * Arc-length table resolution. The map's bows are mild (control offset well under the
- * chord length), where 24 chords hold the length to far below one pixel; the table exists
- * so the two end pads stay **real distance** from the nodes instead of a slice of `t`,
- * which on a curve is not the same thing.
- */
-const FOOTPRINT_CURVE_SAMPLES = 24;
 
-/** Point and tangent angle on the quadratic Bézier the trace renderer draws. */
-function quadAt(
-  ax: number, ay: number, bx: number, by: number, cx: number, cy: number, t: number,
-): { x: number; y: number; angle: number } {
-  const u = 1 - t;
-  const dx = 2 * (u * (cx - ax) + t * (bx - cx));
-  const dy = 2 * (u * (cy - ay) + t * (by - cy));
-  return {
-    x: u * u * ax + 2 * u * t * cx + t * t * bx,
-    y: u * u * ay + 2 * u * t * cy + t * t * by,
-    // A cusp (both derivatives zero) has no tangent; the chord is the honest fallback.
-    angle: dx === 0 && dy === 0 ? Math.atan2(by - ay, bx - ax) : Math.atan2(dy, dx),
-  };
-}
 
-/** Curve parameter at arc length `s`, read off the cumulative table by linear inverse. */
-function tAtLength(table: readonly number[], s: number): number {
-  const last = table.length - 1;
-  for (let i = 1; i <= last; i += 1) {
-    if (s > table[i]) continue;
-    const span = table[i] - table[i - 1];
-    const within = span <= 0 ? 0 : (s - table[i - 1]) / span;
-    return (i - 1 + within) / last;
-  }
-  return 1;
-}
 
-/**
- * Positions and angles of the prints left along one relation line. Kept pure and apart
- * from rendering: "does it clear the line" and "does it touch the node" are properties
- * of **coordinates**, not of the picture, so they can be locked down without a canvas.
- *
- * **The line is a curve, so the prints are too** (owner, 2026-09-06: *"Optimise where the
- * footprints sit — have them computed to sit smoothly beside the line; right now they even
- * overlap it"*). Placing them along the straight chord between the endpoints put the middle
- * prints on the **inside of the bow**, where the drawn curve runs — the same overlap the
- * offset was there to prevent, only produced by the wrong baseline rather than the wrong
- * distance. `control` is the quadratic Bézier control point the trace renderer received for
- * this same edge; omitting it keeps the chord behaviour (the settings preview draws a
- * straight line and has no curve to follow).
- */
-export function edgeFootprintPlacements(
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
-  pref: FootprintPreference,
-  scale = 1,
-  control?: { x: number; y: number } | null,
-): EdgeFootprintPlacement[] {
-  const size = pref.size * scale;
-  const gap = pref.gap * scale;
-  const count = FOOTPRINT_EDGE_COUNT[pref.edgeDensity];
-  // Leave both ends empty — a print touching a node is misread as node decoration.
-  const pad = size * 1.6;
 
-  /**
-   * For a print to actually clear the line the offset must be **the gap plus the print's
-   * half-width**. `gap` alone only moves the print's centre, so anything wider gets the
-   * line running through its middle — exactly what the installed app showed (gap 8px,
-   * print half-width ~3px and up). The owner's requirement *"Don't overlap the line"* is an **edge** condition, not a centre-distance one.
-   *
-   * Half-width is the ball ellipse's x radius (`size * 0.26`) scaled, plus half the stroke
-   * width — it grows with the print, so enlarging the glyph cannot bring the overlap back.
-   */
-  const glyphHalfWidth = size * FOOTPRINT_EDGE_SCALE * 0.26 + pref.strokeWidth / 2;
-  const offset = gap + glyphHalfWidth;
-
-  const cx = control?.x ?? (ax + bx) / 2;
-  const cy = control?.y ?? (ay + by) / 2;
-  const chordX = bx - ax;
-  const chordY = by - ay;
-  const len = Math.hypot(chordX, chordY);
-  // How far the control point stands off the chord — the bow. Zero means the Bézier
-  // collapses onto the chord and the exact straight maths below is the same picture.
-  const bow = len === 0 ? 0 : Math.abs((cx - ax) * chordY - (cy - ay) * chordX) / len;
-
-  const out: EdgeFootprintPlacement[] = [];
-  // Leading prints are darker — direction ("which end did I come from"), not recency.
-  const fadeOf = (i: number) => 0.5 + 0.5 * (1 - i / Math.max(1, count - 1));
-
-  if (bow < FOOTPRINT_STRAIGHT_BOW_PX) {
-    const angle = Math.atan2(chordY, chordX);
-    const nx = Math.cos(angle + Math.PI / 2);
-    const ny = Math.sin(angle + Math.PI / 2);
-    const usable = len - pad * 2;
-    if (usable <= 0) return [];
-    for (let i = 0; i < count; i += 1) {
-      const t = (pad + (usable * (i + 0.5)) / count) / len;
-      const alt = i % 2 === 0 ? 1 : -1;
-      // "right": a single row on one side. "both": alternating either side of the line.
-      const d = pref.placement === "both" ? alt * offset : offset;
-      out.push({
-        x: ax + chordX * t + nx * d,
-        y: ay + chordY * t + ny * d,
-        angle: angle + Math.PI / 2,
-        mirror: alt < 0,
-        fade: fadeOf(i),
-      });
-    }
-    return out;
-  }
-
-  const table: number[] = [0];
-  let prevX = ax;
-  let prevY = ay;
-  for (let i = 1; i <= FOOTPRINT_CURVE_SAMPLES; i += 1) {
-    const p = quadAt(ax, ay, bx, by, cx, cy, i / FOOTPRINT_CURVE_SAMPLES);
-    table.push(table[i - 1] + Math.hypot(p.x - prevX, p.y - prevY));
-    prevX = p.x;
-    prevY = p.y;
-  }
-  const total = table[FOOTPRINT_CURVE_SAMPLES];
-  const usable = total - pad * 2;
-  if (usable <= 0) return [];
-
-  /**
-   * Which side a single row stands on: **towards the control point**, the outer, convex
-   * side of the bend. The pocket between the chord and the curve is the inside of the
-   * bend, and it is already spoken for — the relation caption is anchored at the curve's
-   * own midpoint, and containment bundles bow the same way. One sign for the whole edge,
-   * taken at the midpoint, so the row cannot swap sides halfway along.
-   */
-  const mid = quadAt(ax, ay, bx, by, cx, cy, 0.5);
-  const midNx = Math.cos(mid.angle + Math.PI / 2);
-  const midNy = Math.sin(mid.angle + Math.PI / 2);
-  const side =
-    midNx * (cx - (ax + bx) / 2) + midNy * (cy - (ay + by) / 2) >= 0 ? 1 : -1;
-
-  for (let i = 0; i < count; i += 1) {
-    const t = tAtLength(table, pad + (usable * (i + 0.5)) / count);
-    const p = quadAt(ax, ay, bx, by, cx, cy, t);
-    // The normal is the **local** one, so the row hugs the bend instead of shearing away
-    // from it the way a single chord normal did.
-    const nx = Math.cos(p.angle + Math.PI / 2);
-    const ny = Math.sin(p.angle + Math.PI / 2);
-    const alt = i % 2 === 0 ? 1 : -1;
-    const d = pref.placement === "both" ? alt * offset : side * offset;
-    out.push({
-      x: p.x + nx * d,
-      y: p.y + ny * d,
-      angle: p.angle + Math.PI / 2,
-      mirror: alt < 0,
-      fade: fadeOf(i),
-    });
-  }
-  return out;
-}
-
-/** Stamps prints alongside one relation line. */
-export function drawEdgeFootprints(
-  paint: FootprintPaintContext,
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
-  alpha: number,
-  control?: { x: number; y: number } | null,
-): void {
-  const { ctx, pref } = paint;
-  const k = paint.scale ?? 1;
-  for (const spot of edgeFootprintPlacements(ax, ay, bx, by, pref, k, control)) {
-    withFootprintInk(paint, alpha * spot.fade, () => {
-      ctx.translate(spot.x, spot.y);
-      // A star has no heading, so the placement's angle is not spent on rotating it. The
-      // line's direction is carried by the glint that runs along it instead.
-      drawStar(ctx, pref, pref.size * k * FOOTPRINT_EDGE_SCALE);
-    });
-  }
-}

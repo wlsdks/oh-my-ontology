@@ -2632,18 +2632,14 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     // perf 2026-08-19 — the `farT` test moved first, so at circuit altitude
     // (farT = 0) even the Set lookup is skipped. Same logic.
     /*
-     * ⚠️ **One cross per node.** The magnitude spike says "this node is large"; the walked
-     * star wears the same primitive to say "you were here". They used to be separated by
-     * position — spike on the node, mark beside it — and that separation went when the mark
-     * became the node itself, so a node that is both walked and bright drew **two crosses at
-     * one point**, same shape, same radius, in two inks (design-system, 2026-09-10).
-     *
-     * The walked one wins while its lens is open, which is the rule this file already applies
-     * to the ambient comet on a walked relation: what a mark is *for* outranks what it is.
-     * Closing the lens gives the magnitude spike straight back.
+     * ⚠️ **This spike used to stand down on a walked node, and no longer needs to.** For one day
+     * the walked star wore this same four-point cross, so a node that was both walked and bright
+     * drew two of them at one point in two inks (design-system, 2026-09-10) and the walked one
+     * won. The walked star has no cross now — `shared/lib/star-emission.ts` says why — so there
+     * is nothing to collide with, and suppressing magnitude here would delete a fact to avoid a
+     * conflict that has already been removed.
      */
-    const walkedStarHere = trailStarInk !== null && trailRamp > 0.001 && footprintStepsById.has(node.id);
-    if (!walkedStarHere && farT > 0.02 && (world.brightStarIds.has(node.id) || node.kind === "project")) {
+    if (farT > 0.02 && (world.brightStarIds.has(node.id) || node.kind === "project")) {
       drawDiffractionSpike(ctx, {
         screenX: screen.x,
         screenY: screen.y,
@@ -2741,14 +2737,6 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
        * ink, at 2.95:1 against that indigo and clipping to white over it, did.
        */
       const starInk = node.id === focusedNodeId ? tokens.selectionRingIndigo : trailStarInk;
-      /*
-       * ⚠️ **The rim lights; the face does not.** The first build put a filled bloom disc
-       * over the node and measured badly on its own terms — the wash covered the node's own
-       * numeral, so lighting a node you had visited made it harder to read than one you had
-       * not. A star is bright at its edge and transparent in the middle of a map; the node
-       * keeps its face and gains a lit rim, twice over: a wide soft pass for the halo and a
-       * tight bright pass for the edge itself.
-       */
       drawNodeStar(
         ctx,
         node.kind,
@@ -2761,22 +2749,6 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         farT,
         starInk,
         lit,
-        /*
-         * ⚠️ **The cross marks the one you are on, not every stop.** At `long = r*2.6` it
-         * draws a 101px flare on a 44px node — 2.3x the node's own width, in clipped white
-         * under `lighter`, and identical to the magnitude spike's own call. Four of those is
-         * the stock sparkle sky, and it collided with the ordinals besides (design-lead,
-         * 2026-09-10). On the newest star alone it becomes a categorical mark for "here is
-         * the end of the walk", which is a stronger channel for rank than an alpha that
-         * clips — and every older star's footprint drops back to the node's own size.
-         *
-         * Still gated on altitude: below `farT` 0.02 this canvas's constellation language is
-         * off, and a cross there is a word from a vocabulary the view is not speaking.
-         */
-        node.id === footprintNewestId && farT > 0.02,
-        // Spikes on the recent half of the walk only: every node wearing a cross turns the
-        // signature into wallpaper, and the ones a person is still thinking about are the
-        // recent ones.
         1 + TRAIL_STAR_SWELL * starSwellCurve(sweepT),
       );
       /*

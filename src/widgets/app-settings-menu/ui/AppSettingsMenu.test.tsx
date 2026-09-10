@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { MouseEventHandler, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { requestSettingsView } from '@/shared/lib/settings-view-intent';
@@ -883,17 +883,26 @@ describe('AppSettingsMenu appearance pickers (#20/#21)', () => {
   });
 
   /**
-   * Border width affects the screen **only in outline mode**. Exposing it in the
-   * filled state makes it "a control that does nothing when you touch it", and that
-   * is a control telling a lie.
+   * ⚠️ This replaces a test that hid the outline-weight slider while the print was *filled*.
+   * Its principle — "a control that does nothing when you touch it is a control telling a lie"
+   * — is the reason the slider it guarded no longer exists at all: fill, outline weight, bloom,
+   * along-the-line repetition, its density and its side all shaped a glyph the map stopped
+   * drawing when the walked mark became the node's own light (2026-09-10). The same principle,
+   * applied to the whole set, deletes them rather than hiding one conditionally.
    */
-  it('hides the outline weight slider while the print is filled', () => {
+  it('걸어온 길 설정에는 사라진 자국을 다루는 손잡이가 남아 있지 않다', () => {
     openSection('footprint');
     fireEvent.click(screen.getByTestId('app-settings-footprint-detail-toggle'));
-    expect(screen.queryByTestId('app-settings-footprint-stroke')).toBeNull();
-    const fillOptions = within(screen.getByTestId('app-settings-footprint-fill')).getAllByRole('radio');
-    fireEvent.click(fillOptions[1]);
-    expect(screen.getByTestId('app-settings-footprint-stroke')).toBeInTheDocument();
+    for (const retired of ['fill', 'stroke', 'bloom', 'on-edges', 'density', 'placement']) {
+      expect(
+        screen.queryByTestId(`app-settings-footprint-${retired}`),
+        `app-settings-footprint-${retired} 는 그리지 않는 마크를 조절한다`,
+      ).toBeNull();
+    }
+    // The four that still reach the canvas stay reachable.
+    for (const live of ['size', 'gap', 'opacity', 'tone']) {
+      expect(screen.getByTestId(`app-settings-footprint-${live}`)).toBeInTheDocument();
+    }
   });
 
   it('persists a node-icon set choice and reflects it in aria-checked', () => {
