@@ -56,6 +56,27 @@ export function buildWalkedEdgeKeys(trail: readonly string[]): Set<string> {
 }
 
 /**
+ * The step at which the walk *arrived* along each relation, keyed like the set above.
+ *
+ * A line belongs to the star it leads to. During the ignition sweep this is what lets the
+ * path draw itself in the order it happened — each line waits for its own arrival rather
+ * than the whole shape appearing at once.
+ */
+export function buildWalkedEdgeArrivalSteps(trail: readonly string[]): Map<string, number> {
+  const steps = new Map<string, number>();
+  for (let i = 1; i < trail.length; i += 1) {
+    const a = trail[i - 1];
+    const b = trail[i];
+    if (a === b) continue;
+    // A relation walked more than once arrives first at its earliest crossing: the path is
+    // drawn once, in the order it was first made.
+    const key = walkedEdgeKey(a, b);
+    if (!steps.has(key)) steps.set(key, i);
+  }
+  return steps;
+}
+
+/**
  * Which way the walk crossed each relation, keyed the same order-independent way the set
  * above is: `true` when it was walked from the lower id toward the higher one.
  *

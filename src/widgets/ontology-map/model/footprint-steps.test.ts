@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { buildFootprintSteps, buildWalkedEdgeDirections, buildWalkedEdgeKeys, walkedEdgeKey } from "./footprint-steps";
+import {
+  buildFootprintSteps,
+  buildWalkedEdgeArrivalSteps,
+  buildWalkedEdgeDirections,
+  buildWalkedEdgeKeys,
+  walkedEdgeKey,
+} from "./footprint-steps";
 
 describe("buildFootprintSteps", () => {
   it("재방문 노드는 순번을 여러 개 갖는다(1부터)", () => {
@@ -62,6 +68,31 @@ describe("buildWalkedEdgeDirections", () => {
   it("names the same relations the key set does", () => {
     const trail = ["c", "a", "b", "a"];
     expect([...buildWalkedEdgeDirections(trail).keys()].sort()).toEqual(
+      [...buildWalkedEdgeKeys(trail)].sort(),
+    );
+  });
+});
+
+describe("buildWalkedEdgeArrivalSteps", () => {
+  /*
+   * ⚠️ A line belongs to the star it leads to. This is what lets the ignition sweep draw the
+   * path in the order it happened rather than handing over the finished shape at once.
+   */
+  it("gives each relation the step the walk arrived along it", () => {
+    const steps = buildWalkedEdgeArrivalSteps(["a", "b", "c"]);
+    expect(steps.get(walkedEdgeKey("a", "b"))).toBe(1);
+    expect(steps.get(walkedEdgeKey("b", "c"))).toBe(2);
+  });
+
+  it("keeps the first arrival when a relation is walked again", () => {
+    // Drawn once, in the order it was first made — a line that redrew itself later would
+    // pull the sweep backwards.
+    expect(buildWalkedEdgeArrivalSteps(["a", "b", "a", "b"]).get(walkedEdgeKey("a", "b"))).toBe(1);
+  });
+
+  it("names the same relations the key set does", () => {
+    const trail = ["c", "a", "b", "a"];
+    expect([...buildWalkedEdgeArrivalSteps(trail).keys()].sort()).toEqual(
       [...buildWalkedEdgeKeys(trail)].sort(),
     );
   });

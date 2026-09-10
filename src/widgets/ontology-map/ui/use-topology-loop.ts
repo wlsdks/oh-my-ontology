@@ -65,6 +65,7 @@ import type { ClusterChip } from "../model/density-gate";
 import { clusterMoreChipId, EGO_NEIGHBOR_CHIP_ID, parseClusterMoreChipId, rankEgoNeighborsByDOI, scheduleRipple, selectiveEgoNeighbors, stepEmphasis, stepFocusRamp, type EgoNeighborRankEntry } from "../model/focus-state";
 import {
   buildFootprintSteps,
+  buildWalkedEdgeArrivalSteps,
   buildWalkedEdgeDirections,
   buildWalkedEdgeKeys,
 } from "../model/footprint-steps";
@@ -1217,6 +1218,14 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
    * than cutting.
    */
   const trailLensRampRef = useRef(0);
+  /**
+   * When the trail lens last opened (`performance.now()`), or 0 while it is closed.
+   *
+   * The lens ramp alone cannot stage the walk: it is one exponential approach for the whole
+   * lens, so every star would light at once. This is the clock the ignition sweep runs off —
+   * stars come up in the order they were walked, which is the order the person made them.
+   */
+  const trailLensOpenedAtRef = useRef(0);
   /** Mirror the tier-change callback into a ref for the rAF closure, and
    * track the last emitted tier so the callback fires only on transitions. */
   const onZoomTierChangeRef = useRef<typeof onZoomTierChange>(onZoomTierChange);
@@ -5199,6 +5208,8 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
 
       // Trail lens on/off ramp, reusing the same easing and token.
       // Reduced-motion arrives immediately — same contract as the spotlight.
+      if (trailLensActive && trailLensOpenedAtRef.current === 0) trailLensOpenedAtRef.current = now;
+      else if (!trailLensActive) trailLensOpenedAtRef.current = 0;
       trailLensRampRef.current = reducedMotionRef.current
         ? (trailLensActive ? 1 : 0)
         : stepFocusRamp(trailLensRampRef.current, trailLensActive, dt, tokens.focusDimTau);
@@ -5302,6 +5313,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         footprintNewestStep: visitedTrailRef.current.length,
         walkedEdgeKeys: buildWalkedEdgeKeys(visitedTrailRef.current),
         walkedEdgeDirections: buildWalkedEdgeDirections(visitedTrailRef.current),
+        walkedEdgeArrivalStep: buildWalkedEdgeArrivalSteps(visitedTrailRef.current),
         footprintInk: footprintInkRef.current,
         footprintStepColor: footprintStepColorRef.current,
         footprintNewestId,
@@ -5313,6 +5325,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         trailLensIds:
           trailLensActive || trailLensRampRef.current > 0.01 ? visitedTrailSetRef.current : null,
         trailLensRamp: trailLensRampRef.current,
+        trailLensOpenedAtMs: trailLensOpenedAtRef.current,
         spotlightIds: spotlightIdsRef.current,
         mapLensKind: mapLensKindRef.current,
         pathEdgeIds: pathEdgeIdsRef.current,

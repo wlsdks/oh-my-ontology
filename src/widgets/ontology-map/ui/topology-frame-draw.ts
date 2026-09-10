@@ -521,8 +521,33 @@ const TRAIL_GLINT_PERIOD_MS = 4000;
  * were never here". A floor is what keeps the whole path visible while still ordering it.
  */
 const TRAIL_STAR_FLOOR = 0.42;
+/** How far the bloom swells at the peak of its ignition, as a fraction of its reach. */
+const TRAIL_STAR_SWELL = 0.5;
 /** Recency above which a star also wears the map's four-point diffraction cross. */
 const TRAIL_SPIKE_FROM = 0.7;
+/**
+ * The ignition sweep: how long one star takes to come up, and how long the whole walk takes.
+ *
+ * Opening the lens redraws the path in the order it was walked. The span is fixed rather
+ * than per-step, because a stride would make a twenty-stop walk take four seconds — the same
+ * defect measured on the growth wall, where a fixed stride turned duration into a function of
+ * how much the person had done. Inside a second, whatever the walk's length.
+ */
+const TRAIL_IGNITE_MS = 520;
+const TRAIL_IGNITE_SPAN_MS = 1400;
+
+/**
+ * The ignition curve — a star coming out of the dark, not a value going from 0 to 1.
+ *
+ * ⚠️ **Linear is what makes a light look like a progress bar.** A star does not brighten at a
+ * constant rate: it is nothing for a moment, comes up fast through the middle, and settles
+ * into place. `smoothstep` is that shape, and the whole difference between "an element
+ * appeared" and "something lit" is which of the two curves the alpha rode.
+ */
+function igniteCurve(t: number): number {
+  const u = t < 0 ? 0 : t > 1 ? 1 : t;
+  return u * u * (3 - 2 * u);
+}
 /**
  * How far a star's light swings as it twinkles, as a fraction of its own level.
  *
@@ -534,7 +559,7 @@ const TRAIL_SPIKE_FROM = 0.7;
  */
 const TRAIL_STAR_TWINKLE = 0.18;
 /** One twinkle cycle. Slow enough to read as a star, not as a blinking indicator. */
-const TRAIL_STAR_TWINKLE_MS = 2600;
+const TRAIL_STAR_TWINKLE_MS = 3600;
 /** `--map-trail-glow-alpha` / `--map-trail-glow-blur-px`, read once rather than per edge. */
 const TRAIL_GLOW_ALPHA = 0.85;
 const TRAIL_GLOW_BLUR_PX = 26;
@@ -766,6 +791,8 @@ export interface FrameDrawParams {
    * (`model/footprint-steps.ts#buildWalkedEdgeDirections`, 2026-09-10).
    */
   walkedEdgeDirections?: ReadonlyMap<string, boolean> | null;
+  /** Step at which the walk arrived along each relation — the line's place in the sweep. */
+  walkedEdgeArrivalStep?: ReadonlyMap<string, number> | null;
   /** Footprint ink RGB — the caller reads it from `--color-footprint-trail` or the indigo token. */
   footprintInk?: FootprintInk;
   /** Ordinal text colour — one step brighter than the footprint ink; small glyphs need more contrast. */
@@ -784,6 +811,15 @@ export interface FrameDrawParams {
   trailStarInk?: string | null;
   /** The highest step ordinal in the walk, so recency can be a fraction of it. */
   footprintNewestStep?: number;
+  /**
+   * When the trail lens opened (`performance.now()`), or 0 while closed.
+   *
+   * Opening the lens **replays the walk**: stars ignite in the order they were made and the
+   * lines follow them. That is the one motion on this canvas that is also an answer — the
+   * order and the direction of the path are stated by the sweep itself, not only by the
+   * ordinals beside the nodes.
+   */
+  trailLensOpenedAtMs?: number;
   /**
    * The trail lens — non-null **only** while the trail popover is open. The visited
    * nodes (including the current focus) replace the ego keep-set: they hold their
@@ -972,12 +1008,14 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     footprintPref = null,
     walkedEdgeKeys = null,
     walkedEdgeDirections = null,
+    walkedEdgeArrivalStep = null,
     footprintInk = [232, 196, 122],
     footprintStepColor = "#e8c47a",
     footprintNewestId = null,
     footprintAppear = 1,
     trailStarInk = null,
     footprintNewestStep = 1,
+    trailLensOpenedAtMs = 0,
     trailLensIds = null,
     spotlightIds,
     mapLensKind,
@@ -1782,9 +1820,25 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         edge.sourceId < edge.targetId
           ? `${edge.sourceId} ${edge.targetId}`
           : `${edge.targetId} ${edge.sourceId}`;
+      /*
+       * A line waits for the star it arrives at. During the ignition sweep the path draws
+       * itself node by node, so the eye follows the walk in the order it happened instead of
+       * being handed the finished shape all at once — which is the difference between a
+       * picture of a path and a replay of one.
+       */
+      const walkedSweep =
+        trailLensOpenedAtMs > 0 && footprintNewestStep > 0
+          ? igniteCurve(
+              (now -
+                trailLensOpenedAtMs -
+                (walkedEdgeArrivalStep?.get(walkedKey) ?? 1) *
+                  Math.min(TRAIL_IGNITE_MS * 0.6, TRAIL_IGNITE_SPAN_MS / footprintNewestStep)) /
+                TRAIL_IGNITE_MS,
+            )
+          : 1;
       const walkedTrail =
         trailRamp > 0.001 && walkedEdgeKeys !== null && walkedEdgeKeys.has(walkedKey)
-          ? trailRamp
+          ? trailRamp * walkedSweep
           : 0;
       /*
        * The stored direction is in key order (low id → high id); the line is drawn from
@@ -2512,7 +2566,19 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
        * reads as an event. Every earlier star is settled at 1 and does not re-animate,
        * which is what stops the whole path flickering each time a step is added.
        */
-      const ignite = node.id === footprintNewestId ? footprintAppear : 1;
+      /*
+       * The sweep. Each star waits for its turn in the walk, then comes up over
+       * `TRAIL_IGNITE_MS`. Once the lens has been open past the span everything is at 1, so
+       * this costs nothing in the settled state — and `footprintAppear` still owns the case
+       * that matters after that: a step taken *while* the lens is open ignites on its own.
+       */
+      let sweep = 1;
+      if (trailLensOpenedAtMs > 0 && footprintNewestStep > 0) {
+        const stride = Math.min(TRAIL_IGNITE_MS * 0.6, TRAIL_IGNITE_SPAN_MS / footprintNewestStep);
+        const startAt = (newest - 1) * stride;
+        sweep = igniteCurve((now - trailLensOpenedAtMs - startAt) / TRAIL_IGNITE_MS);
+      }
+      const ignite = (node.id === footprintNewestId ? footprintAppear : 1) * sweep;
       /*
        * Each star keeps its own phase, derived from its id, so the constellation shimmers
        * rather than blinking in unison — a chorus of lights on one clock reads as a warning,
@@ -2541,14 +2607,18 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         node.kind,
         screen.x,
         screen.y,
+        // The light swells out of the node as it ignites and settles back — a star arriving
+        // has a size, not only a brightness. It reaches 1 by the time the sweep is done, so
+        // the settled constellation is dimensionally still.
         screenRadius,
         farT,
         trailStarInk,
         lit,
+        recency > TRAIL_SPIKE_FROM,
         // Spikes on the recent half of the walk only: every node wearing a cross turns the
         // signature into wallpaper, and the ones a person is still thinking about are the
         // recent ones.
-        recency > TRAIL_SPIKE_FROM,
+        1 + TRAIL_STAR_SWELL * Math.sin(Math.PI * sweep),
       );
       drawFootprintSteps(
         { ctx, pref: footprintPref, ink: footprintInk, scale: footprintScale },

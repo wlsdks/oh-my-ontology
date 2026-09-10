@@ -574,6 +574,14 @@ export function drawNodeStar(
   ink: string,
   lit: number,
   spikes: boolean,
+  /**
+   * Multiplier on the bloom's reach while the star is igniting.
+   *
+   * A star arriving has a size, not only a brightness — the light swells out and settles
+   * back. It returns to 1 once the ignition is over, so a settled constellation is
+   * dimensionally still and nothing on the canvas keeps breathing.
+   */
+  swell = 1,
 ): void {
   if (lit <= 0.01) return;
   const k = Math.min(1, lit);
@@ -583,7 +591,8 @@ export function drawNodeStar(
 
   // The light it throws. A gradient rather than a shadow blur: `shadowBlur` on a hairline
   // spends almost all of itself on nothing, which is exactly why the outline read as grey.
-  const glow = ctx.createRadialGradient(x, y, radius * 0.35, x, y, radius * STAR_GLOW_REACH);
+  const reach = radius * STAR_GLOW_REACH * swell;
+  const glow = ctx.createRadialGradient(x, y, radius * 0.35, x, y, reach);
   glow.addColorStop(0, withAlpha(ink, 0.62 * k));
   glow.addColorStop(0.32, withAlpha(ink, 0.14 * k));
   glow.addColorStop(0.62, withAlpha(ink, 0.035 * k));
@@ -591,7 +600,7 @@ export function drawNodeStar(
   ctx.globalAlpha = 1;
   ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.arc(x, y, radius * STAR_GLOW_REACH, 0, Math.PI * 2);
+  ctx.arc(x, y, reach, 0, Math.PI * 2);
   ctx.fill();
 
   // The signature. Same primitive the far-field bright stars wear, so a walked node and a
