@@ -749,6 +749,14 @@ cited source or a linked wiki page updates the affected verdicts even when the
 citing page is unchanged. Cached bytes avoid rereading unchanged pages; deleted
 pages and old revisions are withdrawn from the text supplied to page-write review.
 
+The MCP source reader preserves valid quoted CSV/TSV records across embedded
+newlines. Row addresses keep their physical starting lines, while pagination
+advances by record. Repeated normalized DOCX headings receive distinct anchors;
+existing unique heading addresses stay unchanged. Reader notes identify ambiguous
+legacy addresses and malformed quoted remainders. Original bytes and existing
+wiki citations are not rewritten, and a matching source hash does not prove that
+an old ambiguous citation identifies the intended passage.
+
 It shipped inside the Docs sidebar on 2026-09-05 and moved out the next day. The owner
 read the merged screen as cluttered and asked whether gathering documents belonged inside
 Docs at all, and the measurement agreed: five capped lists shared one 280px column, so

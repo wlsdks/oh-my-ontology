@@ -51,7 +51,7 @@
 
 **Changed**: Library uses title rows and an on-request graph. Pending states use the Atlas character at native pixel size; dialogs respect live reduced-motion preferences.
 
-**Fixed**: answer filing preserves human notes and uncertainty without borrowing source-read hashes. New filings keep previous pages; stale edits block saving. Validation follows removed and restored originals. Undo cannot replace a newer turn.
+**Fixed**: answer filing preserves human notes and uncertainty without borrowing source-read hashes. New filings keep previous pages; stale edits block saving. Validation follows removed and restored originals. Undo cannot replace a newer turn. Source reads preserve multiline CSV records and disambiguate repeated DOCX headings.
 
 ## 2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list
 

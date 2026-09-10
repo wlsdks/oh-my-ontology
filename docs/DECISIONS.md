@@ -5290,3 +5290,12 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: source-led reading may already be sufficient, while answer histories add clutter and a maintenance obligation. The selected slice must prove later-reader recovery before any broader maintained-synthesis or demand claim.
 **Falsifier**: a reader cannot recover the prior account or known evidence gaps; a saved revision overwrites later human text; an observation is presented as proof of an answer; or Library requires code nodes to retain knowledge. Reopen the smallest failing workflow before expansion.
 **Owner**: jinan
+
+## 2026-09-11 — Source citations retain record boundaries and distinguish repeated headings
+
+**Why**: a real extractor probe split one quoted CSV record across two row units and assigned the same DOCX heading address to two different scopes. A byte hash could not resolve either location defect.
+**Prior**: extends 2026-09-07 “The MCP server reads a source's text on request; Atlas still keeps no converted copy” and 2026-09-11 “Library retains questions through explicit answer revisions”. Hashes establish byte identity, not extraction fidelity or citation precision.
+**Decision**: group quoted CSV/TSV records without shifting their physical starting-line anchors; paginate the resulting units. Retain an unclosed quoted remainder with an explicit note. Give every colliding DOCX heading occurrence a distinct generated anchor, reserving natural names first. Keep unique anchors unchanged and name ambiguous legacy addresses in a note. Do not rewrite originals or migrate citations automatically.
+**Dissent**: unit grouping changes pagination and old ambiguous citations still need review. An ambiguity note does not repair a stored answer; it prevents selecting one possible target silently.
+**Falsifier**: a unique existing address identifies a different passage, a quoted qualifier is dropped or split, pagination loses a record, or a returned heading address still names two occurrences.
+**Owner**: jinan

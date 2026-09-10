@@ -105,6 +105,10 @@ later review. A folder of wiki pages can be used without code or ontology nodes.
 The ontology remains the codebase meaning layer; Library pages do not become
 ontology nodes automatically.
 
+The [source reader](mcp/README.md) preserves multiline table records and gives
+repeated document headings distinct citation addresses, with legacy ambiguity
+reported for review.
+
 Saved questions also have an explicit revision path: inspect source changes,
 ask for an updated draft, compare it with the previous answer, and retain a new
 version. Earlier text and unresolved evidence stay inspectable. See

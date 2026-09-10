@@ -116,6 +116,10 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 
 | 45 | 2026-09-11 | Retain Library questions through reviewed answer revisions and recoverable evidence | one-way | review | handoff | public-contract | truth=affected;transfer=unchanged;agent-write=affected;human-correction=affected | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
 
+| 46 | 2026-09-11 | Probe difficult-source coverage and locator fidelity before expanding Library synthesis | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
+| 47 | 2026-09-11 | Preserve source record boundaries and disambiguate repeated document headings | one-way | review | judge | public-contract | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -181,3 +185,5 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 44 | 2026-09-11 | pass | yes | no | held |
 | 45 | 2026-09-11 | fail-caught | yes | yes | reopened |
 | 45 | 2026-09-11 | pass | yes | no | pending |
+| 46 | 2026-09-11 | pending | yes | no | pending |
+| 47 | 2026-09-11 | pass | yes | no | pending |

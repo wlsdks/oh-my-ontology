@@ -146,6 +146,55 @@ test('a DOCX with no headings at all cites page one', () => {
   assert.deepEqual(units, [{ anchor: 'p1', heading: null, text: 'Just a note.', kind: 'paragraph' }]);
 });
 
+test('a DOCX gives normalized duplicate headings distinct anchors and reserves natural suffixes', () => {
+  const source = zip({
+    'word/document.xml':
+      '<w:document><w:body>' +
+      paragraph('Before the first heading.') +
+      paragraph('Overview', 'Heading1') +
+      paragraph('Overview details.') +
+      paragraph('Scope', 'Heading2') +
+      paragraph('Routine scope details.') +
+      paragraph('scope!', 'Heading2') +
+      paragraph('Red-tag scope details.') +
+      paragraph('Scope 2', 'Heading2') +
+      paragraph('Naturally suffixed scope details.') +
+      paragraph('Café', 'Heading2') +
+      paragraph('Accent details.') +
+      paragraph('Cafe', 'Heading2') +
+      paragraph('Normalized accent details.') +
+      '</w:body></w:document>',
+  });
+  const before = Buffer.from(source);
+  const units = docxUnits(source);
+  assert.deepEqual(
+    units.map((unit) => [unit.anchor, unit.kind, unit.text]),
+    [
+      ['p1', 'paragraph', 'Before the first heading.'],
+      ['h:overview', 'heading', 'Overview'],
+      ['h:overview', 'paragraph', 'Overview details.'],
+      ['h:scope-1', 'heading', 'Scope'],
+      ['h:scope-1', 'paragraph', 'Routine scope details.'],
+      ['h:scope-3', 'heading', 'scope!'],
+      ['h:scope-3', 'paragraph', 'Red-tag scope details.'],
+      ['h:scope-2', 'heading', 'Scope 2'],
+      ['h:scope-2', 'paragraph', 'Naturally suffixed scope details.'],
+      ['h:cafe-1', 'heading', 'Café'],
+      ['h:cafe-1', 'paragraph', 'Accent details.'],
+      ['h:cafe-2', 'heading', 'Cafe'],
+      ['h:cafe-2', 'paragraph', 'Normalized accent details.'],
+    ],
+  );
+  assert.equal(new Set(units.filter((unit) => unit.kind === 'heading').map((unit) => unit.anchor)).size, 6);
+  assert.deepEqual(source, before);
+
+  const answer = readSourceText(source, 'sources/duplicate-headings.docx');
+  assert.match(answer.note, /ambiguous legacy DOCX heading addresses/i);
+  assert.match(answer.note, /h:cafe/);
+  assert.match(answer.note, /h:scope/);
+  assert.deepEqual(source, before);
+});
+
 test('an XLSX becomes sheet-and-row anchors with shared strings, inline strings and cached formula values resolved', () => {
   const units = xlsxUnits(XLSX);
   assert.deepEqual(
@@ -187,6 +236,84 @@ test('readSourceText picks the reader by extension and counts rows and lines the
   assert.equal(pdf.format, 'pdf');
   assert.deepEqual(pdf.units, []);
   assert.match(pdf.note, /natively/);
+});
+
+test('CSV keeps a quoted multiline record exact while anchors retain physical starting lines', () => {
+  const sourceText = [
+    '\uFEFFroute,batch_min,batch_max,inspect_count,applies_when,note',
+    ...Array.from({ length: 210 }, (_, index) => `Archived-${String(index + 1).padStart(3, '0')},1,10,2,retired calibration trial,Historical fixture row; not a current handling route.`),
+    'Rapid,51,80,11,"ambient only',
+    'never use this row for chilled lots",Current route',
+    'Controlled,51,80,19,chilled lots,Current route; see the field manual routing rule.',
+    'Fragile,51,80,27,fragile lots only,Current route; no general default is implied.',
+    '',
+  ].join('\r\n');
+  const source = Buffer.from(sourceText, 'utf8');
+  const before = Buffer.from(source);
+  const answer = readSourceText(source, 'sources/sampling-table.csv', { limit: 1000 });
+  assert.equal(answer.unitCount, 214);
+  assert.deepEqual(answer.units.find((unit) => unit.anchor === 'r212'), {
+    anchor: 'r212',
+    text: 'Rapid,51,80,11,"ambient only\r\nnever use this row for chilled lots",Current route',
+    kind: 'row',
+  });
+  assert.equal(answer.units.some((unit) => unit.anchor === 'r213'), false);
+  assert.equal(answer.units.find((unit) => unit.text.startsWith('Controlled')).anchor, 'r214');
+  assert.equal(answer.units.find((unit) => unit.text.startsWith('Fragile')).anchor, 'r215');
+  assert.deepEqual(source, before);
+
+  const rapidWindow = readSourceText(source, 'sources/sampling-table.csv', { from: 212, limit: 1 });
+  assert.deepEqual(rapidWindow.units.map((unit) => unit.anchor), ['r212']);
+  assert.equal(rapidWindow.truncated, true);
+  assert.equal(rapidWindow.next, 213);
+  const continuation = readSourceText(source, 'sources/sampling-table.csv', { from: rapidWindow.next, limit: 2 });
+  assert.deepEqual(continuation.units.map((unit) => unit.anchor), ['r214', 'r215']);
+  assert.equal(continuation.truncated, false);
+  assert.equal(continuation.next, undefined);
+});
+
+test('TSV handles BOM, CRLF, blank records and escaped quotes without losing text', () => {
+  const source = Buffer.from(
+    '\uFEFFname\tvalue\r\n"line\twith ""quote""\r\ncontinued"\tok\r\n   \r\nlast\trow\r\n',
+    'utf8',
+  );
+  const before = Buffer.from(source);
+  const answer = readSourceText(source, 'sources/quotes.tsv');
+  assert.deepEqual(answer.units.map((unit) => [unit.anchor, unit.text]), [
+    ['r1', 'name\tvalue'],
+    ['r2', '"line\twith ""quote""\r\ncontinued"\tok'],
+    ['r5', 'last\trow'],
+  ]);
+  assert.equal(answer.unitCount, 3);
+  assert.deepEqual(source, before);
+});
+
+test('literal quotes in unquoted CSV and TSV cells do not swallow the following record', () => {
+  const csv = readSourceText(Buffer.from('item,measurement\npipe,2" steel\nnext,row\n'), 'sources/literal-quote.csv', { limit: 1000 });
+  assert.deepEqual(csv.units.map((unit) => [unit.anchor, unit.text]), [
+    ['r1', 'item,measurement'],
+    ['r2', 'pipe,2" steel'],
+    ['r3', 'next,row'],
+  ]);
+
+  const tsv = readSourceText(Buffer.from('item\tmeasurement\npipe\t2" steel\nnext\trow\n'), 'sources/literal-quote.tsv', { limit: 1000 });
+  assert.deepEqual(tsv.units.map((unit) => [unit.anchor, unit.text]), [
+    ['r1', 'item\tmeasurement'],
+    ['r2', 'pipe\t2" steel'],
+    ['r3', 'next\trow'],
+  ]);
+});
+
+test('an unclosed quoted field is retained through EOF instead of being silently discarded', () => {
+  const source = Buffer.from('header,body\nok,"unterminated\nstill retained\n', 'utf8');
+  const answer = readSourceText(source, 'sources/malformed.csv');
+  assert.deepEqual(answer.units, [
+    { anchor: 'r1', text: 'header,body', kind: 'row' },
+    { anchor: 'r2', text: 'ok,"unterminated\nstill retained\n', kind: 'row' },
+  ]);
+  assert.match(answer.note, /unclosed quoted record/i);
+  assert.match(answer.note, /r2/);
+  assert.match(answer.note, /retained/i);
 });
 
 test('HTML loses its tags and scripts and keeps line anchors', () => {
