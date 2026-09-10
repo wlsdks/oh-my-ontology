@@ -6508,8 +6508,8 @@
     },
     {
       "depth": 2,
-      "text": "2026-09-11 — Atlas enters the MCP ecosystem as a release bundle and a container image, and npm stays retired",
-      "slug": "2026-09-11-atlas-enters-the-mcp-ecosystem-as-a-release-bundle-and-a-container-image-and-npm-stays-retired"
+      "text": "2026-09-11 — Atlas enters the MCP ecosystem as a release bundle; the image is prepared, not published",
+      "slug": "2026-09-11-atlas-enters-the-mcp-ecosystem-as-a-release-bundle-the-image-is-prepared-not-published"
     },
     {
       "depth": 2,

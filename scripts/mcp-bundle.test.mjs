@@ -6,6 +6,7 @@ import { describe, it } from 'node:test';
 import {
   EXCLUDED_FROM_BUNDLE,
   OWNERSHIP_LABEL,
+  REGISTRY_DESCRIPTION_LIMIT,
   REGISTRY_SERVER_NAME,
   STRIPPED_MODULE,
   TYPED_MODULE,
@@ -14,9 +15,13 @@ import {
   bundleDownloadUrl,
   bundleFileList,
   bundleManifest,
+  bundlePackageJson,
+  bundleProvenance,
   dependencyClosure,
+  isBundleBallast,
   registryInvariantProblems,
   serverJson,
+  serverJsonProblems,
 } from './lib/mcp-bundle.mjs';
 import { parseArgs, tagProblems, usage } from './build-server-json.mjs';
 
@@ -110,13 +115,13 @@ describe('bundle manifest', () => {
 });
 
 describe('registry entry', () => {
-  it('names both npm-free channels and no package registry', () => {
-    const document = serverJson({ version: '0.13.0', description: 'd', tag: 'v1.1.0', fileSha256: 'a'.repeat(64) });
+  it('names the release-asset channel and no package registry', () => {
+    const document = serverJson({ version: '0.13.0', tag: 'v1.1.0', fileSha256: 'a'.repeat(64) });
 
-    assert.deepEqual(document.packages.map((entry) => entry.registryType), ['mcpb', 'oci']);
+    assert.deepEqual(document.packages.map((entry) => entry.registryType), ['mcpb']);
     assert.equal(document.name, REGISTRY_SERVER_NAME);
     assert.equal(document.packages[0].fileSha256, 'a'.repeat(64));
-    assert.match(document.packages[1].identifier, /^ghcr\.io\/.+:0\.13\.0$/);
+    assert.match(document.packages[0].identifier, /^https:\/\/github\.com\/.+\.mcpb$/);
   });
 
   it('keeps the artifact URL verifiable: GitHub-hosted and carrying "mcp"', () => {
@@ -160,6 +165,117 @@ describe('server.json CLI', () => {
     assert.equal(parseArgs(['--check']).check, true);
     assert.match(parseArgs(['--publish']).error, /unknown argument/);
     assert.match(usage(), /--artifact/);
+  });
+});
+
+describe('what the artifact must not carry, and what it must', () => {
+  /**
+   * Copying `mcp/package.json` shipped three contradictions to end users: an
+   * `engines` pin of `>=24 <25` beside a bundle measured on Node 20, a `files`
+   * list naming two modules the bundle deliberately drops, and a Korean
+   * maintainer note in the most public copy of that file.
+   */
+  it('writes its own manifest instead of copying the repository one', () => {
+    const manifest = bundlePackageJson({ version: '0.13.0' });
+
+    assert.equal(manifest.type, 'module', 'Node needs this to load the server as ESM');
+    assert.equal(manifest.license, 'MIT');
+    assert.ok(!('engines' in manifest), 'the repository toolchain pin is not this bundle requirement');
+    assert.ok(!('files' in manifest), 'a files list would name modules the bundle does not carry');
+    assert.ok(!('pnpm' in manifest));
+  });
+
+  it('drops a vendored package tests, fixtures and source maps, and keeps its licence', () => {
+    assert.equal(isBundleBallast('src/v3/tests/string.test.ts'), true);
+    assert.equal(isBundleBallast('src/v4/core/tests'), true, 'the directory itself, or four empty folders remain');
+    assert.equal(isBundleBallast('dist/index.js.map'), true);
+    assert.equal(isBundleBallast('CHANGELOG.md'), true);
+    assert.equal(isBundleBallast('LICENSE'), false, 'the licence is the one file a vendored package owes');
+    assert.equal(isBundleBallast('dist/index.js'), false);
+    assert.equal(isBundleBallast('src/latest.ts'), false);
+  });
+
+  it('states which commit produced the file, since two releases can share a version', () => {
+    const text = bundleProvenance({
+      version: '0.13.0',
+      commit: 'abc1234',
+      tag: 'v1.1.0',
+      builtAt: '2026-09-11T00:00:00.000Z',
+      witnessedRuntimes: ['node 24.16.0', 'node 20.20.0'],
+    });
+
+    assert.match(text, /built from\s+abc1234/);
+    assert.match(text, /release tag\s+v1\.1\.0/);
+    assert.match(text, /booted under\s+node 24\.16\.0, node 20\.20\.0/);
+    assert.match(text, /opens no port/);
+    assert.match(bundleProvenance({ version: '1', commit: 'c', tag: null, builtAt: 'b', witnessedRuntimes: [] }), /\(none: local build\)/);
+  });
+});
+
+describe('what the registry would actually accept', () => {
+  /**
+   * The check that used to print "ready to publish" verified three fields and
+   * not the document. Measured: the server's own npm description is 126
+   * characters against a schema limit of 100, so a publish would have been
+   * rejected after a green check.
+   */
+  it('keeps the description inside the schema limit the registry enforces', () => {
+    const document = serverJson({ version: '0.13.0', tag: 'v1.1.0', fileSha256: 'a'.repeat(64) });
+
+    assert.ok(document.description.length <= REGISTRY_DESCRIPTION_LIMIT);
+    assert.notEqual(document.description, MCP_PACKAGE.description, 'the npm description is too long for this field');
+    assert.ok(MCP_PACKAGE.description.length > REGISTRY_DESCRIPTION_LIMIT, 'the reason this field is separate');
+    assert.deepEqual(serverJsonProblems(document), []);
+  });
+
+  it('reports every constraint a publish would reject, rather than three fields', () => {
+    assert.deepEqual(serverJsonProblems({ name: 'nope', version: 'x', packages: [] }).sort(), [
+      'at least one package is required',
+      'description is required',
+      'name must be <namespace>/<id>, received "nope"',
+      'version must be a semantic version',
+    ]);
+    const overlong = serverJson({ version: '0.13.0', tag: 'v1.1.0', fileSha256: 'a'.repeat(64) });
+    overlong.description = 'x'.repeat(REGISTRY_DESCRIPTION_LIMIT + 1);
+    assert.match(serverJsonProblems(overlong)[0], /description is 101 characters/);
+  });
+
+  /**
+   * A listing whose image nobody pushed sends a stranger to `manifest unknown`,
+   * which is exactly what the registry's ownership check exists to prevent.
+   */
+  it('leaves the image entry out until a person passes --with-image', () => {
+    const withoutImage = serverJson({ version: '0.13.0', tag: 'v1.1.0', fileSha256: 'a'.repeat(64) });
+    const withImage = serverJson({ version: '0.13.0', tag: 'v1.1.0', fileSha256: 'a'.repeat(64), withImage: true });
+
+    assert.deepEqual(withoutImage.packages.map((entry) => entry.registryType), ['mcpb']);
+    assert.deepEqual(withImage.packages.map((entry) => entry.registryType), ['mcpb', 'oci']);
+    // The registry rejects both keys on an oci entry.
+    assert.ok(!('version' in withImage.packages[1]));
+    assert.ok(!('fileSha256' in withImage.packages[1]));
+    assert.deepEqual(serverJsonProblems(withImage), []);
+  });
+
+  it('refuses an oci identifier that is not registry/repository:tag', () => {
+    const document = serverJson({ version: '0.13.0', tag: 'v1.1.0', fileSha256: 'a'.repeat(64), withImage: true });
+    document.packages[1].identifier = 'ontology-atlas-mcp';
+    assert.match(serverJsonProblems(document).join(' '), /registry\/repository:tag/);
+  });
+});
+
+describe('the image', () => {
+  it('does not run as root, since a write lands in the mounted folder', () => {
+    assert.match(DOCKERFILE, /^USER node$/m);
+  });
+
+  it('states its build context and the multi-architecture push, both measured', () => {
+    assert.match(DOCKERFILE, /build context is `mcp\/`, not the repository root/);
+    assert.match(DOCKERFILE, /docker buildx build --platform linux\/amd64,linux\/arm64/);
+    assert.match(DOCKERFILE, /--user "\$\(id -u\):\$\(id -g\)"/);
+  });
+
+  it('carries no test suite, because it has no runner for one', () => {
+    assert.match(DOCKERFILE, /rm -f src\/\*\.test\.mjs/);
   });
 });
 

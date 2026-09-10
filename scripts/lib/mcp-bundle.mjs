@@ -73,6 +73,43 @@ export function dependencyClosure({ rootDependencies, rootDir, resolvePackageDir
   };
 }
 
+/**
+ * The bundle gets its own manifest rather than a copy of the repository's.
+ * Copying it shipped three contradictions to end users: an `engines` pin of
+ * `>=24 <25` beside a bundle measured on Node 20, a `files` list naming two
+ * modules the bundle deliberately does not carry, and a Korean maintainer note
+ * in the most public copy of that file. Node needs `type: "module"` here and
+ * nothing else.
+ */
+export function bundlePackageJson({ version }) {
+  return {
+    name: 'ontology-atlas-mcp',
+    version,
+    description: REGISTRY_DESCRIPTION,
+    type: 'module',
+    license: 'MIT',
+    private: true,
+  };
+}
+
+/**
+ * A vendored dependency ships its licence and its code, not its test suite.
+ * Measured before this: 168 of the bundle's 896 files were `zod`'s own
+ * `src/v3/tests/**`, and source maps were most of the unpacked weight. Neither
+ * is something a host needs to start a server.
+ */
+export function isBundleBallast(relativePath) {
+  const normalized = relativePath.split('\\').join('/');
+  return (
+    // Matches the directory itself as well as its contents, or the copy leaves
+    // four empty `tests/` folders behind.
+    /(?:^|\/)(?:tests?|__tests__|\.github)(?:\/|$)/.test(normalized) ||
+    /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(normalized) ||
+    normalized.endsWith('.map') ||
+    /(?:^|\/)(?:CHANGELOG|CONTRIBUTING)\.md$/i.test(normalized)
+  );
+}
+
 /** The files copied into `server/`, with the typed module renamed to its stripped twin. */
 export function bundleFileList(declaredFiles) {
   return declaredFiles
@@ -136,6 +173,81 @@ export function bundleManifest({ version, description }) {
   };
 }
 
+/**
+ * The registry's own limit, read from the schema this entry declares: a
+ * description over 100 characters is rejected by `mcp-publisher publish`. The
+ * server's npm-shaped description is 126 characters and names its tool counts,
+ * which the schema also asks authors to leave out, so the registry gets its own
+ * sentence rather than a truncation.
+ */
+export const REGISTRY_DESCRIPTION_LIMIT = 100;
+const REGISTRY_DESCRIPTION = 'Read and write one codebase ontology kept as Markdown in the repository.';
+
+/**
+ * The constraints that decide whether a publish is accepted, checked locally so
+ * a green check cannot promise what the registry then refuses. This is not a
+ * full JSON Schema implementation; it is the set the registry's validators
+ * enforce on the fields we actually emit.
+ */
+export function serverJsonProblems(document) {
+  const problems = [];
+  if (typeof document.name !== 'string' || !/^[a-z0-9.-]+\/[A-Za-z0-9._-]+$/.test(document.name)) {
+    problems.push(`name must be <namespace>/<id>, received ${JSON.stringify(document.name)}`);
+  }
+  if (!document.description) problems.push('description is required');
+  else if (document.description.length > REGISTRY_DESCRIPTION_LIMIT) {
+    problems.push(`description is ${document.description.length} characters; the schema allows ${REGISTRY_DESCRIPTION_LIMIT}`);
+  }
+  if (!/^\d+\.\d+\.\d+/.test(document.version ?? '')) problems.push('version must be a semantic version');
+  if (!Array.isArray(document.packages) || document.packages.length === 0) problems.push('at least one package is required');
+  for (const entry of document.packages ?? []) {
+    if (entry.registryType === 'mcpb') {
+      if (!/^[0-9a-f]{64}$/.test(entry.fileSha256 ?? '')) problems.push('an mcpb package needs a 64-character fileSha256');
+      problems.push(...artifactUrlProblems(entry.identifier ?? ''));
+    }
+    if (entry.registryType === 'oci') {
+      // The registry rejects both keys on an oci entry: the tag carries the
+      // version and the image is verified by its label, not by a digest we type.
+      if ('version' in entry) problems.push('an oci package must not carry a version field');
+      if ('fileSha256' in entry) problems.push('an oci package must not carry a fileSha256 field');
+      if (!/^[a-z0-9.-]+(?::\d+)?\/[^:]+:[^:]+$/.test(entry.identifier ?? '')) {
+        problems.push(`an oci identifier must be registry/repository:tag, received ${JSON.stringify(entry.identifier)}`);
+      }
+    }
+  }
+  return problems;
+}
+
+/**
+ * What a person holding the file can check. Two releases can carry the same
+ * server version with different bytes, so the artifact states the commit it was
+ * built from; without this, "which source is this?" has no answer inside the zip.
+ * It also settles the one contradiction a reader of the unpacked bundle meets:
+ * the `engines` field in the server's own `package.json` is the repository's
+ * toolchain pin, while the manifest states the floor the bundle was measured on.
+ */
+export function bundleProvenance({ version, commit, tag, builtAt, witnessedRuntimes }) {
+  return [
+    'Ontology Atlas MCP server — MCP Bundle provenance',
+    '',
+    `server version   ${version}`,
+    `built from       ${commit}`,
+    `release tag      ${tag ?? '(none: local build)'}`,
+    `built at         ${builtAt}`,
+    `booted under     ${witnessedRuntimes.join(', ')}`,
+    '',
+    'server/package.json here is written for this bundle rather than copied from',
+    'the repository: the repository pins its own toolchain to Node 24, while the',
+    'one TypeScript module the server imports is compiled during this build, so',
+    'the bundle runs on the floor manifest.json states and was booted on above.',
+    '',
+    'The vault is an ordinary folder of Markdown on your disk. This server reads',
+    'and writes only the folder you point OATLAS_VAULT at, opens no port, and',
+    'sends nothing anywhere.',
+    '',
+  ].join('\n');
+}
+
 /** The registry entry for the built artifact. Metadata only; the registry hosts no files. */
 function registryPackageEntry({ downloadUrl, fileSha256 }) {
   return {
@@ -183,32 +295,41 @@ export function bundleDownloadUrl(tag, version) {
  * Nothing here is hand-typed, because a hand-typed digest is a lie the registry
  * would then serve.
  */
-export function serverJson({ version, description, tag, fileSha256 }) {
+export function serverJson({ version, tag, fileSha256, withImage = false }) {
   return {
     $schema: 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
     name: REGISTRY_SERVER_NAME,
     title: 'Ontology Atlas',
-    description,
+    description: REGISTRY_DESCRIPTION,
     version,
     repository: { url: 'https://github.com/wlsdks/ontology-atlas', source: 'github' },
     websiteUrl: 'https://ontologyatlas.com',
     packages: [
       { ...registryPackageEntry({ downloadUrl: bundleDownloadUrl(tag, version), fileSha256 }) },
-      {
-        registryType: 'oci',
-        identifier: `${OCI_IMAGE_REPOSITORY}:${version}`,
-        transport: { type: 'stdio' },
-        environmentVariables: [
-          {
-            name: 'OATLAS_VAULT',
-            description:
-              'The mounted Markdown folder that holds the ontology. The image defaults it to /vault.',
-            isRequired: false,
-            format: 'filepath',
-            isSecret: false,
-          },
-        ],
-      },
+      // The image entry is opt-in because nothing in this repository pushes the
+      // image: a published entry naming an unpushed image is what the registry's
+      // ownership check exists to refuse, and a stranger would meet
+      // `manifest unknown` instead. `--with-image` is the flag a person passes
+      // once `ghcr.io` actually serves that tag for every platform they claim.
+      ...(withImage
+        ? [
+            {
+              registryType: 'oci',
+              identifier: `${OCI_IMAGE_REPOSITORY}:${version}`,
+              transport: { type: 'stdio' },
+              environmentVariables: [
+                {
+                  name: 'OATLAS_VAULT',
+                  description:
+                    'The mounted Markdown folder that holds the ontology. The image defaults it to /vault.',
+                  isRequired: false,
+                  format: 'filepath',
+                  isSecret: false,
+                },
+              ],
+            },
+          ]
+        : []),
     ],
   };
 }

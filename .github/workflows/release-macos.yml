@@ -586,7 +586,7 @@ jobs:
         # one.
         run: |
           pnpm --dir mcp install --frozen-lockfile
-          pnpm mcp:build-bundle
+          pnpm mcp:build-bundle -- --tag="${RELEASE_TAG}"
           mkdir -p release-assets/mcp
           cp .tmp/mcp-bundle/*.mcpb release-assets/mcp/
           cd release-assets/mcp

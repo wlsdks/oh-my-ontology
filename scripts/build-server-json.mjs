@@ -27,6 +27,7 @@ import {
   bundleArtifactName,
   registryInvariantProblems,
   serverJson,
+  serverJsonProblems,
 } from './lib/mcp-bundle.mjs';
 
 const ROOT = process.cwd();
@@ -39,14 +40,15 @@ export function usage() {
   return [
     'Usage: node scripts/build-server-json.mjs [--check] [--tag=<release tag>] [--artifact=<path to .mcpb>]',
     '',
-    '  --check     verify the registry invariants without writing server.json',
-    '  --tag       the GitHub Release tag that will host the MCPB artifact',
-    '  --artifact  the built .mcpb; defaults to .tmp/mcp-bundle/<name>.mcpb',
+    '  --check       verify the registry invariants without writing server.json',
+    '  --tag         the GitHub Release tag that will host the MCPB artifact',
+    '  --artifact    the built .mcpb; defaults to .tmp/mcp-bundle/<name>.mcpb',
+    '  --with-image  also publish the OCI entry — only once that image is pushed and public',
   ].join('\n');
 }
 
 export function parseArgs(argv) {
-  const args = { check: false, help: false, tag: null, artifact: null };
+  const args = { check: false, help: false, tag: null, artifact: null, withImage: false };
   for (const arg of argv) {
     // `pnpm mcp:registry -- --tag=…` forwards the separator itself.
     if (arg === '--') continue;
@@ -54,6 +56,7 @@ export function parseArgs(argv) {
     else if (arg === '--help' || arg === '-h') args.help = true;
     else if (arg.startsWith('--tag=')) args.tag = arg.slice('--tag='.length);
     else if (arg.startsWith('--artifact=')) args.artifact = arg.slice('--artifact='.length);
+    else if (arg === '--with-image') args.withImage = true;
     else return { ...args, error: `unknown argument: ${arg}` };
   }
   return args;
@@ -113,10 +116,21 @@ export function runBuildServerJson(argv, io = console, { cwd = ROOT } = {}) {
 
   const document = serverJson({
     version: pkg.version,
-    description: pkg.description,
     tag: args.tag,
     fileSha256,
+    withImage: args.withImage,
   });
+
+  // The check that used to say "ready to publish" verified three fields and not
+  // the document. Measured consequence: the server's own description is 126
+  // characters against a schema limit of 100, so a publish would have been
+  // rejected after a green check.
+  const invalid = serverJsonProblems(document);
+  if (invalid.length > 0) {
+    for (const problem of invalid) io.error(`[mcp-registry] ${problem}`);
+    return 1;
+  }
+
   const out = path.join(cwd, '.tmp', 'mcp-registry', 'server.json');
   mkdirSync(path.dirname(out), { recursive: true });
   writeFileSync(out, `${JSON.stringify(document, null, 2)}\n`);
@@ -124,7 +138,14 @@ export function runBuildServerJson(argv, io = console, { cwd = ROOT } = {}) {
   io.log(`[mcp-registry] ${path.relative(cwd, out)}`);
   io.log(`[mcp-registry] ${document.name} v${document.version} · ${document.packages.map((entry) => entry.registryType).join(' + ')}`);
   io.log(`[mcp-registry] mcpb sha256 ${fileSha256}`);
-  io.log('[mcp-registry] publish it yourself with `mcp-publisher login github && mcp-publisher publish`');
+  if (!args.withImage) {
+    io.log('[mcp-registry] the OCI entry is left out; pass --with-image once that image is pushed and public');
+  }
+  // The registry's mcpb validator fetches the artifact anonymously, and the
+  // release workflow uploads to a draft whose assets 404 until it is published.
+  io.log('[mcp-registry] publish AFTER the release leaves draft; the registry fetches the asset itself');
+  io.log(`[mcp-registry] confirm with: curl -sIL -o /dev/null -w '%{http_code}\\n' ${document.packages[0].identifier}`);
+  io.log('[mcp-registry] then, by hand: mcp-publisher login github && mcp-publisher publish');
   return 0;
 }
 

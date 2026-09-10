@@ -92,15 +92,24 @@ publishing plan is retired (`docs/DECISIONS.md`, 2026-07-27), so there is no
 | **App-bundled** (primary) | anyone on macOS or Windows | nothing — the download carries a compiled copy of this server |
 | **Source checkout** | Linux, contributors, anyone who wants the CLI too | Node 24 and pnpm ([setup](../cli/README.md#set-up-from-a-source-checkout)) |
 | **MCPB bundle** | a host that installs `.mcpb` files in one click | the bundle from the [latest release](https://github.com/wlsdks/ontology-atlas/releases); it asks for your vault folder |
-| **Container image** | a client that would rather run a container | `docker run --rm -i -v /path/to/atlas:/vault ghcr.io/wlsdks/ontology-atlas-mcp` |
+| **Container image** | a client that would rather run a container | `docker run --rm -i --user "$(id -u):$(id -g)" -v /path/to/atlas:/vault ghcr.io/wlsdks/ontology-atlas-mcp` |
 
 The last two exist so the server is discoverable in the MCP ecosystem without a
 package registry: the official MCP Registry accepts an MCPB artifact hosted on a
 GitHub Release (verified by URL and SHA-256) and an OCI image (verified by its
 ownership label), and hosts no files itself. `pnpm mcp:build-bundle` builds and
-boots the bundle, `pnpm mcp:registry` derives the registry entry from the built
-artifact, and `mcp/Dockerfile` is both the image and what a directory that
-inspects servers by building them reads.
+boots the bundle, and `pnpm mcp:registry` derives the registry entry from the
+built artifact.
+
+Two honest limits on those rows. **The image is not published yet** — build it
+yourself with `docker build -t ontology-atlas-mcp mcp`, and note the context is
+`mcp/`, not the repository root, where the build fails on a missing
+`CHANGELOG.md`. `pnpm mcp:registry` therefore leaves the OCI entry out unless you
+pass `--with-image`, so a published entry cannot name an image nobody pushed. And
+the bundle runs under whatever Node its host supplies: `>=20` is measured by hand
+today (Node 20, 22, 24 and 25 all answered with every tool), and
+`pnpm mcp:build-bundle -- --also-node=<path>` is how a build witnesses a second
+runtime rather than assuming one.
 
 **App-bundled (primary).** Open your vault folder in the app and press the
 connect button. It writes exactly this, with your vault's real absolute path
