@@ -508,6 +508,7 @@ export interface UseTopologyLoopArgs {
    * and the inspection hook all read the same frame map. Omitted keeps 2D.
    */
   view3d?: boolean;
+  galaxy?: boolean;
   /** Which 3D structure is drawn — ownership Cone tree or coupling Cloud. */
   mapArrangement?: MapArrangement;
   /** 3D reframe input: is the detail panel covering the viewport (`OntologyMap` JSDoc). */
@@ -566,7 +567,7 @@ export type UseTopologyLoopResult = TopologyPointerHandlers & {
 };
 
 export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResult {
-  const { nodes, edges, focusedSlug, emphasizedNeighborSlug = null, dataSourceKey = null, overviewFit = "spine", fitViewToken, growthReplayToken = 0, onGrowthReplayingChange, spotlightFitToken = 0, relayoutToken, revealToken = 0, onSelectEdge, onHoverEdge, onSelect, onPaneClick, onVisibleCountChange, onGraphStatsChange, onDrawnCountChange, onDomeTierAnchorsChange, onTierLegendPlacementChange, onZoomTierChange, onContextMenuNode, onContextMenuPane, agentFocusNodeId = null, spotlightIds = null, mapLensKind = "recent", pathEdgeIds = null, selectedEdge = null, previewEdge = null, expandedParents = EMPTY_EXPANDED_SET, onToggleCluster, onHoverCluster, realmRootId = null, onEnterRealm, realmEnterButtonRef, realmCaption = null, visitedTrail = EMPTY_TRAIL, trailLensActiveRef, clusterBarLabels = null, domeTierLabels = null, trailHoverNodeIdRef, panelHoverNodeIdRef, tierReveal = DEFAULT_TIER_REVEAL, tourAnchorNodeId = null, tourAnchorRef, glyphSet = "geometric", canvasBackground = "dot", view3d = false, mapArrangement = DEFAULT_MAP_ARRANGEMENT, detailPanelVisible = false, footprint = null, expand = DEFAULT_EXPAND, wheelIntent = "zoom", ambientSleepDelayMs, onWalkDeadEnd = null } = args;
+  const { nodes, edges, focusedSlug, emphasizedNeighborSlug = null, dataSourceKey = null, overviewFit = "spine", fitViewToken, growthReplayToken = 0, onGrowthReplayingChange, spotlightFitToken = 0, relayoutToken, revealToken = 0, onSelectEdge, onHoverEdge, onSelect, onPaneClick, onVisibleCountChange, onGraphStatsChange, onDrawnCountChange, onDomeTierAnchorsChange, onTierLegendPlacementChange, onZoomTierChange, onContextMenuNode, onContextMenuPane, agentFocusNodeId = null, spotlightIds = null, mapLensKind = "recent", pathEdgeIds = null, selectedEdge = null, previewEdge = null, expandedParents = EMPTY_EXPANDED_SET, onToggleCluster, onHoverCluster, realmRootId = null, onEnterRealm, realmEnterButtonRef, realmCaption = null, visitedTrail = EMPTY_TRAIL, trailLensActiveRef, clusterBarLabels = null, domeTierLabels = null, trailHoverNodeIdRef, panelHoverNodeIdRef, tierReveal = DEFAULT_TIER_REVEAL, tourAnchorNodeId = null, tourAnchorRef, glyphSet = "geometric", canvasBackground = "dot", view3d = false, galaxy = false, mapArrangement = DEFAULT_MAP_ARRANGEMENT, detailPanelVisible = false, footprint = null, expand = DEFAULT_EXPAND, wheelIntent = "zoom", ambientSleepDelayMs, onWalkDeadEnd = null } = args;
 
   const getRealmCaption = useEffectEvent(() => realmCaption);
   const annotationRef = useRef({ captions: args.relationCaptions, questions: args.reviewQuestionIds });
@@ -632,6 +633,20 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
   const canvasBackgroundRef = useRef<CanvasBackground>(canvasBackground);
   /** 3D view target — mirrored because draw reads it per frame and hit-testing reads it per event. */
   const view3dRef = useRef<boolean>(view3d);
+  const galaxyRef = useRef<boolean>(galaxy);
+  /**
+   * How far the galaxy view has come, 0 (flat) to 1 (sky).
+   *
+   * A ramp rather than the boolean, so switching views crossfades instead of cutting — the same
+   * `stepFocusRamp` and the same token the trail lens and the spotlight already use, because a
+   * fourth easing for the same kind of change is a fourth thing to keep in agreement.
+   */
+  const galaxyRampRef = useRef<number>(galaxy ? 1 : 0);
+  // Synced in an effect, not during render: the loop reads this ref on its own clock, and
+  // writing a ref while rendering is the one way to make those two disagree.
+  useEffect(() => {
+    galaxyRef.current = galaxy;
+  }, [galaxy]);
   /**
    * Arrangement mirror, read by the draw loop. On change an effect below drops
    * the dome model so the next frame rebuilds it at the new angle; height and
@@ -3186,6 +3201,8 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
           // Lens on/off transition: if it differs from what was last drawn,
           // wake for a frame and draw the new state — same contract as the
           // spotlight ramp settling.
+          galaxySettling:
+            Math.abs(galaxyRampRef.current - (galaxyRef.current ? 1 : 0)) > 0.01,
           trailLensSettling:
             (trailLensPropRef.current?.current ?? false) !== drawnTrailLensRef.current ||
             Math.abs(
@@ -5239,6 +5256,16 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
        */
       if (trailLensActive && trailLensOpenedAtRef.current === 0) trailLensOpenedAtRef.current = now;
       else if (!trailLensActive && trailLensRampRef.current < 0.01) trailLensOpenedAtRef.current = 0;
+      /*
+       * The galaxy view's crossfade. Reduced motion takes it immediately, the same contract the
+       * spotlight and the trail lens follow: what the preference removes is travel, and a
+       * brightness crossfade on a settled canvas is not travel — but the ramp below it *is* the
+       * trail lens, which does move, so the two are answered separately.
+       */
+      galaxyRampRef.current = reducedMotionRef.current
+        ? (galaxyRef.current ? 1 : 0)
+        : stepFocusRamp(galaxyRampRef.current, galaxyRef.current, dt, tokens.focusDimTau);
+
       if (reducedMotionRef.current) {
         /*
          * ⚠️ **Reduced motion asked for no travel, not for a cut.** This used to be
@@ -5290,6 +5317,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         world,
         camera,
         farT,
+        galaxyRamp: galaxyRampRef.current,
         zoomRatio,
         now,
         viewportWidth: width,

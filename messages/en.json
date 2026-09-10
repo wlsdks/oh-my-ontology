@@ -1060,12 +1060,14 @@
       "collapseAllLabel": "Collapse all",
       "view3dChoice": {
         "flat": "Flat",
+        "galaxy": "Galaxy",
         "ownership": "Cone",
         "strata": "Strata",
         "coupling": "Cloud"
       },
       "view3dChoiceHint": {
         "flat": "the ordinary 2D map",
+        "galaxy": "the whole map drawn as a sky of stars",
         "ownership": "stacked in tiers, the way things are contained",
         "strata": "the same containment, read level by level",
         "coupling": "clustered by what relates to what"
@@ -4467,8 +4469,20 @@
       "recent": "Recent",
       "unbound": "No confirmed file target",
       "noReceipts": "No completed file operations yet",
-      "active": { "read": "Reading", "proposal": "Preparing a write", "waiting": "Waiting for permission", "write": "Writing", "error": "Needs attention" },
-      "complete": { "read": "Read", "proposal": "Write proposed", "waiting": "Permission requested", "write": "File changed", "error": "Failed" }
+      "active": {
+        "read": "Reading",
+        "proposal": "Preparing a write",
+        "waiting": "Waiting for permission",
+        "write": "Writing",
+        "error": "Needs attention"
+      },
+      "complete": {
+        "read": "Read",
+        "proposal": "Write proposed",
+        "waiting": "Permission requested",
+        "write": "File changed",
+        "error": "Failed"
+      }
     },
     "eyebrow": "In this folder",
     "lede": "The project documents you gathered, in whatever format they arrived, and the wiki pages written from them. A source is kept byte for byte, and every claim on a page cites one.",

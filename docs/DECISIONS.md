@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-10 — The galaxy is a view you pick, not an altitude you reach
+
+**Why**: the owner shipped the altitude version, looked at it, and said where they had gone looking for the feature — a screenshot of the map's view picker, with *"I thought the galaxy mode would be here"*. Both readings survive their own argument; what does not survive is a mode nobody can find. The altitude version also had no way to see the sky while working close in, which is most of the time a person spends on this map.
+**Prior**: overturns the same day's "The map seen from far enough away is a galaxy" on its one structural clause — where the galaxy lives. Its marks, its measurements and its 2D-only boundary all stand unchanged.
+**Decision**: Galaxy becomes the second **flat** view in the picker that already holds Flat, Cone, Strata and Cloud, and the altitude behaviour is removed outright — Flat is the workbench at every zoom again. Picking either flat view turns the dome off, and picking a dome turns the sky off, so the pair the drawing reads can never disagree. The transition is a crossfade on the loop's clock, the same `stepFocusRamp` and token the trail lens and spotlight use, rather than a cut. The star is drawn on the node's **own silhouette**, so a project stays a hexagon and a domain a square while they burn, and `DESIGN-SYSTEM.md` §95 "kind = shape" needs no exception at all.
+**Dissent**: the altitude reading, which the owner had themselves chosen from three text directions hours earlier, and which cost nothing in controls. It loses on discoverability, and on the fact that "zoom out to see it" is not a thing anyone thinks to try.
+**Falsifier**: nobody switching back to Flat once they have seen Galaxy, which would mean it should have been the default; or a reader who cannot tell kinds apart in the sky.
+**Owner**: jinan
+
 ## 2026-09-10 — The map seen from far enough away is a galaxy
 
 **Why**: the owner asked for one — *"totally like a galaxy"*, in 2D. The tier was already named and had never become the thing it was called: `model/altitude.ts` has classified this canvas `circuit → transitioning → constellation` since it was written, and `render/starfield.ts` paints its dust under a header reading "B1 constellation DNA". At the top the only difference was that twelve nodes wore a cross.
