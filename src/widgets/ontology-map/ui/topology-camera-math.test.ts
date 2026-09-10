@@ -245,7 +245,7 @@ describe("computeFocusCameraTarget — fit-to-ego dive (dive-framing fix)", () =
     const nodeById = new Map(
       Object.entries(nodeXY).map(([id, v]) => [
         id,
-        { id, kind: v.kind, label: id, x: v.x, y: v.y, homeX: v.x, homeY: v.y, parentId: null, isHub: false, fresh: false, stale: false, count: 0, magnitudeScale: 1 },
+        { id, kind: v.kind, label: id, x: v.x, y: v.y, homeX: v.x, homeY: v.y, parentId: null, isHub: false, fresh: false, stale: false, count: 0, magnitudeScale: 1 , starMagnitude: 0},
       ]),
     );
     const neighborMap = new Map(Object.entries(neighbors).map(([id, ns]) => [id, new Set(ns)]));
@@ -452,7 +452,7 @@ describe("computeFocusCameraTarget — 안전 인셋", () => {
     const nodeById = new Map(
       Object.entries(XY).map(([id, v]) => [
         id,
-        { id, kind: v.kind, label: id, x: v.x, y: v.y, homeX: v.x, homeY: v.y, parentId: null, isHub: false, fresh: false, stale: false, count: 0, magnitudeScale: 1 },
+        { id, kind: v.kind, label: id, x: v.x, y: v.y, homeX: v.x, homeY: v.y, parentId: null, isHub: false, fresh: false, stale: false, count: 0, magnitudeScale: 1 , starMagnitude: 0},
       ]),
     );
     return {
@@ -520,8 +520,8 @@ describe("hitTestWorld — 3D 깊이 우선 (겹친 디스크는 가까운 노�
   const tokens = { radiusProject: 30, radiusDomain: 17, radiusCapability: 11, radiusElement: 7 } as unknown as Parameters<typeof hitTestWorld>[4];
   // far (dead-centre) vs near (4px off) — both discs cover the cursor.
   const nodes = [
-    { id: "far", kind: "domain", x: 0, y: 0, magnitudeScale: 1 },
-    { id: "near", kind: "domain", x: 4, y: 0, magnitudeScale: 1 },
+    { id: "far", kind: "domain", x: 0, y: 0, magnitudeScale: 1 , starMagnitude: 0},
+    { id: "near", kind: "domain", x: 4, y: 0, magnitudeScale: 1 , starMagnitude: 0},
   ];
   const world = {
     nodes,
@@ -566,8 +566,8 @@ describe("hitTestWorld — 그려진 잉크가 여유 링을 이긴다 (3D 원�
    * courtesy ring reached that far and depth was decided before ink.
    */
   const nodes = [
-    { id: "element", kind: "element", x: 0, y: 0, magnitudeScale: 1 },
-    { id: "domain", kind: "domain", x: 20, y: 0, magnitudeScale: 1 },
+    { id: "element", kind: "element", x: 0, y: 0, magnitudeScale: 1 , starMagnitude: 0},
+    { id: "domain", kind: "domain", x: 20, y: 0, magnitudeScale: 1 , starMagnitude: 0},
   ];
   const world = {
     nodes,
@@ -611,7 +611,7 @@ describe("hitTestWorld — 그려진 잉크가 여유 링을 이긴다 (3D 원�
      * offset itself is `projectDomeCoord`; this proves the hit test consumes it.
      */
     const offset = (n: { id: string }) => (n.id === "element" ? { x: 120, y: -80 } : { x: 0, y: 0 });
-    const moved = [{ id: "element", kind: "element", x: 0, y: 0, magnitudeScale: 1 }];
+    const moved = [{ id: "element", kind: "element", x: 0, y: 0, magnitudeScale: 1 , starMagnitude: 0}];
     const movedWorld = {
       nodes: moved,
       nodeById: new Map(moved.map((n) => [n.id, n])),

@@ -919,6 +919,8 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
    * `dataSourceKey` prop's comment).
    */
   const fittedDataSourceKeyRef = useRef<string | null>(null);
+  /** The last drawn altitude, for `__atlasMap.altitude()`. The canvas has no DOM to read it from. */
+  const drawnFarTRef = useRef(0);
   const lastFrameTimeRef = useRef(0);
   // `useEffect(fn, [relayoutToken, fitViewToken])` also fires once on mount
   // (standard React behaviour, not only on token change). That used to be
@@ -4486,6 +4488,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         appearById: growthReplayRef.current !== null ? growthReplayAppearRef.current : appearRef.current,
         tierReveal: tierRevealRef.current,
       });
+      drawnFarTRef.current = farT;
       cameraRef.current = camera;
 
       // Click-focus signature — refresh the retained color focus. While a
@@ -6143,6 +6146,13 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         return c ? { width: c.width, height: c.height, dpr: window.devicePixelRatio } : null;
       },
       /** Where the map is looking — for verifying deep links, dives and fit-view. */
+      /**
+       * The altitude the last frame drew, 0 (circuit) to 1 (constellation).
+       *
+       * Exposed because it is the axis the galaxy rides on and the canvas has no DOM a test can
+       * read it from — the same reason every other entry here exists.
+       */
+      altitude: () => drawnFarTRef.current,
       camera: () => {
         const camera = cameraRef.current;
         const { width, height } = viewportRef.current;

@@ -599,6 +599,8 @@ export function drawNodeStar(
   ink: string,
   lit: number,
   swell = 1,
+  /** How much of the interior burns — 0 for a lit node, 1 for a star. See `StarEmissionState`. */
+  core = 0,
 ): void {
   // The map's only contribution is the silhouette: a hexagon, square or circle that converges
   // with altitude. The light is `shared/lib/star-emission.ts`, so the settings preview and this
@@ -610,6 +612,7 @@ export function drawNodeStar(
     ink,
     lit,
     swell,
+    core,
     // A `Path2D` rather than a draw call, so the emitter can both stroke the silhouette and
     // subtract it from a clip region without tracing it twice or knowing what shape it is.
     bodyPath: (r) => {

@@ -36,6 +36,9 @@
  * already lit in the selection's own indigo and already numbered beside it.
  */
 
+/** The rim's width on a node large enough to want one, in px. */
+const STAR_RIM_PX = 1.8;
+
 /**
  * How many strokes build the halo.
  *
@@ -90,6 +93,18 @@ export interface StarEmissionState {
    */
   swell?: number;
   /**
+   * How much of the interior burns, 0 (a lit rim) to 1 (a point of light). Default 0.
+   *
+   * ⚠️ **The rule that the face is never filled has a reason, and the reason runs out.** It
+   * exists because a wash over a node's own engraved numeral measured at 1.00:1 — the count
+   * erased on exactly the nodes a person had just walked. At galaxy altitude there is no numeral
+   * and no body: the silhouette has melted to a circle and `bodyPresence` has faded the node
+   * itself to nothing. Keeping the interior clear there does not protect anything; it punches a
+   * hole in the sky, which is what it did — the hub's centre measured `rgb(5,5,7)` against a
+   * `rgb(5,5,6)` background (2026-09-10). A star is bright in the middle.
+   */
+  core?: number;
+  /**
    * The node's silhouette at `radius`, as a path this function can both stroke and subtract.
    *
    * A callback rather than a kind, because the two callers disagree about what a node looks
@@ -105,8 +120,18 @@ export interface StarEmissionState {
 }
 
 
+/** `#rrggbb` → `rgba(...)`, which a gradient stop takes where a `var()` cannot. */
+function withAlpha(hex: string, alpha: number): string {
+  const h = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
+  const r = parseInt(h.slice(1, 3), 16);
+  const g = parseInt(h.slice(3, 5), 16);
+  const b = parseInt(h.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${Math.max(0, Math.min(1, alpha)).toFixed(3)})`;
+}
+
 export function drawStarEmission(ctx: CanvasRenderingContext2D, state: StarEmissionState): void {
   const { x, y, radius, ink, lit, bodyPath } = state;
+  const core = state.core ?? 0;
   if (lit <= 0.01 || radius <= 0) return;
   const k = Math.min(1, lit);
   const swell = state.swell ?? 1;
@@ -157,10 +182,34 @@ export function drawStarEmission(ctx: CanvasRenderingContext2D, state: StarEmiss
   }
   ctx.restore();
 
-  // The edge itself, on the node's real silhouette — never a circle over a square.
-  ctx.globalAlpha = k;
+  /*
+   * The core. Brightest at the centre and falling toward the rim, so it reads as a point of
+   * light rather than as a filled disc — a disc is a dot, and a dot is what the map draws when
+   * it means "a node is here", which is the near view's job and not this one's.
+   */
+  if (core > 0.01) {
+    const heart = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    heart.addColorStop(0, withAlpha(ink, 0.95 * k * core));
+    heart.addColorStop(0.45, withAlpha(ink, 0.5 * k * core));
+    heart.addColorStop(1, withAlpha(ink, 0.2 * k * core));
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = heart;
+    ctx.fill(body);
+  }
+
+  /*
+   * The edge itself, on the node's real silhouette — never a circle over a square.
+   *
+   * ⚠️ **A rim is an edge on a node and a ring on a star.** At a fixed 1.8 px it is a hairline
+   * around a 33 px walked node and a thick band around a 6 px one, so the faint end of the
+   * galaxy rendered as a field of little circles rather than points of light. Two things pull
+   * it back: it never takes more than a fifth of the radius, and it recedes as the core burns —
+   * a star is bright in the middle and has no outline at all, while a *node* you are meant to
+   * read still wants its edge. Both callers get what they need from the same expression.
+   */
+  ctx.globalAlpha = k * (1 - core * 0.4);
   ctx.strokeStyle = ink;
-  ctx.lineWidth = 1.8;
+  ctx.lineWidth = Math.min(STAR_RIM_PX, Math.max(0.5, radius * 0.22)) * (1 - core * 0.5);
   ctx.stroke(body);
 
   ctx.globalCompositeOperation = prevOp;

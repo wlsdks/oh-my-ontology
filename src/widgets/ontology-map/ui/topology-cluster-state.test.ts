@@ -25,7 +25,7 @@ function node(id: string, x: number, y: number, kind: WorldNode["kind"] = "capab
     fresh: false,
     stale: false,
     count: 0,
-    magnitudeScale: 1,
+    magnitudeScale: 1, starMagnitude: 0
   };
 }
 
