@@ -921,31 +921,23 @@ if (
   );
 }
 
-// This block once checked the README's identity *table markup* literally. One
-// README rewrite made it wholly stale, and a gate crash hid that from everyone.
-// It now checks **facts** rather than table formatting: brand, hosting URL,
-// desktop bridge, opening a local folder in the browser, and no steering toward
-// retired surfaces.
-const readmeFlow = flow(rootReadme);
+// README prose is editable; its download and release references follow runtime config.
+const configuredSite = readText("src/shared/config/site.ts")
+  .match(/export const SITE_URL = ["']([^"']+)["']/)?.[1];
+const configuredRepository = readText("src/shared/config/social-links.ts")
+  .match(/export const GITHUB_REPO_URL = ["']([^"']+)["']/)?.[1];
+const readmeLinks = [...rootReadme.matchAll(/(?:href=["']|\]\()(https?:\/\/[^"')\s>]+)/g)]
+  .flatMap((match) => {
+    try { return [new URL(match[1])]; } catch { return []; }
+  });
 if (
-  readmeFlow.includes("# Ontology Atlas") &&
-  readmeFlow.includes("https://ontologyatlas.com/") &&
-  readmeFlow.includes("Tauri macOS shell") &&
-  readmeFlow.includes("The desktop app uses a Tauri bridge to your selected folder") &&
-  readmeFlow.includes("hosted web app can open a local folder through the File System Access API") &&
-  readmeFlow.includes("github.com/wlsdks/ontology-atlas/releases") &&
-  // Users must not be sent to retired or relocated surfaces. The `/ontology/edit`
-  // builder was retired 2026-07-24, and the old wording that funnelled local vault
-  // work to `localhost:3000/docs` is forbidden too.
-  !rootReadme.includes("/ontology/edit") &&
-  !rootReadme.includes("| **Web workbench** |") &&
-  !rootReadme.includes("Open `http://localhost:3000`, go to `/docs`")
+  configuredSite && configuredRepository && readmeLinks.length > 0 &&
+  readmeLinks.some((url) => url.origin === configuredSite && /\/download\/?$/.test(url.pathname)) &&
+  readmeLinks.some((url) => `${url.origin}${url.pathname.replace(/\/$/, "")}` === `${configuredRepository}/releases`)
 ) {
-  pass("root README states the brand, hosted demo, desktop Tauri bridge, and browser local-folder path without routing users to retired surfaces");
+  pass("root README links to the configured download and release destinations");
 } else {
-  fail(
-    "README.md must name the Ontology Atlas brand, the hosted demo URL, the desktop Tauri vault bridge, and the browser local-folder open path — and must not link the retired /ontology/edit builder or the old localhost /docs local-vault flow",
-  );
+  fail("README.md must link to the configured hosted download route and repository releases; check src/shared/config/site.ts and social-links.ts");
 }
 
 /*

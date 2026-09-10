@@ -503,7 +503,7 @@
       "headings": [],
       "excerpt": "Related-page retrieval found the saved answer in all three fictional arrivals, among 36 unrelated pages per case. Both local models opened the suggested answer. Neither completed all preservation obligations. This identifies a remaining revision problem; it does not establish a quality improvement over the previous imp",
       "wordCount": 511,
-      "updatedAt": "2026-09-11",
+      "updatedAt": "2026-09-10",
       "linksOut": [
         "benchmark/WIKI-ACCUMULATION-EVAL"
       ]
@@ -588,7 +588,7 @@
       "headings": [],
       "excerpt": "For local wiki revision, related-page retrieval and omission checks, see the wiki accumulation evaluation and run pnpm evaluate:wiki. The single biggest unverified premise of this project: \"AI agents work better when they can read and write the codebase ontology vault.\" Until we have data, this is a belief, not a claim",
       "wordCount": 3293,
-      "updatedAt": "2026-09-11",
+      "updatedAt": "2026-09-10",
       "linksOut": [
         "benchmark/WIKI-ACCUMULATION-EVAL",
         "benchmark/FINDINGS-2026-08-25",
@@ -900,7 +900,7 @@
       "headings": [],
       "excerpt": "The evaluation asks whether a new original helps update a related saved answer without dropping earlier evidence or a human's note. It exercises the local Compile route. It does not evaluate ACP, public MCP ontology construction or semantic retrieval across arbitrary languages. The first local-model pilot records succe",
       "wordCount": 571,
-      "updatedAt": "2026-09-11",
+      "updatedAt": "2026-09-10",
       "linksOut": [
         "benchmark/FINDINGS-2026-09-10-wiki-retrieval",
         "benchmark/FINDINGS-2026-09-06-wiki-accumulation-probe"
@@ -1032,7 +1032,7 @@
       "headings": [],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from ontology-map has become the standard for page rollout (gateway → docs/ontology hub → projects/ins",
       "wordCount": 44615,
-      "updatedAt": "2026-09-11",
+      "updatedAt": "2026-09-10",
       "linksOut": [
         "design-references/DESIGN-linear",
         "ONTOLOGY-MAP-DESIGN",
@@ -1060,8 +1060,8 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Which command to run first for an area of this repository, what a pass proves, and when to escalate. The reasons a gate exists live in docs/DECISIONS.md and in the gate's own header, not here. Start every change with the planner, and let it run what it recommends: It reads the Git diff (tracked and untracked), prints t",
-      "wordCount": 6133,
-      "updatedAt": "2026-09-07",
+      "wordCount": 6150,
+      "updatedAt": "2026-09-11",
       "linksOut": []
     },
     {
@@ -4123,7 +4123,7 @@
       "headings": [],
       "excerpt": "A local-first codebase ontology workbench that records what a codebase builds, why it is structured that way, and what a change will affect. It links product domains and capabilities to implementation evidence, dependencies, and impact in a computable Markdown graph that people and AI agents maintain together. Library ",
       "wordCount": 989,
-      "updatedAt": "2026-09-11",
+      "updatedAt": "2026-09-10",
       "linksOut": []
     },
     {
