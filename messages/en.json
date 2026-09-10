@@ -170,7 +170,7 @@
         "screen": "Screen · language",
         "background": "Map background",
         "expand": "Expansion",
-        "footprint": "Footprints (path walked)",
+        "footprint": "The path you walked",
         "notify": "Notifications",
         "workspace": "Workspace",
         "ai": "API Key",

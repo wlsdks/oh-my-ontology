@@ -107,8 +107,10 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
     const a = { x: inset, y: PREVIEW_H / 2 };
     const b = { x: PREVIEW_W - inset, y: PREVIEW_H / 2 };
     const inkHex = parsed ? `#${parsed[1]}` : `#${fallback.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
-    const trace = (target: CanvasRenderingContext2D, radius: number, at: { x: number; y: number }) => {
-      target.roundRect(at.x - radius, at.y - radius, radius * 2, radius * 2, 5);
+    const bodyPathAt = (at: { x: number; y: number }, radius: number) => {
+      const path = new Path2D();
+      path.roundRect(at.x - radius, at.y - radius, radius * 2, radius * 2, 5);
+      return path;
     };
 
     // The node bodies first, so the light lands on them rather than under them.
@@ -160,7 +162,7 @@ function FootprintPreview({ pref }: { pref: FootprintPreference }) {
         radius: r,
         ink: inkHex,
         lit: pref.opacity,
-        tracePath: (target, radius) => trace(target, radius, p),
+        bodyPath: (radius) => bodyPathAt(p, radius),
       });
     }
 

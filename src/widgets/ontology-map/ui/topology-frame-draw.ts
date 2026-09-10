@@ -8,6 +8,7 @@
 import type { CameraAxes } from "../engine/camera";
 import { collectDomeAncestry, domeAncestryEdgeKey } from "../model/dome-ancestry";
 import { buildTrailGlintLegs, trailGlintLocalPhase } from "../model/footprint-steps";
+import { bodyPresence, filamentPresence, galaxyRamp, galaxyTemperatureKey, starLuminance } from "../model/galaxy";
 import { rankEgoNeighborsByDOI, resolveEdgeEgoStateWithPair, resolveNodeEgoStateWithPair, resolveTrailLensNodeEgoState, trailNodeInkStrength, type EdgeEgoState, type EdgePairFocus, type NodeEgoState } from "../model/focus-state";
 import { resolveFreshnessVisual } from "../model/freshness";
 import { backgroundParallaxOrigin, resolveBackgroundOrigin } from "../model/background-parallax";
@@ -1204,6 +1205,23 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
 
   // 3D view — at ramp 0 the loop passes null, so this frame takes the 2D path.
   const domeOn = domeFrame !== null && domeFrame !== undefined && domeFrame.size > 0;
+
+  /*
+   * **How much of the sky is out.** One number for the whole frame, because the galaxy is an
+   * *altitude* and not a property of any node: the owner picked distance over a toggle, so there
+   * is nothing here to switch and nothing to keep in sync. `model/galaxy.ts` owns the maths and
+   * the reasoning; this file only spends it.
+   *
+   * ⚠️ **2D only, and that is not a simplification.** The owner asked for the galaxy *"in 2D"*,
+   * and the dome is a different view with its own contract: it raises `farT` for its own reasons
+   * — depth convergence, not distance — and it carries contrast floors that assume relations stay
+   * readable against the ground. Left ungated, `filamentPresence` thinned containment lines in
+   * every 3D arrangement to a measured **1.22:1 against a 1.9:1 floor**
+   * (`tests/e2e/map-3d-relation-ink.spec.ts`, caught on CI 2026-09-10). Borrowing another view's
+   * altitude variable is not the same as being at altitude.
+   */
+  const galaxy = domeOn ? 0 : galaxyRamp(farT);
+  const galaxyOn = galaxy > 0.001;
   /**
    * One node's 3D transform (world offset + perspective factor). Nodes, labels,
    * edge endpoints, and chip anchors all pass through this map, so every mark on a
@@ -1994,11 +2012,20 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
       const edgeAppear = appearById
         ? Math.min(1, Math.max(0, Math.min(appearById.get(edge.sourceId) ?? 1, appearById.get(edge.targetId) ?? 1)))
         : 1;
+      /*
+       * Relations thin to **filaments** as the sky comes out — gas between the stars rather
+       * than wiring between components. They are floored well above invisibility on purpose:
+       * a galaxy with no structure between its stars is a scatter plot, and the structure is
+       * the thing Atlas exists to show (`model/galaxy.ts`). A walked relation is exempt, since
+       * it is the answer to a question the reader asked by opening the lens.
+       */
+      const filament = galaxyOn && walkedTrail <= 0.01 ? filamentPresence(galaxy) : 1;
       ctx.globalAlpha =
         (passthrough ? edgeAlpha * tokens.edgePassthroughAlpha : edgeAlpha) *
         edgeSpotlightSink *
         hoverRecede *
         edgeAppear *
+        filament *
         domeEdgeFogForEdge;
       /*
        * A halo's strength follows **how strong this line currently is**: a near
@@ -2474,7 +2501,13 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     const nodeSpotlightSink = spotlightSink(
       (spotlightIds !== null && spotlightIds.has(node.id)) || isHoveredNode || previewEndpoint,
     );
-    ctx.globalAlpha = tierAlpha * realmClarityAlpha * backgroundDim * appearRevealAlpha * nodeSpotlightSink;
+    const nodeLayerAlpha = tierAlpha * realmClarityAlpha * backgroundDim * appearRevealAlpha * nodeSpotlightSink;
+    /*
+     * The body gives way to the light. It fades faster than the sky arrives (`bodyPresence` is
+     * quadratic), so there is no altitude at which a node is both a solid shape and a bright
+     * star — that frame is the one that would read as a rendering bug rather than as a galaxy.
+     */
+    ctx.globalAlpha = nodeLayerAlpha * (galaxyOn ? bodyPresence(galaxy) : 1);
     // Sheen top stop = lerp(fill, tint, blend) — resolved here (token layer)
     // so `render/node-shapes.ts` stays token-free and pure.
     // perf 2026-08-19 — equal fills yield equal result strings (tint and blend are
@@ -2644,10 +2677,55 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         screenX: screen.x,
         screenY: screen.y,
         screenRadius,
-        color: egoState === "dim" ? tokens.nodeStrokeDim : visual.stroke,
+        /*
+         * The spike is the star's own light up here, so it takes the star's own temperature.
+         * Left on `visual.stroke` it painted a **dim grey crosshair over a bright core** — the
+         * kind ink is a near-black on this canvas, and a solid fill over an additive star reads
+         * as a scratch on it rather than as light coming off it (measured 2026-09-10).
+         */
+        color: galaxyOn
+          ? lerpColorHex(
+              egoState === "dim" ? tokens.nodeStrokeDim : visual.stroke,
+              tokens[galaxyTemperatureKey(node.kind)],
+              galaxy,
+            )
+          : egoState === "dim"
+            ? tokens.nodeStrokeDim
+            : visual.stroke,
         alpha: farT * tierAlpha * realmClarityAlpha * backgroundDim * appearRevealAlpha,
       });
     }
+
+    /*
+     * **Every node is a star up here.**
+     *
+     * Not a second mark beside the node and not a mode: the same emitter the walked path uses
+     * (`shared/lib/star-emission.ts`), spent on the whole field as altitude rises. Brightness is
+     * `starMagnitude` — the very expression `brightStarIds` is ranked by, kept per node instead
+     * of thresholded — and the ink is the kind's colour temperature, which is where kind goes
+     * once `interpolateCornerRadius` and `FULL_CIRCLE_FAR_T` have melted every silhouette into
+     * the same circle. Radius is untouched, so how much a node contains still reads as size.
+     *
+     * Drawn before the walked star so that a node which is both keeps the walk's own ink on top:
+     * inside an open trail lens, "you were here" outranks "this is how connected you are", the
+     * same precedence this file already applies to the ambient comet on a walked relation.
+     */
+    if (galaxyOn) {
+      drawNodeStar(
+        ctx,
+        node.kind,
+        screen.x,
+        screen.y,
+        screenRadius,
+        farT,
+        tokens[galaxyTemperatureKey(node.kind)],
+        nodeLayerAlpha * galaxy * starLuminance(node.starMagnitude),
+        1,
+        // The core arrives as the body leaves, so the node is never both a hole and a shape.
+        galaxy,
+      );
+    }
+
 
     /**
      * **A node you walked is lit like a star** (owner, 2026-09-10: *"I meant the node's own

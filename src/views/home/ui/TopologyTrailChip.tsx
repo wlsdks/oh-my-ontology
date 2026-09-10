@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Footprints, X } from "lucide-react";
+import { ChevronLeft, Sparkles, X } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 
 import {
@@ -268,7 +268,7 @@ export function TopologyTrailChip({
   return (
     <div ref={rootRef} className="relative" data-testid="topology-trail-chip">
       <div className={CHROME_STATUS_CHIP_CLASS}>
-        <Footprints size={ICON_SIZE.md} aria-hidden className="shrink-0 text-[color:var(--color-text-tertiary)]" />
+        <Sparkles size={ICON_SIZE.md} aria-hidden className="shrink-0 text-[color:var(--color-text-tertiary)]" />
         <button
           ref={triggerRef}
           type="button"

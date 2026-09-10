@@ -512,7 +512,7 @@ export function useMutedAgentNotificationKinds(): ReadonlySet<string> {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
-/* ── Footprints (the path walked) ───────────────────────────────────────── */
+/* ── The path you walked ────────────────────────────────────────────────── */
 
 /**
  * Three named tones, not a colour picker.

@@ -46,6 +46,15 @@ export interface OntologyMapTokens {
   projectHairlineInner: string;
   /** Canvas-emphasis slice — project hexagon's 4-direction chassis-leg pin ticks (spec §A2). */
   projectPinTick: string;
+  /**
+   * The galaxy's colour temperature, one step per kind, warm to cool down the containment
+   * ladder. It carries kind at altitudes where the silhouette has converged to a circle and the
+   * shape channel no longer exists — see `model/galaxy.ts`.
+   */
+  galaxyProject: string;
+  galaxyDomain: string;
+  galaxyCapability: string;
+  galaxyElement: string;
   /** Canvas-emphasis slice — the selected node's static 2px ring color (spec §B1). */
   selectionRingIndigo: string;
   /** Canvas-emphasis slice — the selected node's outer 6px hairline ring color (spec §B1). */
@@ -332,6 +341,10 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "nodeSheenBlend", cssVar: "--map-node-sheen-blend", kind: "number" },
   { key: "projectHairlineInner", cssVar: "--map-project-hairline-inner", kind: "color" },
   { key: "projectPinTick", cssVar: "--map-project-pin-tick", kind: "color" },
+  { key: "galaxyProject", cssVar: "--map-galaxy-project", kind: "color" },
+  { key: "galaxyDomain", cssVar: "--map-galaxy-domain", kind: "color" },
+  { key: "galaxyCapability", cssVar: "--map-galaxy-capability", kind: "color" },
+  { key: "galaxyElement", cssVar: "--map-galaxy-element", kind: "color" },
   { key: "selectionRingIndigo", cssVar: "--map-selection-ring-indigo", kind: "color" },
   { key: "selectionRingHairline", cssVar: "--map-selection-ring-hairline", kind: "color" },
   { key: "hoverRing", cssVar: "--map-hover-ring", kind: "color" },

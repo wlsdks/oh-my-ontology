@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-10 — The map seen from far enough away is a galaxy
+
+**Why**: the owner asked for one — *"totally like a galaxy"*, in 2D. The tier was already named and had never become the thing it was called: `model/altitude.ts` has classified this canvas `circuit → transitioning → constellation` since it was written, and `render/starfield.ts` paints its dust under a header reading "B1 constellation DNA". At the top the only difference was that twelve nodes wore a cross.
+**Prior**: bounds the "Kind = shape, not color" rule of `docs/DESIGN-SYSTEM.md` §95 rather than overturning it, and keeps the emission licence of "The walked path is a constellation" intact by not spending it.
+**Decision**: altitude, not a toggle — one of three directions put to the owner, chosen over a third lens and over no change. Above `farT` 0.55, rising to full at 0.97, every node becomes a star: brightness is `size + fullDegree*18` normalised, the very expression the bright-star ranking already used, so the fact is old and only its resolution is new. Kind moves to colour temperature because its old channel is *gone* — every silhouette has converged to one circle by then — and radius still carries containment, so kind never rests on hue alone. Relations thin to filaments with a floor: a galaxy with no structure between its stars is a scatter plot. Nothing animates; the person's own zoom is the motion.
+**Dissent**: a third lens beside "walked path" and "recent changes" was the closest reading of the request and would have worked at any zoom. Rejected because it spends the emission channel on everything, and that channel already means "you were here" — the one lens whose fact would have been erased is the one shipped this morning.
+**Falsifier**: a reader who cannot find a named node at the top of the zoom-out; brightness read as importance rather than as connectedness; anyone reaching for a control to turn the sky on.
+**Owner**: jinan
+
 ## 2026-09-10 — Brightness says walked, not when; the ordinal keeps the order
 
 **Why**: two seats measured one encoding failing from both ends. design-infoviz found the numeral inside a walked node erased at **1.00:1** — the bloom filled the face it was documented as never touching — and proved the recency ramp cannot rank: additive light clips, so the adjacent-step ratio is 1.41 at two stops and 1.17 at four, under any threshold even at zero twinkle. A seven-step walk read 5 > 6 > 7 > 3. design-motion found the destination missing: the focused node was cut from the star set, so the newest stop drew 19x darker than the ones behind it.

@@ -193,8 +193,8 @@ describe("커서 어포던스 — 각 표면이 자기 1차 행동을 보여준�
 describe("엣지 후보 캐시 — 정지한 카메라에서 재계산 0회", () => {
   function worldWithEdges(): PointerHandlerRefs["worldRef"]["current"] {
     const nodes = [
-      { id: "a", slug: "a", kind: "domain", x: 0, y: 0, magnitudeScale: 1 },
-      { id: "b", slug: "b", kind: "domain", x: 100, y: 0, magnitudeScale: 1 },
+      { id: "a", slug: "a", kind: "domain", x: 0, y: 0, magnitudeScale: 1 , starMagnitude: 0},
+      { id: "b", slug: "b", kind: "domain", x: 100, y: 0, magnitudeScale: 1 , starMagnitude: 0},
     ];
     return {
       nodes,
