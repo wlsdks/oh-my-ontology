@@ -472,9 +472,11 @@ have documents and no code. Full contracts: the
 - **No Atlas backend, account, or telemetry.** The web app is a static export; the
   desktop app checks the public updater manifest once a day and uploads no vault
   content. A connected coding agent talks to its own provider only when you ask.
-- **Two ways in, one folder.** The web app opens it through the File System Access
-  API and the desktop app bridges to it, while MCP and CLI read it directly — the
-  app is a shell, not a silo, and the bundled server is a file your agent launches
+- **Two ways in, one folder.** The hosted web app can open a local folder through
+  the File System Access API. The desktop app uses a Tauri bridge to your selected
+  folder and keeps it open as a workspace.
+- **The Tauri macOS shell is a shell, not a silo.** MCP and CLI still read the
+  selected folder directly, and the bundled server is a file your agent launches
   itself, so it keeps working when the app is closed.
 
 ## What this is not
