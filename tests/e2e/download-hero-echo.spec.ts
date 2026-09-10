@@ -46,7 +46,19 @@ test.describe("download hero — the typing echo", () => {
     await openHero(page, "no-preference");
 
     const samples: { typed: number; lit: number; count: number; total: number }[] = [];
-    const deadline = Date.now() + 4000;
+    /*
+     * ⚠️ **This is a timeout, not a measurement, and at 4000 ms it was doing the second job.**
+     * The headline is capped at `BUDGET_MS` = 1800 ms by design, so four seconds looks like more
+     * than twice the room it needs — but the clock is wall time and the sampling runs inside it.
+     * Each turn of this loop is a `page.evaluate` that calls `getComputedStyle` on every one of
+     * the 59 characters, plus a 40 ms wait; on a loaded runner the instrument spends the budget
+     * it is measuring against. It failed three attempts in a row at 51 of 59 characters on CI and
+     * passed on a re-run of the identical commit (2026-09-10).
+     *
+     * The loop already breaks the instant the echo completes, so a healthy run still exits at
+     * about 1.9 s and a generous ceiling costs nothing. What stays strict is the assertion below.
+     */
+    const deadline = Date.now() + 12_000;
     while (Date.now() < deadline) {
       const s = await readEcho(page);
       samples.push(s);
