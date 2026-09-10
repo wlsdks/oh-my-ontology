@@ -4467,20 +4467,8 @@
       "recent": "Recent",
       "unbound": "No confirmed file target",
       "noReceipts": "No completed file operations yet",
-      "active": {
-        "read": "Reading",
-        "proposal": "Preparing a write",
-        "waiting": "Waiting for permission",
-        "write": "Writing",
-        "error": "Needs attention"
-      },
-      "complete": {
-        "read": "Read",
-        "proposal": "Write proposed",
-        "waiting": "Permission requested",
-        "write": "File changed",
-        "error": "Failed"
-      }
+      "active": { "read": "Reading", "proposal": "Preparing a write", "waiting": "Waiting for permission", "write": "Writing", "error": "Needs attention" },
+      "complete": { "read": "Read", "proposal": "Write proposed", "waiting": "Permission requested", "write": "File changed", "error": "Failed" }
     },
     "eyebrow": "In this folder",
     "lede": "The project documents you gathered, in whatever format they arrived, and the wiki pages written from them. A source is kept byte for byte, and every claim on a page cites one.",

@@ -3161,10 +3161,12 @@
        ⚠️ It also claimed the walked star and the magnitude spike were "separated by position,
        beside the node vs on it". Two commits later the mark became the node itself, so that
        separation was void and a node that was both walked and bright drew two diffraction
-       crosses at one point. They are separated by **precedence** instead: while the lens is
-       open the walked star is lit and the magnitude spike stands down, the same rule a walked
-       relation already applies to its ambient comet. Gate:
-       `tests/contract/canvas-composite-license.contract.test.ts`. */
+       crosses at one point. Precedence was tried next — the walked star lit, the magnitude
+       spike standing down — and 45-degree rotation after that. Both were arbitration between
+       two marks that meant different things, and the second rendered as an X drawn across the
+       node. The walked star wears **no cross at all** now, so there is nothing to arbitrate and
+       the magnitude spike keeps its fact; `shared/lib/star-emission.ts` carries the reasoning.
+       Gate: `tests/contract/canvas-composite-license.contract.test.ts`. */
     --color-footprint-trail-star: #ececf0;
     --map-numeral-shadow: #08080a;
     --map-numeral-face: #8c8c94;
@@ -3518,13 +3520,13 @@
        line is light, not an emphasised relation, and at the ego value it read as a slightly
        brighter dash rather than something lit (owner, 2026-09-10 — "make the lines glow
        too"). Only ever spent inside an open trail lens. */
+    --map-trail-glow-alpha: 0.85;
+    --map-trail-glow-blur-px: 26;
     /* The trail lens's reduced-motion crossfade — see `--motion-settle`, whose value this
        mirrors for a canvas that cannot read a CSS transition. Reduced motion asked for no
        travel, not for a hard cut; the ramp was snapping 0 -> 1 in a single frame
        (design-motion, 2026-09-10). */
     --map-trail-reduced-fade-ms: 240;
-    --map-trail-glow-alpha: 0.85;
-    --map-trail-glow-blur-px: 26;
     /* The bloom's own blur, wider than the line glow because a disc under a node has to read past the node's edge while a line's glow must stay a line. Named rather than written as `-ego-glow-blur-px * 1.4` in the canvas: a multiplier in TypeScript is a second blur step nobody can find (design council, 2026-09-08). */
     --map-node-bloom-blur-px: 31;
     --map-node-bloom-alpha: 0.35;
