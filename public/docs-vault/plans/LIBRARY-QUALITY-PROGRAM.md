@@ -83,3 +83,19 @@ for lost meaning or unsupported conclusions.
 The program closes only when the agreed workflows are delivered and qualified,
 and the owner has assessed Library on recurring real work. Until then, report
 bounded milestones and remaining evidence rather than a world-class verdict.
+
+## Checkpoint — 2026-09-11
+
+Retained answers now have explicit refresh, comparison and create-only revision
+storage. The source reader preserves quoted table records and gives repeated
+DOCX headings distinct locators. The [real ACP comparison](../benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11.md)
+uses frozen originals, Claude Code and Codex ACP, raw-source controls
+and fresh wiki-only readers. Its small synthetic corpus establishes bounded
+recovery, not superiority or recurring owner value; unsupported extra wording
+and ambiguous baseline locators remain in the report.
+
+Next work follows the observed gaps: finish the native retained-answer visual
+checkpoint when the Mac is unlocked; supply the measured compile clock instead
+of leaving a model to infer it; then test successive and reversed arrivals with
+human corrections. Preserve the distinction between source-byte currentness,
+extraction coverage, locator identity and factual support throughout.

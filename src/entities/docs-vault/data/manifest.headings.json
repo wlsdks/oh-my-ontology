@@ -2753,6 +2753,43 @@
       "slug": "what-this-does-and-does-not-show"
     }
   ],
+  "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Library source fidelity and ACP handoff — 2026-09-11",
+      "slug": "library-source-fidelity-and-acp-handoff-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Frozen comparison",
+      "slug": "frozen-comparison"
+    },
+    {
+      "depth": 2,
+      "text": "Answer results",
+      "slug": "answer-results"
+    },
+    {
+      "depth": 2,
+      "text": "Actual read traces",
+      "slug": "actual-read-traces"
+    },
+    {
+      "depth": 2,
+      "text": "Source-reader repair",
+      "slug": "source-reader-repair"
+    },
+    {
+      "depth": 2,
+      "text": "Controls and limits",
+      "slug": "controls-and-limits"
+    },
+    {
+      "depth": 2,
+      "text": "Reproduction evidence",
+      "slug": "reproduction-evidence"
+    }
+  ],
   "benchmark/LIBRARY-COMMUNITY-2026-09-11": [
     {
       "depth": 1,
@@ -15931,6 +15968,11 @@
       "depth": 2,
       "text": "Operating boundaries",
       "slug": "operating-boundaries"
+    },
+    {
+      "depth": 2,
+      "text": "Checkpoint — 2026-09-11",
+      "slug": "checkpoint-2026-09-11"
     }
   ],
   "plans/PRODUCT-PLAN-2026-07": [
