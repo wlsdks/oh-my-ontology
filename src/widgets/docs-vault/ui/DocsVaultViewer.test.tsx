@@ -101,6 +101,32 @@ describe("DocsVaultViewer", () => {
     expect(anchor.className).toContain("focus-visible:opacity-100");
   });
 
+  /**
+   * A document under `docs/` is read here and on GitHub, and the two rules for a
+   * heading id disagree on half of this repository's headings — an em dash
+   * between spaces leaves GitHub two hyphens and this viewer one. Measured
+   * consequence before this: the generated contents list in
+   * `docs/DESIGN-SYSTEM.md` resolved on exactly one of the two surfaces,
+   * whichever rule wrote it.
+   */
+  it("answers to GitHub's heading id as well as its own, so a link written for either surface lands", async () => {
+    const { container } = renderViewer("## Library index — readable page titles\n\nBody.");
+
+    expect(
+      await screen.findByRole("heading", { name: /Library index/ }),
+    ).toBeInTheDocument();
+    expect(container.querySelector("#library-index-readable-page-titles")).not.toBeNull();
+    expect(container.querySelector("#library-index--readable-page-titles")).not.toBeNull();
+  });
+
+  it("adds no second anchor when the two rules already agree", async () => {
+    const { container } = renderViewer("## Section One\n\nBody.");
+    await screen.findByRole("heading", { name: "Section One" });
+
+    expect(container.querySelectorAll("#section-one")).toHaveLength(1);
+    expect(container.querySelectorAll("[aria-hidden][id]")).toHaveLength(0);
+  });
+
   it("makes table links usable as source-record jump targets", async () => {
     renderViewer("| Document | Use it for |\n| --- | --- |\n| [README](README.md) | Start here |");
 

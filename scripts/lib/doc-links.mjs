@@ -58,10 +58,10 @@ export function collectHtmlAssetRefs(markdown) {
  * space or `-`, then spaces to `-`. A repeated heading gets `-1`, `-2`, ...
  *
  * Why this belongs in the link gate: the file-existence half was already
- * machine-decidable, but `docs/FILE.md#section` was only ever checked up to the
- * `#`. A section rename left the link green and the reader stranded — measured
- * once in this repository (`AGENTS.md#working-with-the-ontology-while-you-code`,
- * a heading that had not existed for months).
+ * machine-decidable, but a link was only ever checked up to the `#`. A section
+ * rename left it green and the reader stranded — measured once in this
+ * repository, where a citation pointed at a heading in the root agent guide that
+ * had not existed for months.
  */
 export function headingAnchorSlug(heading) {
   return heading
