@@ -4,8 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   scope: 'local:first#1',
   resolveRun: null as ((value: { turn: unknown }) => void) | null,
+  sourceHandles: new Map<string, { getFile: () => Promise<{ arrayBuffer: () => Promise<ArrayBuffer> }> }>(),
   fileHandles: new Map<string, { getFile: () => Promise<{ text: () => Promise<string>; lastModified: number }> }>(),
-  docs: [] as Array<{ slug: string; mtime: number }>,
+  docs: [] as Array<{ slug: string; mtime: number; title?: string; frontmatter?: Record<string, unknown>; excerpt?: string; description?: string; tags?: string[] }>,
   executor: vi.fn(),
   card: { proposal: null } as { proposal: unknown },
   createDoc: vi.fn(),
@@ -15,7 +16,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/entities/vault-session', () => ({
   useLocalVault: () => ({
-    sourceHandles: new Map(),
+    sourceHandles: mocks.sourceHandles,
     fileHandles: mocks.fileHandles,
     manifest: { docs: mocks.docs },
     createDoc: mocks.createDoc,
@@ -70,6 +71,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.scope = 'local:first#1';
   mocks.resolveRun = null;
+  mocks.sourceHandles.clear();
   mocks.fileHandles.clear();
   mocks.docs = [];
   mocks.card = { proposal: null };
@@ -80,6 +82,29 @@ function setPage(text: string, mtime = 4242) {
     getFile: async () => ({ text: async () => text, lastModified: mtime }),
   });
 }
+
+it('hashes the exact source bytes captured by the production SourceReadPort', async () => {
+  let text = 'A';
+  const getFile = vi.fn(async () => ({
+    arrayBuffer: async () => new TextEncoder().encode(text).buffer,
+  }));
+  mocks.sourceHandles.set('sources/plan.md', { getFile });
+  const source = { path: 'sources/plan.md', name: 'plan.md', format: 'md', bytes: 1, mtime: 1, state: 'not-compiled' as const, citedBy: [] };
+  const hook = renderHook(() => useLocalCompile({ ...args, sources: [source] }));
+  act(() => { void hook.result.current.run('compile plan'); });
+  await waitFor(() => expect(mocks.executor).toHaveBeenCalledOnce());
+
+  const sourcePort = mocks.executor.mock.calls[0][0].sourcePort as {
+    readSourceBytes: (path: string) => Promise<ArrayBuffer | null>;
+    hashSource: (path: string, bytes: ArrayBuffer) => Promise<string | null>;
+  };
+  const captured = await sourcePort.readSourceBytes('sources/plan.md');
+  text = 'B';
+  await expect(sourcePort.hashSource('sources/plan.md', captured!)).resolves.toBe(
+    '559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd',
+  );
+  expect(getFile).toHaveBeenCalledOnce();
+});
 
 async function start() {
   const hook = renderHook(() => useLocalCompile(args));
@@ -103,7 +128,7 @@ function replacementCard() {
 describe('local Compile reads and applies the same current Wiki snapshot', () => {
   it('reads text and timestamp from the fresh File instead of a stale manifest', async () => {
     setPage('fresh human note');
-    mocks.docs = [{ slug: 'wiki/records', mtime: 1000 }];
+    mocks.docs = [{ slug: 'wiki/records', mtime: 1000, title: 'Records', frontmatter: {}, excerpt: '', description: '', tags: [] }];
     const { reader } = await start();
     await expect(reader('wiki/records')).resolves.toEqual({ text: 'fresh human note', mtime: 4242 });
     await expect(reader('wiki/new')).resolves.toBeNull();
@@ -116,7 +141,7 @@ describe('local Compile reads and applies the same current Wiki snapshot', () =>
   });
 
   it('does not call a manifest-known page absent when its handle is missing', async () => {
-    mocks.docs = [{ slug: 'wiki/records', mtime: 4242 }];
+    mocks.docs = [{ slug: 'wiki/records', mtime: 4242, title: 'Records', frontmatter: {}, excerpt: '', description: '', tags: [] }];
     const { reader } = await start();
     await expect(reader('wiki/records')).rejects.toThrow();
   });
@@ -136,7 +161,7 @@ describe('local Compile reads and applies the same current Wiki snapshot', () =>
 
   it('applies the consented bytes with the fresh timestamp despite an older manifest', async () => {
     setPage('old human note');
-    mocks.docs = [{ slug: 'wiki/records', mtime: 1000 }];
+    mocks.docs = [{ slug: 'wiki/records', mtime: 1000, title: 'Records', frontmatter: {}, excerpt: '', description: '', tags: [] }];
     replacementCard();
     const { result } = await start();
     await act(async () => { mocks.resolveRun?.({ turn: { id: 'turn-1' } }); });

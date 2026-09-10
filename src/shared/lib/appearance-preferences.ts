@@ -311,6 +311,40 @@ export function useView3d(): boolean {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
+/* ── Galaxy (2D map, seen as a sky) ─────────────────────────────────────── */
+
+/**
+ * Whether the flat map is drawn as a galaxy — every node a star.
+ *
+ * Owner request, 2026-09-10: *"totally like a galaxy"*, in 2D. It shipped first as an
+ * **altitude**: zoom out far enough and the workbench became a sky, with no control anywhere.
+ * Seeing it built, the owner said where they had gone looking for it — the view picker that
+ * already holds Flat, Cone, Strata and Cloud — and chose to move it there and drop the altitude
+ * behaviour entirely. Both readings are defensible; what settles it is that a person looking
+ * for "how the map looks" opens that menu, and a mode nobody can find is a mode nobody has.
+ *
+ * It sits beside `view3d` rather than inside `MapArrangement` because it is not an arrangement:
+ * the three 3D entries move where nodes *are*, and this changes only how they are *drawn*. The
+ * menu presents all five as one choice because to a reader they are one question.
+ */
+const GALAXY_KEY = "atlas.appearance.galaxy";
+
+const DEFAULT_GALAXY = false;
+
+function readGalaxy(): boolean {
+  return readOnOff(GALAXY_KEY, DEFAULT_GALAXY);
+}
+
+export function writeGalaxy(value: boolean): void {
+  writeOnOff(GALAXY_KEY, value);
+}
+
+export function useGalaxy(): boolean {
+  const getSnapshot = useCallback(() => readGalaxy(), []);
+  const getServerSnapshot = useCallback(() => DEFAULT_GALAXY, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 /* ── Arrangement (3D map) ───────────────────────────────────────────────── */
 
 /**
@@ -512,43 +546,44 @@ export function useMutedAgentNotificationKinds(): ReadonlySet<string> {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
-/* ── Footprints (the path walked) ───────────────────────────────────────── */
+/* ── The path you walked ────────────────────────────────────────────────── */
 
 /**
- * - `right` — a single line to the right of travel. Says "someone passed here"
- *   without covering the edge.
- * - `both` — alternating either side of the edge, closest to a real gait.
+ * Three named tones, not a colour picker.
+ *
+ * `star` is the default and the map's own ink: `render/starfield.ts` already paints its
+ * far-field dust and diffraction spikes at this value, under a header that names the
+ * language — "B1 constellation DNA". The walked path was the one mark standing outside it.
+ *
+ * The other two stay because they were chosen deliberately and neither is broken. Yellow
+ * already means something here — hub amber `#d4b478` says "this is a centre" — so the trail
+ * uses a different value in the same family rather than the hub's own bits. Indigo is a
+ * value on the selection ladder, pale enough to clear contrast where the accent did not.
+ * A person who prefers either keeps it; what changed is which one a folder opens with.
  */
-type FootprintPlacement = "right" | "both";
+export type FootprintTone = "amber" | "indigo" | "star";
 
 /**
- * Two tones, not a colour picker. Yellow already means something on this map —
- * hub amber `#d4b478` says "this is a centre" — so painting footprints with the
- * same bit would collapse "this is central" and "someone walked here" into one
- * colour. Yellow is still used, but at a different value in the same family
- * (`--color-footprint-trail`).
+ * The one place a tone names its token.
+ *
+ * ⚠️ There used to be three: the map loop, the settings preview, and a bare hex default. The
+ * preview still branched two ways after the star tone landed, so picking "starlight" painted
+ * **amber** in the preview while the map painted white — and that module's own header says a
+ * preview that drifts stops being a preview (design-system, 2026-09-10). Every consumer reads
+ * this, so a fourth tone cannot be added to the union and forgotten in one of them.
  */
-type FootprintTone = "amber" | "indigo";
-
-/**
- * Density, not a numeric slider. The count is decoration — an even division of
- * edge length — but exposed as a number it reads as data ("this path was walked
- * 4 times"), a promise the screen never made. Two steps only.
- */
-export type FootprintEdgeDensity = "sparse" | "dense";
-
-/** Density step → marks stamped along one edge. */
-export const FOOTPRINT_EDGE_COUNT: Readonly<Record<FootprintEdgeDensity, number>> = {
-  sparse: 2,
-  dense: 5,
+export const FOOTPRINT_TONE_TOKEN: Record<FootprintTone, string> = {
+  star: "--color-footprint-trail-star",
+  indigo: "--color-footprint-trail-indigo",
+  amber: "--color-footprint-trail",
 };
 
-/**
- * A constant, deliberately not a preference: opened up it multiplies with the
- * mark size and lets an edge footprint grow larger than the smallest node (34px
- * diameter).
- */
-export const FOOTPRINT_EDGE_SCALE = 0.9;
+/** Last-resort ink per tone, byte-equal to the tokens above, for a missing custom property. */
+export const FOOTPRINT_TONE_FALLBACK: Record<FootprintTone, readonly [number, number, number]> = {
+  star: [236, 236, 240],
+  indigo: [200, 210, 255],
+  amber: [232, 196, 122],
+};
 
 /**
  * Footprint appearance — the values the owner tunes directly (2026-07-29).
@@ -566,36 +601,39 @@ export const FOOTPRINT_EDGE_SCALE = 0.9;
  * Field names describe what is seen, not the value behind it ("Intensity" rather
  * than "alpha") — a settings screen is not a code review.
  */
+/**
+ * What a person may choose about their walked path.
+ *
+ * ⚠️ **Six of these were retired on 2026-09-10 and the reason is worth keeping.** They
+ * described a *glyph* — its fill, its outline weight, its bloom, whether it repeated along the
+ * relation, how densely, and on which side. There is no glyph: the owner asked for the
+ * footprint mark to go and for the node's own border to light instead, so the walked path is
+ * now the node emitting, a line, and a number. A control whose value nothing reads is worse
+ * than a missing one, because a person spends attention setting it and gets nothing back.
+ *
+ * Stored preferences carrying the old keys still load — `resolveFootprint` reads the fields it
+ * knows and ignores the rest — so nobody's saved settings break; the retired values simply
+ * stop being consulted.
+ */
 export interface FootprintPreference {
-  /** Long-axis length of one foot, in px. */
+  /**
+   * How far the step number sits from the node, in px, before the gap is added.
+   *
+   * It sized the glyph once. It now only places the ordinal, which is why the settings screen
+   * no longer calls it "star size": the star is the node, and the node's size is the map's.
+   */
   size: number;
-  /** Off draws the outline only. */
-  filled: boolean;
-  /** Stroke width in px. **Only visible when unfilled** — a dead value otherwise. */
-  strokeWidth: number;
-  /** Offset from node *and* edge, in px. One value because it is one sentence to the user. */
+  /** Extra offset for the step number, in px. */
   gap: number;
   opacity: number;
   tone: FootprintTone;
-  /** Bloom in px; 0 by default. The cap is low because this is the charter's one
-   *  glow exception (a static halo). */
-  bloom: number;
-  onEdges: boolean;
-  edgeDensity: FootprintEdgeDensity;
-  placement: FootprintPlacement;
 }
 
 export const DEFAULT_FOOTPRINT: FootprintPreference = {
   size: 13,
-  filled: true,
-  strokeWidth: 1.5,
   gap: 8,
   opacity: 0.7,
-  tone: "amber",
-  bloom: 0,
-  onEdges: true,
-  edgeDensity: "dense",
-  placement: "right",
+  tone: "star",
 };
 
 /**
@@ -609,10 +647,8 @@ export const DEFAULT_FOOTPRINT: FootprintPreference = {
  */
 export const FOOTPRINT_RANGES = {
   size: { min: 9, max: 26, step: 1 },
-  strokeWidth: { min: 0.5, max: 1.8, step: 0.1 },
   gap: { min: 0, max: 28, step: 1 },
   opacity: { min: 0.5, max: 1, step: 0.05 },
-  bloom: { min: 0, max: 6, step: 1 },
 } as const satisfies Record<string, { min: number; max: number; step: number }>;
 
 /**
@@ -621,9 +657,9 @@ export const FOOTPRINT_RANGES = {
  * 「Manual Tuning」 (the manual-tuning disclosure).
  */
 export const FOOTPRINT_PRESETS = {
-  subtle: { size: 10, opacity: 0.5, bloom: 0, edgeDensity: "sparse" },
-  default: { size: 13, opacity: 0.7, bloom: 0, edgeDensity: "dense" },
-  bold: { size: 17, opacity: 0.95, bloom: 3, edgeDensity: "dense" },
+  subtle: { size: 10, opacity: 0.5 },
+  default: { size: 13, opacity: 0.7 },
+  bold: { size: 17, opacity: 0.95 },
 } as const satisfies Record<string, Partial<FootprintPreference>>;
 
 export type FootprintPresetName = keyof typeof FOOTPRINT_PRESETS;
@@ -644,20 +680,21 @@ export function resolveFootprint(raw: unknown): FootprintPreference {
     if (typeof v !== "number" || !Number.isFinite(v)) return DEFAULT_FOOTPRINT[key];
     return clamp(v, FOOTPRINT_RANGES[key].min, FOOTPRINT_RANGES[key].max);
   };
+  /*
+   * Only the four live fields are read. A preference saved before 2026-09-10 still carries
+   * `filled`, `strokeWidth`, `bloom`, `onEdges`, `edgeDensity` and `placement`; they are
+   * ignored rather than migrated, because there is nothing to migrate them *to* — the glyph
+   * they described no longer exists. Ignoring is also what keeps this function total: a stored
+   * shape from any version resolves, and no key is required to be present.
+   */
   return {
     size: num("size"),
-    filled: typeof src.filled === "boolean" ? src.filled : DEFAULT_FOOTPRINT.filled,
-    strokeWidth: num("strokeWidth"),
     gap: num("gap"),
     opacity: num("opacity"),
-    tone: src.tone === "indigo" || src.tone === "amber" ? src.tone : DEFAULT_FOOTPRINT.tone,
-    bloom: num("bloom"),
-    onEdges: typeof src.onEdges === "boolean" ? src.onEdges : DEFAULT_FOOTPRINT.onEdges,
-    edgeDensity:
-      src.edgeDensity === "sparse" || src.edgeDensity === "dense"
-        ? src.edgeDensity
-        : DEFAULT_FOOTPRINT.edgeDensity,
-    placement: src.placement === "both" || src.placement === "right" ? src.placement : DEFAULT_FOOTPRINT.placement,
+    tone:
+      src.tone === "indigo" || src.tone === "amber" || src.tone === "star"
+        ? src.tone
+        : DEFAULT_FOOTPRINT.tone,
   };
 }
 

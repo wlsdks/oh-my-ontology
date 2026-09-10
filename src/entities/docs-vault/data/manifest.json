@@ -95,7 +95,7 @@
       },
       "headings": [],
       "excerpt": "2026-07-27 update — the current architecture is a local-first, git-backed meaning layer: a folder of markdown files that records what each part of the product is, who owns it, what it depends on, and what proves it. People and AI coding agents read and write that same folder. Round 10 permanently removed every login an",
-      "wordCount": 5463,
+      "wordCount": 5696,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -495,6 +495,20 @@
       "linksOut": []
     },
     {
+      "slug": "benchmark/FINDINGS-2026-09-10-wiki-retrieval",
+      "path": "docs/benchmark/FINDINGS-2026-09-10-wiki-retrieval.md",
+      "title": "Local wiki retrieval and revision pilot — 2026-09-10",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "Related-page retrieval found the saved answer in all three fictional arrivals, among 36 unrelated pages per case. Both local models opened the suggested answer. Neither completed all preservation obligations. This identifies a remaining revision problem; it does not establish a quality improvement over the previous imp",
+      "wordCount": 511,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "benchmark/WIKI-ACCUMULATION-EVAL"
+      ]
+    },
+    {
       "slug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
       "path": "docs/benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11.md",
       "title": "Library maintenance across ordered source arrivals — 2026-09-11",
@@ -572,10 +586,11 @@
       "tags": [],
       "frontmatter": {},
       "headings": [],
-      "excerpt": "The single biggest unverified premise of this project: \"AI agents work better when they can read and write the codebase ontology vault.\" Until we have data, this is a belief, not a claim. This folder is the first attempt to put it on a measurement scale. We built CLI · MCP · graph tooling · a macOS local workbench all ",
-      "wordCount": 3275,
-      "updatedAt": "2026-09-07",
+      "excerpt": "For local wiki revision, related-page retrieval and omission checks, see the wiki accumulation evaluation and run pnpm evaluate:wiki. The single biggest unverified premise of this project: \"AI agents work better when they can read and write the codebase ontology vault.\" Until we have data, this is a belief, not a claim",
+      "wordCount": 3293,
+      "updatedAt": "2026-09-11",
       "linksOut": [
+        "benchmark/WIKI-ACCUMULATION-EVAL",
         "benchmark/FINDINGS-2026-08-25",
         "benchmark/tasks",
         "benchmark/rubric",
@@ -877,6 +892,21 @@
       "linksOut": []
     },
     {
+      "slug": "benchmark/WIKI-ACCUMULATION-EVAL",
+      "path": "docs/benchmark/WIKI-ACCUMULATION-EVAL.md",
+      "title": "Wiki accumulation evaluation",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "The evaluation asks whether a new original helps update a related saved answer without dropping earlier evidence or a human's note. It exercises the local Compile route. It does not evaluate ACP, public MCP ontology construction or semantic retrieval across arbitrary languages. The first local-model pilot records succe",
+      "wordCount": 571,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "benchmark/FINDINGS-2026-09-10-wiki-retrieval",
+        "benchmark/FINDINGS-2026-09-06-wiki-accumulation-probe"
+      ]
+    },
+    {
       "slug": "BRAND",
       "path": "docs/BRAND.md",
       "title": "Brand — Ontology Atlas",
@@ -898,7 +928,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed, for a person who uses the product. Newest at the top. One entry per release, named by its tag; the single Unreleased entry at the top collects what has merged since the last tag, and the release cut renames it. v1.0.0",
-      "wordCount": 30041,
+      "wordCount": 30027,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -934,7 +964,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 122477,
+      "wordCount": 127230,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "wiki/…",
@@ -1001,8 +1031,8 @@
       },
       "headings": [],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from ontology-map has become the standard for page rollout (gateway → docs/ontology hub → projects/ins",
-      "wordCount": 43402,
-      "updatedAt": "2026-09-09",
+      "wordCount": 44615,
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "design-references/DESIGN-linear",
         "ONTOLOGY-MAP-DESIGN",
@@ -1042,7 +1072,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 40353,
+      "wordCount": 40895,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -2288,7 +2318,7 @@
       },
       "headings": [],
       "excerpt": "The app's connect flow and MCP surface that allow AI agents to discover, authenticate, read, and write the vault. Interactive agents within the app collect actual vault tool evidence. Activated only when both absolute paths and read manifests are present, ensuring concepts on screen, text read by models, and audit logs",
-      "wordCount": 794,
+      "wordCount": 1135,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -4092,8 +4122,8 @@
       },
       "headings": [],
       "excerpt": "A local-first codebase ontology workbench that records what a codebase builds, why it is structured that way, and what a change will affect. It links product domains and capabilities to implementation evidence, dependencies, and impact in a computable Markdown graph that people and AI agents maintain together. Library ",
-      "wordCount": 913,
-      "updatedAt": "2026-09-09",
+      "wordCount": 989,
+      "updatedAt": "2026-09-11",
       "linksOut": []
     },
     {
@@ -4136,7 +4166,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Owner direction, 2026-09-11: make Library useful enough that a person would choose Atlas for Library alone. Incoming originals should contribute to connected, maintained knowledge that a later reader can inspect, question, correct and reuse. The owner selected a question-led entrance with explicitly refreshed retained ",
-      "wordCount": 1109,
+      "wordCount": 1177,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "benchmark/LIBRARY-COMMUNITY-2026-09-11",
@@ -4394,7 +4424,7 @@
     "RETAINED-ANSWERS": [
       {
         "fromSlug": "ARCHITECTURE",
-        "context": "ytes. These observations are separate from source-read provenance. The record and concurrency limits are defined in **[Retained answers]**. The Library's live-work projection is separate from the persisted graph: `src/features/library/model/library-work-act",
+        "context": "ytes. These observations are separate from source-read provenance. The record and concurrency limits are defined in **[Retained answers]**. - `vault-library.ts` keeps source coverage separate from per-page freshness. `reviewPages` names stale or unmeasure",
         "linkText": "Retained answers"
       },
       {
@@ -4845,6 +4875,18 @@
         "linkText": "`results/2026-08-31-gb-r3-summary.md`"
       }
     ],
+    "benchmark/WIKI-ACCUMULATION-EVAL": [
+      {
+        "fromSlug": "benchmark/FINDINGS-2026-09-10-wiki-retrieval",
+        "context": "stablish a quality improvement over the previous implementation because there was no paired run without retrieval. The **[protocol]** and sealed fixture corpus were in place before generation. Each model ran once per case through the production local Co",
+        "linkText": "protocol"
+      },
+      {
+        "fromSlug": "benchmark/README",
+        "context": "oes the ontology actually help AI agents? For local wiki revision, related-page retrieval and omission checks, see the **[wiki accumulation evaluation]** and run `pnpm evaluate:wiki`. > The single biggest unverified premise of this project: > > **\"AI agents work better wh",
+        "linkText": "wiki accumulation evaluation"
+      }
+    ],
     "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11": [
       {
         "fromSlug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
@@ -4900,6 +4942,11 @@
         "fromSlug": "benchmark/README",
         "context": "w folder: 5/5 both, pages in under half the time; the answer key's accent hue was wrong and the sources were right. | | **[`FINDINGS-2026-09-06-wiki-accumulation-probe.md`]** | Seven sealed documents compiled all at once and one at a time through the current Compile brief: every reader scores",
         "linkText": "`FINDINGS-2026-09-06-wiki-accumulation-probe.md`"
+      },
+      {
+        "fromSlug": "benchmark/WIKI-ACCUMULATION-EVAL",
+        "context": "valuate-wiki-accumulation.mjs`; the rubric lives in `scripts/lib/wiki-accumulation-eval.mjs`. This extends the earlier **[sequential accumulation probe]** with a repeatable local-model test. It preserves the existing one-page-per-source policy and human approval boundary. I",
+        "linkText": "sequential accumulation probe"
       }
     ],
     "benchmark/FINDINGS-2026-08-31-change-flow": [
@@ -4928,6 +4975,13 @@
         "fromSlug": "benchmark/README",
         "context": "(results/2026-08-31-change-r7-summary.md) | Four-cell change-flow result with direct Git and Atlas update receipts. | | **[`results/2026-05-template.md`]** | Empty matrix (task × agent × mode). Fill in after each measurement run. | ## How to measure Two paths, depending on",
         "linkText": "`results/2026-05-template.md`"
+      }
+    ],
+    "benchmark/FINDINGS-2026-09-10-wiki-retrieval": [
+      {
+        "fromSlug": "benchmark/WIKI-ACCUMULATION-EVAL",
+        "context": "It does not evaluate ACP, public MCP ontology construction or semantic retrieval across arbitrary languages. The first **[local-model pilot]** records successful retrieval alongside failed preservation, with replayable outputs. ```bash pnpm evaluate:wiki pnpm e",
+        "linkText": "local-model pilot"
       }
     ],
     "benchmark/results/2026-05-04-claude-code": [
@@ -6836,6 +6890,13 @@
             "title": "Findings 2026-09-06 · the sealed five-question wiki probe"
           },
           {
+            "name": "FINDINGS-2026-09-10-wiki-retrieval",
+            "path": "benchmark/FINDINGS-2026-09-10-wiki-retrieval",
+            "type": "doc",
+            "slug": "benchmark/FINDINGS-2026-09-10-wiki-retrieval",
+            "title": "Local wiki retrieval and revision pilot — 2026-09-10"
+          },
+          {
             "name": "LIBRARY-ACP-MAINTENANCE-2026-09-11",
             "path": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
             "type": "doc",
@@ -6904,6 +6965,13 @@
             "type": "doc",
             "slug": "benchmark/THREE-PROBE-2026-09-06",
             "title": "three.js structure probe, 2026-09-06"
+          },
+          {
+            "name": "WIKI-ACCUMULATION-EVAL",
+            "path": "benchmark/WIKI-ACCUMULATION-EVAL",
+            "type": "doc",
+            "slug": "benchmark/WIKI-ACCUMULATION-EVAL",
+            "title": "Wiki accumulation evaluation"
           }
         ]
       },

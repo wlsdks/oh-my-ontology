@@ -4,7 +4,7 @@
  * component-local state.
  *
  * There are seven tabs, **one per question**: to do (the default) · unmatched · composition ·
- * connections · boundaries · freshness · flow. Flow is the only one whose answer is written by an agent rather
+ * connections · boundaries · growth · flow. Flow is the only one whose answer is written by an agent rather
  * than computed from the graph: its question is "what is this product and how does it move", and
  * that is prose a person reads once on first contact, not a measurement. When one tab holds several questions, a user has to scroll past two
  * screens of unrelated material to answer their own — the former `structure` tab really did stack
@@ -24,7 +24,7 @@ export const INSIGHTS_TABS = [
   "composition",
   "connections",
   "boundaries",
-  "freshness",
+  "growth",
   "flow",
 ] as const;
 
@@ -48,6 +48,10 @@ const LEGACY_TAB_ALIASES: Record<string, InsightsTab> = {
   // The former structure tab → split into composition/connections/boundaries. Its first question
   // ("what exists, how much") is composition, so it goes there.
   structure: "composition",
+  // The former freshness tab. It asked "what moved lately" and answered it from file dates;
+  // it now asks "what has this folder grown into", and the file-date answer became the
+  // supporting detail under it (owner, 2026-09-09).
+  freshness: "growth",
 };
 
 /** The raw `searchParams.get("tab")` value (string | null) → a valid tab. Unknown or missing gives the default. */
@@ -65,6 +69,22 @@ export function parseInsightsTab(raw: string | null | undefined): InsightsTab {
 export function buildInsightsTabHref(
   tab: InsightsTab,
   pathname = "/ontology/insights/",
+  /** The query the switch happens from. Defaults to the live one; passed in by tests. */
+  currentSearch = typeof window === "undefined" ? "" : window.location.search,
 ): string {
-  return tab === DEFAULT_INSIGHTS_TAB ? pathname : `${pathname}?tab=${tab}`;
+  /*
+   * ⚠️ **Switching tabs used to throw the rest of the address away.** This returned
+   * `${pathname}?tab=${tab}`, replacing the whole query, so `?guides=off&tab=growth` became
+   * `?tab=connections` on the next click and the guide suppression silently came back
+   * (design-interaction, 2026-09-09). Every orthogonal flag on this route — the guide flag,
+   * fixtures, anything a later view option adds — died the same way.
+   *
+   * `/architecture` already solved this and pins it; this is the same shape, so the two
+   * boards cannot drift apart on what an address means.
+   */
+  const query = new URLSearchParams(currentSearch);
+  query.delete("tab");
+  if (tab !== DEFAULT_INSIGHTS_TAB) query.set("tab", tab);
+  const search = query.toString();
+  return search ? `${pathname}?${search}` : pathname;
 }

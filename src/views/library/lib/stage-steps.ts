@@ -61,7 +61,7 @@ export interface LibraryStepStates {
  * rather than to print a zero.
  */
 export function libraryWaitingLine(
-  model: Pick<LibraryUiModel, "notCompiledCount" | "staleCount" | "partialCount">,
+  model: Pick<LibraryUiModel, "notCompiledCount" | "staleCount" | "partialCount"> & Partial<Pick<LibraryUiModel, "sources">>,
   t: ReturnType<typeof useTranslations<"library">>,
 ): string | null {
   const clauses: string[] = [];
@@ -84,6 +84,10 @@ export function libraryWaitingLine(
    */
   if (model.partialCount > 0) {
     clauses.push(t("sources.partialOnly", { count: model.partialCount }));
+  }
+  const reviewCount = new Set((model.sources ?? []).flatMap((source) => source.reviewPages ?? [])).size;
+  if (reviewCount > 0) {
+    clauses.push(t("sources.pagesNeedReview", { count: reviewCount }));
   }
   return clauses.length === 0 ? null : clauses.join(" · ");
 }
@@ -129,4 +133,45 @@ export function libraryStepStates(
     leadIndex: [gather, compile, read].indexOf("next"),
     checkingCount,
   };
+}
+
+
+/**
+ * **Which coverage sentence the read step prints, and with which numbers.**
+ *
+ * The plain sentence — *N of M sources written up* — is true only of a folder where
+ * everything not written up is simply untouched. Three states break that, because a
+ * source in any of them has a page (or is about to) and still is not `compiled`:
+ *
+ *   - `checking`  the hash has not been taken yet, so nothing is known;
+ *   - `partial`   the run read only the first part of the file;
+ *   - `stale`     a page exists and the bytes have moved under it.
+ *
+ * ⚠️ **Each was found the same way, one at a time, by an owner reading a real folder.**
+ * `checking` first (the guide said *done* over *0 of 7 written up*), then `partial` (*0
+ * of 2 written up* beside a shelf holding a page), and `stale` last (2026-09-09: *0 of 6
+ * sources written up* under a shelf of four wiki pages, on the most ordinary folder of
+ * the three — a folder whose sources have all been written up and have since changed).
+ * The first two repairs each added their own clause and left the third case reading zero.
+ *
+ * Living here rather than in the JSX is what makes the fourth one a test instead of a
+ * fourth owner report. The chain still names **one** clause, most specific first: a
+ * caption that lists every qualifier at once is the header this stepper replaced.
+ */
+export function libraryCoverageCaption(
+  model: Pick<LibraryUiModel, "sources" | "partialCount" | "staleCount">,
+  checkingCount: number,
+): { key: "coveredChecking" | "coveredPartial" | "coveredStale" | "coveredLine"; values: Record<string, number> } {
+  const total = model.sources.length;
+  const compiled = model.sources.filter((row) => row.state === "compiled").length;
+  if (checkingCount > 0) {
+    return { key: "coveredChecking", values: { compiled, total, checking: checkingCount } };
+  }
+  if (model.partialCount > 0) {
+    return { key: "coveredPartial", values: { compiled, total, partial: model.partialCount } };
+  }
+  if (model.staleCount > 0) {
+    return { key: "coveredStale", values: { compiled, total, stale: model.staleCount } };
+  }
+  return { key: "coveredLine", values: { compiled, total } };
 }

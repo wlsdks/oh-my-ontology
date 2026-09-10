@@ -32,6 +32,15 @@ const SOURCES: LibrarySourceRow[] = [
 ];
 
 describe("Compile acts on what is not written up", () => {
+  it("names each outdated page to revise, including filed answers, without duplicating the source write-up", () => {
+    const sources = [{ ...row('sources/plan.txt', 'compiled'), reviewPages: ['wiki/research/date', 'wiki/old-plan'] }];
+    expect(selectCompileTargets(sources)).toHaveLength(1);
+    const brief = buildCompileBrief({ sources, locale: 'en', writerId: 'agent:claude', vaultRoot: VAULT_ROOT });
+    expect(brief).toContain('wiki/research/date.md');
+    expect(brief).toContain('wiki/old-plan.md');
+    expect(brief).toContain('sources/plan.txt');
+  });
+
   it("targets the not-compiled, the stale and the part-read, and leaves the rest alone", () => {
     // A page written from the first part of a long file has the rest of that file still
     // to read, and this run is the one that reads it.
@@ -363,7 +372,7 @@ describe("local execution stays within its reader and review boundary", () => {
     });
   }
 
-  it("labels nested Wiki references as uninspected instead of sending them to the local reader", () => {
+  it("lists inventoried nested Wiki pages while keeping retained answers outside the reader", () => {
     const brief = buildCompileBrief({
       sources: [row("sources/plan.md", "not-compiled")],
       existingPages: [
@@ -380,11 +389,12 @@ describe("local execution stays within its reader and review boundary", () => {
     expect(brief).toContain("- wiki/quarter-plan.md — Quarter plan — sources/plan.md");
     expect(brief).toContain("Out-of-reach Wiki references (contents uninspected by local tools)");
     expect(brief).toContain("- wiki/answers/retained.md — Retained answer — sources/plan.md (uninspected)");
-    expect(brief).toContain("- wiki/notes/appendix.md — Nested note (uninspected)");
-    expect(brief).toContain("reachable root `wiki/<basename>.md` page");
+    expect(brief).toContain("- wiki/notes/appendix.md — Nested note");
+    expect(brief).not.toContain("Nested note (uninspected)");
+    expect(brief).toContain("reachable exact `wiki/...` page");
   });
 
-  it("does not call a root page with an overlong basename reachable", () => {
+  it("keeps existing long addresses reachable without applying the new-name limit", () => {
     const longBasename = "a".repeat(81);
     const brief = buildCompileBrief({
       sources: [row("sources/plan.md", "not-compiled")],
@@ -397,17 +407,13 @@ describe("local execution stays within its reader and review boundary", () => {
       vaultRoot: VAULT_ROOT,
       execution: "local",
     });
-    const rootSection = brief.slice(
-      brief.indexOf("Reachable root Wiki pages"),
-      brief.indexOf("Out-of-reach Wiki references"),
-    );
-
-    expect(rootSection).toContain("wiki/quarter-plan");
-    expect(rootSection).not.toContain(longBasename);
-    expect(brief).toContain(`- wiki/${longBasename}.md — Too long (uninspected)`);
+    expect(brief).toContain("Reachable Wiki pages");
+    expect(brief).toContain("wiki/quarter-plan");
+    expect(brief).toContain(`- wiki/${longBasename}.md — Too long`);
+    expect(brief).not.toContain("Out-of-reach Wiki references");
   });
 
-  it("does not claim the Wiki folder is empty when only nested references exist", () => {
+  it("does not claim the Wiki folder is empty when only reserved references exist", () => {
     const brief = buildCompileBrief({
       sources: [row("sources/plan.md", "not-compiled")],
       existingPages: [
@@ -419,7 +425,7 @@ describe("local execution stays within its reader and review boundary", () => {
       execution: "local",
     });
 
-    expect(brief).toContain("No reachable root Wiki pages are available");
+    expect(brief).toContain("No reachable Wiki pages are available");
     expect(brief).not.toContain("Nothing is under `wiki/` yet");
   });
 });

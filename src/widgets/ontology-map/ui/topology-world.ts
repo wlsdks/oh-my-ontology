@@ -9,6 +9,7 @@
 
 import { DEFAULT_EXPAND } from "@/shared/lib/appearance-preferences";
 import type { ExpandStructure } from "@/shared/lib/appearance-preferences";
+import { starMagnitude } from "../model/galaxy";
 import { computeDensityGate, type DensityGateParentGeometry } from "../model/density-gate";
 import { computeConcentricLayout, type LayoutGraphNode, type LayoutRings } from "../model/layout";
 import { computeBowControlPoint, computeDependsBowControlPoint } from "../render/traces";
@@ -64,6 +65,14 @@ export interface WorldNode {
    * pre-attentive, the badge is for reading.
    */
   magnitudeScale: number;
+  /**
+   * 0–1 star magnitude, from `size + fullDegree * 18` normalised across the graph.
+   *
+   * The same expression `brightStarIds` is ranked by, kept per node instead of thresholded, so
+   * the galaxy's brightness is the continuous form of a fact this map already had rather than a
+   * new one invented for it (`model/galaxy.ts`).
+   */
+  starMagnitude: number;
 }
 
 export interface WorldEdge {
@@ -464,6 +473,7 @@ export function buildTopologyWorld(
       stale: n.stale ?? false,
       count: n.descendantCount,
       magnitudeScale: 1, // Filled by the second pass below, once maxCount is settled.
+      starMagnitude: 0, // Filled once the graph's brightest node is known.
 
     };
   });
@@ -561,8 +571,20 @@ export function buildTopologyWorld(
   // magnitude = size + fullDegree*18, ported from the prototype's `count +
   // degree*18` — the adapter has no separate "count" field, `size` is its
   // closest analog (follow-up: confirm with the HomePage adapter contract).
-  const ranked = [...nodes].sort((x, y) => y.size + y.fullDegree * 18 - (x.size + x.fullDegree * 18));
+  const rawMagnitude = (n: { size: number; fullDegree: number }) => n.size + n.fullDegree * 18;
+  const ranked = [...nodes].sort((x, y) => rawMagnitude(y) - rawMagnitude(x));
   const brightStarIds = new Set(ranked.slice(0, Math.max(0, Math.round(tokens.starCount))).map((n) => n.id));
+  /*
+   * The same ranking, kept rather than thresholded. `brightStarIds` answers "which twelve wear a
+   * diffraction cross"; this answers "how bright is each of them", which is what a sky needs
+   * (`model/galaxy.ts`). Normalising against the brightest node rather than a constant keeps a
+   * small vault's own hub at full magnitude instead of leaving every star in it dim.
+   */
+  const brightestRaw = ranked.length > 0 ? rawMagnitude(ranked[0]!) : 0;
+  const rawById = new Map(nodes.map((n) => [n.id, rawMagnitude(n)]));
+  for (const node of worldNodes) {
+    node.starMagnitude = starMagnitude(rawById.get(node.id) ?? 0, 0, brightestRaw);
+  }
 
   // Node → the index of the edges attached to it. Built once at build time, it makes
   // the frame path that refreshes «only the moved nodes' edges» possible

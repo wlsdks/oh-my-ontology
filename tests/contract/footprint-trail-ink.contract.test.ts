@@ -40,7 +40,7 @@ function contrastRatio(a: readonly number[], b: readonly number[]): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-describe("발자국 잉크 — 고를 수 있는 두 톤은 모두 읽힌다", () => {
+describe("걸어온 길 잉크 — 고를 수 있는 세 톤은 모두 읽힌다", () => {
   /**
    * The footprint must be readable in **every combination the user can choose**.
    *
@@ -53,12 +53,15 @@ describe("발자국 잉크 — 고를 수 있는 두 톤은 모두 읽힌다", (
    * It is the kind of thing a single value edit breaks again, so it is locked by
    * value. WCAG 1.4.11 non-text contrast, 3:1.
    */
-  it("두 톤 모두 최저 진하기에서 3:1 을 넘는다", () => {
+  it("세 톤 모두 최저 진하기에서 3:1 을 넘는다", () => {
     const css = read("app/globals.css");
     const bg = hexRgb(/--map-canvas-bg-near:\s*(#[0-9a-fA-F]{6})/.exec(css)![1]);
     const tones = {
       amber: /--color-footprint-trail:\s*(#[0-9a-fA-F]{6})/.exec(css)![1],
       indigo: /--color-footprint-trail-indigo:\s*(#[0-9a-fA-F]{6})/.exec(css)![1],
+      // Added 2026-09-10 with the star tone. A third choice is a third way to pick an
+      // invisible trail, so it is held to the same floor as the two before it.
+      star: /--color-footprint-trail-star:\s*(#[0-9a-fA-F]{6})/.exec(css)![1],
     };
     for (const [name, hexValue] of Object.entries(tones)) {
       const over = hexRgb(hexValue).map((c, i) => c * FOOTPRINT_RANGES.opacity.min + bg[i] * (1 - FOOTPRINT_RANGES.opacity.min));
@@ -180,5 +183,41 @@ describe("걸어온 길 렌즈 — 노드와 선의 트레일 잉크", () => {
     );
     expect(source).toContain("walkedEdgeKeys");
     expect(source).toContain("trailWalked: walkedTrail");
+  });
+});
+
+describe("별빛 톤은 지도가 이미 쓰는 별 잉크와 같은 값이다", () => {
+  /*
+   * ⚠️ The point of the star tone is that it is **not a new hue**. `render/starfield.ts`
+   * paints the far-field dust and the diffraction spikes at this value already, under a
+   * header naming the language ("B1 constellation DNA"). If the two drift apart, the map
+   * ends up with two whites that mean nearly the same thing, which is the drift the whole
+   * change exists to end.
+   */
+  /*
+   * ⚠️ **This assertion could not fail, and shipped claiming it had been probed red**
+   * (design-system, 2026-09-10). It searched the whole file for the value's `rgba(...)`, and
+   * `starfield.ts` line 3 *documents* its own literal in a comment — so the comment alone
+   * satisfied the match. Rewriting both painted lines to a peach left it green: the map
+   * would paint peach dust beside a white trail, which is the exact two-whites failure this
+   * test names. It now strips comments, and asserts **every** painted literal rather than
+   * the existence of one, so a second white cannot be added either, and a length floor
+   * catches the way a text-presence gate really dies — the literals being deleted.
+   */
+  it("starfield 이 칠하는 모든 값과 어긋나지 않는다", () => {
+    const css = read("app/globals.css");
+    const trail = /--color-footprint-trail-star:\s*(#[0-9a-fA-F]{6})/.exec(css)![1].toLowerCase();
+    const rgb = hexRgb(trail);
+    const code = read("src/widgets/ontology-map/render/starfield.ts")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1");
+    const painted = [...code.matchAll(/rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,/g)];
+    expect(painted.length, "starfield 이 아무 색도 칠하지 않는다 — 게이트가 죽었다").toBeGreaterThan(0);
+    for (const m of painted) {
+      expect(
+        [Number(m[1]), Number(m[2]), Number(m[3])],
+        `별빛 톤 ${trail} 이 starfield 가 칠하는 rgba(${m[1]},${m[2]},${m[3]}) 와 다르다 — 흰색이 두 개가 된다`,
+      ).toEqual(rgb);
+    }
   });
 });

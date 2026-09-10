@@ -116,6 +116,7 @@ export function LibraryShelf({
       >
         {spines.map(({ page, freshness, ownProblem }) => {
           const active = page.slug === selectedSlug;
+          const answerVersion = model.answerVersions?.get(page.slug);
           const writer = (page.createdBy ?? "") !== majorityWriter ? writerLabel(page.createdBy, t) : null;
           /*
            * Everything the spine cannot draw at 26px wide is said here, so the mark and
@@ -123,8 +124,27 @@ export function LibraryShelf({
            * title (a spine truncates), the freshness in words, the template problem's
            * own code, and the writer where it is the exception.
            */
+          /*
+           * ⚠️ **The dot marks the page's own defect, and nothing else** (guardian,
+           * 2026-09-09). It shipped as `stale || ownProblem`, and on the owner's folder
+           * that put the warning ink — `--color-amber-source-a90` is the same value as
+           * `--color-status-warning` — on 3 of 3 rows. A mark every row wears carries
+           * nothing, and 3/3 was not a small sample: staleness is the *resting* state of
+           * a folder somebody is working in, so a union with it trends to every row on
+           * any live shelf.
+           *
+           * `stale` is not dropped; it is said in words on the caption below, where it
+           * always was, and in the accessible name. The dot is pointed at the one fact
+           * that line can lose: it reads `<source state> · <off-template>` inside
+           * `truncate`, so only the trailing off-template segment can be clipped, and the
+           * dot is what survives the clip. `unverified` still gets no dot for the older
+           * reason — nothing is wrong there and nobody has started, which is why its row
+           * keeps the quiet border rather than a tinted one.
+           */
+          const needsAttention = Boolean(ownProblem);
           const facts = [
             page.title,
+            answerVersion ? t(`answers.version.${answerVersion}`) : null,
             t(`shelf.freshness.${freshness}`),
             ownProblem ? t("wiki.offTemplateReason", { code: ownProblem.code }) : null,
             writer ? t("wiki.writtenBy", { author: writer }) : null,
@@ -175,30 +195,37 @@ export function LibraryShelf({
                     "hover:shadow-[var(--shadow-control-press)]",
                     active
                       ? "border-[color:var(--color-indigo-accent)] bg-[color:var(--color-indigo-a22)]"
-                      : freshness === "stale"
-                        ? "border-[color:var(--color-amber-source-a35)] bg-[color:var(--color-overlay-2)]"
-                        : freshness === "unverified"
-                          ? "border-[color:var(--color-border-soft)] bg-transparent"
-                          : "border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-2)]",
+                      : freshness === "unverified"
+                        ? "border-[color:var(--color-border-soft)] bg-transparent"
+                        : "border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-2)]",
                   ),
                 })}
               >
-                {/* The head rim: this page's source moved after it was written. Static. */}
-                {freshness === "stale" ? (
-                  <span
-                    aria-hidden
-                    data-testid="library-spine-stale-rim"
-                    className="pointer-events-none absolute inset-x-0 top-0 h-[var(--library-spine-rim)] bg-[color:var(--color-amber-source-a90)]"
-                  />
-                ) : null}
-                {/* The foot rim: the page's own shape misses the template. Static. */}
-                {ownProblem ? (
-                  <span
-                    aria-hidden
-                    data-testid="library-spine-off-template-rim"
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-[var(--library-spine-rim)] bg-[color:var(--color-amber-source-a90)]"
-                  />
-                ) : null}
+                {/*
+                  ⚠️ **The coloured bar is gone, and this is the second attempt at it.**
+
+                  It shipped as a full-bleed amber rim across the head of the card, over an
+                  amber border around the whole card, and the owner read it exactly right
+                  (2026-09-09): *"that yellow line on top looks so AI."* The first repair
+                  moved the same bar to the row's leading edge — and the owner read that
+                  too: *"what even is that line on the left… don't design it AI-ish, do it
+                  our way."*
+
+                  Our way was already written down. `docs/DESIGN-SYSTEM.md` lists
+                  **full-height coloured rails** among the canonical Don'ts, beside
+                  kind-coloured card backgrounds, and prescribes the replacement in the same
+                  breath: *a neutral surface with a small marker and a label*. Moving a rail
+                  from the top edge to the start edge is still a rail. So the bar is gone in
+                  both places, and the fact it carried moves into the line that was already
+                  under the title saying it in words.
+
+                  Both states still reach the eye, and they are still two states: the source
+                  moved (fix it by compiling again) and the page's own shape misses the
+                  template (fix it in the page). They now read as two words on one line
+                  rather than as two ends of a coloured edge, and the dot is the "small
+                  marker" the rule asks for — spent on the rarer of the two, because a
+                  marker on the state a working folder rests in marks nothing.
+                */}
                 {/*
                   The title runs down the book. Its ink is the control's `tone`, so the
                   three states are one ladder the value layer owns rather than three
@@ -211,9 +238,22 @@ export function LibraryShelf({
                   <span className="line-clamp-2 break-keep text-body leading-body">
                     {page.title}
                   </span>
-                  <span className="text-label leading-label text-[color:var(--color-text-tertiary)]">
-                    {model.answerVersions?.get(page.slug) ? `${t(`answers.version.${model.answerVersions.get(page.slug)}`)} · ` : ''}
-                    {t(`shelf.state.${freshness}`)}
+                  <span className="flex min-w-0 items-center gap-1.5 text-label leading-label text-[color:var(--color-text-tertiary)]">
+                    {needsAttention ? (
+                      <span
+                        aria-hidden
+                        data-testid="library-spine-attention-dot"
+                        className="size-1.5 flex-none rounded-full bg-[color:var(--color-amber-source-a90)]"
+                      />
+                    ) : null}
+                    <span className="min-w-0 truncate">
+                      {answerVersion
+                        ? `${t(`answers.version.${answerVersion}`)} · `
+                        : ''}
+                      {ownProblem
+                        ? `${t(`shelf.state.${freshness}`)} · ${t("wiki.offTemplate")}`
+                        : t(`shelf.state.${freshness}`)}
+                    </span>
                   </span>
                 </span>
               </button>

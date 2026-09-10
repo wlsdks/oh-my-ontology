@@ -8,8 +8,10 @@ import { useRovingRadioGroup } from '@/shared/lib/use-roving-radio-group';
 import { controlClass } from '@/shared/ui/control-class';
 import { transientSurface } from '@/shared/ui/transient-surface';
 import {
+  useGalaxy,
   useMapArrangement,
   useView3d,
+  writeGalaxy,
   writeMapArrangement,
   writeView3d,
   type MapArrangement,
@@ -48,8 +50,14 @@ import {
  * code's words is normal; putting the code's words on screen is the accident.
  */
 
-/** One row of the list — flat (2D) plus the three 3D arrangements. */
-type View3dChoice = 'flat' | MapArrangement;
+/**
+ * One row of the list — the two flat views plus the three 3D arrangements.
+ *
+ * `galaxy` is flat too: the three 3D entries move where nodes *are*, and it changes only how
+ * they are drawn. It is one row here because to a reader "how does the map look" is one
+ * question, and because that is where the owner went looking for it (2026-09-10).
+ */
+type View3dChoice = 'flat' | 'galaxy' | MapArrangement;
 
 /*
  * Cone before Strata before Cloud. The order is how far each moves from the flat
@@ -58,7 +66,7 @@ type View3dChoice = 'flat' | MapArrangement;
  * down the list is one continuous step away from the default rather than a jump
  * out and back.
  */
-const CHOICES: readonly View3dChoice[] = ['flat', 'ownership', 'strata', 'coupling'];
+const CHOICES: readonly View3dChoice[] = ['flat', 'galaxy', 'ownership', 'strata', 'coupling'];
 
 /**
  * Is this press on the map itself? The picker floats over the canvas, so the
@@ -87,7 +95,8 @@ export function View3dMenu({
   const t = useTranslations('searchWidgets.hint');
   const view3d = useView3d();
   const arrangement = useMapArrangement();
-  const value: View3dChoice = view3d ? arrangement : 'flat';
+  const galaxy = useGalaxy();
+  const value: View3dChoice = view3d ? arrangement : galaxy ? 'galaxy' : 'flat';
   const boxRef = useRef<HTMLDivElement | null>(null);
   /*
    * The way out — a surface that appears conditionally **is born owing a way to
@@ -97,9 +106,13 @@ export function View3dMenu({
   const presence = usePanelPresence(open);
 
   const apply = (next: View3dChoice) => {
-    if (next === 'flat') {
+    if (next === 'flat' || next === 'galaxy') {
+      // Both flat views: the sky is a way of drawing the 2D map, so choosing either one turns
+      // the dome off and the two settle which drawing the flat map uses.
+      writeGalaxy(next === 'galaxy');
       writeView3d(false);
     } else {
+      writeGalaxy(false);
   // Write the arrangement **first** — turning 3D on and then changing the arrangement
   // starts assembling with the old arrangement for one frame and then rebuilds (the
   // assembly animation stutters twice).

@@ -84,11 +84,26 @@ export function LibraryStatusStrip({
   const offTemplate = verdicts.filter((verdict) =>
     verdict.problems.some((problem) => !isWikiFolderCode(problem.code)),
   ).length;
-  const unlinked = verdicts.filter((verdict) =>
-    verdict.problems.some(
-      (problem) => isWikiFolderCode(problem.code) && !isAdvisoryWikiCode(problem.code),
-    ),
-  ).length;
+  /*
+   * ⚠️ **The two clauses count different things, because they name different things**
+   * (2026-09-09).
+   *
+   * *Off-template* is a property of a page — a page either fits the shape or it does
+   * not — so it counts pages, and one page with four shape problems is one row to open.
+   *
+   * *Broken links* names links, and this used to count pages too: a folder holding six
+   * broken links across three pages said **3**. A person reading "3 broken links" goes
+   * looking for three, fixes them, and the header still says 3. Each finding below is
+   * one line in one page's reader panel, which is exactly the unit a person repairs.
+   */
+  const unlinked = verdicts.reduce(
+    (total, verdict) =>
+      total +
+      verdict.problems.filter(
+        (problem) => isWikiFolderCode(problem.code) && !isAdvisoryWikiCode(problem.code),
+      ).length,
+    0,
+  );
   if (offTemplate > 0) parts.push(t("stage.statusOffTemplate", { count: offTemplate }));
   if (unlinked > 0) parts.push(t("stage.statusUnlinked", { count: unlinked }));
   if (parts.length === 0) return null;

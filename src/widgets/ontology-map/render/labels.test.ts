@@ -9,6 +9,9 @@ import {
   scaledLabelFontSize,
   LABEL_NODE_CLEARANCE,
   LABEL_NODE_OUTLINE_ALLOWANCE,
+  LABEL_HALO_PX,
+  draw,
+  type LabelTokens,
 } from "./labels";
 
 /**
@@ -228,5 +231,84 @@ describe("measureLabelVerticalMetrics — 세로 범위 실측", () => {
     measureLabelVerticalMetrics(ctx, "element", 1.59);
     measureLabelVerticalMetrics(ctx, "element", 1.59);
     expect(calls).toBe(1);
+  });
+});
+
+/**
+ * **A name has to survive the line that runs to it.**
+ *
+ * The map's layout is radial, so every diagonal relation lands on the label of the node it
+ * runs to. Measured at 1512x949 on the installed app 2026-09-09: edges ran through the
+ * glyphs of two domain names on the dogfood vault, and the two inks are close enough in
+ * value that colour could never have separated them.
+ *
+ * The gate is on the device, not the picture: the ground is stroked **before** the fill,
+ * wider than the widest line this canvas draws, in the ground's own colour, at the label's
+ * own alpha. A halo painted after the fill would thicken the glyph; one painted at full
+ * alpha over a faded name would leave a legible hole shaped like an unreadable word.
+ */
+describe("label halo", () => {
+  interface Call { op: string; args: unknown[] }
+
+  function record(): { ctx: CanvasRenderingContext2D; calls: Call[] } {
+    const calls: Call[] = [];
+    const state: Record<string, unknown> = {};
+    const ctx = new Proxy({} as Record<string, unknown>, {
+      get(_t, prop: string) {
+        if (prop === "strokeText" || prop === "fillText" || prop === "measureText") {
+          return (...args: unknown[]) => {
+            calls.push({ op: prop, args: [...args, { ...state }] });
+            return { width: 40 } as TextMetrics;
+          };
+        }
+        if (prop in state) return state[prop];
+        return (..._a: unknown[]) => undefined;
+      },
+      set(_t, prop: string, value: unknown) {
+        state[prop] = value;
+        return true;
+      },
+    }) as unknown as CanvasRenderingContext2D;
+    return { ctx, calls };
+  }
+
+  const tokens: LabelTokens = {
+    labelProject: "#p", labelDomain: "#d", labelCapability: "#c", labelElement: "#e",
+    amberHub: "#a", labelHalo: "#ground",
+  };
+
+  function paint() {
+    const { ctx, calls } = record();
+    draw(ctx, { kind: "domain", text: "topology navigation", screenX: 100, screenY: 100, screenRadius: 12 } as never, tokens);
+    return calls;
+  }
+
+  it("strokes the ground before it fills the glyph", () => {
+    const calls = paint();
+    const stroke = calls.findIndex((c) => c.op === "strokeText");
+    const fill = calls.findIndex((c) => c.op === "fillText");
+    expect(stroke).toBeGreaterThan(-1);
+    expect(fill).toBeGreaterThan(stroke);
+  });
+
+  it("strokes in the ground's own colour, wider than the widest line the canvas draws", () => {
+    const at = paint().find((c) => c.op === "strokeText");
+    const style = at?.args.at(-1) as Record<string, unknown>;
+    expect(style.strokeStyle).toBe("#ground");
+    // Relations are drawn at lineWidth 1; the halo is a half-width, so the stroke is twice it.
+    expect(style.lineWidth).toBe(LABEL_HALO_PX * 2);
+    expect(LABEL_HALO_PX * 2).toBeGreaterThan(1);
+  });
+
+  it("holds the halo at the name's own alpha, never above it", () => {
+    const calls = paint();
+    const strokeAlpha = (calls.find((c) => c.op === "strokeText")?.args.at(-1) as Record<string, unknown>).globalAlpha;
+    const fillAlpha = (calls.find((c) => c.op === "fillText")?.args.at(-1) as Record<string, unknown>).globalAlpha;
+    expect(strokeAlpha).toBe(fillAlpha);
+  });
+
+  it("puts the glyph back in its own ink after the stroke", () => {
+    const style = paint().find((c) => c.op === "fillText")?.args.at(-1) as Record<string, unknown>;
+    expect(style.fillStyle).toBe("#d");
   });
 });

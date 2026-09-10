@@ -20,7 +20,7 @@ describe("parseInsightsTab", () => {
       "composition",
       "connections",
       "boundaries",
-      "freshness",
+      "growth",
       // Written by an agent rather than computed from the graph — the one tab
       // whose question ("what is this product and how does it move") is prose.
       "flow",
@@ -46,6 +46,18 @@ describe("parseInsightsTab", () => {
   });
 });
 
+describe("the freshness rename", () => {
+  /*
+   * ⚠️ Bookmarks and agent return-chip links (`via=insights:freshness`) live a long time.
+   * The tab that asked "what moved lately" now asks "what has this folder grown into", and
+   * the old name has to keep landing somewhere real rather than dumping a saved link on the
+   * default tab.
+   */
+  it("still lands an old ?tab=freshness link on the tab that replaced it", () => {
+    expect(parseInsightsTab("freshness")).toBe("growth");
+  });
+});
+
 describe("buildInsightsTabHref", () => {
   it("omits the query string for the default tab", () => {
     expect(buildInsightsTabHref("do-next")).toBe("/ontology/insights/");
@@ -55,7 +67,7 @@ describe("buildInsightsTabHref", () => {
     expect(buildInsightsTabHref("composition")).toBe("/ontology/insights/?tab=composition");
     expect(buildInsightsTabHref("connections")).toBe("/ontology/insights/?tab=connections");
     expect(buildInsightsTabHref("boundaries")).toBe("/ontology/insights/?tab=boundaries");
-    expect(buildInsightsTabHref("freshness")).toBe("/ontology/insights/?tab=freshness");
+    expect(buildInsightsTabHref("growth")).toBe("/ontology/insights/?tab=growth");
   });
 
   it("preserves the current locale pathname for native history updates", () => {
@@ -64,6 +76,34 @@ describe("buildInsightsTabHref", () => {
     );
     expect(buildInsightsTabHref("do-next", "/en/ontology/insights/")).toBe(
       "/en/ontology/insights/",
+    );
+  });
+});
+
+describe("switching tabs keeps the rest of the address", () => {
+  /*
+   * ⚠️ The old form returned `${pathname}?tab=${tab}`, which replaced the whole query, so a
+   * single tab click dropped `guides=off` and the first-run overlay came back mid-session.
+   * `/architecture` pins the same property; these two must not drift.
+   */
+  it("preserves orthogonal flags across a switch", () => {
+    expect(buildInsightsTabHref("growth", "/ontology/insights/", "?guides=off")).toBe(
+      "/ontology/insights/?guides=off&tab=growth",
+    );
+  });
+
+  it("still drops ?tab= entirely for the default tab, flags and all kept", () => {
+    expect(buildInsightsTabHref("do-next", "/ontology/insights/", "?guides=off&tab=growth")).toBe(
+      "/ontology/insights/?guides=off",
+    );
+    expect(buildInsightsTabHref("do-next", "/ontology/insights/", "?tab=growth")).toBe(
+      "/ontology/insights/",
+    );
+  });
+
+  it("replaces a stale tab rather than appending a second one", () => {
+    expect(buildInsightsTabHref("flow", "/ontology/insights/", "?tab=growth")).toBe(
+      "/ontology/insights/?tab=flow",
     );
   });
 });

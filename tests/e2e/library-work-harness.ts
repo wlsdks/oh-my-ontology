@@ -106,12 +106,13 @@ export async function installLibraryWorkHarness(
     writeMode?: 'ask' | 'auto';
     filePermission?: boolean;
     runtimeId?: LibraryWorkRuntimeId;
+    localResponses?: string[];
   } = {},
 ): Promise<LibraryWorkHarness> {
   const scenario = options.scenario ?? "successful-write";
   const runtime = options.runtimeId ? ACP_RUNTIMES[options.runtimeId] : RUNTIME;
   await page.addInitScript(
-    ({ initialFiles, initialScenario, vaultRoot, runtime, architecturePage, permissionFile, permissionText, writeMode, filePermission, mcpBinary }) => {
+    ({ initialFiles, initialScenario, vaultRoot, runtime, architecturePage, permissionFile, permissionText, writeMode, filePermission, mcpBinary, localResponses }) => {
       const fixtureWindow = window as unknown as HarnessWindow;
       const record = (value: unknown): JsonRecord | null => typeof value === "object" && value !== null && !Array.isArray(value)
         ? value as JsonRecord
@@ -120,6 +121,8 @@ export async function installLibraryWorkHarness(
         ? value
         : null;
       window.localStorage.setItem("library.wikiWriteMode", writeMode);
+      if (localResponses) window.localStorage.setItem("ontology-atlas:local-endpoint", JSON.stringify({ baseUrl: "http://127.0.0.1:11434/v1", model: "fixture-local" }));
+      let localRound = 0;
       const files: Record<string, string> = { ...initialFiles };
       const mtimes: Record<string, number> = {};
       const directories = new Set([".", ".ontology-atlas", "sources", "wiki"]);
@@ -219,11 +222,66 @@ export async function installLibraryWorkHarness(
           phase = allowed ? "approved" : "rejected";
         }
       };
+      const jsonContent = (value: unknown): unknown => {
+        if (typeof value !== "string") return value;
+        try {
+          return JSON.parse(value);
+        } catch {
+          return null;
+        }
+      };
+      const modelMessages = (requestBody: unknown): JsonRecord[] => {
+        const request = record(jsonContent(requestBody));
+        if (!request || !Array.isArray(request.messages)) return [];
+        return request.messages
+          .map((message) => record(message))
+          .filter((message): message is JsonRecord => message !== null);
+      };
+      const modelVisibleWikiPayloads = (requestBody: unknown): JsonRecord[] =>
+        modelMessages(requestBody)
+          .filter((message) => message.role === "tool")
+          .map((message) => jsonContent(message.content))
+          .filter((payload): payload is JsonRecord => {
+            if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+            const object = payload as JsonRecord;
+            return (typeof object.slug === "string" && object.slug.startsWith("wiki/"))
+              || (typeof object.path === "string" && object.path.startsWith("wiki/"));
+          });
+      const fillModelPlaceholders = (scripted: string, requestBody: unknown): string => {
+        let response = scripted;
+        const payloads = modelVisibleWikiPayloads(requestBody);
+        const completeRead = [...payloads].reverse().find(
+          (payload) => payload.complete === true
+            && typeof payload.receipt === "string"
+            && payload.receipt.length > 0,
+        );
+        if (response.includes("__ATLAS_READ_RECEIPT__")) {
+          if (!completeRead) throw new Error("The scripted response requested a receipt before a complete model-visible Wiki read.");
+          response = response.replaceAll("__ATLAS_READ_RECEIPT__", String(completeRead.receipt));
+        }
+        const continuedRead = [...payloads].reverse().find(
+          (payload) => payload.complete !== true
+            && typeof payload.nextCursor === "number"
+            && Number.isSafeInteger(payload.nextCursor)
+            && payload.nextCursor >= 0,
+        );
+        if (response.includes("__ATLAS_READ_CURSOR__")) {
+          if (!continuedRead) throw new Error("The scripted response requested a cursor before an incomplete model-visible Wiki read.");
+          response = response.replaceAll("__ATLAS_READ_CURSOR__", String(continuedRead.nextCursor));
+        }
+        return response;
+      };
       const invoke = (command: string, args: JsonRecord = {}): Promise<unknown> => {
         calls.push({ method: command, params: args });
         if (command === "plugin:event|listen") { const id = Number(args.handler); const event = String(args.event); if (!callbacks.has(id)) return Promise.reject(new Error("missing event callback")); const set = listeners.get(event) ?? new Set<number>(); set.add(id); listeners.set(event, set); return Promise.resolve(id); }
         if (command === "plugin:event|unlisten") { const event = String(args.event); listeners.get(event)?.delete(Number(args.eventId)); callbacks.delete(Number(args.eventId)); return Promise.resolve(); }
-        if (command === "acp_detect_runtimes") return Promise.resolve([runtime]);
+        if (command === "acp_detect_runtimes") return Promise.resolve(localResponses ? [] : [runtime]);
+        if (command === "llm_chat" && localResponses) {
+          const scripted = localResponses[localRound++];
+          if (!scripted) return Promise.reject(new Error("local fixture exhausted"));
+          const body = fillModelPlaceholders(scripted, args.body);
+          return Promise.resolve({ status: 200, body, host: "127.0.0.1:11434", durationMs: 1, loggedAt: new Date().toISOString() });
+        }
         if (command === "secret_status") return Promise.resolve({ provider: args.provider, stored: false, last4: null });
         if (command === "acp_start") return Promise.resolve(sessionId);
         if (command === "acp_stop" || command === "start_vault_watch" || command === "ensure_vault_directory") return Promise.resolve(null);
@@ -264,7 +322,7 @@ export async function installLibraryWorkHarness(
       fixtureWindow.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: (event: string, id: number) => { listeners.get(event)?.delete(id); callbacks.delete(id); } };
       fixtureWindow.__atlasLibraryWorkHarness = { emitRead, emitWait, emitWrite, finish, answer, mutateSource: write, snapshot: () => ({ files: { ...files }, writes: [...writes], calls: [...calls], events: [...events], scenario: initialScenario }) };
     },
-    { initialFiles: options.files ?? VAULT_FILES, initialScenario: scenario, vaultRoot: VAULT_ROOT, runtime, architecturePage: ARCHITECTURE_PAGE, permissionFile: options.permissionFile, permissionText: options.permissionText, writeMode: options.writeMode ?? 'ask', filePermission: options.filePermission ?? false, mcpBinary: LIBRARY_WORK_MCP_BINARY },
+    { initialFiles: options.files ?? VAULT_FILES, initialScenario: scenario, vaultRoot: VAULT_ROOT, runtime, architecturePage: ARCHITECTURE_PAGE, permissionFile: options.permissionFile, permissionText: options.permissionText, writeMode: options.writeMode ?? 'ask', filePermission: options.filePermission ?? false, mcpBinary: LIBRARY_WORK_MCP_BINARY, localResponses: options.localResponses },
   );
   const call = (currentPage: Page, method: "emitRead" | "emitWait" | "emitWrite" | "finish") => currentPage.evaluate((name) => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.[name](), method);
   return { snapshot: (currentPage) => currentPage.evaluate(() => {

@@ -46,6 +46,7 @@ function input(pages: Array<[string, string]>): ModelInput {
     fileHandles: new Map(pages.map(([slug, raw]) => [slug, handle(async () => raw).handle])),
     sourceHandles: new Map(),
     vaultRootPath: null,
+    vaultScope: "validation-fixture",
     enabled: true,
   };
 }

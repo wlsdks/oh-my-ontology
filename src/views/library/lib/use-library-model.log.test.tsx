@@ -15,7 +15,7 @@ describe("the model reads wiki/_log.md", () => {
     const log = "# Wiki log\n\n## [2026-09-06T09:05:00Z] compile | sources/a.docx → a (new) | agent:claude\n## [2026-09-06T09:40:00Z] lint | disagreement 0 | agent:claude\n";
     const docs = [doc("wiki/_log", {}), doc("wiki/a", { created_by: "agent:claude", sources: [] })];
     const fileHandles = new Map([["wiki/_log", handleFor(log)], ["wiki/a", handleFor("---\ntitle: a\n---\n")]]);
-    const { result } = renderHook(() => useLibraryModel({ docs, sources: [], fileHandles, enabled: true, vaultRootPath: null } as never));
+    const { result } = renderHook(() => useLibraryModel({ docs, sources: [], fileHandles, enabled: true, vaultRootPath: null, vaultScope: 'test:log' } as never));
     await waitFor(() => expect(result.current.log.lastCompile?.summary).toBe("sources/a.docx → a (new)"));
     expect(result.current.log.lastLint?.summary).toBe("disagreement 0");
   });

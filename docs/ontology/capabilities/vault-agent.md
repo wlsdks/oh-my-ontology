@@ -51,3 +51,19 @@ The interactive vault agent owned here is a provider-neutral loop using a config
 
 ## Confidence
 high (0.92)
+
+## Incremental Library compilation
+
+The local Compile route can read a safe inventoried existing Wiki page, including nested and non-ASCII addresses, in contiguous chunks before proposing a replacement at its exact address. Reserved retained-answer histories under `wiki/answers/` stay outside ordinary Compile and use explicit, create-only revisions. Prior wiki text is context, not a source-read receipt. Source receipts hash the complete bytes handed to the model, and the page snapshot's modification time protects the approved replacement against a concurrent edit. The approval card shows the full current and proposed text; model compliance does not establish preservation of human notes.
+
+A current source write-up does not complete revision work for every citing page. Known changed or unmeasured ordinary Wiki page receipts keep affected pages in the Compile brief and source queue; retained-answer histories keep their separate refresh workflow. The local route targets one source when existing pages need context, within its unchanged three-page/ten-round limit. Unfinished revisions remain work rather than being marked current.
+
+Evidence: `src/entities/docs-vault/lib/vault-library.ts`, `src/features/library/lib/compile-brief.ts`, `src/features/vault-agent/model/compile-wiki-reader.ts`, `src/features/vault-agent/model/compile-executor.ts`, `src/features/vault-agent/model/use-local-compile.ts`, `src/views/library/ui/parts/LocalCompileCard.tsx`, and `tests/e2e/library-incremental-compile.spec.ts`.
+
+## Related wiki retrieval and accumulation evaluation
+
+A local Compile source read suggests up to three existing wiki addresses, ranking shared source identity before lexical overlap in cached titles and bodies. The per-turn index reuses the Library read cache, reports body coverage and omitted matches, and falls back to metadata when a body is unavailable. Cached bodies are keyed by the actual folder-session identity and page version, so a same-named page in another folder cannot expose a previous folder body to retrieval. Suggestions are untrusted context, not evidence of truth or a complete read; revisions still require the existing page snapshot and the same human approval.
+
+The offline wiki accumulation evaluation exercises this retrieval and the production Compile pipeline against fictional incremental arrivals. Separate fixture obligations detect missing revisions, lost human notes, misplaced source citations and absent disagreement wording. These textual checks can miss semantic errors and are not a production write gate. Real local-model results must be distinguished from the deterministic oracle.
+
+Evidence: `src/entities/docs-vault/lib/wiki-retrieval.ts`, `src/features/vault-agent/model/compile-executor.ts`, `src/views/library/lib/use-library-agent.ts`, `scripts/evaluate-wiki-accumulation.mjs`, `tests/contract/wiki-accumulation.contract.test.ts`, and `docs/benchmark/WIKI-ACCUMULATION-EVAL.md`.

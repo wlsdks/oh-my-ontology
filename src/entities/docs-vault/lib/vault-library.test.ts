@@ -123,6 +123,38 @@ describe('a wiki page points back at the originals it stands on', () => {
 });
 
 describe('a source points forward at the pages written from it', () => {
+  it('keeps old write-ups and filed answers in the compile queue even when another page is current', () => {
+    const model = buildLibraryModel({
+      docs: [...DOCS, wiki('wiki/research/launch-date', {
+        sources: ['sources/plan.pdf'], source_hash: { 'sources/plan.pdf': 'unmeasured' },
+      })],
+      sources: [SOURCES[0]],
+      hashes: new Map([['sources/plan.pdf', PLAN_HASH]]),
+    });
+    expect(model.sources[0].state).toBe('compiled');
+    expect(model.sources[0].reviewPages).toEqual(['wiki/older-take', 'wiki/research/launch-date']);
+    expect(model.needsCompileCount).toBe(1);
+    expect(model.staleCount).toBe(0);
+  });
+
+  it('keeps retained history visible without asking ordinary Compile to overwrite it', () => {
+    const model = buildLibraryModel({
+      docs: [wiki('wiki/current', { sources: ['sources/plan.pdf'], source_hash: { 'sources/plan.pdf': PLAN_HASH } }),
+        wiki('wiki/answers/retained', { sources: ['sources/plan.pdf'], source_hash: { 'sources/plan.pdf': 'unmeasured' } })],
+      sources: [SOURCES[0]], hashes: new Map([['sources/plan.pdf', PLAN_HASH]]),
+    });
+    expect(model.sources[0].state).toBe('compiled');
+    expect(model.sources[0].citedBy).toContain('wiki/answers/retained');
+    expect(model.sources[0].reviewPages).toEqual([]);
+    expect(model.needsCompileCount).toBe(0);
+  });
+
+  it('does not decide which pages are behind before the source hash arrives', () => {
+    const model = buildLibraryModel({ docs: DOCS, sources: [SOURCES[0]], hashes: new Map() });
+    expect(model.sources[0].reviewPages).toEqual([]);
+    expect(model.needsCompileCount).toBe(0);
+  });
+
   const pairing = buildLibraryPairing({
     docs: DOCS,
     sources: SOURCES,

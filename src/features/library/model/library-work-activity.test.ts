@@ -58,6 +58,17 @@ describe("Library work activity", () => {
       kind: "waiting",
       phase: "active",
     });
+    expect(localCompileWaitingEvent("turn-1", 1, true, ["wiki/answers/date.md"])?.target)
+      .toEqual({ kind: "wiki", ref: "wiki/answers/date" });
+    expect(localCompileWaitingEvent("turn-1", 1, true, ["wiki/a.md", "wiki/b.md"])?.target).toBeNull();
+  });
+
+  it("identifies existing nested wiki reads and proposals without guessing another path", () => {
+    for (const name of ["read_wiki_page", "propose_wiki_page"]) {
+      expect(libraryWorkEventFromLocalSnapshot({ id: name, name, args: { slug: "wiki/answers/release-date" }, phase: "active", outcome: null }, "/vault", 1))
+        .toMatchObject({ kind: name === "read_wiki_page" ? "read" : "proposal", target: { kind: "wiki", ref: "wiki/answers/release-date" } });
+      expect(libraryWorkEventFromLocalSnapshot({ id: name, name, args: { slug: "wiki/../outside" }, phase: "active", outcome: null }, "/vault", 1)?.target).toBeNull();
+    }
   });
 
   it.each(["plan", "wiki/plan.md"])("shows an existing Wiki read at its own target: %s", (slug) => {
@@ -69,7 +80,7 @@ describe("Library work activity", () => {
     }, "/vault", 2)).toMatchObject({ kind: "error", phase: "complete", target: null });
   });
 
-  it.each(["../plan", "sources/plan.md", "wiki/answers/plan.md", "wiki/_template.md", "plan\\other", "plan.md", "wiki/plan"])(
+  it.each(["../plan", "sources/plan.md", "wiki/../outside", "wiki/_template.md", "plan\\other", "plan.md"])(
     "does not infer a local Wiki target from a refused name: %s", (slug) => {
       expect(libraryWorkEventFromLocalSnapshot({
         id: "wiki-read", name: "read_wiki_page", args: { slug }, phase: "active", outcome: null,

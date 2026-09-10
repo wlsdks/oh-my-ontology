@@ -36,6 +36,7 @@ import {
   useDataSourceMode,
   VaultSourceHydrationBoundary,
   useLocalVault,
+  useStaticVaultSource,
   useVaultIdentityScope,
 } from "@/entities/vault-session";
 import { OpenVaultCta } from "@/features/docs-vault-local";
@@ -113,6 +114,8 @@ import type { MeaningGapLabels } from "./tabs/MeaningGapSection";
 import { ConnectionsTab, type ConnectionHubRow } from "./tabs/ConnectionsTab";
 import { DomainCouplingCard } from "./tabs/DomainCouplingCard";
 import { FreshnessTab } from "./tabs/FreshnessTab";
+import { VaultHistorySection } from "./parts/VaultHistorySection";
+import { useVaultHistory } from "../lib/use-vault-history";
 import { FlowTab } from "./tabs/FlowTab";
 import { buildBusinessFlowRequest } from "@/features/vault-agent";
 import { detectAcpRuntimes, isAcpBridgeAvailable } from "@/shared/lib/tauri-acp";
@@ -213,7 +216,7 @@ const RECENT_UPDATES_LIMIT = 8;
  *
  * Three is measured (1512×950, dogfood). Impact ranking puts four rows in the same
  * layer, but that card is a two-column grid so four rows fold into two lines. This
- * list is a single column, and at four rows the expanded "freshness" tab reaches
+ * list is a single column, and at four rows the expanded "growth" tab reaches
  * 1,102px in `en` — 18px short of the scroll contract (1,120px), so one longer
  * translation overflows it. Three rows returns to the 1,0xx range. The scale is
  * already stated by the toggle label and the truncation copy; what is needed here
@@ -234,7 +237,7 @@ const HANDOFF_PAYLOAD_KEY: Record<InsightsTab, keyof InsightsHandoffProse> = {
   composition: "tabComposition",
   connections: "tabConnections",
   boundaries: "tabBoundaries",
-  freshness: "tabFreshness",
+  growth: "tabGrowth",
   // The only payload whose output is prose. It reads bodies rather than running an
   // operation, because a narrative rests on what the nodes say, not on a count.
   flow: "tabFlow",
@@ -271,7 +274,7 @@ const INSIGHTS_TAB_BADGE: Record<
   // Prose, not a measurement — the same empty slot freshness uses, for the same
   // reason: a badge here would have to invent a unit the tab does not have.
   flow: () => undefined,
-  freshness: () => undefined,
+  growth: () => undefined,
 };
 
 /**
@@ -347,6 +350,7 @@ export function OntologyInsightsPage() {
   const docFreshnessIndex = useVaultDocFreshnessIndex();
   const vault = useLocalVault();
   const dataSourceMode = useDataSourceMode();
+  const staticVaultSource = useStaticVaultSource();
   const agentServer = useAgentServer();
   const acpBridgeAvailable = useSyncExternalStore(
     subscribeAcpBridge,
@@ -354,6 +358,27 @@ export function OntologyInsightsPage() {
     readServerAcpBridge,
   );
   const gitVaultPath = vault.handle ? getTauriVaultRootPath(vault.handle) ?? null : null;
+  /*
+   * The counts the chart ends on come from the same manifest every other tile reads, and
+   * are classified by the same path rule the history is — the commonest way a series like
+   * this goes quietly wrong is a present counted one way and a past another.
+   */
+  /*
+   * ⚠️ **The manifest the board is actually drawing, not only the local one.** The first
+   * build read `vault.manifest`, which is the folder a person opened from disk — so on the
+   * built-in sample, which is what a visitor and the owner's own browser meet first, every
+   * count came out zero and the surface said nothing at all. That is the same source
+   * selection `useVaultDocFreshnessIndex` already makes for this page's freshness numbers;
+   * two hooks on one screen answering "which folder is this" differently is how a board
+   * ends up counting two things and calling them one.
+   */
+  const historyManifest =
+    dataSourceMode === "static" ? staticVaultSource.manifest : vault.manifest;
+  const vaultHistory = useVaultHistory(
+    gitVaultPath,
+    historyManifest?.docs,
+    historyManifest?.sources?.map((source) => source.path),
+  );
   const [acpRuntimes, setAcpRuntimes] = useState<ReturnType<typeof selectInsightsAgentRuntimes>>([]);
   const [acpRuntimeId, setAcpRuntimeId] = useState<string | null>(null);
   const [runtimeCheckComplete, setRuntimeCheckComplete] = useState(false);
@@ -1380,7 +1405,7 @@ export function OntologyInsightsPage() {
                 : 0,
               // What an unlabelled number counts — one line, surfaced only on hover and to assistive tech.
               countTitle:
-                key === "freshness" || key === "flow" ? undefined : t(`tabCountTitle.${key}`),
+                key === "growth" || key === "flow" ? undefined : t(`tabCountTitle.${key}`),
             }))}
           />
         </nav>
@@ -1568,7 +1593,31 @@ export function OntologyInsightsPage() {
                 labels={domainCouplingLabels}
               />
             ) : null}
-            {tab === "freshness" ? (
+            {tab === "growth" ? (
+              /*
+                The panel itself is a gapless `flex-col`, so two blocks put in it as
+                siblings sit flush — measured on the owner's frame: this section's border
+                touching the two cards under it with no space at all. The gap is
+                `--card-gap`, the same one `FreshnessTab` already puts between its own two
+                cards, so the vertical rhythm between the blocks and inside them agree.
+              */
+              <div className="flex min-h-0 flex-1 flex-col gap-[var(--card-gap)]">
+              {/*
+                ⚠️ **This tab has a protagonist now, and it is the folder, not its file
+                dates** (owner, 2026-09-09, choosing direction C over a new eighth tab:
+                *"I'd like the growth of the wiki shown really well in one tab"*).
+
+                It used to be "recent changes", and everything on it was derived from file
+                update dates. That answer stays, demoted to what it is — a table of when
+                files were last written — and the tab now opens with what the folder has
+                actually grown into: four layers, counted from paths, with the week-by-week
+                shape where Git can supply one.
+
+                The order is the whole of the decision. Growth is above the dated tables
+                because it is what the tab's name promises, and because it is the one claim
+                here that a clone or a checkout cannot move.
+              */}
+              <VaultHistorySection state={vaultHistory} t={t} />
               <FreshnessTab
                 labels={freshnessLabels}
                 domainRows={freshness.domainRows}
@@ -1583,6 +1632,7 @@ export function OntologyInsightsPage() {
                   ariaLabel: (title) => t("freshnessRowAriaLabel", { title }),
                 }}
               />
+              </div>
             ) : null}
             {tab === "flow" ? (
               <FlowTab

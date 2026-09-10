@@ -89,8 +89,16 @@ export function LocalCompileCard({
           {t("localCompile.title")}
         </h4>
         {card.rows.map((row) => (
-          <CompileRow key={row.path} row={row} t={t}
-            before={card.proposal?.changes.flatMap((change) => change.files).find((file) => file.path === row.path)?.before ?? null} />
+          <CompileRow
+            key={row.path}
+            row={row}
+            t={t}
+            // `before` is carried on the row by the consent-card model. Keep the
+            // proposal fallback for older fixtures and for a card assembled by a
+            // caller that has not yet populated that field; both values are the same
+            // snapshot when the model is current.
+            before={row.before ?? card.proposal?.changes.flatMap((change) => change.files).find((file) => file.path === row.path)?.before ?? null}
+          />
         ))}
         {card.rows.length === 0 ? (
           <p className="text-label leading-body text-[color:var(--color-text-tertiary)]">

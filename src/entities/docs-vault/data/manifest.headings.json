@@ -2753,6 +2753,13 @@
       "slug": "what-this-does-and-does-not-show"
     }
   ],
+  "benchmark/FINDINGS-2026-09-10-wiki-retrieval": [
+    {
+      "depth": 1,
+      "text": "Local wiki retrieval and revision pilot — 2026-09-10",
+      "slug": "local-wiki-retrieval-and-revision-pilot-2026-09-10"
+    }
+  ],
   "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11": [
     {
       "depth": 1,
@@ -4204,6 +4211,18 @@
       "depth": 2,
       "text": "Known gaps",
       "slug": "known-gaps"
+    }
+  ],
+  "benchmark/WIKI-ACCUMULATION-EVAL": [
+    {
+      "depth": 1,
+      "text": "Wiki accumulation evaluation",
+      "slug": "wiki-accumulation-evaluation"
+    },
+    {
+      "depth": 2,
+      "text": "What the numbers mean",
+      "slug": "what-the-numbers-mean"
     }
   ],
   "BRAND": [
@@ -6614,6 +6633,61 @@
       "depth": 2,
       "text": "Record format",
       "slug": "record-format"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — The README loses half its words and keeps every fact the ledger put in its body",
+      "slug": "2026-09-11-the-readme-loses-half-its-words-and-keeps-every-fact-the-ledger-put-in-its-body"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-10 — The galaxy is a view you pick, not an altitude you reach",
+      "slug": "2026-09-10-the-galaxy-is-a-view-you-pick-not-an-altitude-you-reach"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-10 — The map seen from far enough away is a galaxy",
+      "slug": "2026-09-10-the-map-seen-from-far-enough-away-is-a-galaxy"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-10 — Brightness says walked, not when; the ordinal keeps the order",
+      "slug": "2026-09-10-brightness-says-walked-not-when-the-ordinal-keeps-the-order"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-10 — The walked path is a constellation, in the ink the map already paints stars with",
+      "slug": "2026-09-10-the-walked-path-is-a-constellation-in-the-ink-the-map-already-paints-stars-with"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-10 — The Library's other waiting screen gets the texture, not the object",
+      "slug": "2026-09-10-the-librarys-other-waiting-screen-gets-the-texture-not-the-object"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The growth figure is bounded, and its blocks are poured rather than revealed",
+      "slug": "2026-09-09-the-growth-figure-is-bounded-and-its-blocks-are-poured-rather-than-revealed"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The freshness tab becomes the growth tab, and architecture is counted as its own layer",
+      "slug": "2026-09-09-the-freshness-tab-becomes-the-growth-tab-and-architecture-is-counted-as-its-own-layer"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The board draws the folder it has, and never guesses whether a timestamp was work",
+      "slug": "2026-09-09-the-board-draws-the-folder-it-has-and-never-guesses-whether-a-timestamp-was-work"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The Library's object is drawn orthographically, its parallax is a duration, and its state is the headline",
+      "slug": "2026-09-09-the-librarys-object-is-drawn-orthographically-its-parallax-is-a-duration-and-its-state-is-the-headline"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — The board's time claim is recomputed from Git, never stored, and drawn as three tracks that never blend",
+      "slug": "2026-09-09-the-boards-time-claim-is-recomputed-from-git-never-stored-and-drawn-as-three-tracks-that-never-blend"
     },
     {
       "depth": 2,
@@ -9522,6 +9596,21 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-09 — The Library gets a ground, and its shelf loses the coloured rail",
+      "slug": "2026-09-09-the-library-gets-a-ground-and-its-shelf-loses-the-coloured-rail"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-09 — Signal ink is spent where there is a signal: the Library's dot and its field",
+      "slug": "2026-09-09-signal-ink-is-spent-where-there-is-a-signal-the-librarys-dot-and-its-field"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-10 — Compile revisits existing write-ups and filed answers",
+      "slug": "2026-09-10-compile-revisits-existing-write-ups-and-filed-answers"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-11 — Library retains questions through explicit answer revisions",
       "slug": "2026-09-11-library-retains-questions-through-explicit-answer-revisions"
     },
@@ -9544,6 +9633,11 @@
       "depth": 2,
       "text": "2026-09-11 — Local Compile approval exposes the exact previous and proposed text",
       "slug": "2026-09-11-local-compile-approval-exposes-the-exact-previous-and-proposed-text"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Related Wiki maintenance preserves explicit retained-answer revisions",
+      "slug": "2026-09-11-related-wiki-maintenance-preserves-explicit-retained-answer-revisions"
     }
   ],
   "DEMO-SCENARIO": [
@@ -10217,6 +10311,11 @@
       "depth": 2,
       "text": "Dimensional regularity — when content length varies",
       "slug": "dimensional-regularity-when-content-length-varies"
+    },
+    {
+      "depth": 2,
+      "text": "The Library's ground — an object, and a field (2026-09-09)",
+      "slug": "the-librarys-ground-an-object-and-a-field-2026-09-09"
     },
     {
       "depth": 2,
@@ -11631,8 +11730,8 @@
     },
     {
       "depth": 4,
-      "text": "Tab 5 — Freshness",
-      "slug": "tab-5-freshness"
+      "text": "Tab 5 — Growth (formerly Freshness; `?tab=freshness` still lands here)",
+      "slug": "tab-5-growth-formerly-freshness-tabfreshness-still-lands-here"
     },
     {
       "depth": 4,
@@ -14382,6 +14481,16 @@
       "depth": 2,
       "text": "Confidence",
       "slug": "confidence"
+    },
+    {
+      "depth": 2,
+      "text": "Incremental Library compilation",
+      "slug": "incremental-library-compilation"
+    },
+    {
+      "depth": 2,
+      "text": "Related wiki retrieval and accumulation evaluation",
+      "slug": "related-wiki-retrieval-and-accumulation-evaluation"
     }
   ],
   "ontology/capabilities/vault-git-history": [
@@ -15901,6 +16010,11 @@
       "depth": 3,
       "text": "impact: answered",
       "slug": "impact-answered"
+    },
+    {
+      "depth": 2,
+      "text": "Library revision loop",
+      "slug": "library-revision-loop"
     }
   ],
   "ontology/README": [

@@ -9,7 +9,7 @@ import {
   ChevronRight,
   DownloadCloud,
   Expand,
-  Footprints,
+  Sparkles,
   HardDrive,
   Layers,
   MessageSquare,
@@ -109,10 +109,10 @@ import { transientSurface } from "@/shared/ui/transient-surface";
 /**
  * LNB items — the left list's order and grouping *is* this array.
  *
- * "Map Background" (map background) and "Footprints" (footprints) sit at the **same
- * level** as "Screen" (screen) rather than under it because they carry 4 and 8
- * values respectively, and folding them into the screen section would let that
- * section swallow the rest. An LNB's advantage over drill-in is that adding a
+ * "Map Background" and "The path you walked" sit at the **same level** as "Screen"
+ * rather than under it because folding them into the screen section would let that
+ * section swallow the rest. (The walked path carried eight values when that was
+ * decided; six were retired on 2026-09-10 with the glyph they shaped.) An LNB's advantage over drill-in is that adding a
  * section is nearly free, so sections were added.
  *
  * ## Why there are groups and icons (measured 2026-07-29)
@@ -151,12 +151,12 @@ import { transientSurface } from "@/shared/ui/transient-surface";
  *   scanning channel.
  */
 const SETTINGS_GROUPS = [
-  // Why "Expand" (expand) sits **between** background and footprints (owner,
-  // 2026-08-01: *"It seems like putting one above footprints would work"* — put one above footprints):
+  // Why "Expand" sits **between** background and the walked path (owner, 2026-08-01:
+  // *"It seems like putting one above footprints would work"*, said when the mark was prints):
   // the first two are what the map is drawn from (ground, glyphs) and expand is
-  // what opens on top of that. Footprints are the trace left after everything is
+  // what opens on top of that. The walked path is the trace left after everything is
   // drawn, so last is right.
-  // Why "Notifications" (notify) sits **after** footprints: the first four follow how the
+  // Why "Notifications" (notify) sits **after** the walked path: the first four follow how the
   // map is drawn (ground · glyph · expand · trace), and notify is the layer where
   // the app speaks on top of it. Why it is not moved under "Connected" is in the
   // render-branch comment.
@@ -235,7 +235,7 @@ const SECTION_ICON: Record<SettingsSection, typeof Monitor> = {
   // in this list, so it never blurs with the rectangle (Monitor), stacked plates
   // (Layers), footprints, drive or bot (icons are a scanning channel, see above).
   expand: Expand,
-  footprint: Footprints,
+  footprint: Sparkles,
   // A bell — the only «ringing» silhouette in this list. It cannot be confused
   // with the speech bubble (ai): a bubble means «I speak to it», a bell means «the
   // app calls me», and their outlines separate as rectangle versus triangle.

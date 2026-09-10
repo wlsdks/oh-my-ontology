@@ -53,6 +53,29 @@ export interface CanvasActivityFlags {
    * "current ref ≠ last drawn state" counts as activity and buys one frame.
    */
   trailLensSettling: boolean;
+  /**
+   * The trail lens is open on a walk with at least one relation in it, and motion is allowed.
+   *
+   * ⚠️ **Without this the trail's motion did not exist.** `trailLensSettling` buys a frame
+   * when the lens *toggles*; nothing kept the loop awake afterwards, so the constellation
+   * froze the instant the ignition sweep landed — measured byte-identical over 2.0s with the
+   * lens open (design-lead, 2026-09-10). The twinkle and the travelling light had never once
+   * run, and direction, which moved off the shoe prints and onto the line, therefore had no
+   * carrier at all in the state a person actually sits in.
+   *
+   * It belongs in the same class as the depends comets and the fresh breathing: an ambient
+   * animation the ambient-sleep guard is allowed to stop, but the idle gate must not.
+   */
+  trailMotionActive: boolean;
+  /**
+   * The galaxy view's crossfade has not landed yet.
+   *
+   * Switching between the flat map and the sky is a change the person asked for by picking it,
+   * so the frames that carry it are activity. Without this the ramp would settle only on
+   * whatever frame some other cause happened to buy, and the crossfade would stutter or stop
+   * halfway.
+   */
+  galaxySettling: boolean;
 }
 
 /**
@@ -154,7 +177,9 @@ export function isCanvasActive(flags: CanvasActivityFlags): boolean {
     flags.cameraMoving ||
     flags.focusFadeSettling ||
     flags.spotlightSettling ||
-    flags.trailLensSettling
+    flags.trailLensSettling ||
+    flags.trailMotionActive ||
+    flags.galaxySettling
   );
 }
 

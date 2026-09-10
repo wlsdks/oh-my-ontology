@@ -251,8 +251,8 @@ test.describe("local Compile carries existing Wiki context safely", () => {
       expect(request).toContain('propose_wiki_page');
       expect(request).not.toContain('sources/00-scan.pdf');
       expect(request).not.toContain('sources/z-c.md');
-      expect(request).toContain('sources/z-a.md');
-      expect(request).toContain('sources/z-b.md');
+      expect(request).not.toContain('sources/z-a.md');
+      expect(request).not.toContain('sources/z-b.md');
       expect(snapshot.calls.some((call) => call.method === 'acp_start')).toBe(false);
       expect(snapshot.writes).toEqual([]);
     });

@@ -31,6 +31,9 @@ export interface RequestParts {
  * - `Scope:` — `AnalysisWorkbench.request()` serialises the analysis scope as JSON.
  * - `Continue analysis ` — the follow-up sentence naming a record id and its read tool.
  * - `Selected relation:` — `HomePage`'s map context, a relation triple as JSON.
+ * - `Architecture task context:` — the architecture workbench's typed handoff packet, followed by
+ *   its instruction sentences. It has to be listed here *and* stand after the readable sentence in
+ *   `buildArchitectureAgentPrompt`: a marker on line 0 folds nothing.
  * - the response-format contract — `ANALYSIS_FINDINGS_INSTRUCTION`'s own first line, taken from
  *   the constant rather than copied, so the two cannot drift apart.
  */
@@ -38,6 +41,7 @@ const APP_BLOCK_MARKERS = [
   'Scope:',
   'Continue analysis ',
   'Selected relation:',
+  'Architecture task context:',
   ANALYSIS_FINDINGS_INSTRUCTION.split('\n')[0],
 ] as const;
 

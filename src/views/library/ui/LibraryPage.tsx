@@ -117,6 +117,8 @@ import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
 import { LibraryQuestions } from './parts/LibraryQuestions';
 import { RetainedAnswerContext } from './parts/RetainedAnswerContext';
 import { AnswerRevisionComparison } from './parts/AnswerRevisionComparison';
+import { LibraryConstellation } from "./parts/LibraryConstellation";
+import { LibrarySynapseField } from "./parts/LibrarySynapseField";
 
 /**
  * The **Library** — project documents of any format, and the wiki pages written from
@@ -297,6 +299,7 @@ export function LibraryPage() {
     sourceHandles: localVault.sourceHandles,
     fileHandles: localVault.fileHandles,
     vaultRootPath: nativeVaultRootPath,
+    vaultScope: workVaultScope,
     enabled: hasFolder,
   });
   const retainedAnswers = model.retainedAnswers ?? EMPTY_DOCS;
@@ -603,7 +606,7 @@ export function LibraryPage() {
     createFile: (path: string) => t("wiki.compileCreateFile", { path }),
     modifyFile: (path: string) => t("wiki.compileModifyFile", { path }),
     bridgeMissing: t("stage.blockedWeb"),
-  });
+  }, model.pageTexts);
   const answerRefresh = useAnswerRefresh({
     handle, sources: model.sources, vaultRoot: nativeVaultRootPath,
     writer: agent.runtime ? `agent:${agent.runtime.id}` : 'agent:unknown', start: agent.start,
@@ -690,7 +693,9 @@ export function LibraryPage() {
     if (agent.route !== "local" || !localWorkInScope || agent.localCompile.status !== "waiting") return;
     const turnId = agent.localCompile.turn?.id;
     if (!turnId) return;
-    const event = localCompileWaitingEvent(turnId, Date.now(), Boolean(agent.localCompile.card?.proposal));
+    const proposal = agent.localCompile.card?.proposal;
+    const event = localCompileWaitingEvent(turnId, Date.now(), Boolean(proposal),
+      proposal?.changes.flatMap((change) => change.files.map((file) => file.path)));
     scheduleLibraryWork((current) =>
       event ? beginLibraryWork(current, event) : clearLibraryWork(current),
     );
@@ -817,6 +822,7 @@ export function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
   const openImport = useCallback(() => setImportOpen(true), []);
   const handleCompile = useCallback(() => {
+    // Local review owns its pane while preserving the document to return to.
     /*
      * **A press that does nothing must never be silent** (installed app, 2026-09-05).
      * Without this catch, anything thrown between the click and the dock leaves a chip
@@ -1404,19 +1410,62 @@ export function LibraryPage() {
   // ── With no folder, one centred stage rather than two empty panes. ───────────────
   if (!hasFolder) {
     return (
+      /*
+        ⚠️ **The screen a person meets before they have anything** (owner, 2026-09-09:
+        *"this screen isn't pretty… make it cool! something with motion too… three.js is
+        fine! something like geometric shapes!"*).
+
+        What was here was a left-aligned text column on an unbroken black field, and the
+        void around it was most of the viewport. The repair is not a bigger column: it is
+        giving the screen a **ground**. `LibraryConstellation` draws the Library's own
+        shape behind the copy — cubes for documents, spheres for the write-ups made from
+        them, lines for the citations — anonymous here because no folder is open, and
+        rebuilt from the person's real counts the moment one is. The picture they meet is
+        the picture they will keep.
+
+        ⚠️ **The words are beside the object, never on top of it.** The first build laid a
+        glass panel over the constellation's middle and measured badly on its own terms:
+        the panel covered the inner shell, so every write-up in the object was hidden and
+        what remained was a scatter of cubes at the edges — the structure the picture
+        exists to show was the one part nobody could see. The bright marks that did fall
+        behind the glass smeared into soft discs and read as dirt on the panel.
+
+        So the screen splits. The ask keeps the reading column it always had, at full
+        contrast on the canvas itself with no glass and nothing moving under the type; the
+        object gets its own half and is drawn whole. Below `lg` the object stands under
+        the copy at a fixed height instead of beside it — a backdrop is the first thing to
+        yield when there is one column of room.
+      */
       <main
         id="main"
         tabIndex={-1}
         data-testid="library-page"
         data-library-state="no-folder"
-        className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
       >
-        <div className={PAGE_COLUMN_STAGE}>
-          <LibraryHeader t={t} inFolder={false} />
-          {/* One step under the h1 (14px): the hierarchy gate reads a tie as two titles. */}
-          <h2 className="mt-6 text-body font-[var(--font-weight-signature)] leading-title text-[color:var(--color-text-primary)]">
+        <div className="flex w-full max-w-[var(--library-empty-max)] flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-12">
+        <div className={`${PAGE_COLUMN_STAGE} relative shrink-0`}>
+          {/*
+            ⚠️ **The state is the headline here, not the destination's name**
+            (design-lead, 2026-09-09). This column used to open with the workbench header:
+            an `h1` carrying "Library" at 14px, then the state as an `h2` at 12.5px under
+            it. Nothing on the frame was larger than 14px and the widest gap in the whole
+            type stack was 14/11 — a ratio of **1.27** on a screen whose entire job is one
+            sentence, so the eye reached the door before it had read what it was being
+            asked. The stage one step further in already settled this and measured 2.42:
+            *"there the heading is the state and the rail carries the name."* The rail
+            carries the name here too, so the two empty screens now share one shape.
+
+            The `lede` tooltip goes with the header, and loses nothing: it says the Library
+            holds gathered documents and the pages written from them, which is what the
+            two rows below say at length, with their own names for the two kinds.
+          */}
+          <p className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
+            {t("title")}
+          </p>
+          <h1 className="mt-1 text-display leading-display font-[var(--font-weight-signature)] tracking-[var(--tracking-display)] text-[color:var(--color-text-primary)] [word-break:keep-all]">
             {t("emptyTitle")}
-          </h2>
+          </h1>
           <p className="mt-2 text-body leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]">
             {t("emptyBody")}
           </p>
@@ -1456,6 +1505,26 @@ export function LibraryPage() {
               className="border-[color:var(--color-indigo-line-a35)] bg-[color:var(--color-indigo-a10)] hover:border-[color:var(--color-indigo-line-a54)] hover:bg-[color:var(--color-indigo-a16)]"
             />
           </div>
+        </div>
+        {/*
+          The object's own half.
+
+          ⚠️ **Square at every width.** Below `lg` it was given the pane's full width at a
+          fixed height, which made a 728×280 box — and its vignette is an ellipse fitted to
+          the box, so at 2.6:1 the clear middle was 59px tall and swallowed the object
+          whole. Measured at 768×1024: a correctly sized canvas drawing nothing anyone
+          could see. A square box keeps the fade concentric with the object it is fading.
+        */}
+        <div
+          data-testid="library-empty-object"
+          className="relative aspect-square w-full max-w-[var(--library-empty-object-max)] shrink-0"
+        >
+          <LibraryConstellation />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,var(--color-canvas-a70)_82%,var(--color-canvas)_100%)]"
+          />
+        </div>
         </div>
       </main>
     );
@@ -1523,8 +1592,37 @@ export function LibraryPage() {
         tabIndex={-1}
         data-testid="library-page"
         data-library-state="empty-folder"
-        className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
       >
+        {/*
+          ⚠️ **A ground, but the texture one — not the other empty screen's object.**
+
+          Both empty screens open on the same sentence, and this one was left on an unbroken
+          field when the other was given a ground: measured on the installed app at
+          1512x949, its card ended at 61.5% of the window with the bottom 38.5% empty.
+
+          The object is the wrong piece to move here, for the reason its own decision gives.
+          `buildConstellation` takes a folder; the anonymous one is drawn **where nobody has
+          opened one**. Here a folder *is* open and holds nothing, so ten marks beside the
+          sentence "nothing gathered yet" would be a picture contradicting the words next to
+          it — the falsifier that decision already names. Passing this folder's real counts
+          draws nothing at all, because they are zero.
+
+          `LibrarySynapseField` is the piece minted for exactly this: texture, not data. It
+          draws no count and no link that exists, so there is nothing on it to mistake for a
+          claim about the folder. The guided pane reached the same place from the same
+          complaint, and takes the same mask — the field clears the middle where the column
+          stands and fades into the canvas at every rim.
+
+          The card does not move. `tests/e2e/library.spec.ts` holds this stage's centre
+          within half a column of the viewport's, and a backdrop behind it keeps that.
+        */}
+        <LibrarySynapseField paused={findOpen} />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-canvas)_0%,var(--color-canvas-a70)_30%,transparent_56%,var(--color-canvas-a70)_88%,var(--color-canvas)_100%)]"
+        />
+        <div className="relative">
         <LibraryStartStage
           vaultLabel={nativeVaultRootPath ?? handle.name}
           busy={busy}
@@ -1533,6 +1631,7 @@ export function LibraryPage() {
           onImportFromService={openImport}
           t={t}
         />
+        </div>
         {importDialog}
         {/* The same dialog the workbench uses: discovery proposes, a person approves. */}
         <FindDocumentsDialog
@@ -1817,32 +1916,50 @@ export function LibraryPage() {
             </div>
           ) : null}
           {!selected && !localReviewVisible ? (
-            <div data-testid="library-reader-landing" className="min-h-0 flex-1 overflow-y-auto px-3 py-6">
-              <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
-                <LibraryQuestions answers={retainedAnswers} knownSources={knownOriginalPaths} hashes={model.hashes}
-                  onOpen={(slug) => choose({ kind: 'wiki', slug })}
-                  onAsk={agent.route === 'agent' ? () => agent.setOpen(true) : null} t={t} />
-                {retainedAnswers.length === 0 ? <><h2 className="mb-3 mt-8 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
-                  {t("stage.title")}
-                </h2>
-                <LibraryStage
-                  model={model}
-                  route={agent.route}
-                  agentLabel={agent.runtime?.label ?? null}
-                  localModel={agent.localModel}
-                  brain={agent.brain}
-                  brainChoosable={agent.brainChoosable}
-                  onChooseBrain={agent.chooseBrain}
-                  inApp={nativeVaultRootPath !== null}
-                  onAddFiles={handleAddFiles}
-                  onFindDocuments={handleFindDocuments}
-                  onCompile={handleCompile}
-                  onLint={agent.route === "agent" ? handleLint : null}
-                  onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
-                  busy={busy}
-                  t={t}
-                />
-                </> : null}
+            <div
+              data-testid="library-reader-landing"
+              className="relative min-h-0 flex-1 overflow-y-auto px-3 py-6"
+            >
+              <LibrarySynapseField paused={graphOpen} />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-canvas)_0%,var(--color-canvas-a70)_30%,transparent_56%,var(--color-canvas-a70)_88%,var(--color-canvas)_100%)]"
+              />
+              <div className="relative z-10 flex min-h-full items-center justify-center">
+                <div className={PAGE_COLUMN_STAGE + " mx-auto"}>
+                  <LibraryQuestions
+                    answers={retainedAnswers}
+                    knownSources={knownOriginalPaths}
+                    hashes={model.hashes}
+                    onOpen={(slug) => choose({ kind: "wiki", slug })}
+                    onAsk={agent.route === "agent" ? () => agent.setOpen(true) : null}
+                    t={t}
+                  />
+                  {retainedAnswers.length === 0 ? (
+                    <>
+                      <h2 className="mb-3 mt-8 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
+                        {t("stage.title")}
+                      </h2>
+                      <LibraryStage
+                        model={model}
+                        route={agent.route}
+                        agentLabel={agent.runtime?.label ?? null}
+                        localModel={agent.localModel}
+                        brain={agent.brain}
+                        brainChoosable={agent.brainChoosable}
+                        onChooseBrain={agent.chooseBrain}
+                        inApp={nativeVaultRootPath !== null}
+                        onAddFiles={handleAddFiles}
+                        onFindDocuments={handleFindDocuments}
+                        onCompile={handleCompile}
+                        onLint={agent.route === "agent" ? handleLint : null}
+                        onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
+                        busy={busy}
+                        t={t}
+                      />
+                    </>
+                  ) : null}
+                </div>
               </div>
             </div>
           ) : null}

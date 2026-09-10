@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { Check, ChevronRight, Clipboard, Pencil } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { useTranslations } from "next-intl";
-import { buildNewNodeDoc, type VaultDoc } from "@/entities/docs-vault";
+import { buildNewNodeDoc, isWikiPage, type VaultDoc } from "@/entities/docs-vault";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import type { AgentActivityStatus } from "@/entities/vault-session";
 import { computeEditAge } from "@/shared/lib/edit-age";
@@ -358,6 +358,23 @@ export function DocFrontmatterBlock({
   // capabilities). So «there are issues» means «this document tried to be a node and
   // failed». The verdict is borrowed rather than duplicated.
   const diagnosticOnly = !kindValue;
+  /*
+   * ⚠️ **A wiki page is not a document that tried to be a node and failed** (2026-09-09).
+   *
+   * This block's whole subject is the diagnosis above — *no `kind:`, so it is not on the
+   * map, and here is where to set one*. A page under `wiki/` has no `kind:` **by
+   * contract**: that absence is exactly what keeps a write-up about sources out of the
+   * graph, and `validateWikiPage` reports `kind-present` on any page that grows one. So
+   * the diagnosis would be handing a person a button whose result the Library then flags
+   * as a problem.
+   *
+   * It stayed invisible only by luck — a wiki page usually carries no `validationIssues`,
+   * and the next line returns null on that count rather than on the kind of file this is.
+   * One frontmatter typo was enough to surface the whole block. The Library's own
+   * `WikiTemplateProblems` is where a wiki page's shape is judged, and it is judged
+   * against the wiki contract rather than the node one.
+   */
+  if (isWikiPage(doc)) return null;
   if (diagnosticOnly && validationIssues.length === 0) return null;
   if (!diagnosticOnly && fields.length === 0 && codeLocations.length === 0 && !definitionValue) {
     return null;

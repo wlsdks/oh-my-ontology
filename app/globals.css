@@ -920,6 +920,12 @@
   --color-surface-deep-a80: rgba(12, 14, 20, 0.8);
   --color-surface-deep-a98: rgba(12, 14, 20, 0.98);
 
+  /* Canvas with alpha, for the vignette that fades the Library's ambient fields into the
+     canvas at a pane's rim (2026-09-09). An existing rung of the alpha canon, not a new
+     stop. The matching panel step was cut with the glass panel it was written for: the
+     empty state stands its copy *beside* the object rather than over it. */
+  --color-canvas-a70: rgba(8, 9, 10, 0.7);
+
   /* drop shadow alpha — existing a22/a42/a46 siblings. Snap new literals to an 8-step canon scale (imperceptible) — Guardian verdict §⑥. */
   /* a16 was removed on 2026-08-06 — its only consumer was the hand-drawn
      drop shadow on the project selection card, and since that card is static, removing the drop made consumption zero.
@@ -1181,6 +1187,28 @@
      *
      * Reserved width follows — `computeGatewaySafeInset` takes **origin** as argument, so changing gutter auto-adjusts camera. No need to recalculate arithmetic.
      */
+
+/*
+ * **A lens dims what has already said it is not the point.**
+ *
+ * The trail lens publishes `data-trail-lens="on"` on the document element (see
+ * `views/home/model/use-footprint-trail.ts`, which explains why it is an attribute and not
+ * React state). Any surface carrying `data-attention-role="supporting-detail"` recedes for as
+ * long as a lens is open and returns the moment it is hovered or focused — so nothing becomes
+ * unreachable, and a keyboard user restores it by tabbing into it.
+ *
+ * It keys on the *declared role*, not on one component: a surface that calls itself supporting
+ * detail now has to behave like one, and the next one to declare it inherits the rule.
+ */
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"] {
+  opacity: var(--lens-demoted-opacity);
+  transition: opacity var(--motion-settle) var(--motion-ease);
+}
+
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"]:hover,
+:root[data-trail-lens="on"] [data-attention-role="supporting-detail"]:focus-within {
+  opacity: 1;
+}
 
 @layer base {
   /*
@@ -2435,6 +2463,7 @@
     --color-surface-deep-a40: rgba(12, 14, 20, 0.4);
     --color-surface-deep-a80: rgba(12, 14, 20, 0.8);
     --color-surface-deep-a98: rgba(12, 14, 20, 0.98);
+    --color-canvas-a70: rgba(8, 9, 10, 0.7);
     --color-shadow-a12: rgba(0, 0, 0, 0.12);
     --color-shadow-a35: rgba(0, 0, 0, 0.35);
     --color-shadow-a50: rgba(0, 0, 0, 0.5);
@@ -2919,6 +2948,14 @@
     --motion-fast: 120ms;
     --motion-base: 180ms;
     --motion-settle: 240ms;
+    /* How far a surface that has declared itself supporting recedes while a lens is open.
+       0.46 rather than a token step because it is measured, not chosen: the detail panel was
+       beating the constellation it sits beside 5.3:1 for attention, and 66.9% of the first
+       frame after the trail trigger was clicked was that panel moving (design-lead and
+       design-motion, independently, 2026-09-10). At 0.46 the panel is still legible enough to
+       read at a glance and no longer the loudest thing on a screen the person opened to look
+       at something else; hover and focus take it straight back to 1. */
+    --lens-demoted-opacity: 0.46;
     --motion-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
     /* Exit easing (design-system seat, 2026-09-05) — the one licensed second family.
        `--motion-ease` decelerates into place, which is right for arriving. A leaving
@@ -2933,6 +2970,17 @@
        `motion-token-mirror.contract.test.ts` lets only `-out` / `[data-state="closed"]`
        rules reference it, only on a `*Out` keyframe, never in a `transition`. */
     --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+    /* Placement easing (2026-09-09) — a mark that was *set down*, not revealed.
+       The owner asked for blocks that trickle into a pile the way something poured into a
+       bucket settles; `--motion-ease` decelerates smoothly into place, which reads as a mark
+       appearing where it always was. This overshoots by about 8% and returns, so the block
+       arrives with weight. It is licensed on **transform only, on an arrival, on a figure
+       nobody is reading text inside** — never on a surface, a panel, or anything carrying
+       type, because a settling wobble under a sentence is the wriggle this product removed
+       from the map on 2026-09-08. The 2026-09-08 record lifted the overshoot ban; this is
+       the first token to spend it, and it names the meaning it carries.
+       Reduced motion never reaches it: both consumers draw finished on the first frame. */
+    --motion-ease-place: cubic-bezier(0.34, 1.28, 0.64, 1);
     /* --topology-card-scale is injected by SigmaSkeletonCards into container based on viewport width — CSS pipeline drops custom property without utility reference, so not declared here. */
 
     /*
@@ -2983,9 +3031,29 @@
     /* Document list aside expanded width — retract existing hardcoded w-[280px]. */
     --docs-list-width: 280px;
 
-    /* Library index state markers: source evidence at the head, page format at
-       the foot. Row geometry comes from controlClass, not the retired book ramp. */
-    --library-spine-rim: 2px;
+    /* The Library's empty state is a reading column beside its object. The row's cap keeps
+       the two from drifting apart on a wide monitor; the object's cap keeps it from
+       out-weighing the ask. The object's box is square at every width, because its vignette
+       is an ellipse fitted to the box: at 2.6:1 the clear middle measured 59px tall and
+       swallowed the object whole (2026-09-09, 768×1024). */
+    --library-empty-max: 1120px;
+    --library-empty-object-max: 440px;
+    /* One block of a vault-history column. Small enough that a hundred-node folder is a
+       stack a person can take in at a glance rather than a wall, large enough that a
+       single block still reads as a countable thing rather than as a rule (2026-09-09). */
+    --vault-history-cube: 5px;
+    /* How wide the three tracks are allowed to grow. Uncapped, eighteen columns spread
+       across a full-width band and each week became a 97px slab that merged into its
+       neighbours; the marks stopped reading as countable blocks and started reading as an
+       area chart. Capped, one week is about 40px and the stack is legible as a stack
+       (2026-09-09, measured at 1512 and 1920). */
+    --vault-history-width: 760px;
+    /* The narrowest a layer's column may be squeezed to before its own name stops fitting
+       under it — measured at the widest Korean layer label (41px) plus breathing room. Four
+       layers sharing a row equally gave the layer holding 125 files the same 175px as one
+       holding nothing, so the columns are shared out by what they hold and stop here
+       (design-responsive, 2026-09-09). */
+    --vault-layer-col-min: 72px;
     /* drawer/audit modal shared scrim, single source — same value as existing sourceTreeOpen drawer. Dark-only (no light branch). */
     --docs-scrim: rgba(0, 0, 0, 0.5);
     /*
@@ -3079,6 +3147,27 @@
     /* Footprint indigo — reason for not using `--color-indigo-accent`(#7170ff) is
        **contrast**. On canvas (#0a0a0d), the lowest selectable saturation (0.5) yields 2.08:1, failing to reach 3:1, creating "invisible footprint" flaw. Edge selection same pale indigo hits 3.93:1 at same value — not a new hue but another value within charter's "selection color ladder". */
     --color-footprint-trail-indigo: #c8d2ff;
+    /* Trail starlight (2026-09-10, owner: *"what if it were white light, twinkling, like a
+       constellation"*) — and it is not a new hue, it is **the map's own**. `render/starfield.ts`
+       already paints far-field star dust and diffraction spikes at `rgba(236,236,240,…)`, and
+       its header names the language: "B1 constellation DNA". The walked path was the one mark
+       standing outside that language, on the fourth amber role the 2026-08-02 record itself
+       flagged when it wrote "no room left: indigo=selection · amber=hub · #e8c47a=walked".
+       Star ink collides with none of them: measured 16.78:1 over `--map-canvas-bg-near` at
+       full opacity and 4.69:1 at the lowest intensity a person can select, against amber's
+       3.61 and indigo's 3.93. (An earlier version of this comment claimed 15.7:1, which
+       matched no canvas token — a number in a comment is checked by nothing.)
+
+       ⚠️ It also claimed the walked star and the magnitude spike were "separated by position,
+       beside the node vs on it". Two commits later the mark became the node itself, so that
+       separation was void and a node that was both walked and bright drew two diffraction
+       crosses at one point. Precedence was tried next — the walked star lit, the magnitude
+       spike standing down — and 45-degree rotation after that. Both were arbitration between
+       two marks that meant different things, and the second rendered as an X drawn across the
+       node. The walked star wears **no cross at all** now, so there is nothing to arbitrate and
+       the magnitude spike keeps its fact; `shared/lib/star-emission.ts` carries the reasoning.
+       Gate: `tests/contract/canvas-composite-license.contract.test.ts`. */
+    --color-footprint-trail-star: #ececf0;
     --map-numeral-shadow: #08080a;
     --map-numeral-face: #8c8c94;
     /*
@@ -3122,6 +3211,40 @@
     /* Static double ring for selected node (not glow, mechanical ring) + hover preview ring.
        rgb(94,106,210) = same hue as --color-indigo-brand(#5e6ad2), only
        alpha differs — not violating "no multiple coloring systems" (maintain single indigo). */
+    /* ── The galaxy's colour temperature ─────────────────────────────────────
+       Kind is a *shape* near the ground — a hexagon is a project, a square a domain — and the
+       shape melts as altitude rises: `interpolateCornerRadius` rounds the corners off and
+       `FULL_CIRCLE_FAR_T` finishes it, so at the top every node is the same circle. These four
+       steps are where kind goes when its old channel is gone, not a second encoding of it
+       (owner, 2026-09-10: "totally like a galaxy"; direction B of three, chosen because it needs
+       no toggle and does not spend the emission that means "you walked here").
+
+       One ramp, warm to cool, read **down the containment ladder** — project contains domains
+       contain capabilities contain elements — so the temperature is depth rather than a lookup
+       table. The warm end is the hub amber this map already spends on "this is a centre"; the
+       cool end is a blue-white that is still neutral enough not to read as the selection indigo.
+       Kind never rests on colour alone: radius still says how much a node contains, so the
+       project stays the largest mark for a reader who separates none of these hues.
+
+       Measured 2026-09-10 — each step 13.6-16.4:1 over the canvas, so all four are visible
+       stars; adjacent steps ΔE 11.4-17.4, well past the ~5 where a step stops being separable;
+       b* runs 27.7 → 11.2 → -4.9 → -13.8 while L* stays inside 85.7-92.6. That narrow L* band is
+       the point and not an accident: **luminance is already spoken for** — it carries how
+       connected a node is — so temperature has to ride the blue-yellow axis at near-constant
+       lightness or it would corrupt the channel beside it. Riding that axis is also what makes
+       the ramp survive colour-vision deficiency: end-to-end ΔE is 42.2 under protanopia and 45.7
+       under deuteranopia against 41.5 with normal vision, because neither touches blue-yellow
+       much. Tritanopia flattens it to 19.4, still separable.
+
+       ⚠️ `capability` is `#e5eaf3` and not the `#ececf0` it started as, because that is the
+       walked-path star's own ink. Two facts on one token value is a coupling that changes the
+       meaning of one mark whenever someone retunes the other, which is the whole reason these
+       are tokens. The two still look alike, and that is fine: inside the trail lens "walked" is
+       carried by the lens dimming everything else, not by hue. */
+    --map-galaxy-project: #f0d5a4;
+    --map-galaxy-domain: #f2e6d2;
+    --map-galaxy-capability: #e5eaf3;
+    --map-galaxy-element: #cdd6f0;
     --map-selection-ring-indigo: var(--map-indigo-bright);
     --map-selection-ring-hairline: rgba(94, 106, 210, 0.45);
     /*
@@ -3427,6 +3550,17 @@
     /* Ego light — the focused node blooms (a soft indigo disc under it, blurred by `-glow-blur-px`) and its relation lines carry a glow of the same blur, both on the focus ramp; the hovered node carries the bloom at `-node-bloom-alpha` on its emphasis ramp. Light says "this is the one your hand is on"; nothing at rest glows. */
     --map-ego-glow-blur-px: 22;
     --map-ego-glow-alpha: 0.55;
+    /* The walked line's glow, stronger than the ego glow it stands in for: a constellation
+       line is light, not an emphasised relation, and at the ego value it read as a slightly
+       brighter dash rather than something lit (owner, 2026-09-10 — "make the lines glow
+       too"). Only ever spent inside an open trail lens. */
+    --map-trail-glow-alpha: 0.85;
+    --map-trail-glow-blur-px: 26;
+    /* The trail lens's reduced-motion crossfade — see `--motion-settle`, whose value this
+       mirrors for a canvas that cannot read a CSS transition. Reduced motion asked for no
+       travel, not for a hard cut; the ramp was snapping 0 -> 1 in a single frame
+       (design-motion, 2026-09-10). */
+    --map-trail-reduced-fade-ms: 240;
     /* The bloom's own blur, wider than the line glow because a disc under a node has to read past the node's edge while a line's glow must stay a line. Named rather than written as `-ego-glow-blur-px * 1.4` in the canvas: a multiplier in TypeScript is a second blur step nobody can find (design council, 2026-09-08). */
     --map-node-bloom-blur-px: 31;
     --map-node-bloom-alpha: 0.35;
@@ -4363,6 +4497,28 @@ body *::-webkit-scrollbar {
   --tracking-caps-12: 0em;
   --tracking-caps-14: 0em;
   --tracking-caps-16: 0em;
+}
+
+/*
+ * The rest of that same Latin device: the caps micro-label is `font-mono` + `uppercase` +
+ * `--tracking-caps-*` together, and zeroing the tracking alone left two thirds of it standing.
+ *
+ * `uppercase` does nothing to Hangul — that was already written down beside
+ * `SETTINGS_SECTION_LABEL`. `font-mono` does something worse. Font fallback is per glyph, so
+ * Hangul drops to Pretendard while **the space between the words is still drawn by JetBrains
+ * Mono**, at a monospace advance. Measured on the installed app's tool-list eyebrow (three
+ * Hangul words and a count): syllable gaps 2-5px, word gaps 17-18px at 2x — three times a
+ * space. It reads as a label with broken word spacing, and it was reported as a tracking bug
+ * twice before the gaps were actually measured.
+ *
+ * `.font-mono.uppercase` is the device itself and nothing else: a path, a slug or a command
+ * carries `font-mono` **without** `uppercase`, so mono survives everywhere it means "this is
+ * code". Outside every layer, next to the tracking override, for the same reason it gives.
+ * Gate: `tests/contract/caps-label-latin-only.contract.test.ts`.
+ */
+:root:lang(ko) .font-mono.uppercase {
+  font-family: var(--font-sans);
+  text-transform: none;
 }
 
 /* ── Position of agent panel and selected-node inspector (2026-07-27) ──────────────────

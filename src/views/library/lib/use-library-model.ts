@@ -100,6 +100,7 @@ export function useLibraryModel({
   sourceHandles,
   fileHandles,
   vaultRootPath,
+  vaultScope,
   enabled,
 }: {
   docs: readonly VaultDoc[];
@@ -107,6 +108,8 @@ export function useLibraryModel({
   sourceHandles: Map<string, FileSystemFileHandle>;
   fileHandles: Map<string, FileSystemFileHandle>;
   vaultRootPath: string | null;
+  /** The actual folder session identity, including distinct browser handles with the same name. */
+  vaultScope: string;
   /**
    * False while the folder is a read-only sample or still loading. Guarding the work as
    * well as the surface is the rule in `.claude/rules/architecture.md`: a section that
@@ -125,8 +128,10 @@ export function useLibraryModel({
   const [stampedHashes, setStampedHashes] = useState<Map<string, string>>(() => new Map());
   /**
    * Cache only completed reads. A cancelled effect must not mark a page judged and
-   * prevent its successor from publishing the verdict. Current membership selects
-   * which cached bytes may reach readers or the permission card.
+   * prevent its successor from publishing the verdict. The key includes the folder
+   * identity, so a page with the same slug and mtime in another open vault cannot leak
+   * into this one. Current membership selects which cached bytes may reach readers or
+   * the permission card; verdicts remain derived from those current bytes below.
    */
   const [rawByStamp, setRawByStamp] = useState<Map<string, string>>(() => new Map());
   const [logEntries, setLogEntries] = useState<WikiLogEntry[]>([]);
@@ -237,8 +242,11 @@ export function useLibraryModel({
     const bySlug = new Map(docs.map((doc) => [doc.slug, doc] as const));
     return wikiPages
       .filter((page) => !isWikiFurnitureSlug(page.slug))
-      .map((page) => ({ slug: page.slug, stamp: `${page.slug}@${bySlug.get(page.slug)?.mtime ?? 0}` }));
-  }, [docs, wikiPages]);
+      .map((page) => ({
+        slug: page.slug,
+        stamp: `${vaultScope}\u0000${page.slug}@${bySlug.get(page.slug)?.mtime ?? 0}`,
+      }));
+  }, [docs, vaultScope, wikiPages]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -297,10 +305,9 @@ export function useLibraryModel({
   }, [pageInputs, rawByStamp, sources]);
 
   return useMemo(() => {
-    const live = new Set(model.wikiPages.map((page) => page.slug));
     let offTemplateCount = 0;
-    for (const [slug, verdict] of verdicts) {
-      if (live.has(slug) && !verdict.ok) offTemplateCount += 1;
+    for (const [, verdict] of verdicts) {
+      if (!verdict.ok) offTemplateCount += 1;
     }
     // A folder whose log was removed shows no line: the entries are read only while the
     // file is there, and are ignored, not cleared, when it is not.

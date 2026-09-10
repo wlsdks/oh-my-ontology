@@ -117,8 +117,15 @@ correction-recovery slice should inspect existing vault history and ACP receipts
 for retained before text before introducing another history store, then qualify
 that recovery in real ACP maintenance. Local-model quality stays unqualified.
 
-Next work follows the remaining evidence: finish the native retained-answer
-visual checkpoint when the Mac is unlocked, address the measured local semantic
-refresh failures, and qualify recurring real owner work. Preserve the
-distinction between source-byte currentness, extraction coverage, locator
-identity and factual support throughout.
+The owner narrowed this delivery to finishing verification and merging the
+implemented Library work. No personal corpus was available, so the final journey
+uses generated sources with an explicit policy change, a conflicting configuration
+observation and an attributed human note. The main app was rebuilt and installed
+for the baseline; the merged main app is the final installation target.
+
+Latest-main integration keeps related-page retrieval and safe inventoried nested
+Wiki addresses while reserving `wiki/answers/` for explicit, create-only revisions.
+The remaining product qualification is local semantic preservation and recurring
+real owner work. Neither is a claim made by this delivery. Preserve the distinction
+between source-byte currentness, extraction coverage, locator identity and factual
+support throughout.

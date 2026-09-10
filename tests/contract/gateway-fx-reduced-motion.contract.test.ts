@@ -29,6 +29,83 @@ describe("관문 FX — 감속 동등물", () => {
     expect(fx).toMatch(/!fxLoopLive \|\| reduced/);
   });
 
+  /*
+   * The Library's two ambient canvases join this file rather than
+   * `reduced-motion-equivalent.contract.test.ts`, which scans `app/globals.css` for
+   * `animation:` and cannot see a rAF loop at all. They shipped on 2026-09-09 with the
+   * still-frame behaviour measured once (0 rAF callbacks per second) and nothing
+   * defending it; a measurement nobody can repeat is not a gate (guardian, 2026-09-09).
+   */
+  /*
+   * The insights board's two staged figures join the same roster for the same reason: they
+   * animate from JavaScript timers, so `reduced-motion-equivalent.contract.test.ts`, which
+   * scans `app/globals.css` for `animation:`, cannot see them at all. design-motion measured
+   * both paths on 2026-09-09 — forced `prefers-reduced-motion` and a deleted
+   * `IntersectionObserver` — and found the finished figure on the first painted frame with
+   * **zero** build timers in each. A measurement nobody can repeat is not a gate.
+   */
+  it("(d) the growth figures draw finished on the first frame, with no schedule", () => {
+    for (const rel of [
+      "src/views/ontology-insights/ui/parts/VaultPresentStack.tsx",
+      "src/views/ontology-insights/ui/parts/VaultHistoryTracks.tsx",
+    ]) {
+      const source = read(rel);
+      // The finished state is *derived at render*, not written from an effect — that is what
+      // makes the still frame the first frame rather than one that arrives after one.
+      // The finished value is whatever the figure calls "all of it"; what this pins is that
+      // it is chosen *in the render expression*, not written by an effect.
+      expect(source, `${rel}: reduced motion is not derived`).toMatch(
+        /reducedMotion \|\| !canWatch \? [\w.]+ :/,
+      );
+      // Both escapes return before any timer is registered.
+      const guard = source.indexOf("if (reducedMotion || !canWatch) return");
+      expect(guard, `${rel}: the reduced-motion guard is gone`).toBeGreaterThan(-1);
+      expect(
+        source.indexOf("setInterval"),
+        `${rel}: a timer is registered before the reduced-motion guard`,
+      ).toBeGreaterThan(guard);
+    }
+  });
+
+  it("(c) the Library's two ambient canvases draw one still frame under reduced motion", () => {
+    const field = read("src/views/library/ui/parts/LibrarySynapseField.tsx");
+    // The still frame is drawn, then the effect returns before any loop is registered.
+    const guard = field.indexOf("if (reducedMotion || paused) return");
+    expect(guard, "the reduced-motion branch is gone").toBeGreaterThan(-1);
+    expect(
+      field.indexOf("requestAnimationFrame"),
+      "a loop is registered before the reduced-motion branch",
+    ).toBeGreaterThan(guard);
+    expect(field.slice(0, guard)).toMatch(/\n\s*draw\(\);/);
+
+    /*
+     * ⚠️ **Pin the guarantee, not the two lines that happened to provide it** (2026-09-09).
+     * This case first matched `if (reduced) {\n draw();\n } else {` literally, and went red
+     * the moment the reduced branch gained a second correct statement — landing the
+     * self-assembly at t=0 so the still frame is the *settled* object rather than an
+     * object frozen mid-arrival. A contract that fails on a correct edit teaches people to
+     * loosen it under pressure. What must hold is: the reduced branch draws exactly one
+     * frame, and no loop or pointer listener is registered before the `else`.
+     */
+    const scene = read("src/views/library/expressive/constellation-scene.ts");
+    const branch = scene.indexOf("if (reduced) {");
+    expect(branch, "the reduced-motion branch is gone").toBeGreaterThan(-1);
+    const elseAt = scene.indexOf("} else {", branch);
+    expect(elseAt, "the reduced branch no longer has an else").toBeGreaterThan(branch);
+    const reducedBranch = scene.slice(branch, elseAt);
+    expect(reducedBranch, "the reduced branch draws no frame").toMatch(/\n\s*draw\(\);/);
+    expect(
+      (reducedBranch.match(/\n\s*draw\(\);/g) ?? []).length,
+      "the reduced branch draws more than one frame",
+    ).toBe(1);
+    for (const forbidden of ["requestAnimationFrame", "addEventListener"]) {
+      expect(
+        reducedBranch.includes(forbidden),
+        `the reduced branch registers ${forbidden}`,
+      ).toBe(false);
+    }
+  });
+
   it("(b′) 관문 등장 안무의 감속 동등물이 base 레이어 kill 규칙 뒤에 있다", () => {
     const css = read("app/globals.css");
     // The carve-out must sit inside the same layer as the global kill rule

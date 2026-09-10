@@ -23,6 +23,7 @@ import {
   MoreHorizontal,
   Orbit,
   Plus,
+  ScanSearch,
   X,
 } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
@@ -1605,7 +1606,7 @@ export function OntologyMapDetailPanel({
           >
             {!suppressPrimaryAction && meaningReview ? (
               <Button size="sm" onClick={meaningReview.onOpen} data-testid="map-detail-panel-action-meaning" data-action-role="primary" className="atlas-touch-floor min-w-0 flex-1">
-                <MessageCircle size={ICON_SIZE.sm} aria-hidden />
+                <ScanSearch size={ICON_SIZE.sm} aria-hidden />
                 <span className="truncate">{meaningReview.label}</span>
               </Button>
             ) : !suppressPrimaryAction && canAskAgent ? (

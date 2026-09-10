@@ -116,7 +116,7 @@
       "mcpProofCopy": "Copy first-call packet",
       "mcpProofCopied": "Copied",
       "footprint": {
-        "caption": "Footprints mark the concepts you opened, numbered in the order you walked them.",
+        "caption": "A star lights on every concept you open, numbered in the order you walked them, with light running along each line the way you went.",
         "presetLabel": "Strength",
         "preset": {
           "subtle": "Subtle",
@@ -125,27 +125,13 @@
         },
         "detailShow": "Adjust each value yourself",
         "detailHide": "Hide the detailed values",
-        "size": "Print size",
-        "fillLabel": "Fill",
-        "fillSolid": "Solid",
-        "fillOutline": "Outline",
-        "strokeWidth": "Outline weight",
+        "size": "Number size",
         "opacity": "Strength",
         "toneLabel": "Colour",
+        "toneStar": "Starlight",
         "toneAmber": "Yellow",
         "toneIndigo": "Indigo",
-        "bloom": "Bleed",
-        "bloomOff": "None",
-        "gap": "Distance",
-        "onEdgesLabel": "Along links",
-        "onEdgesYes": "Mark",
-        "onEdgesNo": "Don't mark",
-        "densityLabel": "Link density",
-        "densitySparse": "Sparse",
-        "densityDense": "Dense",
-        "placementLabel": "Placement",
-        "placementRight": "One side",
-        "placementBoth": "Alternating",
+        "gap": "Number distance",
         "reset": "Reset to defaults"
       },
       "expand": {
@@ -184,7 +170,7 @@
         "screen": "Screen · language",
         "background": "Map background",
         "expand": "Expansion",
-        "footprint": "Footprints (path walked)",
+        "footprint": "The path you walked",
         "notify": "Notifications",
         "workspace": "Workspace",
         "ai": "API Key",
@@ -1074,12 +1060,14 @@
       "collapseAllLabel": "Collapse all",
       "view3dChoice": {
         "flat": "Flat",
+        "galaxy": "Galaxy",
         "ownership": "Cone",
         "strata": "Strata",
         "coupling": "Cloud"
       },
       "view3dChoiceHint": {
         "flat": "the ordinary 2D map",
+        "galaxy": "the whole map drawn as a sky of stars",
         "ownership": "stacked in tiers, the way things are contained",
         "strata": "the same containment, read level by level",
         "coupling": "clustered by what relates to what"
@@ -1323,6 +1311,7 @@
         "notOnMapAria": "Not on the map",
         "notOnMapLabel": "Not on the map",
         "notOnMapBody": "This document is not drawn on the map yet. Fill in what the diagnostic above says is missing and it will appear there.",
+        "notOnMapWikiBody": "This is a write-up about sources, so it is not on the map. That is the design, not a gap. The map carries concepts; a page like this is read in the Library, beside the document it came from.",
         "recordTimeTitle": "Last written {at}. That is when the file changed, which is not the same as when someone checked it."
       },
       "sidebar": {
@@ -1424,6 +1413,7 @@
         "composition": "Inventory",
         "connections": "Connections",
         "boundaries": "Boundaries",
+        "growth": "Growth",
         "freshness": "Recent changes",
         "structure": "Structure",
         "flow": "Flow"
@@ -1473,11 +1463,11 @@
       "statusBlocking": "Blocking",
       "statusAdvisory": "Advisory",
       "recentWindowTitle": "Last {weeks} weeks",
-      "recentThisWeek": "{count} this week",
-      "recentBarsAria": "{total} document updates over {weeks} weeks, one bar per week",
+      "recentThisWeek": "{count} dated this week",
+      "recentBarsAria": "{total} files dated within the last {weeks} weeks, one bar per week. A file's date is when it was last written to disk, so a clone or a branch switch moves it too",
       "heroDensityGloss": "{ratio} connections per concept, on average",
       "heroMembershipLabel": "in a domain",
-      "heroHealth": "Health",
+      "heroHealth": "Checks",
       "healthOrphan": "Lone concepts",
       "healthCycle": "Tangled loops",
       "healthEvidenceLinked": "Evidence linked",
@@ -1640,7 +1630,7 @@
         "touchUpBandTitle": "Review first today",
         "touchUpPriorityCount": "{count} priorities",
         "touchUpFlowHint": "Inspect on map → open source → edit on map → verify with agent",
-        "touchUpWhyNeglectedHub": "{degree} places use it, but it hasn't changed in {days} days",
+        "touchUpWhyNeglectedHub": "{degree} places use it; its file is dated {days} days ago",
         "touchUpWhyCycle": "{length} concepts point at each other, so there is no starting point",
         "touchUpWhyPromotion": "Referenced from {count} places: worth promoting to a parent concept",
         "rowMenuTrigger": "More actions",
@@ -1721,6 +1711,28 @@
         "noVaultTitle": "Open a folder first",
         "noVaultBody": "There is no vault to explain yet.",
         "request": "Use only Atlas MCP read tools to explain this ontology's business flow. Never call shell, file, source, web, or other tools.\n\nReturn exactly six ### headings with one paragraph each:\n1) Why this product exists.\n2) Which domains own which responsibilities.\n3) How the main capabilities form a business flow.\n4) How those capabilities appear in elements or paths.\n5) Which declared dependencies explain impact, and what remains unknown.\n6) Which partial, visible-gap, stale, or unverified limits must be retained.\n\nRules:\n- Inspect the project map first and choose one representative meaning-to-implementation chain; do not enumerate every node.\n- Read at most 12 concepts with get_concept(body: full) or get_concepts(body: full).\n- Every paragraph names an exact full node slug whose complete body was read this turn.\n- Write a from --type--> to relation only when it exists in the current ontology.\n- Keep partial, visible-gap, and unknown qualifiers throughout.\n- A capability's excludes bound that capability only; do not widen them to project scope.\n- If the ontology cannot answer, say why instead of filling the gap from other knowledge."
+      },
+      "vaultHistory": {
+        "title": "What the folder holds",
+        "caption": "Recomputed from Git history. Nothing is stored.",
+        "milestoneBegan": "began {week}",
+        "milestoneGrew": "grew most in {week}, by {delta}",
+        "layerConcept": "Concepts",
+        "layerModule": "Architecture",
+        "layerWriteUp": "Wiki pages",
+        "layerDocument": "Documents",
+        "axisStart": "start of history",
+        "axisEnd": "this week",
+        "towerSummary": "{layer}: {count} files",
+        "scaleNote": "one block = {count} files",
+        "trackSummary": "{layer}: {latest} this week, {earliest} at the start of the window",
+        "loading": "Reading the history.",
+        "unavailableTitle": "The history cannot be read here",
+        "unavailableBody": "The weekly counts are recomputed from the folder's Git history. A browser cannot reach it; the Mac app can.",
+        "failedTitle": "Reading the history failed",
+        "failedBody": "Something went wrong reading this folder’s Git history. It does not mean the folder has no commits. Reopening this usually reads it.",
+        "noneTitle": "There is no history to show yet",
+        "noneBody": "This folder has no commits. Atlas keeps no record of its own, so until there are commits there is no way to show earlier weeks. Drawing zeroes would say the folder was empty, which is not true."
       }
     }
   },
@@ -4460,8 +4472,20 @@
       "recent": "Recent",
       "unbound": "No confirmed file target",
       "noReceipts": "No completed file operations yet",
-      "active": { "read": "Reading", "proposal": "Preparing a write", "waiting": "Waiting for permission", "write": "Writing", "error": "Needs attention" },
-      "complete": { "read": "Read", "proposal": "Write proposed", "waiting": "Permission requested", "write": "File changed", "error": "Failed" }
+      "active": {
+        "read": "Reading",
+        "proposal": "Preparing a write",
+        "waiting": "Waiting for permission",
+        "write": "Writing",
+        "error": "Needs attention"
+      },
+      "complete": {
+        "read": "Read",
+        "proposal": "Write proposed",
+        "waiting": "Permission requested",
+        "write": "File changed",
+        "error": "Failed"
+      }
     },
     "eyebrow": "In this folder",
     "lede": "The project documents you gathered, in whatever format they arrived, and the wiki pages written from them. A source is kept byte for byte, and every claim on a page cites one.",
@@ -4520,7 +4544,8 @@
       "staleOnly": "{count, plural, one {# source version needs review} other {# source versions need review}}",
       "partialOnly": "{count, plural, one {# read only in part} other {# read only in part}}",
       "import": "Bring from a service",
-      "importTooltip": "Bring documents in from Notion, Confluence, Jira or GitHub"
+      "importTooltip": "Bring documents in from Notion, Confluence, Jira or GitHub",
+      "pagesNeedReview": "{count, plural, one {# existing page needs rechecking} other {# existing pages need rechecking}}"
     },
     "wiki": {
       "header": "Wiki · {count}",
@@ -4549,10 +4574,10 @@
       "compileFailed": "Could not start the agent turn: {reason}",
       "compileWebLimit": "Writing pages needs a coding agent running on this computer, which only the app can start. Reading and editing the pages works here.",
       "compileWebGetApp": "Get the app",
-      "offTemplateReason": "Page review needed: {code}. Open the page to inspect the finding.",
-      "offTemplateAriaLabel": "Page and evidence checks",
-      "offTemplateTitle": "Items to review on this page",
-      "offTemplateBody": "These checks cover the page structure, cited originals and links from other pages. A finding does not by itself mean the answer is wrong; inspect the named evidence before editing.",
+      "offTemplateReason": "Does not fit the wiki template: {code}. Open the page to see what to change.",
+      "offTemplateAriaLabel": "How this page differs from the wiki template",
+      "offTemplateTitle": "This page does not fit the wiki template",
+      "offTemplateBody": "It is still a document and still yours to edit. Fixing these lines makes it readable the same way every other page is; `ontology-atlas wiki-validate` and the `validate_wiki` tool report the same codes.",
       "writtenBy": "Written by {author}",
       "writer": {
         "human": "a person",
@@ -4605,7 +4630,26 @@
       "askNextDone": "From the next page on, the card stops each write. Settings › Workspace turns it back.",
       "undo": "Undo",
       "undone": "Removed {page}.",
-      "undoFailed": "Could not undo: the file is already gone or the folder is not writable."
+      "undoFailed": "Could not undo: the file is already gone or the folder is not writable.",
+      "linkFindingsAriaLabel": "How this page connects inside the folder",
+      "linkFindingsTitle": "Check how this page connects",
+      "linkFindingsBody": "The page fits the template. What follows is about the folder: things no single page can see about itself.",
+      "problem": {
+        "kind-present": "This page carries `kind:`. That key is what puts a document on the map, and a write-up about sources is not a reviewed concept. Remove it, or move the file out of `wiki/` if it really is a node.",
+        "missing-field": "`{field}:` is missing.",
+        "section-order-missing": "The page needs all five sections, in order. Missing: {missing}. Keep an empty section rather than dropping it: \"nothing here\" is itself something a reader learns.",
+        "section-order-sequence": "The sections are out of order. It must read: {expected}. Right now: {found}.",
+        "uncited-fact": "Every bullet under `## Facts` ends in at least one citation, like `[[src:sources/plan.pdf#p12]]`. A claim a reader cannot check against one place in one document belongs under `## Not in sources`.",
+        "bad-citation": "`{text}` is not a citation this format can resolve. The shape is `[[src:sources/PATH#ANCHOR]]`, and an anchor looks like p12, s2, s2r14, r89, l204, or h:error-handling.",
+        "bad-truncation-record-shape": "`sources_truncated:` is a list of paths. This value is not one, so it records no boundary at all.",
+        "bad-truncation-record-path": "`{path}` is under `sources_truncated:` but not under `sources:`. A path this page does not cite has no boundary a reader could place.",
+        "citation-target-missing-folder": "`{path}` is cited but is not in this folder. A citation a reader cannot open is not a citation.",
+        "citation-target-missing-sources": "`{path}` is cited but is not listed in this page's `sources:`. Add it there with its sha256, or fix the citation.",
+        "describes-needs-approval": "`describes:` says this page speaks for those concepts. That is a claim about the map and it needs a person: set `status: reviewed` after reading the page, or remove `describes:`.",
+        "dangling-wikilink": "`[[{target}]]` names a page that is not in this folder. Link to a page that exists, or write the page.",
+        "orphan-page": "No other page links here. A page nobody points at is reached only by its file name; link it from the page that talks about its topic.",
+        "shared-source-unlinked": "`{other}` also lists {sources}, and neither page links the other. Two write-ups of one document that do not know about each other cannot carry a disagreement between them."
+      }
     },
     "shelf": {
       "listAria": "Wiki pages and their source versions",
@@ -4712,7 +4756,8 @@
         "nothingYet": "No wiki page yet. Compile writes the first one.",
         "coveredLine": "{compiled} of {total} sources written up",
         "coveredChecking": "{compiled} of {total} written up, {checking} still being checked",
-        "coveredPartial": "{compiled} of {total} written up, {partial} read in part"
+        "coveredPartial": "{compiled} of {total} written up, {partial} read in part",
+        "coveredStale": "{compiled} of {total} written up, {stale} changed since"
       },
       "brainAgent": "{name}",
       "brainLocal": "{model} on {host}",

@@ -55,3 +55,47 @@ describe('splitAppRequest — the transcript opens on the readable sentence', ()
     expect(splitAppRequest(text).lead).toBe('Do the review.');
   });
 });
+
+/**
+ * **The architecture workbench's packet, measured on the installed app 2026-09-09.**
+ *
+ * Pressing 「source check」 on a Korean build drew a bubble opening
+ * `{"contract":"architectureAgentTask:v1","kind":"verify"` with ten English instruction
+ * sentences under it, and a "full request" disclosure below that folded almost nothing.
+ * Two causes, and the fix needs both: the marker was not listed here, and the packet stood
+ * on line 0, where a marker folds nothing because there is no readable half in front of it.
+ *
+ * The bubble is `break-keep`, so a JSON object with no spaces in it does not wrap either —
+ * which is why the first line ran off the panel's right edge with no scrollbar. Folded, it
+ * lands in the disclosure, which is `break-words`.
+ */
+describe('the architecture handoff packet folds', () => {
+  const REAL_SHAPE = [
+    'Start from the reviewed architecture profile atlas-web.',
+    'Architecture task context: {"contract":"architectureAgentTask:v1","kind":"verify","stage":"understand"}',
+    'Call inspect_architecture with {"profileSlug":"atlas-web"} before opening implementation files.',
+    'This is a verification task. Do not edit implementation files.',
+  ].join('\n');
+
+  it('stands the readable sentence up alone', () => {
+    expect(splitAppRequest(REAL_SHAPE).lead).toBe(
+      'Start from the reviewed architecture profile atlas-web.',
+    );
+  });
+
+  it('folds the packet and everything after it', () => {
+    const detail = splitAppRequest(REAL_SHAPE).detail ?? '';
+    expect(detail).toContain('architectureAgentTask:v1');
+    expect(detail).toContain('This is a verification task.');
+  });
+
+  it('loses nothing — lead plus detail is the request that was sent', () => {
+    const { lead, detail } = splitAppRequest(REAL_SHAPE);
+    expect(`${lead}\n${detail}`).toBe(REAL_SHAPE);
+  });
+
+  it('folds nothing when the packet leads, which is why the order matters', () => {
+    const packetFirst = REAL_SHAPE.split('\n').slice(1).join('\n');
+    expect(splitAppRequest(packetFirst).detail).toBeNull();
+  });
+});

@@ -137,3 +137,52 @@ describe("DocMetaBar", () => {
     expect(screen.getAllByRole("link").filter((a) => (a.getAttribute("href") ?? "").includes("/ontology/?node="))).toHaveLength(0);
   });
 });
+
+/**
+ * ⚠️ **A wiki page is off the map by contract, and must not be told to fix that.**
+ *
+ * Measured 2026-09-09: opening `wiki/budget.md` in Docs printed *fill in what the
+ * diagnostic above says is missing and it will appear there*. Two things were wrong at
+ * once. There is no diagnostic above — `DocFrontmatterBlock` returns null for such a
+ * page — and the only way to obey the sentence is to add `kind:`, which is the very key
+ * `validateWikiPage` reports as `kind-present`. A person doing as they were told would
+ * break the page.
+ */
+describe("DocMetaBar — a wiki page is not a document that failed to become a node", () => {
+  const wikiDoc: VaultDoc = {
+    ...doc,
+    slug: "wiki/budget",
+    path: "wiki/budget.md",
+    title: "Budget",
+    frontmatter: { title: "Budget", status: "draft", created_by: "human" },
+  };
+
+  it("does not tell a write-up to fill in what is missing so it reaches the map", () => {
+    renderMetaBar(wikiDoc);
+    expect(
+      screen.queryByText(koMessages.vaultWidgets.parts.meta.notOnMapBody),
+    ).toBeNull();
+  });
+
+  it("says instead why a write-up belongs off the map, and where it is read", () => {
+    renderMetaBar(wikiDoc);
+    expect(
+      screen.getByText(koMessages.vaultWidgets.parts.meta.notOnMapWikiBody),
+    ).toBeInTheDocument();
+  });
+
+  /*
+   * A file under `wiki/` that grew a `kind:` is an ontology node someone filed in the
+   * wrong folder — `isWikiPage` says so — and it gets the ordinary verdict again.
+   */
+  it("treats a file under wiki/ that really carries a kind as the node it is", () => {
+    renderMetaBar({
+      ...wikiDoc,
+      frontmatter: { ...wikiDoc.frontmatter, kind: "capability", slug: "budget" },
+    });
+    expect(
+      screen.queryByText(koMessages.vaultWidgets.parts.meta.notOnMapWikiBody),
+    ).toBeNull();
+    expect(screen.getByTestId("doc-map-evidence")).toHaveAttribute("data-in-graph", "true");
+  });
+});

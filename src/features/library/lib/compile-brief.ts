@@ -1,4 +1,5 @@
-import type { LibrarySourceRow, LibraryWikiPage } from "@/entities/docs-vault";
+import { isRetainedAnswerPath } from './answer-revision';
+import { sourceNeedsCompile, type LibrarySourceRow, type LibraryWikiPage } from "@/entities/docs-vault";
 import {
   WIKI_DIR,
   WIKI_PAGE_TEMPLATE,
@@ -103,14 +104,7 @@ export interface CompileBriefInput {
 export function selectCompileTargets(
   sources: readonly LibrarySourceRow[],
 ): LibrarySourceRow[] {
-  return sources.filter(
-    (row) =>
-      row.state === "not-compiled" ||
-      row.state === "stale" ||
-      // Read only in part: the rest of that file is exactly the work this run exists to
-      // do, so the brief hands it over with the ones nothing has covered at all.
-      row.state === "partial",
-  );
+  return sources.filter(sourceNeedsCompile);
 }
 
 function meaningRuleLines(locale: string): string[] {
@@ -200,25 +194,28 @@ function existingPageLines(pages: readonly LibraryWikiPage[], locale: string): s
 }
 
 function localExistingPageLines(pages: readonly LibraryWikiPage[], locale: string): string[] {
-  const rootPages = pages.filter((page) => {
-    const prefix = `${WIKI_DIR}/`;
-    const basename = page.slug.startsWith(prefix) ? page.slug.slice(prefix.length) : "";
-    return basename.length <= 80 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(basename);
+  // Match the reader's safe inventoried addresses; this list does not grant write authority.
+  const reachablePages = pages.filter((page) => {
+    const slug = page.slug;
+    return slug.startsWith(`${WIKI_DIR}/`) &&
+      !/[\\#?\u0000-\u001f\u007f]/.test(slug) &&
+      !slug.split("/").some((part) => !part || part.startsWith(".") || part.startsWith("_")) &&
+      slug !== `${WIKI_DIR}/answers` && !isRetainedAnswerPath(slug);
   });
-  const outOfReach = pages.filter((page) => !rootPages.includes(page));
-  const lines = rootPages.length > 0
-    ? existingPageLines(rootPages, locale)
+  const outOfReach = pages.filter((page) => !reachablePages.includes(page));
+  const lines = reachablePages.length > 0
+    ? existingPageLines(reachablePages, locale)
     : pages.length === 0
       ? existingPageLines([], locale)
       : [
           locale === "ko"
-            ? "로컬 도구로 읽을 수 있는 루트 위키 문서가 없어. 아래 참조의 내용은 읽지 않은 상태야."
-            : "No reachable root Wiki pages are available to the local reader; the references below are uninspected.",
+            ? "로컬 도구로 읽을 수 있는 위키 문서가 없어. 아래 참조의 내용은 읽지 않은 상태야."
+            : "No reachable Wiki pages are available to the local reader; the references below are uninspected.",
         ];
-  if (rootPages.length > 0) {
+  if (reachablePages.length > 0) {
     lines[0] = locale === "ko"
-      ? `로컬 도구로 읽을 수 있는 루트 위키 문서 (규칙 g):`
-      : "Reachable root Wiki pages (rule g):";
+      ? `로컬 도구로 읽을 수 있는 위키 문서 (규칙 g):`
+      : "Reachable Wiki pages (rule g):";
   }
   if (outOfReach.length === 0) return lines;
 
@@ -267,11 +264,11 @@ function buildLocalBrief({
       "",
       "사용 가능한 도구는 정확히 세 가지야:",
       "1. `read_source_text` — 파일 하나를 열고 문단 앵커 `[p1]`, `[p2]` 등이 붙은 텍스트를 돌려줘.",
-      "2. `read_wiki_page` — 목록에서 읽을 수 있는 루트 `wiki/<basename>.md` 문서 하나를 열어. `nextCursor` 를 정확히 따라 `complete: true` 가 될 때까지 계속 읽고, 마지막 결과의 예측할 수 없는 `receipt` 를 보관해.",
+      "2. `read_wiki_page` — 목록에서 읽을 수 있는 정확한 `wiki/...` 경로의 문서 하나를 열어. `nextCursor` 를 정확히 따라 `complete: true` 가 될 때까지 계속 읽고, 마지막 결과의 예측할 수 없는 `receipt` 를 보관해.",
       "3. `propose_wiki_page` — 도구 스키마에 선언된 typed 필드로 페이지 하나를 제안해. 이 도구는 쓰지 않고 사람에게 검토 카드를 보여 줘.",
       "`propose_wiki_page` 스키마가 선언한 필드만 사용해. 기존 페이지를 갱신할 때만 마지막 읽기의 final `receipt` 를 그대로 넣어. 없는 페이지는 새로 만드는 제안만 해.",
       `본문의 다섯 절은 항상 이 순서로 유지해: ${sections}. 빈 절도 남겨.`,
-      "위 목록의 루트 문서만 `read_wiki_page` 로 읽을 수 있어. 읽을 수 없는 참조는 내용을 읽지 않은 상태로 두고 사람에게 보고해.",
+      "위 목록에서 읽을 수 있는 문서만 `read_wiki_page` 로 읽을 수 있어. 읽을 수 없는 참조는 내용을 읽지 않은 상태로 두고 사람에게 보고해.",
       "",
       existing,
       "",
@@ -292,11 +289,11 @@ function buildLocalBrief({
     "",
     "You have exactly three tools:",
     "1. `read_source_text` — open one file and return its text with paragraph anchors such as `[p1]` and `[p2]`.",
-    "2. `read_wiki_page` — open one reachable root `wiki/<basename>.md` page from the list. Follow its exact `nextCursor` until `complete: true`, and retain the unpredictable `receipt` from that final result.",
+    "2. `read_wiki_page` — open one reachable exact `wiki/...` page from the list. Follow its exact `nextCursor` until `complete: true`, and retain the unpredictable `receipt` from that final result.",
     "3. `propose_wiki_page` — propose one page through the typed fields declared by its tool schema. It writes nothing and shows the person a review card.",
     "Use only the fields declared by the `propose_wiki_page` tool schema. When revising an existing page, echo the final `receipt` from the complete read; a missing page is create-only.",
     `Keep all five body sections in this order: ${sections}. Keep an empty section.`,
-    "Only the reachable root-page entries above may be opened with `read_wiki_page`. Leave out-of-reach references uninspected and report a possible impact to the person.",
+    "Only the reachable Wiki entries above may be opened with `read_wiki_page`. Leave out-of-reach references uninspected and report a possible impact to the person.",
     "",
     existing,
     "",
@@ -327,11 +324,20 @@ export function buildCompileBrief({
     : [];
   const paths = targets.map((row) => `- ${row.path}`).join("\n");
   const existing = (execution === "local" ? localExistingPageLines : existingPageLines)(existingPages, locale).join("\n");
+  const revisions = targets.flatMap((row) => (row.reviewPages ?? []).filter((slug) => !isRetainedAnswerPath(slug)).map((slug) => `- ${slug}.md ← ${row.path}`));
+  const review = revisions.length === 0 ? [] : [
+    locale === 'ko'
+      ? '원본 버전을 다시 확인할 기존 위키 문서. 각 문서를 먼저 읽고 인용된 원문을 확인한 뒤 같은 경로에 수정해. 이미 최신인 문서를 복제하지 마. 옛 값과 변경 근거를 함께 남겨. 해시만 바꾸지 마:'
+      : 'Existing Wiki pages whose source version needs review. Read each page and its cited originals, then revise that same path. Do not duplicate a current write-up. Keep the earlier value and the evidence for its change; never update only a hash:',
+    ...revisions,
+    '',
+  ];
+
   const sections = WIKI_SECTION_ORDER.join(" → ");
   const rules = ruleLines(locale, writerId, hashLines, compiledAt, execution).join("\n");
 
   if (execution === "local") {
-    return buildLocalBrief({ locale, vaultRoot, paths, existing, sections, rules });
+    return buildLocalBrief({ locale, vaultRoot, paths, existing: [existing, ...review].join("\n"), sections, rules });
   }
 
   if (locale === "ko") {
@@ -349,6 +355,7 @@ export function buildCompileBrief({
       "",
       existing,
       "",
+      ...review,
       "규칙:",
       rules,
       "",
@@ -375,6 +382,7 @@ export function buildCompileBrief({
     "",
     existing,
     "",
+    ...review,
     "Rules:",
     rules,
     "",

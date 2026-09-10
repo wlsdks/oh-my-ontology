@@ -98,15 +98,34 @@ export function FreshnessTab({
   recentLink,
   labels,
 }: FreshnessTabProps) {
+  /*
+   * ⚠️ **These two are the detail under the growth figure, and until 2026-09-09 nothing
+   * said so.** Measured on the built tab, all three sections carried the same background,
+   * the same border, the same radius and padding, and an `h2` at the same size and ink —
+   * while the "supporting detail" stood 2.1x the height and 4.3x the area of the thing it
+   * supported. Order was the only demotion signal on the tab, and order alone loses to mass
+   * (design-interaction).
+   *
+   * So the panel chrome now belongs to the figure alone: exactly one bordered, filled object
+   * exists on this tab, and these two sit under a divider with a heading one step down. The
+   * accessible outline then says what the eye does — `h2` with two `h3` under it, rather
+   * than three siblings claiming to be peers.
+   *
+   * The competing prescription was to promote this card's twelve-week strip into the
+   * protagonist frame. It was not taken: that strip is derived from file update dates, and
+   * the same day's PO pass put file-date claims *below* the Git-derived one for exactly the
+   * reason its own caption states. Making it the headline of a tab named growth would undo
+   * that on the same screen.
+   */
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   return (
     <div className="grid min-h-0 flex-1 grid-cols-1 gap-[var(--card-gap)] @min-[960px]/insights:grid-cols-2">
       <section
         aria-label={labels.domainFreshnessTitle}
-        className="flex min-h-0 min-w-0 flex-col rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] p-[var(--card-pad)]"
+        className="flex min-h-0 min-w-0 flex-col border-t border-[color:var(--color-divider)] pt-[var(--card-pad)]"
       >
         <div className="flex items-baseline gap-2">
-          <InsightsSectionTitle level={2} className="text-body-lg font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--color-text-primary)]">
+          <InsightsSectionTitle level={3} className="text-body font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--color-text-secondary)]">
             {labels.domainFreshnessTitle}
           </InsightsSectionTitle>
           <span className="ml-auto font-mono text-label text-[color:var(--color-text-quaternary)]">{labels.windowCaption}</span>
@@ -209,10 +228,10 @@ export function FreshnessTab({
 
       <section
         aria-label={labels.recentUpdatesTitle}
-        className="flex min-h-0 min-w-0 flex-col rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] p-[var(--card-pad)]"
+        className="flex min-h-0 min-w-0 flex-col border-t border-[color:var(--color-divider)] pt-[var(--card-pad)]"
       >
         <div className="flex items-baseline gap-2">
-          <InsightsSectionTitle level={2} className="text-body-lg font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--color-text-primary)]">
+          <InsightsSectionTitle level={3} className="text-body font-[var(--font-weight-signature)] tracking-[var(--tracking-title)] text-[color:var(--color-text-secondary)]">
             {labels.recentUpdatesTitle}
           </InsightsSectionTitle>
         </div>

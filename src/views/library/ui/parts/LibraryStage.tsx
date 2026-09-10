@@ -17,7 +17,12 @@ import {
 } from "../../lib/compile-availability";
 
 import type { CompileBrain } from "../../lib/compile-brain";
-import { libraryStepStates, libraryWaitingLine, type LibraryStepState } from "../../lib/stage-steps";
+import {
+  libraryCoverageCaption,
+  libraryStepStates,
+  libraryWaitingLine,
+  type LibraryStepState,
+} from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 import type { LibraryLocalModel } from "../../lib/use-library-agent";
 import { CompileBrainSelect } from "./CompileBrainSelect";
@@ -203,7 +208,6 @@ export function LibraryStage({
   const sourceCount = model.sources.length;
   const formats = countSourceFormats(model.sources);
   const newest = newestWikiPage(model.wikiPages);
-  const compiledCount = model.sources.filter((row) => row.state === "compiled").length;
 
   /**
    * **What leaves the computer, said once**, and said where the press is.
@@ -225,6 +229,9 @@ export function LibraryStage({
     leadIndex,
     checkingCount,
   } = libraryStepStates(model);
+
+  /** Which coverage sentence step three prints, and with which numbers. */
+  const coverage = libraryCoverageCaption(model, checkingCount);
 
   /** Step one's line: the formats the folder actually holds, in the index's own words. */
   const gatherCaption =
@@ -471,21 +478,13 @@ export function LibraryStage({
             on the shelf the plain line read "0 of 2 written up" and looked like a folder
             with no pages at all. The third clause is the same repair the `checking` one is.
           */
-          caption={
-            checkingCount > 0
-              ? t("stage.read.coveredChecking", {
-                  compiled: compiledCount,
-                  total: sourceCount,
-                  checking: checkingCount,
-                })
-              : model.partialCount > 0
-                ? t("stage.read.coveredPartial", {
-                    compiled: compiledCount,
-                    total: sourceCount,
-                    partial: model.partialCount,
-                  })
-                : t("stage.read.coveredLine", { compiled: compiledCount, total: sourceCount })
-          }
+          /*
+            ⚠️ **`stale` needed the very same repair and had been missed** (2026-09-09).
+            Which clause wins now lives in `libraryCoverageCaption`, beside the arithmetic
+            the rest of this stepper reads, so the next state to need a clause is caught by
+            a test rather than by an owner reading a real folder for the fourth time.
+          */
+          caption={t(`stage.read.${coverage.key}`, coverage.values)}
           state={readState}
           t={t}
           action={

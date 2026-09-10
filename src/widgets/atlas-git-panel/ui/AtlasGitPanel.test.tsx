@@ -175,7 +175,7 @@ describe("AtlasGitPanel — 웹(브라우저 vault) 강등", () => {
     expect(screen.queryByText(/cli\/src\/index\.mjs snapshot/)).toBeNull();
     expect(
       screen.getByText(
-        "브라우저는 이 컴퓨터의 git 을 실행할 권한이 없어요. 무엇이 바뀌었는지는 여기서 그대로 보여드릴게요.",
+        "브라우저는 이 컴퓨터의 git을 실행할 권한이 없어요. 무엇이 바뀌었는지는 여기서 그대로 보여드릴게요.",
       ),
     ).toBeInTheDocument();
     expect(tauriApiMock.invoke).not.toHaveBeenCalled();
@@ -357,7 +357,7 @@ describe("AtlasGitPanel — 데스크톱(Tauri)", () => {
     // holds a DOM position rather than content every time the layout changes.
     await screen.findByTestId("atlas-git-not-initialized");
     const setup = screen.getByTestId("atlas-git-setup");
-    expect(setup).toHaveTextContent("git 을 연동하면 변경이 쌓여요");
+    expect(setup).toHaveTextContent("git을 연동하면 변경이 쌓여요");
     expect(screen.getByTestId("atlas-git-init")).toBeEnabled();
     // Say what will be created, and how to undo it, before it is pressed.
     expect(setup).toHaveTextContent(".git");
@@ -365,7 +365,7 @@ describe("AtlasGitPanel — 데스크톱(Tauri)", () => {
     expect(screen.queryByTestId("atlas-git-snapshot-button")).not.toBeInTheDocument();
   });
 
-  it("자동 실행 0 — 마운트만으로는 git_init 을 절대 호출하지 않는다", async () => {
+  it("자동 실행 0 — 마운트만으로는 git_init을 절대 호출하지 않는다", async () => {
     installDesktopGit({
       status: {
         initialized: false,
@@ -386,7 +386,7 @@ describe("AtlasGitPanel — 데스크톱(Tauri)", () => {
     expect(writes).toHaveLength(0);
   });
 
-  it("기록 시작 버튼이 git_init 을 호출하고, 커밋으로 연쇄하지 않는다", async () => {
+  it("기록 시작 버튼이 git_init을 호출하고, 커밋으로 연쇄하지 않는다", async () => {
     installDesktopGit({
       status: {
         initialized: false,
@@ -451,7 +451,7 @@ describe("AtlasGitPanel — 데스크톱(Tauri)", () => {
     ).toHaveLength(0);
   });
 
-  it("upstream 이 있으면 주소 입력 칸을 띄우지 않는다", async () => {
+  it("upstream이 있으면 주소 입력 칸을 띄우지 않는다", async () => {
     installDesktopGit({
       status: STATUS_WITH_CHANGES,
       diff: { count: 0, files: [], diff: "" },
@@ -843,7 +843,7 @@ describe("AtlasGitPanel — 원격 세 동작 (Fetch · Pull · Push)", () => {
     expect(screen.getByTestId("atlas-git-divergence")).toHaveTextContent("2");
   });
 
-  it("커밋 제목을 직접 쓰면 그 문장이 그대로 git 에 간다", async () => {
+  it("커밋 제목을 직접 쓰면 그 문장이 그대로 git에 간다", async () => {
     /*
      * The automatic wording says what changed well but never **why**, and why is
      * what someone reading the history later looks for. Leaving it empty still
@@ -862,7 +862,7 @@ describe("AtlasGitPanel — 원격 세 동작 (Fetch · Pull · Push)", () => {
     });
   });
 
-  it("Pull·Push 는 할 일이 없어도 **눌린다** — 침묵으로 답하지 않는다", async () => {
+  it("Pull·Push는 할 일이 없어도 **눌린다** — 침묵으로 답하지 않는다", async () => {
     /*
      * Pull used to be disabled when `behind === 0`. But "there is nothing to pull"
      * is **a fact you should be able to press and find out**, not something to
@@ -893,7 +893,7 @@ describe("AtlasGitPanel — 원격 세 동작 (Fetch · Pull · Push)", () => {
     expect(screen.getByTestId("atlas-git-behind-row")).toHaveTextContent("2");
   });
 
-  it("Fetch 를 누르면 git_fetch 를 부른다 — 그 전에는 0회", async () => {
+  it("Fetch를 누르면 git_fetch를 부른다 — 그 전에는 0회", async () => {
     installDesktopGit();
     renderPanel(<AtlasGitPanel vaultPath="/repo/vault" />);
     const btn = await screen.findByTestId("atlas-git-remote-fetch");
@@ -907,7 +907,7 @@ describe("AtlasGitPanel — 원격 세 동작 (Fetch · Pull · Push)", () => {
     );
   });
 
-  it("fetch 가 돌려준 코드를 읽는 사람의 말로 바꿔 적는다", async () => {
+  it("fetch가 돌려준 코드를 읽는 사람의 말로 바꿔 적는다", async () => {
     // Rust writes no sentence. The only place that picks one knows the reader's
     // language, and it already holds the ahead/behind counts too.
     installDesktopGit();
@@ -917,7 +917,7 @@ describe("AtlasGitPanel — 원격 세 동작 (Fetch · Pull · Push)", () => {
     expect(screen.queryByText(/remote-diverged/)).toBeNull();
   });
 
-  it("Pull 을 누르면 git_pull 을 부른다 — 이 배선이 없던 것이 결함이었다", async () => {
+  it("Pull을 누르면 git_pull을 부른다 — 이 배선이 없던 것이 결함이었다", async () => {
     installDesktopGit();
     renderPanel(<AtlasGitPanel vaultPath="/repo/vault" />);
     fireEvent.click(await screen.findByTestId("atlas-git-remote-pull"));
@@ -928,7 +928,7 @@ describe("AtlasGitPanel — 원격 세 동작 (Fetch · Pull · Push)", () => {
     );
   });
 
-  it("Push 는 남길 변경이 없어도 눌린다 — 이미 쌓인 걸음을 보내는 길", async () => {
+  it("Push는 남길 변경이 없어도 눌린다 — 이미 쌓인 걸음을 보내는 길", async () => {
     installDesktopGit({
       status: { ...STATUS_WITH_CHANGES, changedCount: 0, ahead: 2, behind: 0 },
       diff: { count: 0, files: [], diff: "" },
@@ -1204,7 +1204,7 @@ describe("AtlasGitPanel — 2단 작업대의 선택", () => {
   });
 });
 
-describe("AtlasGitPanel — git 이 없어도 바뀐 것은 보인다", () => {
+describe("AtlasGitPanel — git이 없어도 바뀐 것은 보인다", () => {
   /*
    * Owner, 2026-08-02: *"Do people
    * who don't use our git get no history at all?"*
@@ -1245,7 +1245,7 @@ describe("AtlasGitPanel — git 이 없어도 바뀐 것은 보인다", () => {
     expect(summary).toHaveTextContent("개념 수정 2");
   });
 
-  it("연동 화면이 git 을 이름으로 부른다 — 무엇을 켜는지 알 수 있게", async () => {
+  it("연동 화면이 git을 이름으로 부른다 — 무엇을 켜는지 알 수 있게", async () => {
     installDesktopGit({
       status: {
         initialized: false,
@@ -1261,7 +1261,7 @@ describe("AtlasGitPanel — git 이 없어도 바뀐 것은 보인다", () => {
     renderPanel(<AtlasGitPanel vaultPath="/repo/vault" />);
     // Before status arrives this is the loading frame, so wait for the connect button.
     expect(await screen.findByTestId("atlas-git-init")).toHaveTextContent("git 연동하기");
-    expect(screen.getByTestId("atlas-git-setup")).toHaveTextContent("git 을 연동하면 변경이 쌓여요");
+    expect(screen.getByTestId("atlas-git-setup")).toHaveTextContent("git을 연동하면 변경이 쌓여요");
   });
 
   it("웹 강등도 같은 요약 컴포넌트를 쓴다 — 두 곳이 갈라지지 않게", async () => {

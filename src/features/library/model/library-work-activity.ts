@@ -101,15 +101,25 @@ export function libraryWorkTargetFromToolInput(
   return null;
 }
 
-/** Compile's Wiki tools have a structured page name, never an arbitrary file path. */
+/** Local wiki tools have a structured slug rather than a file-path argument. */
 function targetFromProposalInput(rawInput: unknown): LibraryWorkTarget | null {
   if (!rawInput || typeof rawInput !== "object" || Array.isArray(rawInput)) return null;
   const slug = (rawInput as Record<string, unknown>).slug;
   if (typeof slug !== "string") return null;
   const value = slug.trim();
-  const clean = value.startsWith("wiki/") && value.endsWith(".md") ? value.slice(5, -3) : value;
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(clean) || clean.length > 80) return null;
-  return { kind: "wiki", ref: `wiki/${clean}` };
+  if (!value) return null;
+  if (value.startsWith("wiki/")) {
+    const clean = value.replace(/\.md$/, "");
+    if (clean.startsWith("wiki/_")) return null;
+    return targetFromPath(clean, null);
+  }
+  // Bare local Wiki slugs are names, not paths. Keep the extension and traversal
+  // boundaries explicit while allowing the nested wiki form above.
+  if (value.endsWith(".md") || value.includes("/") || value.includes("\\") || value === "." || value === "..") {
+    return null;
+  }
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) || value.length > 80) return null;
+  return { kind: "wiki", ref: `wiki/${value}` };
 }
 
 /**
@@ -146,7 +156,7 @@ export function libraryWorkEventFromAcpSnapshot(
   };
 }
 
-/** A local executor identifies this route's tools by exact name. */
+/** A local executor identifies the three tools this route exposes by exact name. */
 export function libraryWorkEventFromLocalSnapshot(
   snapshot: LibraryLocalToolSnapshot,
   vaultRoot: string | null,
@@ -242,6 +252,7 @@ export function localCompileWaitingEvent(
   turnId: string,
   at: number,
   hasProposal: boolean,
+  paths: readonly string[] = [],
 ): LibraryWorkEvent | null {
   if (!hasProposal) return null;
   return {
@@ -249,7 +260,7 @@ export function localCompileWaitingEvent(
     workId: `local:${turnId}`,
     kind: "waiting",
     phase: "active",
-    target: null,
+    target: paths.length === 1 ? targetFromPath(paths[0], null) : null,
     at,
   };
 }

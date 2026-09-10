@@ -52,6 +52,7 @@ The criterion for separation is not the topic, but **"when it is read."** All fo
 - [Absolute rules (Don'ts)](#absolute-rules-donts)
 - [Arrows carry information or they don't ship](#arrows-carry-information-or-they-dont-ship)
 - [Dimensional regularity — when content length varies](#dimensional-regularity-when-content-length-varies)
+- [The Library's ground — an object, and a field (2026-09-09)](#the-librarys-ground-an-object-and-a-field-2026-09-09)
 - [Contextual ontology writing; Studio surface retired 2026-08-21](#contextual-ontology-writing-studio-surface-retired-2026-08-21)
 - [Motion principles](#motion-principles)
 - [Page header — English caption + Korean h1](#page-header-english-caption-korean-h1)
@@ -92,6 +93,7 @@ Topology inspection, Workshop writing, Insights maintenance, and source docs.
 1. **Machined surface.** All shapes/cards read like "machined parts" with a 1px stroke + neutral fill tier. Canvas nodes allow only one monochrome vertical sheen (`--map-node-sheen-tint` + blend `0.6`) — it dissolves in the far-field, and DOM cards do not simulate sheen (the ban on decorative gradients remains from v1).
 2. **Engraved mono numerals.** Counts/aggregates use a mono font on a 1px dark shadow (`--map-numeral-shadow`) with a bright face (`--map-numeral-face`) — engraved, not printed. Numbers always point to actual data (node count · relationship count · census). Decorative numbers are forbidden.
 3. **Kind = shape, not color.** project=hex plate · domain=square chip (pin-tick) · capability=circle · element=pad+via (drill hole). The primary channel for kind distinction is **shape**, and color only subtly shifts the fill/stroke brightness tier. Panel/card kind miniatures reuse the same `--map-node-*` tokens as the canvas. Do not revert to UI that distinguishes kind by color.
+   · **The rule holds in the Galaxy view too (2026-09-10).** Galaxy is the second *flat* view in the map's own picker, and it lights every node — but it lights the node's **own silhouette**, so a project is a burning hexagon and a domain a burning square. Kind is still shape there. `--map-galaxy-*` adds colour **temperature** as a *second* carrier, which matters only where the shape channel has already ceased to exist on its own: `interpolateCornerRadius` rounds every silhouette as `farT` rises and `FULL_CIRCLE_FAR_T` (0.985) finishes it, so at the top of the zoom-out every node is the same circle whichever view is on. Radius still says how much a node contains, so a reader who separates none of the hues still has two channels. Measured: adjacent steps ΔE 11.4–17.4, L\* held to 85.7–92.6 so temperature cannot corrupt the brightness beside it (brightness carries connection count), protan/deutan end-to-end ΔE 42.2/45.7 against 41.5 normal. Record: `docs/DECISIONS.md`, "The galaxy is a view you pick, not an altitude you reach".
 4. **Signal = State (power/pulse).** Indigo means "powered on" — fresh node stroke, powered dot (`--map-panel-power-on`), active highlight. Comet pulse means "current flowing" — live traversal of `depends` relationships (accelerated from ego, `--map-edge-pulse-speed[-ego]`). Stale uses dashed border + low-chroma surface. Do not use signal color if it does not explain the state.
 5. **Calm chrome / fluid canvas boundary.** The canvas is fluid — spring camera, altitude crossfade (circuit ↔ constellation smoothstep), breathe. Chrome (panels/rails/pills) is static precision instrumentation — read as measurement tools rather than touch surfaces on 1920 desktops via `--topology-chrome-*` density (controls 32~36px, icons 11~12px, title 12px, eyebrow 9px). Fluid motion does not leak outside the canvas.
 6. **Indigo is the resting protagonist; amber marks one hub ring.** Since 2026-09-08 a further hue is allowed when it names a typed fact or a decision (a tier, a state, a lens) through a `--color-*` token; the earlier cyan rejection (ONTOLOGY-MAP-DESIGN verdict a5) was about a hue that named nothing, and that test still applies.
@@ -106,6 +108,7 @@ The source of truth for values is `app/globals.css` alone. Canvas 2D cannot read
 | **Stroke** | `--map-node-stroke-{project,domain,capability,element,dim,stale}` · `--map-edge-contains/-depends/-dim` · `--map-hull-stroke` · `--map-edge-contains-mark/-depends-mark` · `--map-panel-action-border` | 1px machined outlines + relationship trace ink. contains=solid, depends=dashed — this distinction can be ported to page dividers |
 | **Text ladder** | `--map-label-{project,domain,capability,element}` · `--map-numeral-shadow/-face` · `--map-panel-text-{primary,secondary,tertiary,quaternary}` · `--map-panel-metric-text` | 4-step ladder darkening as kind decreases. Panel tertiary is nudged to `#868690` for 10px AA contrast (Guardian follow-up #2) — do not arbitrarily unify with canvas values; there is a reason they differ |
 | **Signal** | `--map-indigo`(=`--color-indigo-brand`) · `--map-indigo-bright` · `--map-amber-hub` · `--map-panel-power-on/-off` | Power/pulse/focus/hub. Signal colors without state description are forbidden |
+| **Galaxy temperature** | `--map-galaxy-{project,domain,capability,element}` | One warm→cool ramp read down the containment ladder, spent **only** through `model/galaxy.ts` and only in the Galaxy view. It carries kind, never state, and never appears on a DOM surface. Brightness on the same mark is already taken — it carries connection count — so these four hold L\* inside a narrow band on purpose |
 | **Selection ladder** | `--map-indigo`(node selection, **solid**) · `--map-edge-selected`(edge pair focus, pale indigo) · `--map-expanded-cohort`(expanded cohort, **desaturated indigo dashed**) | These three states diverge only in saturation/value/geometric (solid/dashed) within the **same indigo axis** — adding new hues is forbidden. Expanded cohort = affiliation ring of direct children revealed via cluster chips (`+N`); parents maintain protagonist status with saturated indigo dashed aura. Answer to owner's request "distinguish expanded items from selection blue" in the charter |
 | **Density · geometry** | `--map-radius-*` · `--map-layout-ring-*` · `--map-edge-bow/-blend-*` · `--map-star-count` · `--map-dust-area-per-point` · `--map-safe-inset-*` · `--map-panel-width/-pad/-gap/-radius/-row-radius` · `--map-label-max-width` | Mix of world-unit numbers (unitless, consumed by canvas) and px (consumed by DOM) — adhere to consumption annotations in comments |
 | **INDEX panel geometry** (B3) | `--topology-index-width`(300px) · `--topology-index-tab-width`(26px) · `--topology-index-inset`(= `--chrome-inset`, 24px) · `--topology-index-top`(84px) | Dedicated to `TopologyIndexPanel`/`TopologyIndexTab` — px, DOM-only (not consumed by canvas). Do not create new surface/border/shadow/padding; reuse existing `--map-panel-*` (Surface tier). `-top` fixes owner live-QA defect — since `topology-top-left-chrome-group` (Relief brand pill) already occupies the top-32px band, INDEX/tab starts below it (`TopologyAnalysisBar` used the same clearance) |
@@ -926,6 +929,7 @@ The usability motion for "verifying meaning" in the map contextual editor and in
   commit convergence/completion linger).
 - `--motion-ease: cubic-bezier(0.25,0.1,0.25,1)` — The common easing for the three above. Every **entry** rides it.
 - `--motion-ease-exit: cubic-bezier(0.4,0,1,1)` — **Exits only** (2026-09-05). Paired with the exit clock `calc(var(--motion-base) * 0.67)` (= `--motion-fast`); JS copy `MOTION_EASE_EXIT`, reached only through `EXIT_TRANSITION`. `--motion-ease` decelerates into place, so a surface leaving on it is the entrance clock played backwards, slowing down while still visible; this curve accelerates away. Measured at 120.6ms: 3.4% of the travel in the first frame, 21.3% in the last, against 61.5% first-frame for the `--topology-motion-ease-out` curve the inspector movement exit used before. Entries may not use it and a `transition:` may not reference it (a transition runs both ways on one curve); `motion-token-mirror.contract.test.ts` enforces both directions in CSS (`-out` / `[data-state="closed"]` rules on `*Out` keyframes only) and JS (no import outside `src/shared/motion`). The brightness axis of a split exit (`overlayFadeOut`) keeps `--motion-ease`: an accelerating fade holds 79% opacity into its last frame.
+- `--motion-ease-place: cubic-bezier(0.34,1.28,0.64,1)` — **Arrivals that are set down, transform only** (2026-09-09). Overshoots by about 8% and returns, so a mark reads as placed rather than revealed. Minted for the growth tab's pouring blocks, where the owner asked for pieces that "trickle into a pile like something poured into a bucket"; `--motion-ease` decelerates smoothly and made a block look as if it had always been there. Licensed on **transform only**, on an **arrival**, on a **figure with no type inside it** — never on a surface, a panel or anything carrying a sentence, because a settling wobble under text is the ambient wriggle removed from the map on 2026-09-08. It is the first token to spend the overshoot allowance the same-day record opened, and it names the meaning it carries. Reduced motion never reaches it: both consumers derive their finished state at render and register no timer. Measured on a real screen at 40ms per block: 1233ms for 31 blocks, cv 0.25, 0 stalls, one block landing per step.
 - **Entrance distance is a name too** (2026-09-08). The clock and the curve were tokens; the *place a surface starts* was a literal, copy-pasted at 16 sites in 8 files. `OVERLAY_RISE` `{opacity:0, y:8}` is the overlay grammar `dialog.tsx` already promised in words ("opacity plus an 8px rise") and is taken by the dialog primitive, the search palette, the project drawer hero and the project card; `SHEET_RISE` `{opacity:0, y:12, scale:0.985}` is the sheet grammar of the four hand-built modal surfaces (shortcut sheet, recent-changes dialog, block import, vault-open guide). Each ships its `*_SETTLED` rest state so a consumer cannot spread the start and forget to animate `scale` back, and `SHEET_RISE_REDUCED` `{opacity:0, y:0, scale:1}` is the travel-zero equivalent whose reason the shortcut sheet records. Naming both grammars does not bless the split; it makes it countable. One-off offsets (`y:4`, `y:10`, `y:-8` with `scale:.98`, the drawer's `x`/`y` pairs) stay literals — a single-consumer value is not a token. Gate: `framer-entrance-grammar.contract.test.ts` refuses a named value written as a number.
 - `--topology-motion-camera/drag-settle: 420/720ms` — **Map canvas only**
   continuity. Referencing this from a DOM surface is a defect.
@@ -1665,11 +1669,33 @@ The full accessible name and tooltip retain title, freshness, template problem,
 and exceptional author. Page length is not encoded by a control's width.
 
 `controlClass({ shape: 'row', size: 'md' })` owns focus, ink, and interaction.
-The selected row uses the solid indigo accent and indigo fill. A top amber rim
-marks changed or unmeasured source evidence; a bottom amber rim marks a page
-format problem. These are distinct repair tasks, and their accessible text
-states the distinction. Unverified pages keep readable ink on an unfilled row.
-The retained `--library-spine-rim` is a 2px state marker, not a book shape.
+The selected row uses the solid indigo accent and indigo fill. Unverified pages
+keep readable ink on an unfilled row.
+
+**The amber rims are gone (2026-09-09).** They marked the same two repair tasks
+they still do — the source changed under the page, and the page's own shape
+misses the template — but as a full-bleed bar across the row's head and foot,
+over an amber border around the card. The owner read the head bar as *"so AI"*,
+and read a first repair that moved it to the row's start edge the same way. A
+rail moved from one edge to another is still the **full-height coloured rail**
+this document lists among its Don'ts, and the replacement it prescribes in the
+same breath is a neutral surface with a small marker and a label. So both rims
+were deleted along with the 2px rim token they were the only consumers of: the
+caption line under the title
+carries both facts in words — `<source state> · <off-template>` — with one 6px
+amber dot in front of it. The state was
+already in the accessible name; it is now also the only place it is drawn.
+
+**The dot marks the page's own defect only (guardian, 2026-09-09).** It first
+shipped on `stale || off-template` and landed on 3 of 3 rows of the owner's
+folder. `--color-amber-source-a90` is `--color-status-warning`, and a warning
+ink every row wears marks nothing: staleness is the state a folder somebody is
+working in *rests* in, so a union with it trends to every row on any live shelf
+rather than 3/3 being a small sample. Staleness keeps its word on the caption
+and in the accessible name. The marker is pointed at the fact the caption can
+lose instead: the line truncates from the end, so only the trailing
+`off-template` segment can be clipped, and the dot is what survives the clip.
+`unverified` still wears nothing — nobody has started, and nothing is wrong.
 
 Hover uses the existing control colour and shadow transitions. There is no
 rotated label, lifted book, per-page progress chase, or resting animation.
@@ -1809,6 +1835,56 @@ regularity is for repetition.
 
 > There is no carve-out. Every Don't above holds **app-wide, including the
 > contextual editor and change-review surfaces**.
+
+## The Library's ground — an object, and a field (2026-09-09)
+
+Two ambient surfaces, both in `src/views/library/expressive/` as pure modules
+with their own tests and README, each one call from a host component. Delete
+that folder and the two hosts and the Library is a flat panel again.
+
+| Surface | Where | What it is |
+|---|---|---|
+| **Constellation** | Library, no folder open | A three.js object of a folder: cubes for documents, spheres for write-ups, indigo lines for citations, on a Fibonacci shell with each cited source drawn toward the page citing it. The folder is anonymous and deterministic. It stands **beside** the copy, never under it. |
+| **Synapse field** | Library, folder open, nothing selected | A canvas-2D network of drifting points on a jittered grid, linked when close, weight falling off with distance. Explicitly **texture**: no count, no title, no link that exists. |
+
+The split is the point. The constellation's marks are facts, so it is drawn only
+where they can be read as facts — a screen with no folder, no cards and no
+numbers competing with it. It is deliberately **not** drawn on the working pane:
+a real folder's object is small, and ten marks spread across half a pane read as
+debris drifting into the cards rather than as a ground. The field carries no
+fact at all, which is what lets it sit behind a working screen without becoming
+a third opinion about the folder.
+
+Values: `--color-canvas-a70` (the vignette that fades either surface into the
+canvas at a pane's rim), `--library-empty-max` and `--library-empty-object-max`
+(the cap on the copy-plus-object row, and on the object's own square box). Ink is
+read from the existing ramps at mount —
+`--color-text-tertiary`, `--color-text-primary`, `--color-indigo-accent`,
+`--color-indigo-brand`, `--color-text-quaternary`. No new hue.
+
+**The accent belongs to the object, not to the field (guardian, 2026-09-09).**
+The constellation's indigo lines are citations — marks that carry a fact — so
+they keep `--color-indigo-brand`/`--color-indigo-accent`. The field's links
+shipped in `--color-indigo-accent` too, and on this route that ink means *this
+is the one you have open*: the shelf's selected row wears it as its edge, and
+`library-graph-ink.ts` gives it to the selected node's ring on the folder graph
+one chip away. A ground that carries no fact by design must not wear the ink a
+fact wears, so the whole field — points and links — now draws in
+`--color-text-quaternary`, its own node ink. The rule generalises: a surface
+declared as texture is monochrome in a neutral ramp, and signal inks
+(`--color-status-*`, the indigo accent family) stay with marks that carry a
+state.
+
+Motion obeys the map's own contract rather than a second one: both sleep through
+`ambientSleepFactor` (full speed until 30s after the last input, a 2s
+deceleration, then nothing), both freeze to a single still frame under
+`prefers-reduced-motion` — measured 2026-09-09 at **0 rAF callbacks per second**
+reduced against 120 with it off — and neither moves fast enough to cross the eye
+mid-sentence: four minutes for one turn of the object, under a tenth of a pixel
+per frame for a field point. Both are `aria-hidden` and `pointer-events-none`.
+
+Rationale and the arguments that lost: `docs/DECISIONS.md`, 2026-09-09 "The
+Library gets a ground, and its shelf loses the coloured rail".
 
 ## Contextual ontology writing; Studio surface retired 2026-08-21
 

@@ -87,6 +87,23 @@ describe('architecture profile read model', () => {
     expect(report.problems[0]?.message).toContain('architecture/other');
   });
 
+  /*
+   * **The person reads line 1; the machine reads line 2.**
+   *
+   * `splitAppRequest` folds an app-composed turn at the first known marker and folds nothing
+   * when that marker is line 0, because then no readable half is left standing. The packet used
+   * to be line 0, so the chat panel drew the whole handoff — the JSON object first, unwrapped
+   * (the bubble is break-keep), then ten English sentences. Measured on the installed app
+   * 2026-09-09 at /ko/architecture.
+   */
+  it('opens on a sentence a person can read, with the packet behind it', () => {
+    const profile = parseArchitectureProfile(FSD_PROFILE_FRONTMATTER);
+    const lines = buildArchitectureAgentPrompt(profile).split('\n');
+    expect(lines[0]).toBe('Start from the reviewed architecture profile atlas-web.');
+    expect(lines[0]).not.toContain('{');
+    expect(lines[1]).toMatch(/^Architecture task context: \{/);
+  });
+
   it('builds an executable architecture-first agent handoff', () => {
     const profile = parseArchitectureProfile(FSD_PROFILE_FRONTMATTER);
     const prompt = buildArchitectureAgentPrompt(profile);

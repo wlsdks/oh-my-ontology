@@ -1159,12 +1159,22 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   establish raw-source citation support. Human notes remain attributed prior context;
   the model is instructed to resolve answered questions while preserving the remainder.
   That instruction is not a guarantee of semantic preservation.
-  `propose_wiki_page` takes fields, never
+  Local source reads also return up to three related wiki suggestions: an exact shared
+  source takes priority, followed by rare lexical terms in titles and cached bodies,
+  including a Korean bigram fallback. The index is built only when Compile starts,
+  reusing the Library read cache. Results report searched pages, body-cache coverage
+  and omitted matches. Cached bodies are isolated by folder session and page version,
+  so switching to a same-named page in another folder cannot reuse its predecessor.
+  Suggestions carry no truth, currentness or complete-read authority;
+  a match still requires `read_wiki_page`, and no match does not prove absence.
+  Existing inventoried nested Wiki pages keep their exact paths. Retained answers
+  under `wiki/answers/` use the explicit answer-refresh/revision workflow instead
+  of ordinary Compile replacement. `propose_wiki_page` takes fields, never
   Markdown: Atlas assembles the five sections itself and mints `created_by: model:<name>`,
   `compiled_at`, `sources:` and `source_hash:` from the bytes it actually handed over, so a
   page cannot claim a document the model never opened. **It writes nothing.** The turn ends
   at one card that names, per page, the path it would take, what each of its five sections
-  carries, how many citations it holds, which sources it was written from, which were read
+  carries, the full current and proposed text, how many citations it holds, which sources it was written from, which were read
   only in part, and which could not be opened at all; only Allow once writes, through the
   same `applyProposal` a concept change takes. The card displays the exact proposed
   Markdown and lets the person switch to the complete previous page; a new page has
@@ -1175,13 +1185,21 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   every selected replacement's exact prior text and timestamp with a fresh file read;
   a detected correction refuses the write before any selected page is saved. Writes
   remain sequential, with no claim of transactional rollback after an I/O failure.
-  A page that fails the contract produces no
+  Source hashes are computed from the complete buffer read, not a later reopening
+  of the source path. A page that fails the contract produces no
   proposal at all, so the card has nothing to offer and shows the exact problem codes
   instead. Beyond the shared `validateWikiPage` rules the proposal adds two: every
   `## Decisions` bullet cites, and **every citation anchor resolves inside the bytes read
   this turn** — the shared validator captures an anchor and never opens a file, so
   `#p47` in a three-paragraph document would otherwise pass and land as a citation a reader
-  cannot follow. Three pages per turn, ten rounds. The button goes live only for a loopback
+  cannot follow. Three pages per turn, ten rounds. A folder with existing pages targets
+  one waiting source per turn to leave room for reading and revising its affected pages.
+  A source can have a current write-up while another citing page still needs review:
+  changed and unmeasured hashes on any citing page keep that source in the Compile queue,
+  and both the ACP brief and local prompt name the exact pages to recheck. Hashes pending
+  measurement do not create speculative revision work. Unfinished pages stay queued;
+  arrival order alone never establishes which conflicting claim is current.
+  The button goes live only for a loopback
   runner, because whole documents now leave the process and "on this computer" has to be
   true rather than named; a remote saved address and a folder whose waiting files all need
   a parser each get their own sentence naming what is missing rather than blaming the
@@ -1325,7 +1343,9 @@ Composition / Connection / Boundary. Scroll contract: every tab stays ≤ 1.3× 
 - **Boundary pressure** — per-domain inside vs cross ratio; a high cross share signals a leaking boundary
 - Cold start (fewer than 2 domains or no cross edges) shows one explicit empty state **with a next step** (map editor link) instead of a misleading table
 
-#### Tab 5 — Freshness
+#### Tab 5 — Growth (formerly Freshness; `?tab=freshness` still lands here)
+- **What the folder holds, and how it got there** (2026-09-09, `VaultHistorySection`) — the tab opens with the folder's present: four layers (concepts, architecture, wiki pages, raw sources) each drawn as a bounded pile of blocks that assembles itself row by row over a fixed 600ms, whatever the folder's size. **The pile is a fixed size and the block carries a stated quantity** — the largest layer fills 36 blocks and every other layer is drawn against the same block, so a folder of forty and a folder of forty thousand produce the same picture and only the sentence under it ("one block = N files") changes. Magnitude is the numeral under each pile; the pile carries accumulation and proportion. A layer at a true zero keeps a dashed rule, so "none" and "not counted" never look alike. The present needs neither Git nor timestamps, so it draws everywhere.
+- **Week by week, where Git can say so** — on the installed app the same four layers also draw as weekly tracks, replayed backwards from the folder's own Git history (`git log --name-status`, 1500-commit window) and held only while the screen is open; nothing is stored, and a rules version is stamped so an old picture is never redrawn by new counting rules. Never a stacked area and never a blended total: on this repository concepts fell 107 → 71 while documents rose, the comparison a moving baseline destroys. Under the chart, in words, the two facts a forty-pixel column cannot state: the week a layer began and the week it grew most. Four states — a browser has no Git bridge, a folder may have no commits, a read can fail, and each says which rather than drawing zeroes. Reduced motion draws both figures finished on the first frame with no schedule. Decisions: `docs/DECISIONS.md` 2026-09-09.
 - **Domain freshness heatstrip** — one row per domain, a week-by-week heat strip (neutral ramp, current week in indigo) built from real vault `updatedAt` values (`FRESHNESS_WINDOW_WEEKS`); domains with no dated docs are excluded from the stale count rather than counted as stale ("unknown" ≠ "old"); stale domains get a dashed "stale" tag
 - **Recent updates** — most recently touched nodes with kind glyph, domain, and ISO date; footer shows total stale-domain count
 

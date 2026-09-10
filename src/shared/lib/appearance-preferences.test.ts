@@ -102,17 +102,17 @@ describe("폐기된 캔버스 배경 값의 계승", () => {
  */
 describe("발자국 설정 정규화", () => {
   it("범위 밖 숫자는 잘라 넣는다", () => {
-    const out = resolveFootprint({ size: 999, opacity: -3, bloom: 40 });
+    const out = resolveFootprint({ size: 999, opacity: -3, gap: 900 });
     expect(out.size).toBe(FOOTPRINT_RANGES.size.max);
     expect(out.opacity).toBe(FOOTPRINT_RANGES.opacity.min);
-    expect(out.bloom).toBe(FOOTPRINT_RANGES.bloom.max);
+    expect(out.gap).toBe(FOOTPRINT_RANGES.gap.max);
   });
 
   it("NaN·문자열·누락은 기본값으로 대체한다", () => {
-    const out = resolveFootprint({ size: Number.NaN, strokeWidth: "1.5", filled: "yes" });
+    const out = resolveFootprint({ size: Number.NaN, gap: "8", tone: "chartreuse" });
     expect(out.size).toBe(DEFAULT_FOOTPRINT.size);
-    expect(out.strokeWidth).toBe(DEFAULT_FOOTPRINT.strokeWidth);
-    expect(out.filled).toBe(DEFAULT_FOOTPRINT.filled);
+    expect(out.gap).toBe(DEFAULT_FOOTPRINT.gap);
+    expect(out.tone).toBe(DEFAULT_FOOTPRINT.tone);
   });
 
   it("객체가 아니면 통째로 기본값", () => {
@@ -120,8 +120,25 @@ describe("발자국 설정 정규화", () => {
     expect(resolveFootprint("[]")).toEqual(DEFAULT_FOOTPRINT);
   });
 
-  it("놓는 자리는 두 값만 받는다", () => {
-    expect(resolveFootprint({ placement: "both" }).placement).toBe("both");
-    expect(resolveFootprint({ placement: "left" }).placement).toBe(DEFAULT_FOOTPRINT.placement);
+  /**
+   * The retirement's actual promise to a person who had set those six values: their saved
+   * settings still load. Six keys stopped being read on 2026-09-10 because the glyph they
+   * shaped stopped being drawn, and a stored preference from before that day must resolve to a
+   * valid preference rather than throwing or falling back wholesale to the defaults.
+   */
+  it("은퇴한 여섯 값이 남아 있어도 나머지는 살아서 돌아온다", () => {
+    const out = resolveFootprint({
+      size: 17,
+      gap: 4,
+      opacity: 0.95,
+      tone: "indigo",
+      filled: false,
+      strokeWidth: 1.2,
+      bloom: 3,
+      onEdges: true,
+      edgeDensity: "sparse",
+      placement: "both",
+    });
+    expect(out).toEqual({ size: 17, gap: 4, opacity: 0.95, tone: "indigo" });
   });
 });

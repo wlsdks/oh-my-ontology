@@ -32,6 +32,7 @@ vi.mock('@/shared/ui/toast', () => ({
 }));
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations:
     (namespace: string) => (key: string, values?: Record<string, unknown>) =>
       values
