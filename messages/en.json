@@ -4526,6 +4526,7 @@
       "needsCompileSplit": "{notCompiled, plural, one {# not written up yet} other {# not written up yet}} · {stale, plural, one {# page behind its source} other {# pages behind their sources}}",
       "staleOnly": "{count, plural, one {# page is behind its source} other {# pages are behind their sources}}",
       "partialOnly": "{count, plural, one {# read only in part} other {# read only in part}}",
+      "pagesNeedReview": "{count, plural, one {# existing page needs rechecking} other {# existing pages need rechecking}}",
       "import": "Bring from a service",
       "importTooltip": "Bring documents in from Notion, Confluence, Jira or GitHub"
     },
@@ -4784,6 +4785,8 @@
         "hash-unavailable": "this computer could not measure its sha256"
       },
       "replaces": "Replaces the page already there",
+      "before": "Current page",
+      "after": "Proposed page (check for missing notes before allowing)",
       "refusedTitle": "Not written: this page does not fit the template",
       "refusedLede": "Nothing is offered for this one. Compile again, or write the page yourself.",
       "allow": "Allow once",

@@ -2,9 +2,9 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import type { LibrarySourceRow } from "@/entities/docs-vault";
+import { buildWikiRetrievalIndex, isWikiPage, sourceNeedsCompile, type LibrarySourceRow } from "@/entities/docs-vault";
+import { isWikiFurnitureSlug } from "@/shared/lib/wiki-page-schema";
 import { useLocalVault, useVaultSessionIdentityScope } from "@/entities/vault-session";
-import { nativeVaultFileHashes } from "@/shared/lib/tauri-vault-fs";
 import { llmChat, llmChatErrorMessage } from "@/shared/lib/tauri-llm";
 import { LOCAL_PROVIDER } from "@/shared/lib/tauri-secrets";
 
@@ -74,6 +74,8 @@ export interface UseLocalCompileArgs {
   endpoint: { baseUrl: string; model: string } | null;
   /** The library's own rows, already carrying their compile state. */
   sources: readonly LibrarySourceRow[];
+  /** Existing Library read cache; no additional folder walk for retrieval. */
+  wikiTexts?: ReadonlyMap<string, string>;
   labels: {
     createFile: (path: string) => string;
     modifyFile: (path: string) => string;
@@ -81,13 +83,13 @@ export interface UseLocalCompileArgs {
   };
 }
 
-async function hashInBrowser(handle: FileSystemFileHandle): Promise<string | null> {
+async function hashReadBytes(bytes: ArrayBuffer): Promise<string | null> {
   // Same measurement `use-library-model.ts` makes for the shelf's own rows, and the same
   // honest null: a browser without a secure context has no digest, and a page that cannot
   // record what it read is refused rather than written with an empty `source_hash`.
   if (typeof crypto === "undefined" || !crypto.subtle) return null;
   try {
-    const digest = await crypto.subtle.digest("SHA-256", await (await handle.getFile()).arrayBuffer());
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
     return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
   } catch {
     return null;
@@ -111,7 +113,7 @@ export function selectLocalCompileTargets(
       // `partial` counts with them: the rest of a file read only in part is work this
       // route can do, and leaving it out told a folder of part-read sources that its
       // formats were the problem (`blockedLocalFormats`) when they were not.
-      (row.state === "not-compiled" || row.state === "stale" || row.state === "partial") &&
+      sourceNeedsCompile(row) &&
       classifySourceFormat(row.format) === "readable",
   );
 }
@@ -120,6 +122,7 @@ export function useLocalCompile({
   vaultRoot,
   endpoint,
   sources,
+  wikiTexts,
   labels,
 }: UseLocalCompileArgs): LocalCompileSession {
   const vault = useLocalVault();
@@ -143,8 +146,10 @@ export function useLocalCompile({
    */
   const targets = useMemo(
     () =>
-      selectLocalCompileTargets(sources).map((row) => row.path).slice(0, COMPILE_SOURCES_PER_TURN),
-    [sources],
+      // Leave the existing three-page/ten-round budget for related reads and revisions.
+      selectLocalCompileTargets(sources).map((row) => row.path).slice(0,
+        vault.manifest?.docs.some((doc) => isWikiPage(doc) && !isWikiFurnitureSlug(doc.slug)) ? 1 : COMPILE_SOURCES_PER_TURN),
+    [sources, vault.manifest],
   );
 
   const sourcePort: SourceReadPort = useMemo(() => {
@@ -161,33 +166,27 @@ export function useLocalCompile({
         if (!handle) return null;
         return (await handle.getFile()).arrayBuffer();
       },
-      async hashSource(path) {
+      async hashSource(_path, bytes) {
         // Whole-file sha256, never the capped slice: `deriveSourceState` compares a
         // page's recorded hash against the file's own, so a partial-bytes hash would
         // render a brand-new page stale the moment it landed.
-        if (vaultRoot) {
-          const native = await nativeVaultFileHashes(vaultRoot, [path]);
-          const measured = native?.get(path);
-          if (measured) return measured;
-        }
-        const handle = vault.sourceHandles.get(path);
-        return handle ? hashInBrowser(handle) : null;
+        return hashReadBytes(bytes);
       },
     };
-  }, [sources, vault.sourceHandles, vaultRoot]);
+  }, [sources, vault.sourceHandles]);
 
   const readExistingPage = useCallback(
     async (slug: string) => {
       const handle = vault.fileHandles.get(slug);
       if (!handle) return null;
-      const doc = vault.manifest?.docs.find((candidate) => candidate.slug === slug);
       try {
-        return { text: await (await handle.getFile()).text(), mtime: doc?.mtime ?? 0 };
+        const file = await handle.getFile();
+        return { text: await file.text(), mtime: file.lastModified };
       } catch {
         return null;
       }
     },
-    [vault.fileHandles, vault.manifest],
+    [vault.fileHandles],
   );
 
   const stop = useCallback(() => {
@@ -208,12 +207,15 @@ export function useLocalCompile({
       setWrittenPaths([]);
       setToolActivity(null);
 
+      const wikiIndex = buildWikiRetrievalIndex(vault.manifest?.docs ?? [], wikiTexts);
       const executor = createCompileExecutor({
         sourcePort,
         model: endpoint.model,
         now: () => new Date(),
         readExistingPage,
         pageCap: COMPILE_SOURCES_PER_TURN,
+        findRelatedPages: wikiIndex.search,
+        wikiSlugs: vault.manifest?.docs.filter((doc) => isWikiPage(doc) && !isWikiFurnitureSlug(doc.slug)).map((doc) => doc.slug) ?? [],
       });
       const controller = new AbortController();
       abortRef.current = controller;
@@ -237,7 +239,9 @@ export function useLocalCompile({
             adapter: compileAdapter,
             tools: COMPILE_TOOLS,
             roundCap: COMPILE_ROUND_CAP,
-            system: buildCompileSystemPrompt({ model: endpoint.model, targets }),
+            system: buildCompileSystemPrompt({ model: endpoint.model, targets,
+              reviewPages: [...new Set(sources.filter((row) => targets.includes(row.path)).flatMap((row) => row.reviewPages ?? []))],
+            }),
             model: endpoint.model,
             notices: COMPILE_NOTICES,
             async execute(call) {
@@ -300,7 +304,7 @@ export function useLocalCompile({
         abortRef.current = null;
       }
     },
-    [endpoint, labels, readExistingPage, sourcePort, targets, vaultRoot, vaultSessionScope],
+    [endpoint, labels, readExistingPage, sourcePort, sources, targets, vault.manifest, vaultRoot, vaultSessionScope, wikiTexts],
   );
 
   const allow = useCallback(async () => {

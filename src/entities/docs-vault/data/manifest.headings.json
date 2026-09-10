@@ -2753,6 +2753,13 @@
       "slug": "what-this-does-and-does-not-show"
     }
   ],
+  "benchmark/FINDINGS-2026-09-10-wiki-retrieval": [
+    {
+      "depth": 1,
+      "text": "Local wiki retrieval and revision pilot — 2026-09-10",
+      "slug": "local-wiki-retrieval-and-revision-pilot-2026-09-10"
+    }
+  ],
   "benchmark/MCP-ONE-CLICK-2026-09-07": [
     {
       "depth": 1,
@@ -4076,6 +4083,18 @@
       "depth": 2,
       "text": "Known gaps",
       "slug": "known-gaps"
+    }
+  ],
+  "benchmark/WIKI-ACCUMULATION-EVAL": [
+    {
+      "depth": 1,
+      "text": "Wiki accumulation evaluation",
+      "slug": "wiki-accumulation-evaluation"
+    },
+    {
+      "depth": 2,
+      "text": "What the numbers mean",
+      "slug": "what-the-numbers-mean"
     }
   ],
   "BRAND": [
@@ -9446,6 +9465,11 @@
       "depth": 2,
       "text": "2026-09-09 — Signal ink is spent where there is a signal: the Library's dot and its field",
       "slug": "2026-09-09-signal-ink-is-spent-where-there-is-a-signal-the-librarys-dot-and-its-field"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-10 — Compile revisits existing write-ups and filed answers",
+      "slug": "2026-09-10-compile-revisits-existing-write-ups-and-filed-answers"
     }
   ],
   "DEMO-SCENARIO": [
@@ -14269,6 +14293,16 @@
       "depth": 2,
       "text": "Confidence",
       "slug": "confidence"
+    },
+    {
+      "depth": 2,
+      "text": "Incremental Library compilation",
+      "slug": "incremental-library-compilation"
+    },
+    {
+      "depth": 2,
+      "text": "Related wiki retrieval and accumulation evaluation",
+      "slug": "related-wiki-retrieval-and-accumulation-evaluation"
     }
   ],
   "ontology/capabilities/vault-git-history": [
@@ -15788,6 +15822,11 @@
       "depth": 3,
       "text": "impact: answered",
       "slug": "impact-answered"
+    },
+    {
+      "depth": 2,
+      "text": "Library revision loop",
+      "slug": "library-revision-loop"
     }
   ],
   "ontology/README": [

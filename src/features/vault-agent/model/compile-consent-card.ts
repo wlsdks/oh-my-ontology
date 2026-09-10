@@ -27,6 +27,8 @@ export interface CompileCardRow {
   ok: boolean;
   /** True when a page of this name is already in the folder and would be replaced. */
   replaces: boolean;
+  /** Exact previously read bytes, so a replacement can be judged before approval. */
+  before: string | null;
   sections: Array<{ name: string; entries: number }>;
   citationCount: number;
   /** Sources this page was written from. */
@@ -72,6 +74,7 @@ export function buildCompileConsentCard(
     title: proposal.title,
     ok: proposal.ok,
     replaces: proposal.existing !== null,
+    before: proposal.existing?.text ?? null,
     sections: proposal.sections.map((section) => ({ name: section.name, entries: section.entries })),
     citationCount: proposal.citationCount,
     sourcesRead: [...proposal.sourcesRead],

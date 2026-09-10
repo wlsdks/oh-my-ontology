@@ -4526,6 +4526,7 @@
       "needsCompileSplit": "{notCompiled}개는 아직 정리되지 않았고, {stale}개는 원문이 달라졌습니다",
       "staleOnly": "{count}개는 원문이 달라져 문서가 뒤처졌습니다",
       "partialOnly": "{count}개는 앞부분만 읽었습니다",
+      "pagesNeedReview": "기존 페이지 {count}개를 다시 확인해야 합니다",
       "import": "외부에서 가져오기",
       "importTooltip": "Notion·Confluence·Jira·GitHub에서 문서를 가져와요"
     },
@@ -4784,6 +4785,8 @@
         "hash-unavailable": "이 컴퓨터가 sha256을 재지 못했어요"
       },
       "replaces": "이미 있는 문서를 대체해요",
+      "before": "현재 페이지",
+      "after": "수정안 (빠진 메모가 없는지 확인하고 허용하세요)",
       "refusedTitle": "쓰지 않음: 템플릿에 맞지 않아요",
       "refusedLede": "이 문서는 아무것도 제안하지 않아요. 다시 컴파일하거나 직접 쓰면 돼요.",
       "allow": "한 번 허용",

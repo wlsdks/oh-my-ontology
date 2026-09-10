@@ -300,6 +300,26 @@ graph. The separation is a property of the **walk**, not a filter applied later.
   writes register with the vault session's existing one-shot self-write ledger,
   so the polling toaster reports external changes without duplicating File's
   success and Undo feedback.
+- `vault-library.ts` keeps source coverage separate from per-page freshness.
+  `reviewPages` names stale or unmeasured citing pages even when another write-up
+  covers current bytes; Compile target selection and the waiting caption share that
+  work. `compile-wiki-reader.ts` bounds local model reads to inventoried wiki paths,
+  retains one complete snapshot per turn, and requires contiguous reads before a
+  replacement. The consent card exposes both texts and `applyProposal` receives that
+  snapshot's mtime. Source receipts hash the complete read buffer, so a later disk
+  edit cannot lend its hash to earlier text. This is a local Compile catalogue change, not a public MCP tool
+  or an automatic ontology promotion.
+- `wiki-retrieval.ts` builds a per-turn lexical index over the Library's existing
+  page-text cache, with metadata fallback for unread bodies. Bodies are keyed by
+  folder-session identity and page version;
+  a same-named page in another folder cannot borrow a prior body's cache entry.
+  Shared source identity precedes weighted rare-term overlap; Korean bigrams provide a limited particle
+  fallback. `read_source_text` returns three ranked addresses plus coverage and omission
+  counts, and charges that payload to the existing vault-character budget. Retrieval
+  grants neither a source receipt nor permission to revise. The offline
+  `evaluate:wiki` runner uses this index and the production Compile executor, loop,
+  review builder and proposal applier against memory-only fixtures; its textual
+  omission rubric is not a production gate or a semantic truth assessment.
 
 The Library's live-work projection is separate from the persisted graph:
 `src/features/library/model/library-work-activity.ts` normalizes structured ACP

@@ -61,7 +61,7 @@ export interface LibraryStepStates {
  * rather than to print a zero.
  */
 export function libraryWaitingLine(
-  model: Pick<LibraryUiModel, "notCompiledCount" | "staleCount" | "partialCount">,
+  model: Pick<LibraryUiModel, "notCompiledCount" | "staleCount" | "partialCount"> & Partial<Pick<LibraryUiModel, "sources">>,
   t: ReturnType<typeof useTranslations<"library">>,
 ): string | null {
   const clauses: string[] = [];
@@ -84,6 +84,10 @@ export function libraryWaitingLine(
    */
   if (model.partialCount > 0) {
     clauses.push(t("sources.partialOnly", { count: model.partialCount }));
+  }
+  const reviewCount = new Set((model.sources ?? []).flatMap((source) => source.reviewPages ?? [])).size;
+  if (reviewCount > 0) {
+    clauses.push(t("sources.pagesNeedReview", { count: reviewCount }));
   }
   return clauses.length === 0 ? null : clauses.join(" · ");
 }

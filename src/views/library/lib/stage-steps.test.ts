@@ -105,6 +105,16 @@ describe("what the waiting line says", () => {
     expect(libraryWaitingLine(counts(0, 0, 0), t)).toBeNull();
   });
 
+  it("names an outdated answer even when each original has a current write-up", () => {
+    const sources = [
+      { ...source("compiled"), reviewPages: ["wiki/answers/release-date"] },
+      { ...source("compiled"), reviewPages: ["wiki/answers/release-date"] },
+    ];
+    expect(libraryWaitingLine({ ...counts(0, 0, 0), sources }, t)).toBe(
+      'sources.pagesNeedReview({"count":1})',
+    );
+  });
+
   it("names a partial read on its own rather than as a missing write-up", () => {
     const line = libraryWaitingLine(counts(0, 0, 2), t);
     expect(line).toBe('sources.partialOnly({"count":2})');

@@ -1,5 +1,8 @@
 # Benchmark — does the ontology actually help AI agents?
 
+For local wiki revision, related-page retrieval and omission checks, see the
+[wiki accumulation evaluation](WIKI-ACCUMULATION-EVAL.md) and run `pnpm evaluate:wiki`.
+
 > The single biggest unverified premise of this project:
 >
 > **"AI agents work better when they can read and write the codebase ontology vault."**

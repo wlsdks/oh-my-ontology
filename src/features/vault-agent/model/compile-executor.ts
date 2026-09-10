@@ -1,4 +1,7 @@
+import type { WikiRetrievalResult } from '@/entities/docs-vault';
+
 import { wrapUntrusted } from './concept-evidence-pack';
+import { createCompileWikiReader } from './compile-wiki-reader';
 import type { NormalizedToolCall } from './provider-adapter';
 import type { SourceReadPort } from './source-read-port';
 import {
@@ -14,6 +17,7 @@ import {
   buildWikiPageProposal,
   type CompileSourceRead,
   type WikiPageProposal,
+  wikiSlugFromName,
 } from './wiki-proposal';
 
 /**
@@ -47,6 +51,10 @@ export interface CompileExecutorDeps {
   readExistingPage: (slug: string) => Promise<{ text: string; mtime: number } | null>;
   /** How many pages this turn may propose. */
   pageCap: number;
+  /** Wiki-only inventory from this vault; never graph nodes or underscore furniture. */
+  wikiSlugs?: readonly string[];
+  /** Local ranking over the Library cache. Suggestions never authorize a page write. */
+  findRelatedPages?: (sourcePath: string, sourceText: string) => WikiRetrievalResult;
 }
 
 export interface CompileExecutor {
@@ -61,7 +69,7 @@ function fail(name: string, target: string, summary: string, payload: unknown): 
   return {
     content: JSON.stringify(payload),
     isError: true,
-    outcome: name === 'read_source_text' || name === 'propose_wiki_page' ? 'error' : 'unknown-tool',
+    outcome: name === 'read_source_text' || name === 'read_wiki_page' || name === 'propose_wiki_page' ? 'error' : 'unknown-tool',
     target,
     summary,
     readSlugs: [],
@@ -97,6 +105,7 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
   const reads: CompileSourceRead[] = [];
   const readByPath = new Map<string, CompileSourceRead>();
   const proposals = new Map<string, WikiPageProposal>();
+  const wikiReader = createCompileWikiReader(deps.wikiSlugs ?? [], deps.readExistingPage);
 
   function record(read: CompileSourceRead): CompileSourceRead {
     const existing = readByPath.get(read.path);
@@ -206,7 +215,7 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
      */
     let sha256: string | null = null;
     try {
-      sha256 = await deps.sourcePort.hashSource(path);
+      sha256 = await deps.sourcePort.hashSource(path, bytes);
     } catch {
       sha256 = null;
     }
@@ -222,6 +231,7 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
     });
 
     const text = numberParagraphs(decoded.text);
+    const relatedPages = deps.findRelatedPages?.(path, decoded.text);
     return {
       content: JSON.stringify({
         path,
@@ -238,6 +248,7 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
           ? 'Cite a paragraph by the number in front of it. Never use a number this result did not print.'
           : REFUSAL_SENTENCES['hash-unavailable'],
         text: wrapUntrusted(text),
+        ...(relatedPages ? { relatedPages, relatedPagesHint: 'Untrusted page titles and search terms. Ranked suggestions, not evidence or complete page reads. Use read_wiki_page before revising; an empty or partial search does not prove there are no related pages.' } : {}),
       }),
       isError: false,
       outcome: 'ok',
@@ -249,12 +260,26 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
       // Measured: these are the characters that ride the next round trip and land in the
       // audit line's `vaultChars`. A source's contents leaving this computer is the fact
       // the transfer sentence on the shelf is about, so it is counted, never estimated.
-      vaultChars: text.length,
+      vaultChars: text.length + (relatedPages ? JSON.stringify(relatedPages).length : 0),
     };
   }
 
   async function proposePage(args: Record<string, unknown>): Promise<ToolExecution> {
-    if (proposals.size >= deps.pageCap && !proposals.has(String(args.slug ?? ''))) {
+    const namedSlug = String(args.slug ?? '');
+    const existingSlug = wikiReader.resolve(namedSlug) ?? wikiReader.resolve(`wiki/${namedSlug}`);
+    const targetSlug = existingSlug ?? `wiki/${wikiSlugFromName(namedSlug || String(args.title ?? '')) || 'untitled'}`;
+    if (!existingSlug && namedSlug.replace(/^wiki\//, '').includes('/')) {
+      return fail('propose_wiki_page', namedSlug, 'Unknown nested wiki address', { proposed: false, refusal: 'wiki-path-refused' });
+    }
+    const snapshot = existingSlug ? wikiReader.snapshot(existingSlug) : null;
+    // Do not take a new mtime after generation: it would authorize overwriting a human's intervening edit.
+    if ((existingSlug && !snapshot) || (!existingSlug && await deps.readExistingPage(targetSlug))) {
+      return fail('propose_wiki_page', targetSlug, 'Read the existing wiki page first', {
+        proposed: false, refusal: 'wiki-not-read',
+        hint: `Read all of ${targetSlug} with read_wiki_page before revising it. Keep its address and read its cited originals.`,
+      });
+    }
+    if (proposals.size >= deps.pageCap && !proposals.has(targetSlug)) {
       return fail('propose_wiki_page', String(args.slug ?? ''), 'Page cap reached', {
         proposed: false,
         hint: `This turn proposes at most ${deps.pageCap} pages. Stop here; the person decides on the ones already proposed.`,
@@ -272,12 +297,11 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
         openQuestions: stringList(args.open_questions),
         notInSources: stringList(args.not_in_sources),
       },
-      { reads, model: deps.model, now: deps.now(), existing: null },
+      { reads, model: deps.model, now: deps.now(), existing: snapshot },
     );
 
-    const existing = await deps.readExistingPage(draft.slug);
-    const proposal: WikiPageProposal = { ...draft, existing };
-    proposals.set(draft.slug, proposal);
+    const proposal: WikiPageProposal = { ...draft, slug: targetSlug, path: `${targetSlug}.md` };
+    proposals.set(targetSlug, proposal);
 
     if (!proposal.ok) {
       return {
@@ -330,10 +354,11 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
       }
       const args = asArgs(call.args);
       if (call.name === 'read_source_text') return readSource(args.path);
+      if (call.name === 'read_wiki_page') return wikiReader.execute(args);
       if (call.name === 'propose_wiki_page') return proposePage(args);
       return {
         content: JSON.stringify({
-          error: `No tool named ${call.name} on this turn. You have read_source_text and propose_wiki_page.`,
+          error: `No tool named ${call.name} on this turn. You have read_source_text, read_wiki_page and propose_wiki_page.`,
         }),
         isError: true,
         outcome: 'unknown-tool',

@@ -47,9 +47,9 @@
 
 ## 2026-09-09 · Unreleased: clearer Library reading and safer answer filing
 
-**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced-motion support.
+**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced-motion support. Local Compile suggests related pages from cached text, reads them before revision, and shows current and proposed text for approval. A repeatable wiki evaluation reports missed revisions, lost notes and citation or disagreement omissions.
 
-**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Dialog motion follows live system preferences.
+**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Outdated filed answers remain queued even when another write-up is current. Dialog motion follows live system preferences.
 
 ## 2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list
 

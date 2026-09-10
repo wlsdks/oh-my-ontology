@@ -58,6 +58,17 @@ describe("Library work activity", () => {
       kind: "waiting",
       phase: "active",
     });
+    expect(localCompileWaitingEvent("turn-1", 1, true, ["wiki/answers/date.md"])?.target)
+      .toEqual({ kind: "wiki", ref: "wiki/answers/date" });
+    expect(localCompileWaitingEvent("turn-1", 1, true, ["wiki/a.md", "wiki/b.md"])?.target).toBeNull();
+  });
+
+  it("identifies existing nested wiki reads and proposals without guessing another path", () => {
+    for (const name of ["read_wiki_page", "propose_wiki_page"]) {
+      expect(libraryWorkEventFromLocalSnapshot({ id: name, name, args: { slug: "wiki/answers/release-date" }, phase: "active", outcome: null }, "/vault", 1))
+        .toMatchObject({ kind: name === "read_wiki_page" ? "read" : "proposal", target: { kind: "wiki", ref: "wiki/answers/release-date" } });
+      expect(libraryWorkEventFromLocalSnapshot({ id: name, name, args: { slug: "wiki/../outside" }, phase: "active", outcome: null }, "/vault", 1)?.target).toBeNull();
+    }
   });
 
   it("records only a completed ACP read and observed or successful writes", () => {

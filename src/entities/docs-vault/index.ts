@@ -42,6 +42,7 @@ export {
   formatSourceBytes,
   isWikiPage,
   newestWikiPage,
+  sourceNeedsCompile,
 } from './lib/vault-library';
 export type {
   LibraryModel,
@@ -80,6 +81,7 @@ export type {
   VaultOntologyDerivation,
 } from './lib/derive-ontology-from-vault';
 export { findRelatedDocs } from './lib/related-docs';
+export { buildWikiRetrievalIndex, type WikiRetrievalResult } from './lib/wiki-retrieval';
 export { buildDocsVaultHref } from './lib/href';
 export { buildOntologyDeeplinkForDoc } from './lib/ontology-deeplink';
 export { buildTopologyDeeplinkForDoc } from './lib/topology-deeplink';
