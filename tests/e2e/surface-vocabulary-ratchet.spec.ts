@@ -69,7 +69,9 @@ import { seedFirstRunSeen } from "./first-run-seed";
  * `border-soft + overlay-1` panel the routes below already contribute — adding it would grow the
  * walk without growing what is measured.
  */
-const BASELINE_SURFACE_COMBOS = 10;
+// 2026-09-11: this visible census measures 9 on Linux CI and 10 on macOS.
+// Keep each measured platform ceiling tight; neither may borrow the other's slack.
+const BASELINE_SURFACE_COMBOS = process.platform === "linux" ? 9 : 10;
 const BASELINE_CONTROL_COMBOS = 17;
 
 const ROUTES = [
@@ -147,7 +149,8 @@ test("표면 조합이 늘지 않는다", async ({ page }) => {
   expect(
     surfaces.size,
     `표면 조합이 ${BASELINE_SURFACE_COMBOS} → ${surfaces.size} 로 줄었다. ` +
-      `BASELINE_SURFACE_COMBOS 도 ${surfaces.size} 로 내려라. 안 내리면 줄인 만큼이 다시 여유가 된다.`,
+      `BASELINE_SURFACE_COMBOS 도 ${surfaces.size} 로 내려라. 안 내리면 줄인 만큼이 다시 여유가 된다.\n` +
+      `Runner: ${process.platform}\n${[...surfaces].sort().join("\n")}`,
   ).toBe(BASELINE_SURFACE_COMBOS);
 
   // Locked alongside so new combinations cannot hide on the control side.
