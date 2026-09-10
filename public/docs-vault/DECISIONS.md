@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-10 — The walked path is a constellation, in the ink the map already paints stars with
+
+**Why**: the owner asked *"what if it were white light, twinkling, like a constellation"*, and the map had been asking for it. `render/starfield.ts` already paints far-field dust and diffraction spikes at `rgba(236,236,240)` under a header naming the language: "B1 constellation DNA". The walked path was the one mark outside it, on the fourth amber role the 2026-08-02 record flagged as "no room left: indigo=selection · amber=hub · #e8c47a=walked".
+**Prior**: keeps the notation decision of 2026-07-29 — a mark outside the circle grammar, beside the line, carrying order and direction — and changes only which mark. Amends the trail-ink clause of `.claude/rules/design.md`.
+**Decision**: the mark becomes a four-point diffraction star in `--color-footprint-trail-star`, the starfield's own value, default for new folders; yellow and indigo stay selectable. Position keeps two facts apart — a magnitude spike sits on a node, a walked star beside it. The shoe print carried a heading in its toes and a star has none, so **direction moved onto the line**: a light travels each walked relation the way the person went, one clock for the whole trail, four seconds a lap. The stars hold still, because their brightness means how recently each was visited and a twinkling star would argue with its own encoding. A walked relation's ambient comet stands down while that light runs.
+**Dissent**: replacing the two existing tones was rejected — both were deliberate owner choices and neither is broken, so this moves the default rather than removing a setting. Twinkling the stars, closer to the literal request, was rejected on the encoding conflict above.
+**Falsifier**: a person who cannot tell which way they walked; a walked star mistaken for a magnitude spike; ambient motion on this canvas outside an open trail lens.
+**Owner**: jinan
+
 ## 2026-09-10 — The Library's other waiting screen gets the texture, not the object
 
 **Why**: the owner, on the folder-open empty screen: *"was the waiting screen always this? I thought there were shapes beside it."* There are, on the other waiting screen. Measured at 1512x949, this one's card ends at 61.5% of the window with 38.5% empty below — the complaint that started the other repair, on a screen it never reached.

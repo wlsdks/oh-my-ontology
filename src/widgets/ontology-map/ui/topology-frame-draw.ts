@@ -505,6 +505,16 @@ function resolveNodeVisual(
   };
 }
 
+/**
+ * How long the trail light takes to travel one relation.
+ *
+ * Four seconds, and deliberately slow. The travelling light is the only thing on this canvas
+ * allowed to move on its own, and it is allowed because it answers a question the person
+ * asked by opening the trail lens. A fast one would be a second thing to read while they are
+ * trying to read the path.
+ */
+const TRAIL_GLINT_PERIOD_MS = 4000;
+
 export interface FrameDrawParams {
   ctx: CanvasRenderingContext2D;
   world: TopologyWorld;
@@ -722,6 +732,13 @@ export interface FrameDrawParams {
    * are laid only on those pairs that are real edges. Null = no edge footprints.
    */
   walkedEdgeKeys?: ReadonlySet<string> | null;
+  /**
+   * Which way the walk crossed each relation, same keys as `walkedEdgeKeys`.
+   *
+   * The star mark has no heading, so direction travels the line instead
+   * (`model/footprint-steps.ts#buildWalkedEdgeDirections`, 2026-09-10).
+   */
+  walkedEdgeDirections?: ReadonlyMap<string, boolean> | null;
   /** Footprint ink RGB — the caller reads it from `--color-footprint-trail` or the indigo token. */
   footprintInk?: FootprintInk;
   /** Ordinal text colour — one step brighter than the footprint ink; small glyphs need more contrast. */
@@ -920,6 +937,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     footprintStepsById,
     footprintPref = null,
     walkedEdgeKeys = null,
+    walkedEdgeDirections = null,
     footprintInk = [232, 196, 122],
     footprintStepColor = "#e8c47a",
     footprintNewestId = null,
@@ -975,6 +993,15 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
   const trailRamp = trailLensActive
     ? Math.min(1, Math.max(0, trailLensRamp ?? 1))
     : 0;
+  /*
+   * Phase of the light travelling every walked relation, 0-1.
+   *
+   * One clock for the whole trail rather than one per edge, so the path reads as a single
+   * thing being retraced instead of a scatter of dots each on its own errand. Four seconds
+   * a lap: slow enough that it never competes with reading, which is the rule this canvas
+   * lives under since the ambient drift came off it on 2026-09-08.
+   */
+  const trailGlint = trailRamp > 0.001 ? ((now % TRAIL_GLINT_PERIOD_MS) / TRAIL_GLINT_PERIOD_MS) : 0;
   const isTrailKept = (nodeId: string): boolean => trailLensKeepIds !== null && trailLensKeepIds.has(nodeId);
   /** Lens on: classify against the visited keep-set. Lens off: the usual ego/pair classification. */
   const lensNodeEgoState = (nodeId: string, focusId: string | null, neighbors: ReadonlySet<string>, pair: EdgePairFocus | null): NodeEgoState =>
@@ -1715,16 +1742,26 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
       // relation line**. The latter is structurally guaranteed because this loop
       // iterates `world.edges`, the same contract the footprints already rely on.
       // With the lens off the ramp is 0 and the value is unchanged.
+      const walkedKey =
+        edge.sourceId < edge.targetId
+          ? `${edge.sourceId} ${edge.targetId}`
+          : `${edge.targetId} ${edge.sourceId}`;
       const walkedTrail =
-        trailRamp > 0.001 &&
-        walkedEdgeKeys !== null &&
-        walkedEdgeKeys.has(
-          edge.sourceId < edge.targetId
-            ? `${edge.sourceId} ${edge.targetId}`
-            : `${edge.targetId} ${edge.sourceId}`,
-        )
+        trailRamp > 0.001 && walkedEdgeKeys !== null && walkedEdgeKeys.has(walkedKey)
           ? trailRamp
           : 0;
+      /*
+       * The stored direction is in key order (low id → high id); the line is drawn from
+       * `edge.sourceId` to `edge.targetId`. When those disagree the light has to run the
+       * other way, or it would confidently point at the wrong end.
+       */
+      const walkedLowToHigh = walkedEdgeDirections?.get(walkedKey);
+      const trailDirection =
+        walkedLowToHigh === undefined
+          ? undefined
+          : edge.sourceId < edge.targetId
+            ? walkedLowToHigh
+            : !walkedLowToHigh;
       // 3D fog exemption — relationships highlighted by interaction are not buried by depth.
       const domeEdgeExempt = emphasized || isSelectedEdge || isPathEdge || edgeEgoState === "ego";
       // Omit distant details — same rule as fog exemption: relationships brightened for reading
@@ -1801,6 +1838,8 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
           egoState: edgeEgoState,
           selected: (isSelectedEdge || isPathEdge) && !trailLensActive,
           trailWalked: walkedTrail,
+          trailDirection,
+          trailGlint,
           farT,
           t: edge.t,
           emphasized,

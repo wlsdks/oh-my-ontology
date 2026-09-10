@@ -63,7 +63,11 @@ import { relaxNewlyVisible } from "../model/layout";
 import { computeTopologyClusterState } from "./topology-cluster-state";
 import type { ClusterChip } from "../model/density-gate";
 import { clusterMoreChipId, EGO_NEIGHBOR_CHIP_ID, parseClusterMoreChipId, rankEgoNeighborsByDOI, scheduleRipple, selectiveEgoNeighbors, stepEmphasis, stepFocusRamp, type EgoNeighborRankEntry } from "../model/focus-state";
-import { buildFootprintSteps, buildWalkedEdgeKeys } from "../model/footprint-steps";
+import {
+  buildFootprintSteps,
+  buildWalkedEdgeDirections,
+  buildWalkedEdgeKeys,
+} from "../model/footprint-steps";
 import type { FootprintInk } from "@/shared/lib/footprint-glyph";
 import {
   INITIAL_REALM_TRANSITION_STATE,
@@ -1569,9 +1573,19 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     footprintPrefRef.current = footprint;
     if (!footprint) return;
     const rootStyle = getComputedStyle(document.documentElement);
-    const hex = rootStyle
-      .getPropertyValue(footprint.tone === "indigo" ? "--color-footprint-trail-indigo" : "--color-footprint-trail")
-      .trim();
+    // One place the three tones name their token, so a fourth cannot be added in one
+    // branch and forgotten in the fallback below.
+    const TONE_TOKEN = {
+      star: "--color-footprint-trail-star",
+      indigo: "--color-footprint-trail-indigo",
+      amber: "--color-footprint-trail",
+    } as const;
+    const TONE_FALLBACK = {
+      star: [236, 236, 240],
+      indigo: [200, 210, 255],
+      amber: [232, 196, 122],
+    } as const;
+    const hex = rootStyle.getPropertyValue(TONE_TOKEN[footprint.tone]).trim();
     const parsed = /^#?([0-9a-f]{6})$/i.exec(hex);
     if (parsed) {
       const n = parseInt(parsed[1], 16);
@@ -1580,8 +1594,9 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     } else {
       // Token missing or in rgba() form — fall back to the default ink, which
       // beats footprints disappearing.
-      footprintInkRef.current = footprint.tone === "indigo" ? [200, 210, 255] : [232, 196, 122];
-      footprintStepColorRef.current = footprint.tone === "indigo" ? "#c8d2ff" : "#e8c47a";
+      const [r, g, bl] = TONE_FALLBACK[footprint.tone];
+      footprintInkRef.current = [r, g, bl];
+      footprintStepColorRef.current = `rgb(${r}, ${g}, ${bl})`;
     }
   }, [footprint]);
 
@@ -5284,6 +5299,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         footprintStepsById,
         footprintPref: footprintPrefRef.current,
         walkedEdgeKeys: buildWalkedEdgeKeys(visitedTrailRef.current),
+        walkedEdgeDirections: buildWalkedEdgeDirections(visitedTrailRef.current),
         footprintInk: footprintInkRef.current,
         footprintStepColor: footprintStepColorRef.current,
         footprintNewestId,

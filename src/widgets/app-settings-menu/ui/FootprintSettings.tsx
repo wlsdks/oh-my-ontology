@@ -222,6 +222,7 @@ export function FootprintSettings() {
             testId="app-settings-footprint-tone"
             value={pref.tone}
             options={[
+              { value: 'star' as const, label: t('toneStar') },
               { value: 'amber' as const, label: t('toneAmber') },
               { value: 'indigo' as const, label: t('toneIndigo') },
             ]}

@@ -522,13 +522,19 @@ export function useMutedAgentNotificationKinds(): ReadonlySet<string> {
 type FootprintPlacement = "right" | "both";
 
 /**
- * Two tones, not a colour picker. Yellow already means something on this map —
- * hub amber `#d4b478` says "this is a centre" — so painting footprints with the
- * same bit would collapse "this is central" and "someone walked here" into one
- * colour. Yellow is still used, but at a different value in the same family
- * (`--color-footprint-trail`).
+ * Three named tones, not a colour picker.
+ *
+ * `star` is the default and the map's own ink: `render/starfield.ts` already paints its
+ * far-field dust and diffraction spikes at this value, under a header that names the
+ * language — "B1 constellation DNA". The walked path was the one mark standing outside it.
+ *
+ * The other two stay because they were chosen deliberately and neither is broken. Yellow
+ * already means something here — hub amber `#d4b478` says "this is a centre" — so the trail
+ * uses a different value in the same family rather than the hub's own bits. Indigo is a
+ * value on the selection ladder, pale enough to clear contrast where the accent did not.
+ * A person who prefers either keeps it; what changed is which one a folder opens with.
  */
-type FootprintTone = "amber" | "indigo";
+type FootprintTone = "amber" | "indigo" | "star";
 
 /**
  * Density, not a numeric slider. The count is decoration — an even division of
@@ -591,7 +597,7 @@ export const DEFAULT_FOOTPRINT: FootprintPreference = {
   strokeWidth: 1.5,
   gap: 8,
   opacity: 0.7,
-  tone: "amber",
+  tone: "star",
   bloom: 0,
   onEdges: true,
   edgeDensity: "dense",
@@ -650,7 +656,10 @@ export function resolveFootprint(raw: unknown): FootprintPreference {
     strokeWidth: num("strokeWidth"),
     gap: num("gap"),
     opacity: num("opacity"),
-    tone: src.tone === "indigo" || src.tone === "amber" ? src.tone : DEFAULT_FOOTPRINT.tone,
+    tone:
+      src.tone === "indigo" || src.tone === "amber" || src.tone === "star"
+        ? src.tone
+        : DEFAULT_FOOTPRINT.tone,
     bloom: num("bloom"),
     onEdges: typeof src.onEdges === "boolean" ? src.onEdges : DEFAULT_FOOTPRINT.onEdges,
     edgeDensity:

@@ -217,6 +217,20 @@ export interface TraceDrawState {
    * read as two notations of the same fact.
    */
   trailWalked?: number;
+  /**
+   * Which way the walk crossed this relation — `true` from `a` toward `b`.
+   *
+   * ⚠️ **The mark on the nodes lost its heading on 2026-09-10 and this is where it went.**
+   * The old shoe prints came in pairs whose toes pointed the way of travel; a star has no
+   * toes, so the direction runs along the line instead, as a light travelling it. Absent
+   * means no glint and no behaviour change.
+   */
+  trailDirection?: boolean;
+  /**
+   * Phase of the travelling light, 0-1, supplied by the caller's clock so every walked
+   * relation glints in step rather than each keeping its own drift.
+   */
+  trailGlint?: number;
 }
 
 export interface TraceTokens {
@@ -319,6 +333,8 @@ export function draw(ctx: CanvasRenderingContext2D, state: TraceDrawState, token
 
   let stroke: string;
   let width: number;
+  /** Strength of the travelling light; 0 everywhere except a walked relation. */
+  let glint = 0;
   // "The walked path" wins over every other state. While the lens
   // is on this edge is neither selected nor ego — the caller turns both off —
   // yet it is the only thing the user is trying to read. Width goes from dim (1)
@@ -328,6 +344,7 @@ export function draw(ctx: CanvasRenderingContext2D, state: TraceDrawState, token
   if (trailWalked > 0.01 && tokens.edgeTrail) {
     stroke = mixHex(tokens.edgeDim, tokens.edgeTrail, trailWalked);
     width = 1 + 0.6 * trailWalked;
+    glint = trailWalked;
   } else if (state.selected === true) {
     // The subject of the pair focus — pale indigo, the top ink.
     stroke = tokens.edgeSelected ?? tokens.indigoBright;
@@ -471,8 +488,44 @@ export function draw(ctx: CanvasRenderingContext2D, state: TraceDrawState, token
     ctx.stroke();
   }
 
+  /*
+   * The travelling light — the walk's direction, said by the line.
+   *
+   * ⚠️ It runs **only on a walked relation, only while the trail lens is open**, which is
+   * the whole of its licence. This canvas had its ambient drift removed on 2026-09-08 after
+   * the owner found it hard to look at, and nothing here reopens that: the light exists in a
+   * lens a person deliberately opened, it moves along a path they themselves walked, and it
+   * is answering a question they asked. It is also the one place brightness may move —
+   * the stars beside the nodes hold still because *their* brightness means how recently each
+   * was visited, and a twinkling star would argue with its own encoding.
+   */
+  if (glint > 0.01 && tokens.edgeTrail && state.reducedMotion !== true) {
+    const phase = clamp01(state.trailGlint ?? 0);
+    // Direction is which end the walk left from; absent, the light runs a→b.
+    const u = state.trailDirection === false ? 1 - phase : phase;
+    const at = bezierPoint(a, control, b, u);
+    const prevAlpha = ctx.globalAlpha;
+    // Brightest mid-flight and gone at both ends, so it reads as a light travelling the
+    // line rather than a dot that pops into existence at one node and dies at the other.
+    const travel = Math.sin(Math.PI * u);
+    ctx.globalAlpha = prevAlpha * glint * travel * 0.9;
+    ctx.fillStyle = tokens.edgeTrail;
+    ctx.beginPath();
+    ctx.arc(at.x, at.y, Math.max(0.9, width * 0.9), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = prevAlpha;
+  }
+
   if (isDepends) {
     if (egoState === "dim") return;
+    /*
+     * ⚠️ **One line carries one travelling light.** A walked `depends` relation was drawing
+     * its ambient blue comet *and* the trail's white glint at once — two lights on one line,
+     * in two inks, meaning two different things (measured on the built map, 2026-09-10).
+     * This block's own header already says the walked path wins over every other state; the
+     * comet stands down for as long as the lens is on it, and comes back when the ramp does.
+     */
+    if (glint > 0.01) return;
     // Always-on comets, restored on owner instruction "Bring the old one back", reversing the earlier demotion to "comet tail = focus
     // signal": the tail flows on every non-dim depends edge regardless of focus
     // (prototype §13 `drawEdge`, `state !== "dim"`). Phase advance is owned by

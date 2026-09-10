@@ -3117,6 +3117,17 @@
     /* Footprint indigo — reason for not using `--color-indigo-accent`(#7170ff) is
        **contrast**. On canvas (#0a0a0d), the lowest selectable saturation (0.5) yields 2.08:1, failing to reach 3:1, creating "invisible footprint" flaw. Edge selection same pale indigo hits 3.93:1 at same value — not a new hue but another value within charter's "selection color ladder". */
     --color-footprint-trail-indigo: #c8d2ff;
+    /* Trail starlight (2026-09-10, owner: *"what if it were white light, twinkling, like a
+       constellation"*) — and it is not a new hue, it is **the map's own**. `render/starfield.ts`
+       already paints far-field star dust and diffraction spikes at `rgba(236,236,240,…)`, and
+       its header names the language: "B1 constellation DNA". The walked path was the one mark
+       standing outside that language, on the fourth amber role the 2026-08-02 record itself
+       flagged when it wrote "no room left: indigo=selection · amber=hub · #e8c47a=walked".
+       Star ink collides with none of them and, at 15.7:1 over the canvas, it is the highest
+       contrast any trail tone has ever had. Value matches the star dust exactly, so a walked
+       star and a bright star are the same white — they are separated by position (beside the
+       node vs on it), which is the separation the shoe prints already used. */
+    --color-footprint-trail-star: #ececf0;
     --map-numeral-shadow: #08080a;
     --map-numeral-face: #8c8c94;
     /*

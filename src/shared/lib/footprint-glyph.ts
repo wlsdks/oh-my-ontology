@@ -115,60 +115,77 @@ export function footprintScaleFor(cameraScale: number): number {
  * square root was there to prevent.
  */
 export const FOOTPRINT_NODE_RATIO = 1.0;
-/** Below this the silhouette — ball and heel as two blobs — stops reading. */
-export const FOOTPRINT_MIN_SIZE = 3.5;
+/** Below this the four arms merge into a blob and the mark stops reading as a star. */
+export const FOOTPRINT_MIN_SIZE = 4;
 
-/** Print size clamped to the node radius in screen space. Pure function (under test). */
+/** The one place the mark's extent is defined; `footprintPairRadius` is this times size. */
+const MARK_RADIUS_RATIO = 0.72;
+
+/** Mark size clamped to the node radius in screen space. Pure function (under test). */
 export function footprintSizeFor(baseSize: number, screenNodeRadius: number): number {
   if (!Number.isFinite(screenNodeRadius) || screenNodeRadius <= 0) return baseSize;
-  // `footprintPairRadius(size) = size * 0.9`, so clamp against that radius.
-  const capped = (FOOTPRINT_NODE_RATIO * screenNodeRadius) / 0.9;
+  const capped = (FOOTPRINT_NODE_RATIO * screenNodeRadius) / MARK_RADIUS_RATIO;
   return Math.max(FOOTPRINT_MIN_SIZE, Math.min(baseSize, capped));
 }
 
 /**
- * The shoe-print silhouette — ball and heel are **two separate blobs**. That gap is
- * the whole silhouette; joined up it is just an ellipse. Procedural paths only, no
- * asset imports.
+ * How deep the star's waist is, as a fraction of its arm length.
  *
- * Returns the function that draws the heel: fill/stroke the ball first, then call it,
- * so each blob ends up its own closed shape.
+ * The whole difference between a sparkle and a fat diamond is this number. At 0.22 the
+ * arms are needles that read as light; much above 0.3 the mark closes into a rhombus and
+ * stops looking like a star at all, and much below it the waist pinches to nothing and the
+ * mark breaks into four slivers at small sizes.
  */
-function shoeSole(ctx: CanvasRenderingContext2D, s: number, mirror: boolean): () => void {
-  const m = mirror ? -1 : 1;
-  ctx.beginPath();
-  ctx.ellipse(m * s * 0.02, -s * 0.26, s * 0.26, s * 0.36, m * 0.12, 0, Math.PI * 2);
-  ctx.closePath();
-  return () => {
-    ctx.beginPath();
-    ctx.ellipse(m * -s * 0.06, s * 0.34, s * 0.19, s * 0.2, m * 0.12, 0, Math.PI * 2);
-    ctx.closePath();
-  };
-}
+const STAR_WAIST = 0.22;
 
-/** Offsets for the pair beside a node — one foot ahead, one behind, or it does not read as a stride. */
-const PAIR_OFFSET = [
-  { dx: -0.3, dy: 0.1, mirror: false },
-  { dx: 0.3, dy: -0.1, mirror: true },
-] as const;
+/**
+ * A four-point diffraction star — the map's own notation for a star, at mark size.
+ *
+ * ⚠️ **Same family as the far-field spikes `render/starfield.ts` already draws, and
+ * deliberately not the same mark.** That spike means *magnitude* — this node is large. This
+ * one means *you were here*. Two facts may share a visual family, but they may not share a
+ * mark, so they are separated on position: the magnitude spike sits **on** the node, this
+ * one sits **beside** it, in the upper-right quadrant the label never uses — which is the
+ * anchor the shoe prints already used, kept for exactly that reason.
+ *
+ * Built with quadratic curves through the waist rather than straight chords, so the arms
+ * taper the way a lens flare does instead of reading as a folded polygon.
+ */
+function starPath(ctx: CanvasRenderingContext2D, s: number): void {
+  const arm = s * 0.62;
+  const waist = arm * STAR_WAIST;
+  ctx.beginPath();
+  for (let i = 0; i < 4; i += 1) {
+    const a = (i * Math.PI) / 2;
+    const next = a + Math.PI / 2;
+    const mid = a + Math.PI / 4;
+    const px = Math.cos(a) * arm;
+    const py = Math.sin(a) * arm;
+    const nx = Math.cos(next) * arm;
+    const ny = Math.sin(next) * arm;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+    ctx.quadraticCurveTo(Math.cos(mid) * waist, Math.sin(mid) * waist, nx, ny);
+  }
+  ctx.closePath();
+}
 
 /**
  * Draws a footprint at the current transform origin. With `singleFoot`, one foot (for
  * edges); without it, both (for nodes).
  */
-function drawSoles(ctx: CanvasRenderingContext2D, pref: FootprintPreference, size: number, singleFoot?: boolean): void {
-  const paint = () => (pref.filled ? ctx.fill() : ctx.stroke());
-  const feet =
-    singleFoot === undefined ? PAIR_OFFSET : [{ dx: 0, dy: 0, mirror: singleFoot } as const];
-  for (const foot of feet) {
-    ctx.save();
-    ctx.translate(foot.dx * size, foot.dy * size);
-    const heel = shoeSole(ctx, size, foot.mirror);
-    paint();
-    heel();
-    paint();
-    ctx.restore();
-  }
+/**
+ * Draws the mark at the current transform origin.
+ *
+ * One star, not a pair. The shoe prints came in twos because a stride needs two feet to
+ * read as a stride; a star is a star, and the direction the pair used to carry now travels
+ * along the line instead (`drawTrailGlint`), where it can say which way without asking a
+ * 10px mark to encode a heading.
+ */
+function drawStar(ctx: CanvasRenderingContext2D, pref: FootprintPreference, size: number): void {
+  starPath(ctx, size);
+  if (pref.filled) ctx.fill();
+  else ctx.stroke();
 }
 
 /**
@@ -200,12 +217,15 @@ function withFootprintInk(
 }
 
 /**
- * Radius (px) a pair of prints occupies — measured on the diagonal, since the feet are
- * offset from each other. `PAIR_OFFSET`'s largest excursion (0.3) plus one foot's
- * half-height (0.6).
+ * Radius (px) the mark occupies.
+ *
+ * The arms reach `0.62 * size`, and the value keeps a little air beyond them so the step
+ * numeral beside it never sits on a spike. It was the diagonal of an offset pair of shoe
+ * prints; the star is centred, so the same number now buys clearance instead of covering
+ * an excursion.
  */
 export function footprintPairRadius(size: number): number {
-  return size * 0.9;
+  return size * MARK_RADIUS_RATIO;
 }
 
 /**
@@ -247,7 +267,7 @@ export function drawNodeFootprint(
   const slide = (1 - appear) * size * 0.45;
   withFootprintInk(paint, alpha * appear, () => {
     paint.ctx.translate(at.x - slide * Math.SQRT1_2, at.y + slide * Math.SQRT1_2);
-    drawSoles(paint.ctx, paint.pref, size);
+    drawStar(paint.ctx, paint.pref, size);
   });
 }
 
@@ -482,8 +502,9 @@ export function drawEdgeFootprints(
   for (const spot of edgeFootprintPlacements(ax, ay, bx, by, pref, k, control)) {
     withFootprintInk(paint, alpha * spot.fade, () => {
       ctx.translate(spot.x, spot.y);
-      ctx.rotate(spot.angle);
-      drawSoles(ctx, pref, pref.size * k * FOOTPRINT_EDGE_SCALE, spot.mirror);
+      // A star has no heading, so the placement's angle is not spent on rotating it. The
+      // line's direction is carried by the glint that runs along it instead.
+      drawStar(ctx, pref, pref.size * k * FOOTPRINT_EDGE_SCALE);
     });
   }
 }

@@ -87,13 +87,18 @@ ramp.”
 - Hub nodes and Layer 0 containers may use hub amber `#d4b478`; a spine view may
   show one hub ring and one Layer 0 container. Documented, mode-bounded exceptions
   are the single agent-focus ring and recent-change spotlight.
-- Amber has three distinct roles: hub, kind data, and footprint trail. The rail
+- Amber has two standing roles — hub and kind data — and one a person may opt into
+  (the walked path, which now defaults to star ink). The rail
   begins with destinations and carries no brand mark; chartreuse mascot pixels
   therefore do not spend the rail or data-colour budget.
-  Footprints use `--color-footprint-trail` (`#e8c47a`), never the hub value, and
-  appear only while the trail popover is open. The footprint trail may use yellow
-  or indigo, not an arbitrary colour picker. Gate:
-  `tests/contract/footprint-trail-ink.contract.test.ts`.
+  The walked path draws in **star ink** (`--color-footprint-trail-star`), the value
+  `render/starfield.ts` already paints its far-field dust and diffraction spikes
+  at — the map's own "constellation DNA", which the trail was the one mark
+  standing outside. Yellow (`--color-footprint-trail`, never the hub value) and
+  indigo remain selectable; the trail may use those three named tones, not an
+  arbitrary colour picker, and appears only while the trail popover is open. Gate:
+  `tests/contract/footprint-trail-ink.contract.test.ts` — every tone clears 3:1 at
+  the lowest selectable intensity, and star ink must not drift from the starfield's.
 - Bars use neutrals plus one indigo protagonist. A 1px track gap separates
   adjacent segments when colour contrast is insufficient. Kind colours remain
   only where colour is the sole carrier of kind: unlabeled kind totals, map dots,

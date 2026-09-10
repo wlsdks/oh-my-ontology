@@ -54,3 +54,27 @@ export function buildWalkedEdgeKeys(trail: readonly string[]): Set<string> {
   }
   return keys;
 }
+
+/**
+ * Which way the walk crossed each relation, keyed the same order-independent way the set
+ * above is: `true` when it was walked from the lower id toward the higher one.
+ *
+ * ⚠️ **This exists because the star mark cannot carry a heading and the shoe print could.**
+ * The prints came in pairs whose toes pointed the way of travel (owner, 2026-07-29). A star
+ * has no toes, so the direction moved onto the line, where a light running along it says
+ * which way without asking a ten-pixel mark to encode one. Losing direction silently was
+ * the one thing the change could not do.
+ *
+ * A relation walked both ways keeps the **last** crossing: that is the direction the person
+ * most recently went, and a mark that argues with itself every frame says nothing.
+ */
+export function buildWalkedEdgeDirections(trail: readonly string[]): Map<string, boolean> {
+  const directions = new Map<string, boolean>();
+  for (let i = 1; i < trail.length; i += 1) {
+    const a = trail[i - 1];
+    const b = trail[i];
+    if (a === b) continue;
+    directions.set(walkedEdgeKey(a, b), a < b);
+  }
+  return directions;
+}
