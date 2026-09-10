@@ -67,14 +67,6 @@ function pass(message) {
   console.log(`✓ ${message}`);
 }
 
-// Prose documents wrap at 80 columns, so one sentence is split across lines.
-// Folding newlines and runs of whitespace into a single space removes the false
-// "the gate broke because of wrapping" failure (review — DESKTOP-MACOS.md's
-// "separate GitHub\nPages workflow" was broken in exactly that way).
-function flow(text) {
-  return text.replace(/\s+/g, " ");
-}
-
 function workflowJob(source, name) {
   return source.match(
     new RegExp(`^  ${name}:\\s*\\n[\\s\\S]*?(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, "m"),
