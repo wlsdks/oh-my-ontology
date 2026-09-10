@@ -1164,15 +1164,6 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
    * belongs, on the travelling light itself in `render/traces.ts`: a lens the person
    * deliberately opened may animate; a canvas nobody asked about may not.
    */
-  /*
-   * **How much of the sky is out.** One number for the whole frame, because the galaxy is an
-   * *altitude* and not a property of any node: the owner picked distance over a toggle, so there
-   * is nothing here to switch and nothing to keep in sync. `model/galaxy.ts` owns the maths and
-   * the reasoning; this file only spends it.
-   */
-  const galaxy = galaxyRamp(farT);
-  const galaxyOn = galaxy > 0.001;
-
   const trailGlint = trailRamp > 0.001 ? ((now % TRAIL_GLINT_PERIOD_MS) / TRAIL_GLINT_PERIOD_MS) : 0;
   /*
    * The lap's division between the walked relations, rebuilt per frame from world-space chords
@@ -1214,6 +1205,23 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
 
   // 3D view — at ramp 0 the loop passes null, so this frame takes the 2D path.
   const domeOn = domeFrame !== null && domeFrame !== undefined && domeFrame.size > 0;
+
+  /*
+   * **How much of the sky is out.** One number for the whole frame, because the galaxy is an
+   * *altitude* and not a property of any node: the owner picked distance over a toggle, so there
+   * is nothing here to switch and nothing to keep in sync. `model/galaxy.ts` owns the maths and
+   * the reasoning; this file only spends it.
+   *
+   * ⚠️ **2D only, and that is not a simplification.** The owner asked for the galaxy *"in 2D"*,
+   * and the dome is a different view with its own contract: it raises `farT` for its own reasons
+   * — depth convergence, not distance — and it carries contrast floors that assume relations stay
+   * readable against the ground. Left ungated, `filamentPresence` thinned containment lines in
+   * every 3D arrangement to a measured **1.22:1 against a 1.9:1 floor**
+   * (`tests/e2e/map-3d-relation-ink.spec.ts`, caught on CI 2026-09-10). Borrowing another view's
+   * altitude variable is not the same as being at altitude.
+   */
+  const galaxy = domeOn ? 0 : galaxyRamp(farT);
+  const galaxyOn = galaxy > 0.001;
   /**
    * One node's 3D transform (world offset + perspective factor). Nodes, labels,
    * edge endpoints, and chip anchors all pass through this map, so every mark on a
