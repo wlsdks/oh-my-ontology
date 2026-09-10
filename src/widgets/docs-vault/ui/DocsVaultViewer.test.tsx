@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -161,6 +161,108 @@ describe("DocsVaultViewer", () => {
     const label = await screen.findByText("MCP docs");
     expect(label.tagName).toBe("SPAN");
     expect(screen.queryByRole("link", { name: /MCP docs/ })).toBeNull();
+  });
+
+  it("renders a known source citation as an operable control that preserves its path and anchor", async () => {
+    const onSourceNavigate = vi.fn();
+    renderViewer("A measured fact [[src:sources/storage.md#l1]]", {
+      knownOriginalPaths: new Set(["sources/storage.md"]),
+      onSourceNavigate,
+    });
+
+    const citation = await screen.findByRole("button", {
+      name: "Open original source sources/storage.md#l1",
+    });
+    expect(citation).toHaveAttribute("data-source-path", "sources/storage.md");
+    expect(citation).toHaveAttribute("data-source-anchor", "l1");
+
+    fireEvent.click(citation);
+    expect(onSourceNavigate).toHaveBeenCalledWith("sources/storage.md", "l1");
+  });
+
+  it("keeps an unknown source citation visibly missing and non-navigable", async () => {
+    const onSourceNavigate = vi.fn();
+    renderViewer("A fact [[src:sources/missing.md#l1]]", {
+      knownOriginalPaths: new Set(["sources/storage.md"]),
+      onSourceNavigate,
+    });
+
+    const citation = await screen.findByText("src:sources/missing.md#l1");
+    expect(citation.tagName).toBe("SPAN");
+    expect(citation).toHaveAttribute(
+      "title",
+      "Original source not in this folder: sources/missing.md",
+    );
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(onSourceNavigate).not.toHaveBeenCalled();
+  });
+
+  it("does not call an unavailable source citation missing", async () => {
+    renderViewer("A fact [[src:sources/storage.md#l1]]", {
+      onSourceNavigate: vi.fn(),
+    });
+
+    const citation = await screen.findByText("src:sources/storage.md#l1");
+    expect(citation.tagName).toBe("SPAN");
+    expect(citation).toHaveAttribute(
+      "title",
+      "Source navigation is unavailable: sources/storage.md",
+    );
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("does not call a known source citation missing when its navigator is unavailable", async () => {
+    renderViewer("A fact [[src:sources/storage.md#l1]]", {
+      knownOriginalPaths: new Set(["sources/storage.md"]),
+    });
+
+    const citation = await screen.findByText("src:sources/storage.md#l1");
+    expect(citation.tagName).toBe("SPAN");
+    expect(citation).toHaveAttribute(
+      "title",
+      "Source navigation is unavailable: sources/storage.md",
+    );
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("does not turn traversal-shaped source citations into navigation callbacks", async () => {
+    const onSourceNavigate = vi.fn();
+    renderViewer("A fact [[src:sources/../private.md#l1]]", {
+      knownOriginalPaths: new Set(["sources/../private.md"]),
+      onSourceNavigate,
+    });
+
+    const citation = await screen.findByText("src:sources/../private.md#l1");
+    expect(citation.tagName).toBe("SPAN");
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(onSourceNavigate).not.toHaveBeenCalled();
+  });
+
+  it("decodes percent-encoded Unicode source paths before navigating", async () => {
+    const onSourceNavigate = vi.fn();
+    renderViewer("확인할 곳 [[src:sources/%EC%84%A4%EA%B3%84.md#l2|원문]]", {
+      knownOriginalPaths: new Set(["sources/설계.md"]),
+      onSourceNavigate,
+    });
+
+    const citation = await screen.findByRole("button", {
+      name: "Open original source sources/설계.md#l2",
+    });
+    fireEvent.click(citation);
+    expect(onSourceNavigate).toHaveBeenCalledWith("sources/설계.md", "l2");
+  });
+
+  it("keeps an ordinary wikilink on the existing in-vault navigation path", async () => {
+    const onNavigate = vi.fn();
+    renderViewer("Read [[README#section-one|README]]", {
+      onNavigate,
+      getDocHref: (slug, hash) => `/docs/${slug}${hash ? `#${hash}` : ""}`,
+    });
+
+    const link = await screen.findByRole("link", { name: "README" });
+    expect(link).toHaveAttribute("href", "/docs/README#section-one");
+    fireEvent.click(link);
+    expect(onNavigate).toHaveBeenCalledWith("README");
   });
 
   // Landing defect (P1 review) — the contract that a highlightQuery arriving from the

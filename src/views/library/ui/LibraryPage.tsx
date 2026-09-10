@@ -41,6 +41,9 @@ import {
   buildFixBrief,
   parseLintFindings,
   buildAnswerPage,
+  automaticWikiWriteAllowed,
+  answerObservation,
+  isRetainedAnswerPath,
   buildHumanPage,
   createWikiFile,
   deleteWikiFile,
@@ -80,7 +83,8 @@ import {
 import { cn } from "@/shared/lib/cn";
 import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
 import { RIGHT_DOCK_WIDTH_VAR } from "@/shared/lib/right-dock-reserve";
-import { getTauriVaultRootPath, revealTauriVaultFile } from "@/shared/lib/tauri-vault-fs";
+import { getTauriVaultRootPath, nativeVaultFileHashes, revealTauriVaultFile } from "@/shared/lib/tauri-vault-fs";
+import { parseFrontmatter } from '@/shared/lib/parse-frontmatter';
 import { controlClass } from "@/shared/ui/control-class";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { PAGE_COLUMN_STAGE } from "@/shared/ui/page-frame";
@@ -93,10 +97,13 @@ import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/com
 import { useLibraryModel } from "../lib/use-library-model";
 import { useObservedWikiWork } from "../lib/use-observed-wiki-work";
 import { useLibraryAgent } from "../lib/use-library-agent";
+import { useAnswerRefresh } from '../lib/use-answer-refresh';
+import { useAnswerHistory } from '../lib/use-answer-history';
 import { LibraryCheckReport, findingKey, reportOutline } from "./parts/LibraryCheckReport";
 import { LibrarySection } from "./parts/LibrarySection";
 import { CompileBrainSelect } from "./parts/CompileBrainSelect";
 import { LibraryStage } from "./parts/LibraryStage";
+import { LocalCompileCard } from "./parts/LocalCompileCard";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock, type LibraryAgentOpeningRequest } from "./parts/LibraryAgentDock";
@@ -107,6 +114,9 @@ import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
 import { WikiPageHeader } from "./parts/WikiPageHeader";
 import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
+import { LibraryQuestions } from './parts/LibraryQuestions';
+import { RetainedAnswerContext } from './parts/RetainedAnswerContext';
+import { AnswerRevisionComparison } from './parts/AnswerRevisionComparison';
 import { LibraryConstellation } from "./parts/LibraryConstellation";
 import { LibrarySynapseField } from "./parts/LibrarySynapseField";
 
@@ -236,6 +246,8 @@ export function LibraryPage() {
     };
   }, []);
   const [graphOpen, setGraphOpen] = useState(false);
+  const [sourceCitation, setSourceCitation] = useState<{ path: string; anchor?: string } | null>(null);
+  const [answerComparisonOpen, setAnswerComparisonOpen] = useState(false);
   const graphTriggerRef = useRef<HTMLButtonElement | null>(null);
   const graphRestoreFrameRef = useRef<number | null>(null);
   /** Set when a page opened on its own (a check ending), so the focus stays where the person had it. */
@@ -254,6 +266,7 @@ export function LibraryPage() {
    */
   const [compileRunning, setCompileRunning] = useState(false);
   const choose = useCallback((next: typeof selected) => {
+    setSourceCitation(null);
     setSelected(next);
     /*
      * **The switch follows what was opened.** A file can be reached from three places that
@@ -289,6 +302,8 @@ export function LibraryPage() {
     vaultScope: workVaultScope,
     enabled: hasFolder,
   });
+  const retainedAnswers = model.retainedAnswers ?? EMPTY_DOCS;
+  const knownOriginalPaths = useMemo(() => new Set(model.sources.map((source) => source.path)), [model.sources]);
 
   /**
    * **Nothing chosen is its own state, and it is the one this screen is for.**
@@ -315,6 +330,24 @@ export function LibraryPage() {
     if (opened?.kind !== "source") return null;
     return model.sources.find((row) => row.path === opened.path) ?? null;
   }, [model.sources, opened]);
+  const selectedAnswer = selectedWikiDoc && isRetainedAnswerPath(selectedWikiDoc.slug) ? selectedWikiDoc : null;
+  const answerHistory = useAnswerHistory(selectedAnswer, docs, model.pageTexts);
+  const answerRefreshButtonRef = useRef<HTMLButtonElement>(null);
+  const pendingAnswerFocus = useRef<string | null>(null);
+  useEffect(() => {
+    const target = pendingAnswerFocus.current;
+    if (!target) return;
+    if (opened?.kind !== 'wiki' || opened.slug !== target) {
+      pendingAnswerFocus.current = null;
+      return;
+    }
+    if (selectedAnswer?.slug !== target) return;
+    const frame = requestAnimationFrame(() => {
+      answerRefreshButtonRef.current?.focus();
+      pendingAnswerFocus.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [opened, selectedAnswer?.slug]);
 
   // ── The reading pane's own state, keyed by the open page. ────────────────────────
   const { articleScrollRef, activeHeadingSlug, setActiveHeadingSlug } = useDocReadingScrollSpy(
@@ -574,6 +607,11 @@ export function LibraryPage() {
     modifyFile: (path: string) => t("wiki.compileModifyFile", { path }),
     bridgeMissing: t("stage.blockedWeb"),
   }, model.pageTexts);
+  const answerRefresh = useAnswerRefresh({
+    handle, sources: model.sources, vaultRoot: nativeVaultRootPath,
+    writer: agent.runtime ? `agent:${agent.runtime.id}` : 'agent:unknown', start: agent.start,
+  });
+  const { capture: captureAnswerRefresh, receive: receiveAnswerRefresh } = answerRefresh;
   const knownSlugs = useMemo(
     () => new Set((manifest?.docs ?? []).map((doc) => doc.slug)),
     [manifest],
@@ -624,6 +662,8 @@ export function LibraryPage() {
   );
   const localToolActivity = agent.localCompile.toolActivity;
   const localWorkInScope = agent.localCompile.originVaultScope === workVaultScope;
+  const localReviewVisible = agent.route === "local" && localWorkInScope && agent.localCompile.status !== "idle";
+  const localReviewBusy = agent.localCompile.status === "running" || agent.localCompile.status === "applying";
   const handleTerminalToolObservation = useCallback((event: Extract<AcpEvent, { kind: "tool" }>) => {
     const receipt = completedAcpReadEvent(event, nativeVaultRootPath, Date.now());
     if (receipt) setLibraryWorkActivity((current) => completeLibraryWork(current, receipt));
@@ -782,8 +822,7 @@ export function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
   const openImport = useCallback(() => setImportOpen(true), []);
   const handleCompile = useCallback(() => {
-    // Local review lives in the guidance pane; opening a page must not hide its approval.
-    if (agent.route === "local") choose(null);
+    // Local review owns its pane while preserving the document to return to.
     /*
      * **A press that does nothing must never be silent** (installed app, 2026-09-05).
      * Without this catch, anything thrown between the click and the dock leaves a chip
@@ -791,22 +830,25 @@ export function LibraryPage() {
      * product rather than a failure with a cause.
      */
     try {
+      const localExecution = agent.route === 'local';
       agent.start(
         buildCompileBrief({
-          sources: model.sources,
+          sources: localExecution
+            ? model.sources.filter((source) => agent.localCompile.targets.includes(source.path))
+            : model.sources,
           existingPages: model.wikiPages,
           locale,
+          execution: localExecution ? 'local' : 'acp',
           /*
            * Whoever will actually write it. On the local route Atlas mints `created_by`
            * itself from the runner's model name, so this is the brief's own statement of
            * the same fact rather than a second source for it.
            */
-          writerId: agent.runtime
-            ? `agent:${agent.runtime.id}`
-            : agent.localModel
-              ? `model:${agent.localModel.model}`
-              : "agent:unknown",
+          writerId: localExecution
+            ? `model:${agent.localModel?.model ?? 'unknown'}`
+            : `agent:${agent.runtime?.id ?? 'unknown'}`,
           vaultRoot: nativeVaultRootPath ?? "",
+          now: new Date(),
         }),
       );
     } catch (error) {
@@ -817,7 +859,7 @@ export function LibraryPage() {
         "error",
       );
     }
-  }, [agent, choose, locale, model.sources, model.wikiPages, nativeVaultRootPath, t, toast]);
+  }, [agent, locale, model.sources, model.wikiPages, nativeVaultRootPath, t, toast]);
 
   /**
    * The verdict the permission card shows before Allow: the page as this write would leave
@@ -926,13 +968,22 @@ export function LibraryPage() {
     filedAnswersRef.current.add(filed);
     setFilingAnswer(filed);
     try {
+      const cited = parseFrontmatter(page.text).frontmatter.sources;
+      const observedInput = {
+        ...input,
+        observations: nativeVaultRootPath && Array.isArray(cited)
+          ? await nativeVaultFileHashes(nativeVaultRootPath, cited.filter((path): path is string => typeof path === 'string')) ?? undefined
+          : undefined,
+        observedAt: new Date().toISOString(),
+      };
+      page = buildAnswerPage(observedInput);
       let created = false;
       for (let attempt = 0; attempt < 3; attempt += 1) {
         if (await createWikiFile(handle, page.path, page.text)) {
           created = true;
           break;
         }
-        page = buildAnswerPage(input);
+        page = buildAnswerPage(observedInput);
       }
       if (!created) throw new Error('Could not reserve a fresh answer filename; existing pages were preserved.');
       markSelfWrite(page.slug);
@@ -962,17 +1013,17 @@ export function LibraryPage() {
     } finally {
       setFilingAnswer((current) => current === filed ? null : current);
     }
-  }, [agent.runtime, handle, lastAnswer, markSelfWrite, model.pairing.originalsByWiki, model.sources, t, toast]);
+  }, [agent.runtime, handle, lastAnswer, markSelfWrite, model.pairing.originalsByWiki, model.sources, nativeVaultRootPath, t, toast]);
 
   const autoDecide = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null; toolName: string | null }) => {
-      if (writeMode !== "auto" || !nativeVaultRootPath) return null;
+      if (writeMode !== "auto" || !nativeVaultRootPath || captureAnswerRefresh()) return null;
       const page = wikiPagePathOf(request.filePath, nativeVaultRootPath);
-      if (!page) return null;
+      if (!page || !automaticWikiWriteAllowed(page)) return null;
       const verdict = judgeWrite(request);
       return verdict?.ok ? page : null;
     },
-    [judgeWrite, nativeVaultRootPath, writeMode],
+    [captureAnswerRefresh, judgeWrite, nativeVaultRootPath, writeMode],
   );
 
   /**
@@ -1005,6 +1056,7 @@ export function LibraryPage() {
       // Unmatched prompts are ordinary conversation, not another run of the last
       // Compile/Check action. This classification never changes judgeWrite/autoDecide.
       const kind = opening?.kind ?? "ask";
+      const refreshTurn = kind === 'refresh' ? captureAnswerRefresh() : null;
       const selectionAtStart = latestSelectedRef.current;
       const asked = kind === "ask"
         ? opening && pendingAskRef.current
@@ -1027,6 +1079,13 @@ export function LibraryPage() {
       return async (completion: AcpTurnCompletion) => {
         setTurnRunning(false);
         setCompileRunning(false);
+        if (kind === 'refresh') {
+          setLibraryWorkActivity(clearLibraryWork);
+          if (refreshTurn) receiveAnswerRefresh(refreshTurn,
+            [...completion.events].reverse().find((event) => event.kind === 'agent')?.text ?? null,
+            completion.outcome);
+          return;
+        }
         // A cancelled or failed turn reported nothing: reading its absence as "nothing to fix"
         // would print a clean report over a check that never finished (design-interaction,
         // council 2026-09-07).
@@ -1089,7 +1148,7 @@ export function LibraryPage() {
         }
       };
     },
-    [agent.openingRequest, agent.runtime, choose, handle, model.sources],
+    [agent.openingRequest, agent.runtime, captureAnswerRefresh, choose, handle, model.sources, receiveAnswerRefresh],
   );
 
   /**
@@ -1172,6 +1231,9 @@ export function LibraryPage() {
    * loaded is not the same event as focusing it because somebody pressed something.
    */
   const readerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (localReviewVisible) readerRef.current?.focus({ preventScroll: true });
+  }, [localReviewVisible]);
   const lastFocusedSelection = useRef<typeof selected | undefined>(undefined);
   useEffect(() => {
     if (lastFocusedSelection.current === undefined) {
@@ -1195,14 +1257,14 @@ export function LibraryPage() {
    * would close two things with one press.
    */
   useEffect(() => {
-    if (selected === null || findOpen || graphOpen) return;
+    if (localReviewVisible || selected === null || findOpen || graphOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       setSelected(null);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [agent.open, findOpen, graphOpen, selected]);
+  }, [agent.open, findOpen, graphOpen, localReviewVisible, selected]);
 
   /** Which list the index draws, and whether the column is folded — both per machine. */
   const indexSegment = useLibraryIndexSegment();
@@ -1585,7 +1647,7 @@ export function LibraryPage() {
     );
   }
 
-  const narrowShowsReader = selected !== null;
+  const narrowShowsReader = selected !== null || localReviewVisible;
   // Four states — both edges, either, neither — the way `AcpChatPanel` writes its own.
   const indexFade = "var(--tabbar-edge-fade)";
   const indexMask =
@@ -1610,7 +1672,7 @@ export function LibraryPage() {
       id="main"
       tabIndex={-1}
       data-testid="library-page"
-      data-library-state={opened ? opened.kind : "nothing-open"}
+      data-library-state={localReviewVisible ? "local-review" : opened ? opened.kind : "nothing-open"}
       /* The conversation dock remains anchored to this stable row. */
       className="topology-ui-scale relative flex min-h-0 w-full flex-1 bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)] max-lg:flex-col"
     >
@@ -1829,107 +1891,79 @@ export function LibraryPage() {
         />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
-            {selected ? (
+            {selected || localReviewVisible ? (
               <button
                 type="button"
-                onClick={() => setSelected(null)}
+                onClick={() => localReviewVisible ? agent.localCompile.dismiss() : setSelected(null)}
+                disabled={localReviewVisible && localReviewBusy}
                 data-testid="library-reader-back"
                 className={controlClass({ shape: "chip", tone: "muted" })}
               >
-                {t("graph.readerClose")}
+                {t(localReviewVisible ? "localCompile.back" : "graph.readerClose")}
               </button>
             ) : null}
             <div className="min-w-0 flex-1"><LibraryStatusStrip model={model} t={t} /></div>
-            <span className="flex shrink-0 items-center gap-2">{graphAction}{conversationDoor}</span>
+            <span className="flex shrink-0 items-center gap-2">
+              {answerRefresh.proposal ? <Button className="atlas-touch-floor" size="sm" variant="outline" data-testid="answer-review-open" onClick={() => setAnswerComparisonOpen(true)}>{t('answers.reviewDraft')}</Button> : null}
+              {graphAction}{conversationDoor}
+            </span>
           </div>
-          {!selected ? (
-            /*
-              ⚠️ **The guide used to sit at the top of a pane and leave the rest black**
-              (owner, 2026-09-09: *"this screen too — rebuild it, it's a shame… strange,
-              and so much empty space"*). Measured on the baseline frame at 1512×900: the
-              three steps ended 565px down a 1089px pane, so **48% of the surface a person
-              is looking at held nothing at all**.
-
-              Two changes, and they are one idea. The column is centred in the pane rather
-              than hung from its top, which is the same repair `PAGE_COLUMN_STAGE` was
-              given on 2026-08-12 when a top-anchored empty state read as *"severely
-              barren"*. And the space that is left is no longer nothing: the constellation
-              draws **this** folder — the person's own sources, write-ups and citations —
-              behind the steps that describe it in words. The picture and the stepper are
-              two readings of one fact, which is why the guide can sit on top of it.
-
-              `dim` takes the object down to a third: this is a working screen with three
-              live controls on it, not the empty state, and the object is the ground here
-              rather than the subject.
-            */
+          {localReviewVisible ? (
+            <div data-testid="library-local-review" className="min-h-0 flex-1 overflow-y-auto px-3 py-6">
+              <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
+                <LocalCompileCard session={agent.localCompile} model={agent.localModel?.model ?? ""} t={t} />
+              </div>
+            </div>
+          ) : null}
+          {!selected && !localReviewVisible ? (
             <div
               data-testid="library-reader-landing"
               className="relative min-h-0 flex-1 overflow-y-auto px-3 py-6"
             >
-              {/*
-                ⚠️ **The constellation is not drawn here, and that is a measured decision**
-                (2026-09-09).
-
-                It was tried three ways on this pane: behind the column, where it had to be
-                dimmed past visibility to stay off the stepper's type; filling the pane,
-                where a sphere the size of the workbench is a subject however faint; and as
-                a ground in the lower band, which is where it failed on its own terms. A
-                working folder's object is *small* — the frame that settled this had six
-                documents and four write-ups, ten marks — and ten marks spread across half
-                a pane do not read as a ground. They read as a few shapes drifting into the
-                cards, and one of them landed on the `Read` step's own edge.
-
-                The object stays where the same data makes a picture: the empty state,
-                where the anonymous folder is drawn whole and is the screen's subject. Here
-                the emptiness was a **placement** problem, not a missing backdrop, and
-                centring the column in the pane is its whole fix. `docs/DESIGN-SYSTEM.md`'s
-                rule holds either way: a mark carries a fact or it goes.
-
-                What the centred pane got instead is `LibrarySynapseField` — the owner, on
-                the centred frame: *"the centre is good now, but the background is a bit
-                plain… something like a background of neurons connecting, or a graph
-                connecting up."* It is texture rather than data, and that is the point: it
-                draws no count and no link that exists, so there is nothing on it a person
-                could mistake for a claim about their folder. The exact picture of the real
-                folder is one chip away, and its numbers are in the three steps above.
-              */}
               <LibrarySynapseField paused={graphOpen} />
-              {/* The field never reaches the column: it clears the middle where the steps
-                  stand and fades into the canvas at every rim. */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-canvas)_0%,var(--color-canvas-a70)_30%,transparent_56%,var(--color-canvas-a70)_88%,var(--color-canvas)_100%)]"
               />
-              {/* The column keeps its own ground so the steps' contrast is measured
-                  against a fill rather than against whatever mark drifts behind them. */}
-              <div className="relative flex min-h-full items-center justify-center">
-                <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
-                <h2 className="mb-3 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
-                  {t("stage.title")}
-                </h2>
-                <LibraryStage
-                  model={model}
-                  route={agent.route}
-                  agentLabel={agent.runtime?.label ?? null}
-                  localModel={agent.localModel}
-                  localCompile={agent.localCompile}
-                  brain={agent.brain}
-                  brainChoosable={agent.brainChoosable}
-                  onChooseBrain={agent.chooseBrain}
-                  inApp={nativeVaultRootPath !== null}
-                  onAddFiles={handleAddFiles}
-                  onFindDocuments={handleFindDocuments}
-                  onCompile={handleCompile}
-                  onLint={agent.route === "agent" ? handleLint : null}
-                  onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
-                  busy={busy}
-                  t={t}
-                />
+              <div className="relative z-10 flex min-h-full items-center justify-center">
+                <div className={PAGE_COLUMN_STAGE + " mx-auto"}>
+                  <LibraryQuestions
+                    answers={retainedAnswers}
+                    knownSources={knownOriginalPaths}
+                    hashes={model.hashes}
+                    onOpen={(slug) => choose({ kind: "wiki", slug })}
+                    onAsk={agent.route === "agent" ? () => agent.setOpen(true) : null}
+                    t={t}
+                  />
+                  {retainedAnswers.length === 0 ? (
+                    <>
+                      <h2 className="mb-3 mt-8 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
+                        {t("stage.title")}
+                      </h2>
+                      <LibraryStage
+                        model={model}
+                        route={agent.route}
+                        agentLabel={agent.runtime?.label ?? null}
+                        localModel={agent.localModel}
+                        brain={agent.brain}
+                        brainChoosable={agent.brainChoosable}
+                        onChooseBrain={agent.chooseBrain}
+                        inApp={nativeVaultRootPath !== null}
+                        onAddFiles={handleAddFiles}
+                        onFindDocuments={handleFindDocuments}
+                        onCompile={handleCompile}
+                        onLint={agent.route === "agent" ? handleLint : null}
+                        onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
+                        busy={busy}
+                        t={t}
+                      />
+                    </>
+                  ) : null}
                 </div>
               </div>
             </div>
           ) : null}
-          <div
+          {!localReviewVisible ? <div
             data-testid="library-document-column"
             className={cn("flex min-h-0 min-w-0 flex-1 flex-col", !selected && "hidden")}
           >
@@ -1984,6 +2018,16 @@ export function LibraryPage() {
                 t={t}
               />
               <WikiTemplateProblems problems={wikiProblems} t={t} />
+              {selectedAnswer ? <RetainedAnswerContext
+                refreshButtonRef={answerRefreshButtonRef}
+                observation={answerObservation(selectedAnswer.frontmatter, knownOriginalPaths, model.hashes)}
+                phase={turnRunning ? 'running' : answerRefresh.phase}
+                historyState={answerHistory.state}
+                older={!retainedAnswers.some((answer) => answer.slug === selectedAnswer.slug)}
+                onHome={() => choose(null)}
+                onPrevious={answerHistory.previous && answerHistory.exists ? () => choose({ kind: 'wiki', slug: answerHistory.previous! }) : null}
+                onRefresh={agent.route === 'agent' && nativeVaultRootPath ? () => { void answerRefresh.begin(selectedAnswer.slug); } : null}
+                error={answerRefresh.error} t={t} /> : null}
               {/* The passage a person selects here can be asked about at once; the chip and
                   its list hang from the selection inside this positioned box. */}
               <div
@@ -2000,6 +2044,8 @@ export function LibraryPage() {
                   onNavigate={(slug) => choose({ kind: "wiki", slug })}
                   getDocContent={getDocContent}
                   resolveImage={resolveImage}
+                  knownOriginalPaths={knownOriginalPaths}
+                  onSourceNavigate={(path, anchor) => { choose({ kind: 'source', path }); setSourceCitation({ path, anchor }); }}
                 />
                 {agent.route === "agent" ? (
                   <SelectionAsk
@@ -2029,6 +2075,7 @@ export function LibraryPage() {
             </DocReadingPane>
           ) : selectedSource ? (
             <div className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]">
+              {sourceCitation?.path === selectedSource.path && sourceCitation.anchor ? <p data-testid="library-source-citation" className="px-6 pt-4 text-body text-[color:var(--color-text-secondary)]">{t('answers.citedLocation', { anchor: sourceCitation.anchor })}</p> : null}
               <SourceSummary
                 row={selectedSource}
                 hash={model.hashes.get(selectedSource.path) ?? null}
@@ -2053,11 +2100,24 @@ export function LibraryPage() {
               />
             </div>
           ) : null}
-          </div>
+          </div> : null}
         </div>
       </div>
 
       {/* A requested graph owns its viewport; closing it leaves the reader and dock intact. */}
+      {answerRefresh.snapshot && answerRefresh.proposal ? <AnswerRevisionComparison
+        open={answerComparisonOpen} question={answerRefresh.snapshot.question}
+        before={answerRefresh.snapshot.previousText} after={answerRefresh.proposal.text}
+        knownOriginalPaths={knownOriginalPaths}
+        problems={answerRefresh.proposal.problems} error={answerRefresh.error}
+        saving={answerRefresh.phase === 'saving'} onClose={() => setAnswerComparisonOpen(false)}
+        onOpenSource={(path, anchor) => { setAnswerComparisonOpen(false); choose({ kind: 'source', path }); setSourceCitation({ path, anchor }); }}
+        onSave={() => { void answerRefresh.save().then((result) => {
+          if (!result) return;
+          pendingAnswerFocus.current = result.slug;
+          markSelfWrite(result.slug); setAnswerComparisonOpen(false); agent.setOpen(false); choose({ kind: 'wiki', slug: result.slug });
+          toast.show(t(result.state === 'saved' ? 'answers.saved' : 'answers.savedNeedsReview'), result.state === 'saved' ? 'success' : 'error');
+        }); }} t={t} /> : null}
       <Dialog
         open={graphOpen}
         onClose={closeGraph}

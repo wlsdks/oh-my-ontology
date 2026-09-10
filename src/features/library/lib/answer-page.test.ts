@@ -117,6 +117,164 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
     expect(page.text).toContain("Asked while reading [[wiki/change-request]].");
   });
 
+  it("preserves explicit canonical sections, including cited uncertainty and human decisions", () => {
+    const page = buildAnswerPage({
+      question: "Can we announce the room capacity?",
+      answer: [
+        "## Summary",
+        "The capacity is recorded, but approval is still pending.",
+        "",
+        "## Facts",
+        "- The room holds 18 participants. [[src:sources/room.md#l1]]",
+        "",
+        "## Decisions",
+        "- Human decision: wait for owner approval before announcing.",
+        "",
+        "## Open questions",
+        "- Whether the 18-person limit includes staff remains unresolved. [[src:sources/plan.md#l3]]",
+        "",
+        "## Not in sources",
+        "- No signed approval was provided.",
+      ].join("\n"),
+      askedOn: null,
+      writer: "agent:claude-code",
+      now: NOW,
+      knownSources: ["sources/room.md", "sources/plan.md"],
+    });
+    expect(page.problems).toEqual([]);
+    const body = parseFrontmatter(page.text).body;
+    const section = (title: string) => {
+      const start = body.indexOf(`## ${title}`);
+      const next = body.indexOf("\n## ", start + 1);
+      return body.slice(start, next < 0 ? undefined : next);
+    };
+    expect(section("Summary")).toContain("The capacity is recorded, but approval is still pending.");
+    expect(section("Facts")).toContain("The room holds 18 participants.");
+    expect(section("Facts")).not.toContain("Whether the 18-person limit");
+    expect(section("Decisions")).toContain("Human decision: wait for owner approval");
+    expect(section("Decisions")).not.toContain("The room holds 18 participants");
+    expect(section("Open questions")).toContain("Whether the 18-person limit includes staff remains unresolved.");
+    expect(section("Not in sources")).toContain("No signed approval was provided.");
+    expect(page.text).toContain("sources:\n  - sources/room.md\n  - sources/plan.md");
+  });
+
+  it("fills absent canonical sections while preserving the sections that were supplied", () => {
+    const page = buildAnswerPage({
+      question: "What is the current capacity?",
+      answer: [
+        "## Facts",
+        "- The room holds 18 participants. [[src:sources/room.md#l1]]",
+        "",
+        "## Open questions",
+        "- Approval of the announcement remains unresolved. [[src:sources/plan.md#l3]]",
+      ].join("\n"),
+      askedOn: null,
+      writer: "agent:claude-code",
+      now: NOW,
+      knownSources: ["sources/room.md", "sources/plan.md"],
+    });
+    expect(page.problems).toEqual([]);
+    expect(page.text).toContain("## Summary\n\nWhat is the current capacity?");
+    expect(page.text).toContain("## Facts\n\n- The room holds 18 participants. [[src:sources/room.md#l1]]");
+    expect(page.text).toContain("## Decisions\n\n## Open questions\n\n- Approval of the announcement remains unresolved.");
+    expect(page.text).toContain("## Not in sources\n\n");
+  });
+
+  it("keeps cited preamble text in Summary instead of dropping or promoting it", () => {
+    const page = buildAnswerPage({
+      question: "Can we announce the capacity?",
+      answer: [
+        "Background from the intake note: the owner has not approved the announcement. [[src:sources/intake.md#l1]]",
+        "",
+        "## Open questions",
+        "- Whether the announcement is ready remains unresolved. [[src:sources/plan.md#l2]]",
+      ].join("\n"),
+      askedOn: null,
+      writer: "agent:claude-code",
+      now: NOW,
+      knownSources: ["sources/intake.md", "sources/plan.md"],
+    });
+    expect(page.problems).toEqual([]);
+    const summaryEnd = page.text.indexOf("\n## Facts\n\n");
+    const summary = page.text.slice(page.text.indexOf("## Summary"), summaryEnd);
+    const facts = page.text.slice(summaryEnd, page.text.indexOf("\n## Decisions\n\n", summaryEnd));
+    expect(summary).toContain("Background from the intake note: the owner has not approved the announcement.");
+    expect(facts).not.toContain("Background from the intake note");
+    expect(page.text).toContain("## Open questions\n\n- Whether the announcement is ready remains unresolved.");
+    expect(page.text).toContain("sources:\n  - sources/intake.md\n  - sources/plan.md");
+  });
+
+  it("keeps an unknown heading and its cited context in Summary", () => {
+    const page = buildAnswerPage({
+      question: "What remains open?",
+      answer: [
+        "## Background",
+        "The audit note records a prior owner statement. [[src:sources/audit.md#l1]]",
+        "",
+        "## Open questions",
+        "- The current owner statement is still unresolved. [[src:sources/audit.md#l2]]",
+      ].join("\n"),
+      askedOn: null,
+      writer: "agent:claude-code",
+      now: NOW,
+      knownSources: ["sources/audit.md"],
+    });
+    expect(page.problems).toEqual([]);
+    const summaryEnd = page.text.indexOf("\n## Facts\n\n");
+    const summary = page.text.slice(page.text.indexOf("## Summary"), summaryEnd);
+    const facts = page.text.slice(summaryEnd, page.text.indexOf("\n## Decisions\n\n", summaryEnd));
+    expect(summary).toContain("## Background");
+    expect(summary).toContain("The audit note records a prior owner statement. [[src:sources/audit.md#l1]]");
+    expect(facts).not.toContain("The audit note records a prior owner statement");
+  });
+
+  it("does not let a fenced literal Facts heading change the active section", () => {
+    const page = buildAnswerPage({
+      question: "What remains open?",
+      answer: [
+        "## Summary",
+        "The answer includes a literal example:",
+        "```markdown",
+        "## Facts",
+        "- A sample fact from the example. [[src:sources/example.md#l1]]",
+        "```",
+        "",
+        "## Open questions",
+        "- The real question remains unresolved. [[src:sources/plan.md#l2]]",
+      ].join("\n"),
+      askedOn: null,
+      writer: "agent:claude-code",
+      now: NOW,
+      knownSources: ["sources/example.md", "sources/plan.md"],
+    });
+    expect(page.problems).toEqual([]);
+    const summaryEnd = page.text.indexOf("\n## Facts\n\n");
+    const summary = page.text.slice(page.text.indexOf("## Summary"), summaryEnd);
+    const facts = page.text.slice(summaryEnd, page.text.indexOf("\n## Decisions\n\n", summaryEnd));
+    expect(summary).toContain("```markdown\n## Facts\n- A sample fact from the example. [[src:sources/example.md#l1]]\n```");
+    expect(facts).not.toContain("A sample fact from the example");
+    expect(page.text).toContain("## Open questions\n\n- The real question remains unresolved.");
+  });
+
+  it("keeps keyword-only decision and question prose on the unstructured fallback", () => {
+    const page = buildAnswerPage({
+      question: "Can we announce the capacity?",
+      answer: [
+        "Decision: wait for the owner. [[src:sources/plan.md#l2]]",
+        "Open question: does the limit include staff? [[src:sources/plan.md#l3]]",
+      ].join("\n"),
+      askedOn: null,
+      writer: "agent:claude-code",
+      now: NOW,
+      knownSources: ["sources/plan.md"],
+    });
+    expect(page.problems).toEqual([]);
+    expect(page.text).toContain(
+      "## Facts\n\n- Decision: wait for the owner. [[src:sources/plan.md#l2]]\n- Open question: does the limit include staff? [[src:sources/plan.md#l3]]",
+    );
+    expect(page.text).toContain("## Decisions\n\n## Open questions\n\n## Not in sources");
+  });
+
   it("points at the pages that already write up a cited source, so the folder check has nothing to raise", () => {
     const page = buildAnswerPage({
       question: "Why was the reopening moved?",

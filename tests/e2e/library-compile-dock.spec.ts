@@ -236,7 +236,7 @@ test.describe("Compile opens the agent dock", () => {
      * hands the disclosure to the index beside its Compile control.
      */
     await expect(page.getByTestId("library-stage")).toBeVisible();
-    await expect(page.getByTestId("library-stage-transfer")).toContainText("llm-audit.jsonl");
+    await expect(page.getByTestId("library-stage-transfer")).toContainText("Atlas does not record that traffic");
     await expect(page.getByTestId("library-transfer")).toHaveCount(0);
 
     /*
@@ -276,7 +276,7 @@ test.describe("Compile opens the agent dock", () => {
     await expect(page.getByTestId("library-transfer")).toHaveCount(0);
     await page.getByTestId("library-wiki-wiki/notes").click();
     await expect(page.getByTestId("library-stage-transfer")).toHaveCount(0);
-    await expect(page.getByTestId("library-transfer")).toContainText("llm-audit.jsonl");
+    await expect(page.getByTestId("library-transfer")).toContainText("Atlas does not record that traffic");
 
     /*
      * Under the chip that starts it — never the column's last line, which is where it
@@ -313,7 +313,7 @@ test.describe("Compile opens the agent dock", () => {
     await page.getByTestId("library-source-sources/architecture.docx").click();
     await expect(page.getByTestId("library-stage")).toHaveCount(0);
     await expect(page.getByTestId("library-transfer")).toHaveCount(1);
-    await expect(page.getByTestId("library-transfer")).toContainText("llm-audit.jsonl");
+    await expect(page.getByTestId("library-transfer")).toContainText("Atlas does not record that traffic");
     await expect(
       page.getByTestId("library-source-summary").getByTestId("library-transfer"),
     ).toBeVisible();

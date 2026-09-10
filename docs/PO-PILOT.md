@@ -112,6 +112,24 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 42 | 2026-09-09 | Describe current general-knowledge Library actions while preserving code ontology scope | one-way | review | handoff | positioning | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | positioning | 2 | 0 | narrowed | po-evidence+po-wedge |
 | 43 | 2026-09-09 | Preserve unknown answer provenance when sources change before explicit filing | one-way | review | judge | rollback-cheap | truth=affected;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | narrowed | po-evidence+po-steward |
 
+| 44 | 2026-09-10 | Rejudge Library citations and page links against current folder membership | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
+| 45 | 2026-09-11 | Retain Library questions through reviewed answer revisions and recoverable evidence | one-way | review | handoff | public-contract | truth=affected;transfer=unchanged;agent-write=affected;human-correction=affected | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
+| 46 | 2026-09-11 | Probe difficult-source coverage and locator fidelity before expanding Library synthesis | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
+| 47 | 2026-09-11 | Preserve source record boundaries and disambiguate repeated document headings | one-way | review | judge | public-contract | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
+| 48 | 2026-09-11 | Supply the measured Compile click time to the existing ACP brief | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
+| 49 | 2026-09-11 | Probe source arrival order and human-correction retention through real ACP ingestion | two-way | solo | handoff | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
+| 50 | 2026-09-11 | Revisit resolved source gaps while preserving scoped policy and observation evidence | one-way | review | handoff | public-contract | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
+| 51 | 2026-09-11 | Read the complete existing Wiki before local Compile replacement | one-way | review | correct | public-contract | truth=unchanged;transfer=affected;agent-write=affected;human-correction=affected | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
+| 52 | 2026-09-11 | Align Compile instructions with the selected runner and qualify the full request | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -172,3 +190,21 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 41 | 2026-09-09 | pending | yes | no | pending |
 | 42 | 2026-09-09 | pending | yes | no | pending |
 | 43 | 2026-09-09 | pending | yes | no | pending |
+| 44 | 2026-09-10 | pending | yes | no | pending |
+| 45 | 2026-09-11 | pending | yes | no | pending |
+| 44 | 2026-09-11 | pass | yes | no | held |
+| 45 | 2026-09-11 | fail-caught | yes | yes | reopened |
+| 45 | 2026-09-11 | pass | yes | no | pending |
+| 46 | 2026-09-11 | pending | yes | no | pending |
+| 47 | 2026-09-11 | pass | yes | no | pending |
+| 46 | 2026-09-11 | pass | yes | no | pending |
+| 48 | 2026-09-11 | pending | yes | no | pending |
+| 49 | 2026-09-11 | pending | yes | no | pending |
+| 48 | 2026-09-11 | pass | yes | no | pending |
+| 49 | 2026-09-11 | fail-caught | yes | no | reopened |
+| 50 | 2026-09-11 | pending | yes | no | pending |
+| 50 | 2026-09-11 | pass | yes | no | pending |
+| 51 | 2026-09-11 | pending | yes | no | pending |
+| 51 | 2026-09-11 | fail-caught | yes | no | reopened |
+| 52 | 2026-09-11 | pending | yes | no | pending |
+| 52 | 2026-09-11 | pass | yes | no | pending |

@@ -47,9 +47,11 @@
 
 ## 2026-09-09 · Unreleased: clearer Library reading and safer answer filing
 
-**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced-motion support. Local Compile suggests related pages from cached text, reads them before revision, and shows current and proposed text for approval. A repeatable wiki evaluation reports missed revisions, lost notes and citation or disagreement omissions.
+**Added**: saved questions retain reviewed ACP answer revisions, inspectable citations and competing histories; an offline wiki evaluation reports maintenance omissions.
 
-**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Outdated filed answers remain queued even when another write-up is current. Dialog motion follows live system preferences.
+**Changed**: Library uses title rows, an on-request graph and related-page suggestions. Local revisions require complete prior reads and show previous/proposed text for approval. Pending states respect reduced motion.
+
+**Fixed**: source receipts hash the bytes read; CSV records and repeated DOCX headings retain distinct locations. Answer filing does not borrow passive hashes, newer turns survive Undo, stale edits block saving, and outdated write-ups remain queued even when another is current.
 
 ## 2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list
 

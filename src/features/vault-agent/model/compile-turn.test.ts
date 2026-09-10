@@ -108,19 +108,24 @@ const GOOD_PAGE = {
   not_in_sources: [],
 };
 
-async function runCompile(bodies: string[]) {
+type CompileResponse = string | ((sent: Array<{ body: string }>) => string);
+
+async function runCompile(
+  bodies: CompileResponse[],
+  options: { userText?: string; existingPage?: { text: string; mtime: number } } = {},
+) {
   const sent: Array<{ body: string; vaultChars: number; tools: Array<{ name: string; target: string }> }> = [];
   const executor = createCompileExecutor({
     sourcePort,
     model: 'qwen3:8b',
     now: () => new Date('2027-03-04T05:06:07.089Z'),
-    readExistingPage: async () => null,
+    readExistingPage: async () => options.existingPage ?? null,
     pageCap: COMPILE_SOURCES_PER_TURN,
   });
 
   let round = 0;
   const turn = startTurn({
-    text: 'Read the raw sources in this folder and write them up as wiki pages.',
+    text: options.userText ?? 'Read the raw sources in this folder and write them up as wiki pages.',
     screenContext: SCREEN_CONTEXT,
   });
 
@@ -138,7 +143,9 @@ async function runCompile(bodies: string[]) {
       execute: (call) => executor.execute(call),
       async send({ body, scope }) {
         sent.push({ body, vaultChars: scope.vaultChars, tools: scope.tools });
-        const answer = bodies[round] ?? textBody('Done.');
+        const selected = bodies[round];
+        const answer =
+          typeof selected === 'function' ? selected(sent) : selected ?? textBody('Done.');
         round += 1;
         return { status: 200, body: answer, host: '127.0.0.1:11434', durationMs: 1, at: '' } as never;
       },
@@ -279,7 +286,7 @@ describe('one Compile turn on a mocked OpenAI-compatible runner', () => {
     expect(card.rows[0].page).toBeNull();
   });
 
-  it('sends the Compile tools and nothing from the ontology catalogue', async () => {
+  it('sends the three Compile tools and nothing from the ontology catalogue', async () => {
     const { sent } = await runCompile([textBody('Nothing to do.')]);
     const body = JSON.parse(sent[0].body) as {
       tools: Array<{ function: { name: string } }>;
@@ -291,5 +298,123 @@ describe('one Compile turn on a mocked OpenAI-compatible runner', () => {
       'propose_wiki_page',
     ]);
     expect(body.reasoning_effort).toBe('none');
+  });
+
+  it('carries every existing-page chunk and its receipt into the next model request', async () => {
+    const existingPage = {
+      text:
+        'PERSONAL-CHECK-592: keep this as a prior human note; it is not a source claim.\n\n' +
+        'Open question: who reviews the remaining migration gap?\n\n' +
+        'x'.repeat(4_100),
+      mtime: 4242,
+    };
+    const { result, executor, sent } = await runCompile(
+      [
+        toolCallBody([{ id: 'c1', name: 'read_source_text', args: { path: 'sources/quarter-plan.md' } }]),
+        toolCallBody([{ id: 'c2', name: 'read_wiki_page', args: { slug: 'wiki/quarter-plan.md' } }]),
+        toolCallBody([{ id: 'c3', name: 'read_wiki_page', args: { slug: 'quarter-plan', cursor: 4_000 } }]),
+        (requests) => {
+          const body = JSON.parse(requests.at(-1)!.body) as { messages: Array<{ role: string; content?: string }> };
+          const message = [...body.messages].reverse().find((entry) => entry.role === 'tool');
+          const payload = JSON.parse(message?.content ?? '{}') as { receipt?: string };
+          return toolCallBody([
+            {
+              id: 'c4',
+              name: 'propose_wiki_page',
+              args: {
+                ...GOOD_PAGE,
+                slug: 'wiki/quarter-plan.md',
+                not_in_sources: ['Prior human note PERSONAL-CHECK-592 remains a human note, not a source claim.'],
+                open_questions: ['The migration gap remains unresolved.'],
+                receipt: payload.receipt,
+              },
+            },
+          ]);
+        },
+        textBody('Done.'),
+      ],
+      {
+        userText:
+          'Refresh the existing write-up wiki/quarter-plan.md from sources/quarter-plan.md and stop for review.',
+        existingPage,
+      },
+    );
+
+    expect(result.turn.status).toBe('done');
+    expect(sent[2]?.body).toContain('PERSONAL-CHECK-592');
+    expect(sent[3]?.body).toContain('PERSONAL-CHECK-592');
+    expect(executor.proposals()).toHaveLength(1);
+    expect(executor.proposals()[0]).toMatchObject({ ok: true, existing: existingPage });
+    expect(executor.proposals()[0]?.page).toContain('PERSONAL-CHECK-592');
+    expect(executor.proposals()[0]?.sourcesRead).toEqual(['sources/quarter-plan.md']);
+  });
+
+  it('nudges a prose response toward the required Wiki read before proposing', async () => {
+    const { sent, executor } = await runCompile(
+      [
+        toolCallBody([{ id: 'c1', name: 'read_source_text', args: { path: 'sources/quarter-plan.md' } }]),
+        textBody('I read the source and will update the page.'),
+        textBody('I still need to read the existing page.'),
+      ],
+      {
+        userText:
+          'Refresh the existing write-up wiki/quarter-plan.md from sources/quarter-plan.md and stop for review.',
+        existingPage: { text: 'old page', mtime: 4242 },
+      },
+    );
+
+    expect(sent[2]?.body).toContain('Read the existing page `wiki/quarter-plan.md`');
+    expect(sent[2]?.body).toContain('read_wiki_page');
+    expect(executor.proposals()).toHaveLength(0);
+  });
+
+  it('does not treat a later failed Wiki read as a still-ready historical proposal', async () => {
+    const { sent, executor } = await runCompile(
+      [
+        toolCallBody([{ id: 'c1', name: 'read_source_text', args: { path: 'sources/quarter-plan.md' } }]),
+        toolCallBody([{ id: 'c2', name: 'read_wiki_page', args: { slug: 'quarter-plan' } }]),
+        (requests) => {
+          const body = JSON.parse(requests.at(-1)!.body) as { messages: Array<{ role: string; content?: string }> };
+          const message = [...body.messages].reverse().find((entry) => entry.role === 'tool');
+          const payload = JSON.parse(message?.content ?? '{}') as { receipt?: string };
+          return toolCallBody([{ id: 'c3', name: 'propose_wiki_page', args: { ...GOOD_PAGE, receipt: payload.receipt } }]);
+        },
+        toolCallBody([{ id: 'c4', name: 'read_wiki_page', args: { slug: 'quarter-plan', cursor: 'bad' } }]),
+        textBody('I am done.'),
+      ],
+      {
+        userText:
+          'Refresh the existing write-up wiki/quarter-plan.md from sources/quarter-plan.md and stop for review.',
+        existingPage: { text: 'old page', mtime: 4242 },
+      },
+    );
+
+    expect(executor.proposals()[0]?.ok).toBe(false);
+    expect(sent[5]?.body).toContain('read_wiki_page');
+    expect(sent[5]?.body).toContain('Read the existing page');
+  });
+
+  it('refuses a same-response read plus blind replacement proposal', async () => {
+    const { executor } = await runCompile(
+      [
+        toolCallBody([
+          { id: 'c1', name: 'read_source_text', args: { path: 'sources/quarter-plan.md' } },
+          { id: 'c2', name: 'read_wiki_page', args: { slug: 'quarter-plan' } },
+          { id: 'c3', name: 'propose_wiki_page', args: GOOD_PAGE },
+        ]),
+        textBody('The replacement receipt is required.'),
+      ],
+      {
+        userText:
+          'Refresh the existing write-up wiki/quarter-plan.md from sources/quarter-plan.md and stop for review.',
+        existingPage: { text: 'old page', mtime: 4242 },
+      },
+    );
+
+    expect(executor.proposals()).toHaveLength(1);
+    expect(executor.proposals()[0]?.ok).toBe(false);
+    expect(executor.proposals()[0]?.problems.map((problem) => problem.code)).toContain(
+      'wiki-receipt-mismatch',
+    );
   });
 });

@@ -38,8 +38,8 @@ export const accumulationCases = [
       'sources/release.md': '# Zephyr launch plan\n\nOn September 1, the Zephyr release was planned for September 15.\n',
       'sources/approval.md': '# Zephyr release approval\n\nOn September 10, Mira approved moving the Zephyr release to September 22 because review needed another week.\n',
     },
-    existing: { slug: 'wiki/answers/release-date', title: 'Saved launch answer',
-      raw: page('Saved launch answer', 'The Zephyr release is planned for September 15.', 'sources/release.md', 'Human note: Check the support roster before launch.') },
+    existing: { slug: 'wiki/research/release-date', title: 'Release research',
+      raw: page('Release research', 'The Zephyr release is planned for September 15.', 'sources/release.md', 'Human note: Check the support roster before launch.') },
     gold: {
       prior: { pattern: 'September\\s+15|2026-09-15', citation: '[[src:sources/release.md#p2]]' },
       incoming: { pattern: 'September\\s+22|2026-09-22', citation: '[[src:sources/approval.md#p2]]' },
@@ -60,8 +60,8 @@ export const accumulationCases = [
       'sources/design.md': '# 감사로그 설계\n\n감사로그는 30일 보관한다. 이 문서에는 승인자와 결정일이 없다.\n',
       'sources/operations.md': '# 감사로그 운영 메모\n\n감사로그의 보관기간은 90일이다. 이 메모에는 승인자와 결정일이 없다.\n',
     },
-    existing: { slug: 'wiki/answers/audit-retention', title: '저장된 답변',
-      raw: page('저장된 답변', '감사로그는 30일 보관한다.', 'sources/design.md', '사람 메모: 외부 감사 일정은 지수에게 확인할 것.') },
+    existing: { slug: 'wiki/research/audit-retention', title: '감사로그 연구',
+      raw: page('감사로그 연구', '감사로그는 30일 보관한다.', 'sources/design.md', '사람 메모: 외부 감사 일정은 지수에게 확인할 것.') },
     gold: {
       prior: { pattern: '30\\s*(?:일|days?)', citation: '[[src:sources/design.md#p2]]' },
       incoming: { pattern: '90\\s*(?:일|days?)', citation: '[[src:sources/operations.md#p2]]' },
@@ -82,8 +82,8 @@ export const accumulationCases = [
       'sources/approved-budget.md': '# Lumen budget decision\n\nOn September 9, Ada approved a Lumen budget of USD 15000, replacing the September 1 draft.\n',
       'sources/early-budget.md': '# Lumen budget draft\n\nThe September 1 draft proposes a Lumen budget of USD 10000. It is not approved.\n',
     },
-    existing: { slug: 'wiki/answers/lumen-budget', title: 'Saved finance answer',
-      raw: page('Saved finance answer', 'Lumen has an approved budget of USD 15000.', 'sources/approved-budget.md', 'Human note: Keep the accessibility review in scope.') },
+    existing: { slug: 'wiki/research/lumen-budget', title: 'Lumen budget research',
+      raw: page('Lumen budget research', 'Lumen has an approved budget of USD 15000.', 'sources/approved-budget.md', 'Human note: Keep the accessibility review in scope.') },
     gold: {
       prior: { pattern: '15,?000', citation: '[[src:sources/approved-budget.md#p2]]' },
       incoming: { pattern: '10,?000', citation: '[[src:sources/early-budget.md#p2]]' },

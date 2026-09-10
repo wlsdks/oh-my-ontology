@@ -1,6 +1,6 @@
 import { defaultUrlTransform } from 'react-markdown';
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { decodeWikilinkSlug, rewriteWikilinks, WIKILINK_SENTINEL } from '@/shared/lib/source-citation';
 
 /**
  * **A wikilink sentinel must not be a URL scheme** — the markdown renderer strips it.
@@ -38,22 +38,18 @@ import { describe, expect, it } from 'vitest';
  * allowlist breaks here first.
  */
 
-const VIEWER = 'src/widgets/docs-vault/ui/DocsVaultViewer.tsx';
-
 describe('위키링크 URL 은 마크다운 렌더러의 살균을 통과한다', () => {
-  /** Reads the sentinel prefix the viewer actually uses from source — never copied here. */
-  const sentinel = (() => {
-    const source = readFileSync(VIEWER, 'utf8');
-    const match = source.match(/const WIKILINK_SENTINEL = '([^']+)';/);
-    return match?.[1] ?? null;
-  })();
+  const sentinel = WIKILINK_SENTINEL;
+  // Exercise the shared rewrite consumed by both readers instead of scanning its old file.
+  const destination = (slug: string) => rewriteWikilinks(`[[${slug}]]`).match(/\]\(([^)]+)\)$/)?.[1];
 
   it('뷰어가 센티넬 접두사를 갖고 있다 — 못 찾으면 이 시험이 공회전한다', () => {
-    expect(sentinel, '뷰어에서 위키링크 센티넬을 못 찾았다 — 게이트가 낡았다').toBeTruthy();
+    expect(sentinel).toBeTruthy();
+    expect(destination('capabilities/example')).toContain(sentinel);
   });
 
   it('그 센티넬이 붙은 URL 이 살균 뒤에도 남는다', () => {
-    const url = `${sentinel}capabilities/example`;
+    const url = destination('capabilities/example')!;
     expect(
       defaultUrlTransform(url),
       `react-markdown 이 "${url}" 를 지운다 — href 가 비면 뷰어의 a 컴포넌트가 ` +
@@ -63,7 +59,7 @@ describe('위키링크 URL 은 마크다운 렌더러의 살균을 통과한다'
   });
 
   it('한글 슬러그도 살아남는다 — 볼트 슬러그는 한글일 수 있다', () => {
-    const url = `${sentinel}capabilities/스윕-검증-절차`;
+    const url = destination('capabilities/스윕-검증-절차')!;
     expect(defaultUrlTransform(url)).not.toBe('');
   });
 
@@ -91,25 +87,16 @@ describe('위키링크 URL 은 마크다운 렌더러의 살균을 통과한다'
  * samples are ASCII, so nobody saw it. This gate guards that blind spot.
  */
 describe('위키링크 해소는 퍼센트 인코딩과 정규화를 견딘다', () => {
-  const source = readFileSync(VIEWER, 'utf8');
-
   it('뷰어가 슬러그를 디코드한다', () => {
-    expect(
-      source,
-      '파서가 URL 을 퍼센트 인코딩해서 넘기므로, 디코드 없이 슬러그 집합과 ' +
-        '비교하면 비ASCII 슬러그가 전부 「없는 링크」가 된다.',
-    ).toMatch(/decodeURIComponent/);
+    expect(decodeWikilinkSlug(encodeURIComponent('capabilities/스윕-검증-절차'))).toBe('capabilities/스윕-검증-절차');
   });
 
   it('뷰어가 NFC 로 맞춘다 — 글자는 같은데 문자열이 다른 상태를 없앤다', () => {
-    expect(source).toMatch(/normalize\('NFC'\)/);
+    const slug = 'sources/원문.md';
+    expect(decodeWikilinkSlug(encodeURIComponent(slug.normalize('NFD')))).toBe(slug.normalize('NFC'));
   });
 
   it('디코드 실패가 문서를 죽이지 않는다 — 잘린 퍼센트 시퀀스는 원문으로 둔다', () => {
-    // `decodeURIComponent('%')` throws; the viewer has to catch that.
-    expect(() => decodeURIComponent('%')).toThrow();
-    expect(source, 'decodeURIComponent 를 try 없이 부르면 문서 하나가 통째로 안 그려진다').toMatch(
-      /try \{[\s\S]{0,200}decodeURIComponent/,
-    );
+    expect(decodeWikilinkSlug('sources/100%.md')).toBe('sources/100%.md');
   });
 });

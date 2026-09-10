@@ -1191,6 +1191,9 @@
       "loadFailed": "Failed to load document",
       "loadingLabel": "Loading document…",
       "wikilinkMissing": "Link not in this folder: {slug}",
+      "sourceCitationMissing": "Original source not in this folder: {path}",
+      "sourceCitationUnavailable": "Source navigation is unavailable: {path}",
+      "sourceCitationTitle": "Open original source {path}{anchor}",
       "projectLinkTitle": "Project: {slug}",
       "externalLinkUnresolved": "Outside this folder, so it can't be opened here: {href}",
       "imageMissing": "Image missing in this folder: {src}",
@@ -3224,7 +3227,7 @@
     "wikiWriteModeLabel": "When the agent writes a wiki page",
     "wikiWriteModeAuto": "Write at once",
     "wikiWriteModeAsk": "Ask each time",
-    "wikiWriteModeAutoCaption": "A page that fits the contract is written at once and noted in the conversation; one that does not stops at the permission card.",
+    "wikiWriteModeAutoCaption": "Source write-ups that fit the contract are written at once. Retained answers always require a separate review; other pages stop at the permission card when their format needs attention.",
     "wikiWriteModeAskCaption": "Every page stops at the permission card."
   },
   "copyProjectLink": {
@@ -4523,7 +4526,7 @@
           "hint": "{pages} read only the first part of this file, so the rest is not written up."
         },
         "stale": {
-          "label": "stale",
+          "label": "needs review",
           "hint": "{pages} was written from a different version of this file, or recorded no hash for it."
         },
         "checking": {
@@ -4537,18 +4540,18 @@
       "failedReason": "Could not add: {reason}",
       "revealFailed": "Could not show it in Finder: {reason}",
       "openFailed": "Could not open that file.",
-      "needsCompileSplit": "{notCompiled, plural, one {# not written up yet} other {# not written up yet}} · {stale, plural, one {# page behind its source} other {# pages behind their sources}}",
-      "staleOnly": "{count, plural, one {# page is behind its source} other {# pages are behind their sources}}",
+      "needsCompileSplit": "{notCompiled, plural, one {# not written up yet} other {# not written up yet}} · {stale, plural, one {# source version needs review} other {# source versions need review}}",
+      "staleOnly": "{count, plural, one {# source version needs review} other {# source versions need review}}",
       "partialOnly": "{count, plural, one {# read only in part} other {# read only in part}}",
-      "pagesNeedReview": "{count, plural, one {# existing page needs rechecking} other {# existing pages need rechecking}}",
       "import": "Bring from a service",
-      "importTooltip": "Bring documents in from Notion, Confluence, Jira or GitHub"
+      "importTooltip": "Bring documents in from Notion, Confluence, Jira or GitHub",
+      "pagesNeedReview": "{count, plural, one {# existing page needs rechecking} other {# existing pages need rechecking}}"
     },
     "wiki": {
       "header": "Wiki · {count}",
       "listAria": "Wiki pages in this folder",
       "compile": "Compile",
-      "compileTooltip": "Start one agent turn that reads the sources and writes wiki pages. A page that fits the contract lands at once; one that does not stops at your permission card.",
+      "compileTooltip": "Read sources and update their write-ups. Retained answers are reported for separate review and refresh.",
       "lint": "Check the wiki",
       "lintTooltip": "Start one agent turn that reads the wiki pages and reports disagreements, superseded claims, missing links, and names without a page. It writes nothing.",
       "candidateKind": {
@@ -4567,7 +4570,7 @@
       "unknownAuthor": "unknown",
       "offTemplate": "off-template",
       "offTemplateCount": "{count, plural, one {# page does not fit the template} other {# pages do not fit the template}}",
-      "transfer": "Traffic goes from the coding agent straight to its provider; Atlas is not in the middle and .ontology-atlas/llm-audit.jsonl does not record it. A page that fits the contract lands at once and is noted; one that does not stops at your permission card.",
+      "transfer": "The coding agent sends requests directly to its provider; Atlas does not record that traffic. Valid source write-ups can be written automatically. Retained answers always need separate review.",
       "compileFailed": "Could not start the agent turn: {reason}",
       "compileWebLimit": "Writing pages needs a coding agent running on this computer, which only the app can start. Reading and editing the pages works here.",
       "compileWebGetApp": "Get the app",
@@ -4575,25 +4578,6 @@
       "offTemplateAriaLabel": "How this page differs from the wiki template",
       "offTemplateTitle": "This page does not fit the wiki template",
       "offTemplateBody": "It is still a document and still yours to edit. Fixing these lines makes it readable the same way every other page is; `ontology-atlas wiki-validate` and the `validate_wiki` tool report the same codes.",
-      "linkFindingsAriaLabel": "How this page connects inside the folder",
-      "linkFindingsTitle": "Check how this page connects",
-      "linkFindingsBody": "The page fits the template. What follows is about the folder: things no single page can see about itself.",
-      "problem": {
-        "kind-present": "This page carries `kind:`. That key is what puts a document on the map, and a write-up about sources is not a reviewed concept. Remove it, or move the file out of `wiki/` if it really is a node.",
-        "missing-field": "`{field}:` is missing.",
-        "section-order-missing": "The page needs all five sections, in order. Missing: {missing}. Keep an empty section rather than dropping it: \"nothing here\" is itself something a reader learns.",
-        "section-order-sequence": "The sections are out of order. It must read: {expected}. Right now: {found}.",
-        "uncited-fact": "Every bullet under `## Facts` ends in at least one citation, like `[[src:sources/plan.pdf#p12]]`. A claim a reader cannot check against one place in one document belongs under `## Not in sources`.",
-        "bad-citation": "`{text}` is not a citation this format can resolve. The shape is `[[src:sources/PATH#ANCHOR]]`, and an anchor looks like p12, s2, s2r14, r89, l204, or h:error-handling.",
-        "bad-truncation-record-shape": "`sources_truncated:` is a list of paths. This value is not one, so it records no boundary at all.",
-        "bad-truncation-record-path": "`{path}` is under `sources_truncated:` but not under `sources:`. A path this page does not cite has no boundary a reader could place.",
-        "citation-target-missing-folder": "`{path}` is cited but is not in this folder. A citation a reader cannot open is not a citation.",
-        "citation-target-missing-sources": "`{path}` is cited but is not listed in this page's `sources:`. Add it there with its sha256, or fix the citation.",
-        "describes-needs-approval": "`describes:` says this page speaks for those concepts. That is a claim about the map and it needs a person: set `status: reviewed` after reading the page, or remove `describes:`.",
-        "dangling-wikilink": "`[[{target}]]` names a page that is not in this folder. Link to a page that exists, or write the page.",
-        "orphan-page": "No other page links here. A page nobody points at is reached only by its file name; link it from the page that talks about its topic.",
-        "shared-source-unlinked": "`{other}` also lists {sources}, and neither page links the other. Two write-ups of one document that do not know about each other cannot carry a disagreement between them."
-      },
       "writtenBy": "Written by {author}",
       "writer": {
         "human": "a person",
@@ -4646,7 +4630,26 @@
       "askNextDone": "From the next page on, the card stops each write. Settings › Workspace turns it back.",
       "undo": "Undo",
       "undone": "Removed {page}.",
-      "undoFailed": "Could not undo: the file is already gone or the folder is not writable."
+      "undoFailed": "Could not undo: the file is already gone or the folder is not writable.",
+      "linkFindingsAriaLabel": "How this page connects inside the folder",
+      "linkFindingsTitle": "Check how this page connects",
+      "linkFindingsBody": "The page fits the template. What follows is about the folder: things no single page can see about itself.",
+      "problem": {
+        "kind-present": "This page carries `kind:`. That key is what puts a document on the map, and a write-up about sources is not a reviewed concept. Remove it, or move the file out of `wiki/` if it really is a node.",
+        "missing-field": "`{field}:` is missing.",
+        "section-order-missing": "The page needs all five sections, in order. Missing: {missing}. Keep an empty section rather than dropping it: \"nothing here\" is itself something a reader learns.",
+        "section-order-sequence": "The sections are out of order. It must read: {expected}. Right now: {found}.",
+        "uncited-fact": "Every bullet under `## Facts` ends in at least one citation, like `[[src:sources/plan.pdf#p12]]`. A claim a reader cannot check against one place in one document belongs under `## Not in sources`.",
+        "bad-citation": "`{text}` is not a citation this format can resolve. The shape is `[[src:sources/PATH#ANCHOR]]`, and an anchor looks like p12, s2, s2r14, r89, l204, or h:error-handling.",
+        "bad-truncation-record-shape": "`sources_truncated:` is a list of paths. This value is not one, so it records no boundary at all.",
+        "bad-truncation-record-path": "`{path}` is under `sources_truncated:` but not under `sources:`. A path this page does not cite has no boundary a reader could place.",
+        "citation-target-missing-folder": "`{path}` is cited but is not in this folder. A citation a reader cannot open is not a citation.",
+        "citation-target-missing-sources": "`{path}` is cited but is not listed in this page's `sources:`. Add it there with its sha256, or fix the citation.",
+        "describes-needs-approval": "`describes:` says this page speaks for those concepts. That is a claim about the map and it needs a person: set `status: reviewed` after reading the page, or remove `describes:`.",
+        "dangling-wikilink": "`[[{target}]]` names a page that is not in this folder. Link to a page that exists, or write the page.",
+        "orphan-page": "No other page links here. A page nobody points at is reached only by its file name; link it from the page that talks about its topic.",
+        "shared-source-unlinked": "`{other}` also lists {sources}, and neither page links the other. Two write-ups of one document that do not know about each other cannot carry a disagreement between them."
+      }
     },
     "shelf": {
       "listAria": "Wiki pages and their source versions",
@@ -4759,7 +4762,7 @@
       "brainAgent": "{name}",
       "brainLocal": "{model} on {host}",
       "brainNone": "Nothing set up yet",
-      "transferLocal": "Nothing leaves this computer: the contents of the files it reads go to {host} on this machine, and {file} records every request.",
+      "transferLocal": "Source text and existing wiki pages it reads go to {host} on this computer. {file} records every request.",
       "blockedWeb": "Compile needs a coding agent running on this computer, and only the app can start one.",
       "blockedChecking": "Still looking for a coding agent on this computer.",
       "blockedLocalRemote": "The runner saved for this folder is {host}, which is not this computer. Compile sends the contents of your documents, so it runs only on a runner on this machine. Change the address in Settings, then AI connection.",
@@ -4799,9 +4802,13 @@
         "hash-unavailable": "this computer could not measure its sha256"
       },
       "replaces": "Replaces the page already there",
-      "before": "Current page",
-      "after": "Proposed page (check for missing notes before allowing)",
-      "refusedTitle": "Not written: this page does not fit the template",
+      "comparePage": "Compare page",
+      "back": "Back to Library",
+      "previewPage": "Preview page",
+      "version": "Page version",
+      "before": "Previous page",
+      "after": "Proposed page",
+      "refusedTitle": "This page cannot be written yet",
       "refusedLede": "Nothing is offered for this one. Compile again, or write the page yourself.",
       "allow": "Allow once",
       "allowCount": "Allow once ({count})",
@@ -4809,8 +4816,8 @@
       "dismiss": "Close",
       "applying": "Writing…",
       "written": "Written: {paths}",
-      "failed": "Nothing was written. {reason}",
-      "noSnapshot": "No save point is taken here; the change is in your folder and in Git.",
+      "failed": "Could not finish writing. {reason}",
+      "noSnapshot": "No save point is created automatically.",
       "nothing": "It finished without proposing a page."
     },
     "ask": {
@@ -4843,6 +4850,69 @@
       "open": "Conversation",
       "running": "{phase} · {target}",
       "runningLabel": "Open the conversation. {agent} is still working: {phase}."
+    },
+    "answers": {
+      "title": "Questions you return to",
+      "lede": "Keep an answer, its sources and unresolved questions together. Return when the evidence changes.",
+      "ask": "Ask a question",
+      "empty": "Ask about your documents, then choose File the answer in the conversation. Your saved questions will appear here.",
+      "provenance": "Source observations show changes in files. They do not verify an answer or prove which bytes the agent read.",
+      "state": {
+        "changed": "Cited originals changed",
+        "missing": "A cited original is missing",
+        "new-sources": "New originals need consideration",
+        "unmeasured": "Source version not established",
+        "unchanged": "No change since source observation"
+      },
+      "alternatives": "{count} alternative revisions",
+      "historyProblem": "Revision history needs review",
+      "evidence": "Answer evidence and revisions",
+      "older": "This is an earlier retained answer. Return to questions to see later revisions.",
+      "refresh": "Ask agent for updated draft",
+      "previous": "Read previous version",
+      "back": "Back to questions",
+      "refreshUnavailable": "Refresh needs a connected coding agent in the installed app. You can still read the answer, sources and previous versions here.",
+      "history": {
+        "none": "",
+        "invalid": "The previous-version address is invalid.",
+        "missing": "The previous version is missing.",
+        "unmeasured": "The previous text was not recorded for comparison.",
+        "checking": "Checking the previous version…",
+        "matches": "Previous version matches the text used for this revision.",
+        "changed": "The previous version was edited after this revision was prepared."
+      },
+      "phase": {
+        "preparing": "Checking evidence…",
+        "running": "Preparing a new answer…",
+        "saving": "Saving revision…"
+      },
+      "compareTitle": "Compare the updated answer",
+      "compareHint": "Check the sources, human notes and unresolved questions. Saving creates a new draft and keeps the previous page.",
+      "before": "Previous retained answer",
+      "after": "Proposed new draft",
+      "rawText": "Read exact Markdown",
+      "sourceDelta": "{added} cited originals added · {removed} removed",
+      "sameSources": "The draft cites the same originals.",
+      "removedLines": "{count} earlier lines removed or reworded",
+      "closeCompare": "Continue reading",
+      "saveDraft": "Save as new draft",
+      "reviewDraft": "Review updated answer",
+      "saved": "New answer draft saved. The previous version is preserved.",
+      "savedNeedsReview": "Draft saved, but its comparison inputs need another check. Both versions are preserved.",
+      "comparisonVersion": "Which answer to read",
+      "refreshHint": "Sends a draft request to your connected coding agent and its provider. The agent keeps its existing folder permissions. Atlas files the new draft when you compare and choose Save as new draft.",
+      "paths": {
+        "changed": "Changed originals",
+        "missing": "Missing originals",
+        "added": "New originals to consider"
+      },
+      "version": {
+        "head": "Latest draft",
+        "older": "Earlier version",
+        "alternative": "Alternative draft",
+        "unresolved": "History incomplete"
+      },
+      "citedLocation": "Cited location in the original: {anchor}"
     }
   },
   "libraryImport": {

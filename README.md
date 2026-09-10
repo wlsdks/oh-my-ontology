@@ -244,6 +244,12 @@ the page. **Compile** starts one conversation that reads the sources and writes
 the page; the traffic goes from your coding agent straight to its own provider,
 which the screen states instead of implying that Atlas sits in the middle.
 
+Library also works without code or ontology nodes. Keep a question and its cited
+answer, inspect source changes, request an updated draft through Claude Code or
+Codex ACP, and compare before saving a new revision. Earlier answers remain
+available. Local Compile has its own read and approval path. See
+[retained answers](docs/RETAINED-ANSWERS.md).
+
 ### 5. Plan against reviewed architecture
 
 ![The current Architecture screen in the installed macOS app, comparing the seven reviewed roles of this repository, numbered from Routes down to Shared foundation with what each role is in two lines, against the imports observed in code beside each one, a check in the Delta column where they agree, every stroke stating its rule as a sentence and the measured crossing with its import count, and the reviewed structure and inspection receipt named above with Re-inspect source and Roles and rules](docs/assets/readme/architecture-flow.png)
@@ -472,9 +478,11 @@ have documents and no code. Full contracts: the
 - **No Atlas backend, account, or telemetry.** The web app is a static export; the
   desktop app checks the public updater manifest once a day and uploads no vault
   content. A connected coding agent talks to its own provider only when you ask.
-- **Two ways in, one folder.** The web app opens it through the File System Access
-  API and the desktop app bridges to it, while MCP and CLI read it directly — the
-  app is a shell, not a silo, and the bundled server is a file your agent launches
+- **Two ways in, one folder.** The hosted web app can open a local folder through
+  the File System Access API. The desktop app uses a Tauri bridge to your selected
+  folder and keeps it open as a workspace.
+- **The Tauri macOS shell is a shell, not a silo.** MCP and CLI still read the
+  selected folder directly, and the bundled server is a file your agent launches
   itself, so it keeps working when the app is closed.
 
 ## What this is not

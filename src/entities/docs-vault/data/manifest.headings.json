@@ -2760,6 +2760,134 @@
       "slug": "local-wiki-retrieval-and-revision-pilot-2026-09-10"
     }
   ],
+  "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Library maintenance across ordered source arrivals — 2026-09-11",
+      "slug": "library-maintenance-across-ordered-source-arrivals-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Frozen baseline",
+      "slug": "frozen-baseline"
+    },
+    {
+      "depth": 2,
+      "text": "Failure and repair",
+      "slug": "failure-and-repair"
+    },
+    {
+      "depth": 2,
+      "text": "Exact-state replay",
+      "slug": "exact-state-replay"
+    },
+    {
+      "depth": 2,
+      "text": "Held-out counterexample",
+      "slug": "held-out-counterexample"
+    },
+    {
+      "depth": 2,
+      "text": "Audit corrections and limits",
+      "slug": "audit-corrections-and-limits"
+    },
+    {
+      "depth": 2,
+      "text": "Evidence coordinates",
+      "slug": "evidence-coordinates"
+    }
+  ],
+  "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Library source fidelity and ACP handoff — 2026-09-11",
+      "slug": "library-source-fidelity-and-acp-handoff-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Frozen comparison",
+      "slug": "frozen-comparison"
+    },
+    {
+      "depth": 2,
+      "text": "Answer results",
+      "slug": "answer-results"
+    },
+    {
+      "depth": 2,
+      "text": "Actual read traces",
+      "slug": "actual-read-traces"
+    },
+    {
+      "depth": 2,
+      "text": "Source-reader repair",
+      "slug": "source-reader-repair"
+    },
+    {
+      "depth": 2,
+      "text": "Controls and limits",
+      "slug": "controls-and-limits"
+    },
+    {
+      "depth": 2,
+      "text": "Reproduction evidence",
+      "slug": "reproduction-evidence"
+    }
+  ],
+  "benchmark/LIBRARY-COMMUNITY-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Library community evidence — 2026-09-11",
+      "slug": "library-community-evidence-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Primary hypothesis",
+      "slug": "primary-hypothesis"
+    },
+    {
+      "depth": 2,
+      "text": "Discussion ledger",
+      "slug": "discussion-ledger"
+    },
+    {
+      "depth": 2,
+      "text": "Decisions and falsifiers",
+      "slug": "decisions-and-falsifiers"
+    }
+  ],
+  "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Local Compile and existing human context — 2026-09-11",
+      "slug": "local-compile-and-existing-human-context-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Before-state",
+      "slug": "before-state"
+    },
+    {
+      "depth": 2,
+      "text": "Read and consent contract",
+      "slug": "read-and-consent-contract"
+    },
+    {
+      "depth": 2,
+      "text": "Sealed real-model case",
+      "slug": "sealed-real-model-case"
+    },
+    {
+      "depth": 3,
+      "text": "Full application-request follow-up",
+      "slug": "full-application-request-follow-up"
+    },
+    {
+      "depth": 2,
+      "text": "Evidence limits",
+      "slug": "evidence-limits"
+    }
+  ],
   "benchmark/MCP-ONE-CLICK-2026-09-07": [
     {
       "depth": 1,
@@ -9490,6 +9618,36 @@
       "depth": 2,
       "text": "2026-09-10 — Compile revisits existing write-ups and filed answers",
       "slug": "2026-09-10-compile-revisits-existing-write-ups-and-filed-answers"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Library retains questions through explicit answer revisions",
+      "slug": "2026-09-11-library-retains-questions-through-explicit-answer-revisions"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Source citations retain record boundaries and distinguish repeated headings",
+      "slug": "2026-09-11-source-citations-retain-record-boundaries-and-distinguish-repeated-headings"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Compile revisits resolved gaps and distinguishes policy from observation",
+      "slug": "2026-09-11-compile-revisits-resolved-gaps-and-distinguishes-policy-from-observation"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Local Compile reads the existing write-up before proposing a replacement",
+      "slug": "2026-09-11-local-compile-reads-the-existing-write-up-before-proposing-a-replacement"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Local Compile approval exposes the exact previous and proposed text",
+      "slug": "2026-09-11-local-compile-approval-exposes-the-exact-previous-and-proposed-text"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Related Wiki maintenance preserves explicit retained-answer revisions",
+      "slug": "2026-09-11-related-wiki-maintenance-preserves-explicit-retained-answer-revisions"
     }
   ],
   "DEMO-SCENARIO": [
@@ -13430,6 +13588,21 @@
       "depth": 2,
       "text": "Versioned analysis review",
       "slug": "versioned-analysis-review"
+    },
+    {
+      "depth": 2,
+      "text": "Library retained-answer refresh",
+      "slug": "library-retained-answer-refresh"
+    },
+    {
+      "depth": 2,
+      "text": "Library Compile request metadata",
+      "slug": "library-compile-request-metadata"
+    },
+    {
+      "depth": 2,
+      "text": "Library source maintenance",
+      "slug": "library-source-maintenance"
     }
   ],
   "ontology/capabilities/agent-work-visibility": [
@@ -14298,6 +14471,11 @@
       "depth": 2,
       "text": "Constraints: Client config and native vault writes",
       "slug": "constraints-client-config-and-native-vault-writes"
+    },
+    {
+      "depth": 2,
+      "text": "Library Compile correction context",
+      "slug": "library-compile-correction-context"
     },
     {
       "depth": 2,
@@ -15988,6 +16166,38 @@
       "slug": "헌장-리마인드-이-정비에서-특히"
     }
   ],
+  "plans/LIBRARY-QUALITY-PROGRAM": [
+    {
+      "depth": 1,
+      "text": "Library quality program",
+      "slug": "library-quality-program"
+    },
+    {
+      "depth": 2,
+      "text": "Delivery order",
+      "slug": "delivery-order"
+    },
+    {
+      "depth": 2,
+      "text": "Execution routes",
+      "slug": "execution-routes"
+    },
+    {
+      "depth": 2,
+      "text": "Qualification",
+      "slug": "qualification"
+    },
+    {
+      "depth": 2,
+      "text": "Operating boundaries",
+      "slug": "operating-boundaries"
+    },
+    {
+      "depth": 2,
+      "text": "Checkpoint — 2026-09-11",
+      "slug": "checkpoint-2026-09-11"
+    }
+  ],
   "plans/PRODUCT-PLAN-2026-07": [
     {
       "depth": 1,
@@ -16651,6 +16861,33 @@
       "depth": 2,
       "text": "Updating documentation",
       "slug": "updating-documentation"
+    }
+  ],
+  "RETAINED-ANSWERS": [
+    {
+      "depth": 1,
+      "text": "Retained answers and explicit revisions",
+      "slug": "retained-answers-and-explicit-revisions"
+    },
+    {
+      "depth": 2,
+      "text": "Evidence and authority",
+      "slug": "evidence-and-authority"
+    },
+    {
+      "depth": 2,
+      "text": "Markdown record",
+      "slug": "markdown-record"
+    },
+    {
+      "depth": 2,
+      "text": "Refresh and review",
+      "slug": "refresh-and-review"
+    },
+    {
+      "depth": 2,
+      "text": "Agent and terminal access",
+      "slug": "agent-and-terminal-access"
     }
   ],
   "superpowers/plans/2026-08-28-architecture-xray": [
