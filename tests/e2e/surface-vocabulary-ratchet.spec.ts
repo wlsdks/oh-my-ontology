@@ -1,3 +1,5 @@
+import { writeFile } from "node:fs/promises";
+
 import { expect, test } from "@playwright/test";
 
 import { seedFirstRunSeen } from "./first-run-seed";
@@ -69,9 +71,8 @@ import { seedFirstRunSeen } from "./first-run-seed";
  * `border-soft + overlay-1` panel the routes below already contribute — adding it would grow the
  * walk without growing what is measured.
  */
-// 2026-09-11: this visible census measures 9 on Linux CI and 10 on macOS.
-// Keep each measured platform ceiling tight; neither may borrow the other's slack.
-const BASELINE_SURFACE_COMBOS = process.platform === "linux" ? 9 : 10;
+// Chart marks encode data, not card appearances; the actual surface vocabulary is nine.
+const BASELINE_SURFACE_COMBOS = 9;
 const BASELINE_CONTROL_COMBOS = 17;
 
 const ROUTES = [
@@ -86,6 +87,68 @@ const ROUTES = [
   "/ko/download/",
 ] as const;
 
+function collectSurfaceVocabulary() {
+  const out: { key: string; interactive: boolean; detail: unknown }[] = [];
+  for (const el of document.querySelectorAll("main *")) {
+    // Keep a chart frame eligible, but exclude the marks inside graphics.
+    if (el.parentElement?.closest('svg, [role="img"]')) continue;
+    const style = getComputedStyle(el);
+    const box = el.getBoundingClientRect();
+    // Small fragments and invisible elements are not surfaces.
+    if (box.width < 40 || box.height < 24) continue;
+    if (style.visibility === "hidden" || style.display === "none") continue;
+    if (Number(style.opacity) < 0.05) continue;
+    if (box.top >= innerHeight || box.bottom <= 0) continue;
+
+    const hasBorder = style.borderTopWidth !== "0px" && style.borderTopStyle !== "none";
+    const hasBackground = style.backgroundColor !== "rgba(0, 0, 0, 0)";
+    const radius = style.borderTopLeftRadius;
+    if (radius === "0px" || (!hasBorder && !hasBackground)) continue;
+
+    // Is it something you press? Then it belongs to the layer `controlClass` owns.
+    const tag = el.tagName.toLowerCase();
+    const interactive =
+      ["button", "a", "input", "textarea", "select", "summary", "label"].includes(tag) ||
+      el.getAttribute("role") === "button" ||
+      el.closest("button,a[href]") !== null;
+
+    out.push({
+      key: `${radius} | ${hasBorder ? style.borderTopColor : "none"} | ${
+        hasBackground ? style.backgroundColor : "none"
+      }`,
+      interactive,
+      detail: { tag: el.tagName, testId: el.getAttribute("data-testid"), text: el.textContent?.trim().slice(0, 90), top: box.top, bottom: box.bottom, width: box.width },
+    });
+  }
+  return out;
+}
+
+test("data marks do not add card vocabulary, while real cards and chart frames do", async ({ page }) => {
+  await page.setContent(`<main>
+    <section style="width:80px;height:40px;border-radius:9px;background:rgb(10,10,10)">Card</section>
+    <div role="img" aria-label="Synthetic chart">
+      <span id="mark" style="display:block;width:64px;height:40px;border-radius:4px;background:rgb(255,0,0)"></span>
+    </div>
+  </main>`);
+  const initial = await page.evaluate(collectSurfaceVocabulary);
+  expect(initial).toHaveLength(1);
+  await page.locator("#mark").evaluate((mark) => {
+    mark.style.height = "80px";
+    mark.style.backgroundColor = "rgb(0,0,255)";
+  });
+  expect(await page.evaluate(collectSurfaceVocabulary)).toEqual(initial);
+  await page.locator("main").evaluate((main) => {
+    const card = document.createElement("section");
+    card.style.cssText = "width:64px;height:40px;border-radius:4px;background:rgb(255,0,0)";
+    main.append(card);
+  });
+  expect(new Set((await page.evaluate(collectSurfaceVocabulary)).map((row) => row.key)).size).toBe(2);
+  await page.locator('[role="img"]').evaluate((frame) => {
+    frame.style.cssText = "width:100px;height:100px;border-radius:12px;background:rgb(0,255,0)";
+  });
+  expect(new Set((await page.evaluate(collectSurfaceVocabulary)).map((row) => row.key)).size).toBe(3);
+});
+
 test("표면 조합이 늘지 않는다", async ({ page }) => {
   await seedFirstRunSeen(page);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -93,46 +156,22 @@ test("표면 조합이 늘지 않는다", async ({ page }) => {
   const surfaces = new Set<string>();
   const controls = new Set<string>();
   let painted = 0;
+  const census: unknown[] = [];
 
   for (const route of ROUTES) {
     await page.goto(`${route}?guides=off`);
     await page.waitForTimeout(900);
-    const found = await page.evaluate(() => {
-      const out: { key: string; interactive: boolean }[] = [];
-      for (const el of document.querySelectorAll("main *")) {
-        const style = getComputedStyle(el);
-        const box = el.getBoundingClientRect();
-        // Small fragments and invisible elements are not surfaces.
-        if (box.width < 40 || box.height < 24) continue;
-        if (style.visibility === "hidden" || style.display === "none") continue;
-        if (Number(style.opacity) < 0.05) continue;
-        if (box.top >= innerHeight || box.bottom <= 0) continue;
+    await page.evaluate(() => document.fonts.ready);
+    const found = await page.evaluate(collectSurfaceVocabulary);
 
-        const hasBorder = style.borderTopWidth !== "0px" && style.borderTopStyle !== "none";
-        const hasBackground = style.backgroundColor !== "rgba(0, 0, 0, 0)";
-        const radius = style.borderTopLeftRadius;
-        if (radius === "0px" || (!hasBorder && !hasBackground)) continue;
-
-        // Is it something you press? Then it belongs to the layer `controlClass` owns.
-        const tag = el.tagName.toLowerCase();
-        const interactive =
-          ["button", "a", "input", "textarea", "select", "summary", "label"].includes(tag) ||
-          el.getAttribute("role") === "button" ||
-          el.closest("button,a[href]") !== null;
-
-        out.push({
-          key: `${radius} | ${hasBorder ? style.borderTopColor : "none"} | ${
-            hasBackground ? style.backgroundColor : "none"
-          }`,
-          interactive,
-        });
-      }
-      return out;
-    });
-
+    census.push({ route, found });
     painted += found.length;
     for (const item of found) (item.interactive ? controls : surfaces).add(item.key);
   }
+
+  const evidencePath = test.info().outputPath("surface-census.json");
+  await writeFile(evidencePath, JSON.stringify(census, null, 2));
+  await test.info().attach("surface-census", { path: evidencePath, contentType: "application/json" });
 
   // Idling guard — measuring nothing and passing with "0 combinations" is this
   // ratchet's worst failure.
