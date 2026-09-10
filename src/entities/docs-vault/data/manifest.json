@@ -272,7 +272,7 @@
       "headings": [],
       "excerpt": "How this repo keeps its own instruction files in sync, and why the same pattern extends into the vault for facts that change faster than instructions do. Written from this repo's own history, not a hypothetical. Multiple coding-agent instruction files (AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md, …",
       "wordCount": 825,
-      "updatedAt": "2026-08-01",
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "../CLAUDE",
         "../.claude/rules/forbidden",
@@ -904,7 +904,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 125882,
+      "wordCount": 126181,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "wiki/…",
@@ -972,7 +972,7 @@
       "headings": [],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from ontology-map has become the standard for page rollout (gateway → docs/ontology hub → projects/ins",
       "wordCount": 44615,
-      "updatedAt": "2026-09-10",
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "design-references/DESIGN-linear",
         "ONTOLOGY-MAP-DESIGN",
@@ -1000,8 +1000,8 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Which command to run first for an area of this repository, what a pass proves, and when to escalate. The reasons a gate exists live in docs/DECISIONS.md and in the gate's own header, not here. Start every change with the planner, and let it run what it recommends: It reads the Git diff (tracked and untracked), prints t",
-      "wordCount": 6133,
-      "updatedAt": "2026-09-07",
+      "wordCount": 6135,
+      "updatedAt": "2026-09-11",
       "linksOut": []
     },
     {
@@ -4589,7 +4589,7 @@
     "../mcp/README": [
       {
         "fromSlug": "audits/CASE-STUDY-AGENTS-MD-DRIFT",
-        "context": "every session — the same \"consult a reference file instead of restating it\" move, aimed at facts instead of rules. See **[`mcp/README.md`]** for the tool surface an agent uses to read and write that reference file, and [`AGENTS.md`](../../AGENTS.md#working-wit",
+        "context": "every session — the same \"consult a reference file instead of restating it\" move, aimed at facts instead of rules. See **[`mcp/README.md`]** for the tool surface an agent uses to read and write that reference file, and [`AGENTS.md`](../../AGENTS.md#source-auth",
         "linkText": "`mcp/README.md`"
       }
     ],

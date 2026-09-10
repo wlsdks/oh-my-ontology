@@ -52,6 +52,74 @@ export function collectHtmlAssetRefs(markdown) {
   return refs;
 }
 
+/**
+ * GitHub's heading anchors, computed the way GitHub computes them: strip
+ * formatting, lowercase, drop everything that is not a letter, digit, `_`,
+ * space or `-`, then spaces to `-`. A repeated heading gets `-1`, `-2`, ...
+ *
+ * Why this belongs in the link gate: the file-existence half was already
+ * machine-decidable, but `docs/FILE.md#section` was only ever checked up to the
+ * `#`. A section rename left the link green and the reader stranded — measured
+ * once in this repository (`AGENTS.md#working-with-the-ontology-while-you-code`,
+ * a heading that had not existed for months).
+ */
+export function headingAnchorSlug(heading) {
+  return heading
+    .replace(/`/g, '')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*|__|\*/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}_\s-]/gu, '')
+    .replace(/\s/g, '-');
+}
+
+/** Every fragment a link may target in one markdown file: headings plus explicit ids. */
+export function collectAnchors(markdown) {
+  const anchors = new Set();
+  const seen = new Map();
+  for (const line of stripFencedBlocks(markdown)) {
+    const heading = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
+    if (heading) {
+      const base = headingAnchorSlug(heading[2]);
+      if (base) {
+        const used = seen.get(base) ?? 0;
+        seen.set(base, used + 1);
+        anchors.add(used === 0 ? base : `${base}-${used}`);
+      }
+    }
+    for (const match of line.matchAll(/<a\b[^>]*\b(?:name|id)\s*=\s*(["'])(.*?)\1/gi)) {
+      anchors.add(match[2].toLowerCase());
+    }
+    for (const match of line.matchAll(/\{#([^}\s]+)\}/g)) anchors.add(match[1].toLowerCase());
+  }
+  return anchors;
+}
+
+/** `<a href="#anchor">` in raw HTML is a promise the same way a markdown link is. */
+export function collectHtmlLinks(markdown) {
+  const links = [];
+  stripFencedBlocks(markdown).forEach((line, index) => {
+    for (const tag of line.matchAll(/<a\b[^>]*>/gi)) {
+      const href = /\bhref\s*=\s*(["'])(.*?)\1/i.exec(tag[0]);
+      if (href) links.push({ line: index + 1, target: href[2].trim() });
+    }
+  });
+  return links;
+}
+
+/** The fragment of a link target, lowercased and percent-decoded, or null. */
+export function linkFragment(target) {
+  const index = target.indexOf('#');
+  if (index === -1 || index === target.length - 1) return null;
+  const raw = target.slice(index + 1);
+  try {
+    return decodeURIComponent(raw).toLowerCase();
+  } catch {
+    return raw.toLowerCase();
+  }
+}
+
 export function isExternalTarget(target) {
   return /^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('//');
 }

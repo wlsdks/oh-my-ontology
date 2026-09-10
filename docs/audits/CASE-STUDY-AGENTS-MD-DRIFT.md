@@ -94,5 +94,5 @@ from source files and chat history every session — the same "consult a
 reference file instead of restating it" move, aimed at facts instead of
 rules. See [`mcp/README.md`](../../mcp/README.md) for the tool surface an agent
 uses to read and write that reference file, and
-[`AGENTS.md`](../../AGENTS.md#working-with-the-ontology-while-you-code) for how
+[`AGENTS.md`](../../AGENTS.md#source-authority-and-ontology-loop) for how
 this repo's own agents are told to use it.

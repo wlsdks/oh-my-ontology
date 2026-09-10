@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-11 — The link gate reads the half after the `#`, and one slug function serves both sides
+
+**Why**: shortening the README left a pointer at `cli/README.md#set-up-from-a-source-checkout`, and nothing checked that fragment — `check-doc-links.mjs` split on `#` and verified only the file. An inventory found one already dead — `AGENTS.md#working-with-the-ontology-while-you-code`, a heading gone for months — and 13 more in `docs/DESIGN-SYSTEM.md`'s own generated table of contents.
+**Prior**: upholds 2026-08-01 "check only facts a machine can derive" — a fragment resolving against real headings is referential integrity, not a prose pin. Continues the same day's "The README loses half its words".
+**Decision**: `pnpm docs:links` now resolves `#fragment` for markdown links, same-document links and raw HTML `href`s whose target markdown file is readable; a missing file is still reported once as a link, and a fragment on a non-markdown target is left alone. The TOC generator and the gate share one `headingAnchorSlug`, every expectation read off GitHub's rendered `id=` rather than derived: each whitespace run becomes a hyphen, `_` survives, backticks and apostrophes do not. The local copy it replaces collapsed whitespace and dropped `_`, which produced the 13. Probed on four shapes — same-file, cross-file, HTML href, and a heading renamed on the target side — each red, then green.
+**Dissent**: `pnpm decisions:check` should also trigger on `README.md`, since this session's first cut removed ledger-pinned facts while that gate stayed green. Not adopted: that gate holds only mechanical rows by design, and its design-spec row was narrowed from file names to an inventory because "in the diff means ledger" produced 63 false positives. A README trigger would demand a record for a typo.
+**Falsifier**: a heading whose GitHub id disagrees with `headingAnchorSlug` — then one wrong function is wrong for both consumers, the cost of unifying them.
+**Owner**: jinan
+
 ## 2026-09-11 — The README loses half its words and keeps every fact the ledger put in its body
 
 **Why**: the owner opened the README and said it has too much text and does not look good. Measured: 1,107 lines, 7,896 prose words, eight centered paragraphs before the first heading, and a 125-line gate narrative `docs/DEVELOPMENT-CHECKS.md` already owns entry by entry.
