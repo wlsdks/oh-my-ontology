@@ -128,6 +128,8 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 
 | 51 | 2026-09-11 | Read the complete existing Wiki before local Compile replacement | one-way | review | correct | public-contract | truth=unchanged;transfer=affected;agent-write=affected;human-correction=affected | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
 
+| 52 | 2026-09-11 | Align Compile instructions with the selected runner and qualify the full request | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -204,3 +206,5 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 50 | 2026-09-11 | pass | yes | no | pending |
 | 51 | 2026-09-11 | pending | yes | no | pending |
 | 51 | 2026-09-11 | fail-caught | yes | no | reopened |
+| 52 | 2026-09-11 | pending | yes | no | pending |
+| 52 | 2026-09-11 | pass | yes | no | pending |

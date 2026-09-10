@@ -247,3 +247,179 @@ describe("the brief hands over the hashes the Library measured", () => {
     expect(brief).toContain("compiled_at: 2026-09-07T04:41:00Z");
   });
 });
+
+describe("the local execution brief follows the runner contract", () => {
+  it("uses local tools, typed proposal fields, and review-owned metadata", () => {
+    const brief = buildCompileBrief({
+      sources: [row("sources/plan.md", "not-compiled")],
+      locale: "en",
+      writerId: "model:gemma4:12b",
+      vaultRoot: VAULT_ROOT,
+      hashes: new Map([["sources/plan.md", "a".repeat(64)]]),
+      now: new Date("2026-09-11T00:00:00Z"),
+      execution: "local",
+    });
+
+    for (const tool of ["read_source_text", "read_wiki_page", "propose_wiki_page"]) {
+      expect(brief).toContain(`\`${tool}\``);
+    }
+    expect(brief).toContain("fields declared by the `propose_wiki_page` tool schema");
+    expect(brief).toContain("final `receipt`");
+    expect(brief).toContain("paragraph");
+    expect(brief).toContain("Atlas fills");
+    expect(brief).toContain("created_by: model:gemma4:12b");
+    expect(brief).toContain("only proposes");
+    expect(brief).toContain("person");
+    expect(brief).not.toContain("a".repeat(64));
+    expect(brief).not.toContain("2026-09-11T00:00:00Z");
+    expect(brief).not.toContain("`read_source`");
+    expect(brief).not.toContain("your own reader");
+    expect(brief).not.toContain("Do not shell");
+    expect(brief).not.toContain("source_hash` and do not compute");
+    expect(brief).not.toContain(WIKI_PAGE_TEMPLATE.trimEnd());
+    expect(brief).not.toContain("written at once");
+  });
+});
+
+describe("execution selects the write boundary", () => {
+  it("keeps ACP as the default and names its runtime permission boundary", () => {
+    const input = {
+      sources: [row("sources/plan.md", "not-compiled")],
+      locale: "en",
+      writerId: "agent:claude",
+      vaultRoot: VAULT_ROOT,
+    };
+    const defaultBrief = buildCompileBrief(input);
+    const acpBrief = buildCompileBrief({ ...input, execution: "acp" });
+
+    expect(defaultBrief).toBe(acpBrief);
+    expect(acpBrief).toContain("Library write mode");
+    expect(acpBrief).toContain("selected ACP runtime's permissions");
+    expect(acpBrief).toContain("does not promise an automatic write");
+    expect(acpBrief).not.toContain("written at once");
+    expect(acpBrief).not.toContain("only proposes");
+  });
+
+  it("keeps the Korean ACP ending conditional on runtime permission", () => {
+    const brief = buildCompileBrief({
+      sources: [row("sources/plan.md", "not-compiled")],
+      locale: "ko",
+      writerId: "agent:claude",
+      vaultRoot: VAULT_ROOT,
+      execution: "acp",
+    });
+
+    expect(brief).toContain("선택한 ACP 런타임");
+    expect(brief).toContain("자동 쓰기를 무조건 약속하지 않아");
+    expect(brief).not.toContain("서식에 맞는 문서는 바로 쓰이고");
+  });
+});
+
+describe("local and ACP keep one meaning rule set", () => {
+  for (const locale of ["en", "ko"]) {
+    it(`${locale}: preserves the shared source comparison and gap rules`, () => {
+      const input = {
+        sources: [row("sources/plan.md", "not-compiled")],
+        locale,
+        writerId: "model:gemma4:12b",
+        vaultRoot: VAULT_ROOT,
+      };
+      const acp = buildCompileBrief({ ...input, execution: "acp" });
+      const local = buildCompileBrief({ ...input, execution: "local" });
+      const semanticRules = (brief: string) =>
+        brief.split("\n").filter((line) => /^[g-k]\. /u.test(line));
+
+      expect(semanticRules(local)).toEqual(semanticRules(acp));
+      expect(local).toContain("## Open questions");
+      expect(local).toContain("## Not in sources");
+    });
+  }
+});
+
+describe("local execution stays within its reader and review boundary", () => {
+  for (const locale of ["en", "ko"]) {
+    it(`${locale}: names only local tools and paragraph citations`, () => {
+      const brief = buildCompileBrief({
+        sources: [row("sources/plan.md", "not-compiled")],
+        locale,
+        writerId: "model:gemma4:12b",
+        vaultRoot: VAULT_ROOT,
+        execution: "local",
+      });
+      const forbidden = locale === "ko"
+        ? ["PDF 는 네 도구", "`read_source`", "셸 명령", "템플릿 (이 모양", "서식에 맞는 문서는 바로 쓰이고"]
+        : ["your own reader", "`read_source`", "Do not shell out", "The template", "written at once"];
+
+      expect(brief).toContain("read_source_text");
+      expect(brief).toContain("read_wiki_page");
+      expect(brief).toContain("propose_wiki_page");
+      expect(brief).toContain(locale === "ko" ? "문단 앵커" : "paragraph anchors");
+      expect(brief).toContain(locale === "ko" ? "제안에서 멈추고" : "only proposes");
+      expect(brief).toContain("#p3");
+      expect(brief).not.toContain("#h:");
+      expect(brief).not.toContain("#l");
+      expect(brief).not.toContain(WIKI_PAGE_TEMPLATE.trimEnd());
+      for (const phrase of forbidden) expect(brief).not.toContain(phrase);
+    });
+  }
+
+  it("labels nested Wiki references as uninspected instead of sending them to the local reader", () => {
+    const brief = buildCompileBrief({
+      sources: [row("sources/plan.md", "not-compiled")],
+      existingPages: [
+        { slug: "wiki/quarter-plan", title: "Quarter plan", sourcePaths: ["sources/plan.md"], createdBy: "agent:claude", compiledAt: null },
+        { slug: "wiki/answers/retained", title: "Retained answer", sourcePaths: ["sources/plan.md"], createdBy: "human", compiledAt: null },
+        { slug: "wiki/notes/appendix", title: "Nested note", sourcePaths: [], createdBy: "human", compiledAt: null },
+      ],
+      locale: "en",
+      writerId: "model:gemma4:12b",
+      vaultRoot: VAULT_ROOT,
+      execution: "local",
+    });
+
+    expect(brief).toContain("- wiki/quarter-plan.md — Quarter plan — sources/plan.md");
+    expect(brief).toContain("Out-of-reach Wiki references (contents uninspected by local tools)");
+    expect(brief).toContain("- wiki/answers/retained.md — Retained answer — sources/plan.md (uninspected)");
+    expect(brief).toContain("- wiki/notes/appendix.md — Nested note (uninspected)");
+    expect(brief).toContain("reachable root `wiki/<basename>.md` page");
+  });
+
+  it("does not call a root page with an overlong basename reachable", () => {
+    const longBasename = "a".repeat(81);
+    const brief = buildCompileBrief({
+      sources: [row("sources/plan.md", "not-compiled")],
+      existingPages: [
+        { slug: "wiki/quarter-plan", title: "Quarter plan", sourcePaths: [], createdBy: "human", compiledAt: null },
+        { slug: `wiki/${longBasename}`, title: "Too long", sourcePaths: [], createdBy: "human", compiledAt: null },
+      ],
+      locale: "en",
+      writerId: "model:gemma4:12b",
+      vaultRoot: VAULT_ROOT,
+      execution: "local",
+    });
+    const rootSection = brief.slice(
+      brief.indexOf("Reachable root Wiki pages"),
+      brief.indexOf("Out-of-reach Wiki references"),
+    );
+
+    expect(rootSection).toContain("wiki/quarter-plan");
+    expect(rootSection).not.toContain(longBasename);
+    expect(brief).toContain(`- wiki/${longBasename}.md — Too long (uninspected)`);
+  });
+
+  it("does not claim the Wiki folder is empty when only nested references exist", () => {
+    const brief = buildCompileBrief({
+      sources: [row("sources/plan.md", "not-compiled")],
+      existingPages: [
+        { slug: "wiki/answers/retained", title: "Retained answer", sourcePaths: [], createdBy: "human", compiledAt: null },
+      ],
+      locale: "en",
+      writerId: "model:gemma4:12b",
+      vaultRoot: VAULT_ROOT,
+      execution: "local",
+    });
+
+    expect(brief).toContain("No reachable root Wiki pages are available");
+    expect(brief).not.toContain("Nothing is under `wiki/` yet");
+  });
+});

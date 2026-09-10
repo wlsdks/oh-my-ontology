@@ -161,6 +161,10 @@ for (const runtimeId of ['claude-acp', 'codex-acp'] as const) {
     await expectProviderSession(page, harness, runtimeId);
     const snapshot = await harness.snapshot(page);
     const prompt = snapshot.calls.find((call) => call.method === 'session/prompt');
+    expect(promptText(prompt!)).toContain(`created_by: agent:${runtimeId}`);
+    expect(promptText(prompt!)).toContain('`read_source`');
+    expect(promptText(prompt!)).not.toContain('`propose_wiki_page`');
+    expect(promptText(prompt!)).not.toContain('A page that fits the contract is written at once');
     const timestamps = [...promptText(prompt!).matchAll(/compiled_at:\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/g)].map((match) => match[1]);
     expect(timestamps).toContain(clickedAt);
     expect(timestamps).not.toContain('2026-09-11T01:02:03Z');

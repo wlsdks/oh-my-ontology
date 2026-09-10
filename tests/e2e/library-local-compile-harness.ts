@@ -174,10 +174,10 @@ export interface LocalCompileHarness {
 /** Install a Tauri directory plus loopback `llm_chat` seam for one browser context. */
 export async function installLocalCompileHarness(
   page: Page,
-  options: { files?: Record<string, string> } = {},
+  options: { files?: Record<string, string>; extraFiles?: Record<string, string>; detectedRuntime?: 'claude-acp' | 'codex-acp' } = {},
 ): Promise<LocalCompileHarness> {
   await page.addInitScript(
-    ({ initialFiles, rootPath, endpoint, sourcePath, wikiPath, note, proposedContextLines }) => {
+    ({ initialFiles, rootPath, endpoint, sourcePath, wikiPath, note, proposedContextLines, detectedRuntime }) => {
       const fixtureWindow = window as unknown as HarnessWindow;
       const files: Record<string, string> = { ...initialFiles };
       const mtimes: Record<string, number> = {};
@@ -198,8 +198,8 @@ export async function installLocalCompileHarness(
 
       // This is the source-defined preference key used by readLocalEndpoint().
       window.localStorage.setItem("ontology-atlas:local-endpoint", JSON.stringify(endpoint));
-      // A prior test must not select an unavailable ACP brain in this fresh fixture.
-      window.localStorage.removeItem("ontology-atlas:compile-brain");
+      // Keep the person's local choice even when another installed runtime is available.
+      window.localStorage.setItem("ontology-atlas:compile-brain", 'local');
 
       const record = (value: unknown): JsonRecord | null =>
         typeof value === "object" && value !== null && !Array.isArray(value)
@@ -487,11 +487,16 @@ export async function installLocalCompileHarness(
             return Promise.resolve({ servers: [], problems: [] });
           }
           if (command === "mcp_bundled_server") {
-            // No ACP server is selected in this fixture; this leaves local Compile as the
-            // available route while still exercising the installed Tauri shell boundary.
-            return Promise.resolve({ path: null, available: false, reason: "local fixture" });
+            return Promise.resolve(detectedRuntime
+              ? { path: '/Applications/Ontology Atlas.app/Contents/MacOS/ontology-atlas-mcp', available: true, reason: null }
+              : { path: null, available: false, reason: "local fixture" });
           }
-          if (command === "acp_detect_runtimes") return Promise.resolve([]);
+          if (command === "acp_detect_runtimes") return Promise.resolve(detectedRuntime ? [{
+            id: detectedRuntime, label: detectedRuntime === 'codex-acp' ? 'Codex' : 'Claude Agent',
+            state: 'ready', verified: true, isolated: true, launchKind: 'npx',
+            cliPath: detectedRuntime === 'codex-acp' ? '/opt/homebrew/bin/codex' : '/opt/homebrew/bin/claude',
+            adapterPackage: detectedRuntime === 'codex-acp' ? '@agentclientprotocol/codex-acp@1.10.0' : '@agentclientprotocol/claude-agent-acp@0.75.1',
+          }] : []);
           if (command === "llm_chat") {
             const body = String(args.body ?? "");
             const parsed = JSON.parse(body) as JsonRecord;
@@ -550,7 +555,8 @@ export async function installLocalCompileHarness(
       };
     },
     {
-      initialFiles: options.files ?? INITIAL_FILES,
+      initialFiles: { ...(options.files ?? INITIAL_FILES), ...options.extraFiles },
+      detectedRuntime: options.detectedRuntime ?? null,
       rootPath: LOCAL_COMPILE_VAULT_ROOT,
       endpoint: LOCAL_COMPILE_ENDPOINT,
       sourcePath: LOCAL_COMPILE_SOURCE_PATH,

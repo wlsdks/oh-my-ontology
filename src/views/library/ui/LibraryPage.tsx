@@ -824,21 +824,23 @@ export function LibraryPage() {
      * product rather than a failure with a cause.
      */
     try {
+      const localExecution = agent.route === 'local';
       agent.start(
         buildCompileBrief({
-          sources: model.sources,
+          sources: localExecution
+            ? model.sources.filter((source) => agent.localCompile.targets.includes(source.path))
+            : model.sources,
           existingPages: model.wikiPages,
           locale,
+          execution: localExecution ? 'local' : 'acp',
           /*
            * Whoever will actually write it. On the local route Atlas mints `created_by`
            * itself from the runner's model name, so this is the brief's own statement of
            * the same fact rather than a second source for it.
            */
-          writerId: agent.runtime
-            ? `agent:${agent.runtime.id}`
-            : agent.localModel
-              ? `model:${agent.localModel.model}`
-              : "agent:unknown",
+          writerId: localExecution
+            ? `model:${agent.localModel?.model ?? 'unknown'}`
+            : `agent:${agent.runtime?.id ?? 'unknown'}`,
           vaultRoot: nativeVaultRootPath ?? "",
           now: new Date(),
         }),

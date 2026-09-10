@@ -108,6 +108,15 @@ without producing a proposal; Qwen produced a validly shaped but semantically
 incorrect refresh that lost the personal note. Neither result was approved or
 written. Complete reads and valid citations are necessary, not sufficient.
 
+The follow-up audit separated the earlier handwritten-task protocol from the
+full app request. Full requests improved some numeric updates but still lost the
+personal note; aligned local instructions did not establish a semantic gain.
+Compile now names the selected writer and its actual reader/proposal contract,
+including a local choice made while an ACP runtime is available. The next
+correction-recovery slice should inspect existing vault history and ACP receipts
+for retained before text before introducing another history store, then qualify
+that recovery in real ACP maintenance. Local-model quality stays unqualified.
+
 Next work follows the remaining evidence: finish the native retained-answer
 visual checkpoint when the Mac is unlocked, address the measured local semantic
 refresh failures, and qualify recurring real owner work. Preserve the

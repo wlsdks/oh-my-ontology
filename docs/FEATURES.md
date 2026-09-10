@@ -1189,8 +1189,14 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   `gemma4:12b` (82s) each read both sources and proposed both pages with every bullet cited
   and every anchor resolvable; `qwen3.6:35b-a3b` proposed pages with no citations at all,
   which the card refused with `uncited-fact` and no write action.
-- **Which brain runs is chosen, not ranked** (owner, 2026-09-06, second pass). A verified
-  coding agent still opens formats the runner cannot, so it stays the **default** — but it
+- **Which brain runs is chosen, not ranked** (owner, 2026-09-06, second pass).
+  The Compile request names the selected runner as writer. Local requests use their
+  bounded readable target list and three-tool proposal workflow, with paragraph
+  citations and metadata supplied by Atlas. ACP requests retain their source
+  readers and Markdown template, while saving follows the selected write mode
+  and runtime permissions. Chronology, unresolved gaps, personal notes and
+  retained-answer rules are shared across both paths.
+  A verified coding agent still opens formats the runner cannot, so it stays the **default** — but it
   no longer outranks the runner, because the reason a local runner is set up at all is to
   be pointed at a folder whose documents should not leave the machine, and a precedence
   rule takes exactly that choice away. When this computer offers both, step two's

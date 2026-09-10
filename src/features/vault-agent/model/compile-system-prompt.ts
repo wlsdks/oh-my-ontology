@@ -7,16 +7,15 @@ import { SOURCE_TEXT_CHAR_CAP } from './source-text';
  * The system prompt for a Compile turn on the local route. **English only** — this is the
  * model channel, and `system-prompt.ts` owns the reason that boundary exists.
  *
- * It is short on purpose. The shape of a page is already stated twice, in the two places
- * that can be checked: `buildCompileBrief` embeds `WIKI_PAGE_TEMPLATE` verbatim in the
- * person's own message, and the three tool descriptions carry the rules the validator
- * actually enforces. A third paraphrase here would be the first thing to drift.
+ * It is short on purpose. The ACP branch of `buildCompileBrief` carries the canonical page
+ * template, while its local branch names the typed proposal boundary. This prompt owns the
+ * local runner's fixed tool behavior and limits; a third page-shape paraphrase here would be
+ * the first thing to drift.
  *
- * What only this file can say is the part that differs from the brief the ACP route
- * receives. That brief says "read each one with your own tools" — true of a coding agent,
- * false of a runner reaching the folder through exactly three functions. Rather than fork
- * the brief into two texts that must then be kept equal, the difference is stated once,
- * here, where the reader is the model rather than the person.
+ * The local branch and this system prompt are deliberately aligned: the user message tells
+ * the model which local tools and proposal fields it can use, and this model-channel prompt
+ * repeats the exact runtime boundary plus the turn-specific limits. The ACP branch keeps its
+ * own readers and template because it reaches the folder through a different runtime.
  */
 export function buildCompileSystemPrompt(options: {
   /** The runner's model name, so the page's `created_by` is not a surprise to it. */

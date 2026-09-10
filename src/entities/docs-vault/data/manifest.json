@@ -546,7 +546,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Local Compile previously assembled a replacement from raw sources without giving the model the existing Wiki body. The old body existed only in the proposal data; the rendered consent card showed paths and counts without either complete version. The repair makes existing context available through a bounded read before ",
-      "wordCount": 1042,
+      "wordCount": 1417,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "plans/LIBRARY-QUALITY-PROGRAM",
@@ -1042,7 +1042,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 40292,
+      "wordCount": 40353,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -2288,7 +2288,7 @@
       },
       "headings": [],
       "excerpt": "The app's connect flow and MCP surface that allow AI agents to discover, authenticate, read, and write the vault. Interactive agents within the app collect actual vault tool evidence. Activated only when both absolute paths and read manifests are present, ensuring concepts on screen, text read by models, and audit logs",
-      "wordCount": 746,
+      "wordCount": 794,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -4136,7 +4136,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Owner direction, 2026-09-11: make Library useful enough that a person would choose Atlas for Library alone. Incoming originals should contribute to connected, maintained knowledge that a later reader can inspect, question, correct and reuse. The owner selected a question-led entrance with explicitly refreshed retained ",
-      "wordCount": 1020,
+      "wordCount": 1109,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "benchmark/LIBRARY-COMMUNITY-2026-09-11",
@@ -4195,7 +4195,7 @@
       },
       "headings": [],
       "excerpt": "This temporary register measures the 2026-09-01 Atlas product-decision system. It is not a second decision archive. Significant rationale stays in DECISIONS.md; this file keeps only the typed facts needed to decide whether the gate earns, narrows, or loses its place. Run pnpm po:pilot for the current report and pnpm po",
-      "wordCount": 3431,
+      "wordCount": 3495,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "DECISIONS"

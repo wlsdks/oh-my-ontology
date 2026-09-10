@@ -91,9 +91,9 @@ function responseToolNames(snapshot: LocalCompileHarnessSnapshot): string[] {
   });
 }
 
-async function openLocalCompile(page: Page, selectPage = false): Promise<LocalCompileHarness> {
+async function openLocalCompile(page: Page, selectPage = false, options: Parameters<typeof installLocalCompileHarness>[1] = {}): Promise<LocalCompileHarness> {
   await seedFirstRunSeen(page);
-  const harness = await installLocalCompileHarness(page);
+  const harness = await installLocalCompileHarness(page, options);
   await page.goto("/en/docs/?guides=off", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: /Open my folder/i }).click();
   await expect(page.getByRole("heading", { name: "Map", level: 1 })).toBeVisible({
@@ -110,6 +110,7 @@ async function openLocalCompile(page: Page, selectPage = false): Promise<LocalCo
     await expect(page.getByTestId('library-page')).toHaveAttribute('data-library-state', 'wiki');
   }
   await expect(page.getByTestId("library-compile")).toBeEnabled({ timeout: 30_000 });
+  if (options?.detectedRuntime) await expect(page.getByTestId('library-compile-brain')).toContainText('probe-model');
   // This is the installed-shell local route; the web degradation copy must not be present.
   await expect(page.getByTestId("library-compile-web-limit")).toHaveCount(0);
   const endpoint = await page.evaluate(() => {
@@ -232,6 +233,31 @@ async function dumpTrace(snapshot: LocalCompileHarnessSnapshot, name: string): P
 }
 
 test.describe("local Compile carries existing Wiki context safely", () => {
+  for (const detectedRuntime of ['claude-acp', 'codex-acp'] as const) {
+    test(`the local choice does not borrow the available ${detectedRuntime} writer or reader instructions`, async ({ page }) => {
+      const harness = await openLocalCompile(page, false, { detectedRuntime, extraFiles: {
+        'sources/00-scan.pdf': '%PDF-1.4 fixture',
+        'sources/z-a.md': 'First extra source.',
+        'sources/z-b.md': 'Second extra source.',
+        'sources/z-c.md': 'Outside this bounded turn.',
+      } });
+      const snapshot = await harness.snapshot(page);
+      const { messages } = JSON.parse(snapshot.requests[0]!.rawBody) as { messages: Array<{ role: string; content: string }> };
+      const request = messages.find((message) => message.role === 'user')?.content ?? '';
+      expect(request).toContain('model:probe-model');
+      expect(request).not.toContain(`agent:${detectedRuntime}`);
+      expect(request).toContain('read_source_text');
+      expect(request).toContain('read_wiki_page');
+      expect(request).toContain('propose_wiki_page');
+      expect(request).not.toContain('sources/00-scan.pdf');
+      expect(request).not.toContain('sources/z-c.md');
+      expect(request).toContain('sources/z-a.md');
+      expect(request).toContain('sources/z-b.md');
+      expect(snapshot.calls.some((call) => call.method === 'acp_start')).toBe(false);
+      expect(snapshot.writes).toEqual([]);
+    });
+  }
+
   test("reads the current Wiki, preserves an attributed note, and writes only after Allow once", async ({
     page,
   }) => {

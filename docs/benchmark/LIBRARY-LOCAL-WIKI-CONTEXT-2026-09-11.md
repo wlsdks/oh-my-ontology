@@ -99,6 +99,48 @@ the owner/date question unresolved. Its paragraph citation resolved to the real
 source, but that did not make the retained claim a faithful current account.
 This run failed semantic maintenance. It was not approved or written.
 
+### Full application-request follow-up
+
+The preceding three runs used the production executor, adapter and loop with a
+179-character handwritten task. They did not call `buildCompileBrief`, which the
+application supplies as its full user message. Those observed failures are valid
+for that narrower protocol, not direct qualification of the complete app request.
+An independent source audit identified this limit before changing the product.
+
+At `f41fe6c06`, the same sealed source and prior Wiki were projected through
+`buildLibraryModel` and the full English `buildCompileBrief`. Both Gemma and Qwen
+produced proposals with the current 14-day routine and 45-day incident values.
+Gemma also recorded Morgan and left migration unconfirmed. Qwen recorded Morgan
+in Facts but retained its old owner/date question. Both omitted the personal
+note. No proposal was approved or written. The full request materially improved
+some outcomes while correction continuity remained unproven.
+
+Source inspection and a browser regression also found that a local choice could
+inherit the detected ACP runtime's writer id. The local system named three tools
+and explicit review, while the user brief named ACP readers, sheet anchors,
+writer-owned metadata and immediate writes. Its target list could include files
+outside the local runner's already bounded readable set. Execution instructions
+now follow the selected runner; the shared meaning and preservation rules remain
+in one place. A matching schema still does not establish semantic correctness.
+
+The aligned local request was then run once per same model and seed. Gemma kept
+14/45 and Morgan but again omitted the personal note, omitted the effective date,
+and misleadingly called an unconfirmed migration question resolved. Qwen again
+omitted the note and proposed an unqualified 31-day fact. These single stochastic
+runs do not isolate a causal prompt effect or establish improvement. They leave
+local semantic maintenance unqualified; the deterministic fix is to the selected
+writer, readable target set, tool vocabulary and actual review boundary.
+
+Browser coverage captures both detected ACP runtimes with the local preference
+selected, a mixed PDF/Markdown folder and a retained answer. It checks the actual
+first model request, then separately checks Claude Code and Codex ACP requests,
+retained-answer revision and cancellation. Scripted responses prove routing and
+consent mechanics, not the models' ability to preserve corrections.
+
+Follow-up artifacts are under
+`/tmp/atlas-library-qualification-20260911/production-brief/`, including the
+independent `audit.md`, frozen projections, exact full briefs and model replies.
+
 These failures remain evidence. The read gate closes the deterministic missing
 context path; it does not qualify either tested local model for dependable
 autonomous refresh. The new exact-text preview lets a person inspect the proposed
