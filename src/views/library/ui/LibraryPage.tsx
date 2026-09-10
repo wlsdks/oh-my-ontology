@@ -286,6 +286,7 @@ export function LibraryPage() {
     sourceHandles: localVault.sourceHandles,
     fileHandles: localVault.fileHandles,
     vaultRootPath: nativeVaultRootPath,
+    vaultScope: workVaultScope,
     enabled: hasFolder,
   });
 
@@ -572,7 +573,7 @@ export function LibraryPage() {
     createFile: (path: string) => t("wiki.compileCreateFile", { path }),
     modifyFile: (path: string) => t("wiki.compileModifyFile", { path }),
     bridgeMissing: t("stage.blockedWeb"),
-  });
+  }, model.pageTexts);
   const knownSlugs = useMemo(
     () => new Set((manifest?.docs ?? []).map((doc) => doc.slug)),
     [manifest],
@@ -652,7 +653,9 @@ export function LibraryPage() {
     if (agent.route !== "local" || !localWorkInScope || agent.localCompile.status !== "waiting") return;
     const turnId = agent.localCompile.turn?.id;
     if (!turnId) return;
-    const event = localCompileWaitingEvent(turnId, Date.now(), Boolean(agent.localCompile.card?.proposal));
+    const proposal = agent.localCompile.card?.proposal;
+    const event = localCompileWaitingEvent(turnId, Date.now(), Boolean(proposal),
+      proposal?.changes.flatMap((change) => change.files.map((file) => file.path)));
     scheduleLibraryWork((current) =>
       event ? beginLibraryWork(current, event) : clearLibraryWork(current),
     );
@@ -779,6 +782,8 @@ export function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
   const openImport = useCallback(() => setImportOpen(true), []);
   const handleCompile = useCallback(() => {
+    // Local review lives in the guidance pane; opening a page must not hide its approval.
+    if (agent.route === "local") choose(null);
     /*
      * **A press that does nothing must never be silent** (installed app, 2026-09-05).
      * Without this catch, anything thrown between the click and the dock leaves a chip
@@ -812,7 +817,7 @@ export function LibraryPage() {
         "error",
       );
     }
-  }, [agent, locale, model.sources, model.wikiPages, nativeVaultRootPath, t, toast]);
+  }, [agent, choose, locale, model.sources, model.wikiPages, nativeVaultRootPath, t, toast]);
 
   /**
    * The verdict the permission card shows before Allow: the page as this write would leave

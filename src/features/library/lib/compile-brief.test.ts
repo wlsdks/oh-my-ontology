@@ -32,6 +32,15 @@ const SOURCES: LibrarySourceRow[] = [
 ];
 
 describe("Compile acts on what is not written up", () => {
+  it("names each outdated page to revise, including filed answers, without duplicating the source write-up", () => {
+    const sources = [{ ...row('sources/plan.txt', 'compiled'), reviewPages: ['wiki/answers/date', 'wiki/old-plan'] }];
+    expect(selectCompileTargets(sources)).toHaveLength(1);
+    const brief = buildCompileBrief({ sources, locale: 'en', writerId: 'agent:claude', vaultRoot: VAULT_ROOT });
+    expect(brief).toContain('wiki/answers/date.md');
+    expect(brief).toContain('wiki/old-plan.md');
+    expect(brief).toContain('sources/plan.txt');
+  });
+
   it("targets the not-compiled, the stale and the part-read, and leaves the rest alone", () => {
     // A page written from the first part of a long file has the rest of that file still
     // to read, and this run is the one that reads it.

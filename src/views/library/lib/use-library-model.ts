@@ -97,6 +97,7 @@ export function useLibraryModel({
   sourceHandles,
   fileHandles,
   vaultRootPath,
+  vaultScope,
   enabled,
 }: {
   docs: readonly VaultDoc[];
@@ -104,6 +105,8 @@ export function useLibraryModel({
   sourceHandles: Map<string, FileSystemFileHandle>;
   fileHandles: Map<string, FileSystemFileHandle>;
   vaultRootPath: string | null;
+  /** The actual folder session identity, including distinct browser handles with the same name. */
+  vaultScope: string;
   /**
    * False while the folder is a read-only sample or still loading. Guarding the work as
    * well as the surface is the rule in `.claude/rules/architecture.md`: a section that
@@ -121,10 +124,10 @@ export function useLibraryModel({
    */
   const [stampedHashes, setStampedHashes] = useState<Map<string, string>>(() => new Map());
   const [verdicts, setVerdicts] = useState<Map<string, LibraryWikiVerdict>>(() => new Map());
-  /** `slug@mtime` of every wiki page already judged. */
+  /** Folder identity plus `slug@mtime` of every wiki page already judged. */
   const judgedStamps = useRef(new Set<string>());
   /**
-   * Page text by `slug@mtime`, kept so the folder half can be judged on every pass.
+   * Page text by folder identity and `slug@mtime`, kept so the folder half can be judged on every pass.
    * A page's own verdict is stable until its bytes change; whether somebody links to it
    * changes when *another* page changes, so the folder is re-read from this cache each
    * time any page moves rather than only for the pages that did.
@@ -228,7 +231,7 @@ export function useLibraryModel({
       for (const page of wikiPages) {
         if (isWikiFurnitureSlug(page.slug)) continue;
         const doc = bySlug.get(page.slug);
-        const stamp = `${page.slug}@${doc?.mtime ?? 0}`;
+        const stamp = `${vaultScope}\u0000${page.slug}@${doc?.mtime ?? 0}`;
         let raw = rawByStamp.current.get(stamp);
         if (raw === undefined) {
           const handle = fileHandles.get(page.slug);
@@ -253,11 +256,22 @@ export function useLibraryModel({
           problems,
         });
       }
-      if (cancelled || (!changed && measured.size === 0)) return;
+      if (cancelled) return;
+      setPageTexts((current) => {
+        let next: Map<string, string> | null = null;
+        for (const { path, raw } of folderInput) {
+          const slug = path.replace(/\.md$/, "");
+          const stamp = `${vaultScope}\u0000${slug}@${bySlug.get(slug)?.mtime ?? 0}`;
+          if (current.get(stamp) === raw) continue;
+          next ??= new Map(current);
+          next.set(stamp, raw);
+        }
+        return next ?? current;
+      });
+      if (!changed && measured.size === 0) return;
       const folderByPath = new Map(
         validateWikiFolder(folderInput).map((entry) => [entry.path, entry.problems] as const),
       );
-      setPageTexts(new Map(folderInput.map(({ path, raw }) => [path.replace(/\.md$/, ""), raw] as const)));
       setVerdicts((current) => {
         const next = new Map(current);
         for (const [slug, verdict] of measured) next.set(slug, verdict);
@@ -276,10 +290,18 @@ export function useLibraryModel({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docs, enabled, fileHandles, sources, wikiKey]);
+  }, [docs, enabled, fileHandles, sources, vaultScope, wikiKey]);
 
   return useMemo(() => {
     const live = new Set(model.wikiPages.map((page) => page.slug));
+    const livePageTexts = new Map<string, string>();
+    // Filter synchronously on a folder or version change, before the next async read.
+    // Old cache entries may still exist but must never reach another Compile turn.
+    for (const doc of docs) {
+      if (!live.has(doc.slug)) continue;
+      const raw = pageTexts.get(`${vaultScope}\u0000${doc.slug}@${doc.mtime ?? 0}`);
+      if (raw !== undefined) livePageTexts.set(doc.slug, raw);
+    }
     let offTemplateCount = 0;
     for (const [slug, verdict] of verdicts) {
       if (live.has(slug) && !verdict.ok) offTemplateCount += 1;
@@ -289,6 +311,6 @@ export function useLibraryModel({
     const entries = logDoc ? logEntries : [];
     const lastCompile = [...entries].reverse().find((entry) => entry.kind === "compile") ?? null;
     const lastLint = [...entries].reverse().find((entry) => entry.kind === "lint") ?? null;
-    return { ...model, verdicts, offTemplateCount, hashes, pageTexts, log: { lastCompile, lastLint } };
-  }, [hashes, logDoc, logEntries, model, pageTexts, verdicts]);
+    return { ...model, verdicts, offTemplateCount, hashes, pageTexts: livePageTexts, log: { lastCompile, lastLint } };
+  }, [docs, hashes, logDoc, logEntries, model, pageTexts, vaultScope, verdicts]);
 }

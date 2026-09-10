@@ -493,7 +493,7 @@ export function FirstRunStarterModule({
         {...sampleSourceGroup.groupProps}
         aria-label={t("sampleSourceAria")}
         data-testid="first-run-starter-sample-source"
-        className="mb-2 grid shrink-0 grid-cols-2 gap-1 rounded-[var(--chrome-radius-inner)] border border-[color:var(--map-panel-border)] bg-[color:var(--color-overlay-1)] p-1"
+        className="mb-2 grid shrink-0 grid-cols-2 gap-1 rounded-[var(--chrome-radius-inner)] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-1"
       >
         {/* Order is the default — a newcomer reads the left one first. Hence the
             example business first and this app's own code second. The two

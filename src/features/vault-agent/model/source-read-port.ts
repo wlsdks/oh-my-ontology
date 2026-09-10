@@ -40,12 +40,12 @@ export interface SourceReadPort {
    * The sha256 of one inventoried source's bytes, lowercase hex, or null when this
    * runtime cannot measure it.
    *
-   * Hashing sits on the port rather than in the pure builder because the two surfaces
-   * measure it differently — one native call in the app, `crypto.subtle` over the bytes
-   * in a browser — and `use-library-model.ts` already owns that choice for the Library's
-   * own rows. Null is a real answer (a browser without a secure context has no digest),
+   * Measure the supplied complete read snapshot, never reopen the path: an edit between
+   * reading and hashing must not attribute newer bytes to older text. The Library's
+   * passive source checks may hash current paths; a Compile receipt has this stricter
+   * identity. Null is a real answer (a browser without a secure context has no digest),
    * and a proposal that cannot record what it read is refused rather than written with an
    * empty `source_hash`, which every reader would go on to call stale.
    */
-  hashSource(path: string): Promise<string | null>;
+  hashSource(path: string, bytes: ArrayBuffer): Promise<string | null>;
 }

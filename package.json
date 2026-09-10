@@ -150,6 +150,7 @@
     "benchmark:grade": "node scripts/benchmark-grade.mjs",
     "benchmark:lifecycle": "node scripts/benchmark-lifecycle.mjs",
     "benchmark:scale": "node scripts/benchmark-scale.mjs",
+    "evaluate:wiki": "node scripts/evaluate-wiki-accumulation.mjs",
     "perf:dome": "node scripts/perf-dome.mjs",
     "perf:graph": "node scripts/perf-graph.mjs",
     "perf:graph:check": "node scripts/perf-graph.mjs --check --n=1000",

@@ -77,16 +77,28 @@ function folder(nodeCount: number): LibraryGraph {
 }
 
 /**
- * The **best** of three runs, not the mean of them.
+ * The **best** of four runs per strategy, not the mean of them.
  *
  * A mean measures the machine's other work as much as this code's; the fastest run is the
  * one where the process got a clean slice, and it is the only figure two implementations
  * can be compared on when both are timed inside one loaded test process. Measured
- * 2026-09-07: the same 500-node comparison inverted on a mean and never on a best-of-three.
+ * 2026-09-07: the same 500-node comparison inverted on a mean.
+ *
+ * Warm both strategies before collecting either and alternate their order. With all
+ * exact samples first, the tree inherited warm shared tick code: on 2026-09-10, warming
+ * both paths moved the local 100-node exact result from 0.05ms to 0.03ms while the tree
+ * stayed at 0.06ms. The frame-budget test above this comparison still measures arrival
+ * after its original five warm ticks; only the steady-state crossover gets this warmup.
  */
-function bestTickMs(nodeCount: number, exactMaxOrder?: number): number {
-  let best = Infinity;
-  for (let run = 0; run < 3; run += 1) best = Math.min(best, meanTickMs(nodeCount, 30, exactMaxOrder));
+function bestTickPairMs(nodeCount: number): { exact: number; tree: number } {
+  const best = { exact: Infinity, tree: Infinity };
+  for (let run = 0; run < 4; run += 1) {
+    const order = run % 2 === 0 ? ["exact", "tree"] as const : ["tree", "exact"] as const;
+    for (const strategy of order) {
+      const exactMaxOrder = strategy === "exact" ? Number.POSITIVE_INFINITY : 0;
+      best[strategy] = Math.min(best[strategy], meanTickMs(nodeCount, 30, exactMaxOrder));
+    }
+  }
   return best;
 }
 
@@ -100,7 +112,11 @@ function meanTickMs(nodeCount: number, ticks = 40, exactMaxOrder?: number): numb
   for (let tick = 0; tick < 5; tick += 1) stepLibrarySimulation(sim);
   const started = performance.now();
   for (let tick = 0; tick < ticks; tick += 1) stepLibrarySimulation(sim);
-  return (performance.now() - started) / ticks;
+  const elapsed = performance.now() - started;
+  // A skipped simulation or empty fixture must not masquerade as a fast tick.
+  expect(sim.nodes).toHaveLength(nodeCount);
+  expect(sim.ticks).toBe(5 + ticks);
+  return elapsed / ticks;
 }
 
 describe("the live simulation's frame budget", () => {
@@ -131,10 +147,10 @@ describe("the live simulation's frame budget", () => {
     // 100 the exact pass is clearly ahead, at 2160 the tree is clearly ahead.
     const below = 100;
     const above = 2160;
-    const belowExact = bestTickMs(below, Number.POSITIVE_INFINITY);
-    const belowTree = bestTickMs(below, 0);
-    const aboveExact = bestTickMs(above, Number.POSITIVE_INFINITY);
-    const aboveTree = bestTickMs(above, 0);
+    meanTickMs(below, 100, Number.POSITIVE_INFINITY);
+    meanTickMs(below, 100, 0);
+    const { exact: belowExact, tree: belowTree } = bestTickPairMs(below);
+    const { exact: aboveExact, tree: aboveTree } = bestTickPairMs(above);
     console.log(
       `[library-graph] ${below} nodes: exact ${belowExact.toFixed(2)}ms vs tree ${belowTree.toFixed(2)}ms`,
     );

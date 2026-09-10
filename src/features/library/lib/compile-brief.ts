@@ -1,4 +1,4 @@
-import type { LibrarySourceRow, LibraryWikiPage } from "@/entities/docs-vault";
+import { sourceNeedsCompile, type LibrarySourceRow, type LibraryWikiPage } from "@/entities/docs-vault";
 import {
   WIKI_DIR,
   WIKI_PAGE_TEMPLATE,
@@ -99,14 +99,7 @@ export interface CompileBriefInput {
 export function selectCompileTargets(
   sources: readonly LibrarySourceRow[],
 ): LibrarySourceRow[] {
-  return sources.filter(
-    (row) =>
-      row.state === "not-compiled" ||
-      row.state === "stale" ||
-      // Read only in part: the rest of that file is exactly the work this run exists to
-      // do, so the brief hands it over with the ones nothing has covered at all.
-      row.state === "partial",
-  );
+  return sources.filter(sourceNeedsCompile);
 }
 
 function ruleLines(locale: string, writerId: string, hashLines: readonly string[] = [], compiledAt: string | null = null): string[] {
@@ -178,6 +171,14 @@ export function buildCompileBrief({
     .map(([path, sha]) => `${path}: ${sha}`);
   const paths = targets.map((row) => `- ${row.path}`).join("\n");
   const existing = existingPageLines(existingPages, locale).join("\n");
+  const revisions = targets.flatMap((row) => (row.reviewPages ?? []).map((slug) => `- ${slug}.md ← ${row.path}`));
+  const review = revisions.length === 0 ? [] : [
+    locale === 'ko'
+      ? '원본 버전을 다시 확인할 기존 문서와 저장 답변. 각 문서를 먼저 읽고 인용된 원문을 확인한 뒤 같은 경로에 수정해. 이미 최신인 문서를 복제하지 마. 옛 값과 변경 근거를 함께 남겨. 해시만 바꾸지 마:'
+      : 'Existing pages and filed answers whose source version needs review. Read each page and its cited originals, then revise that same path. Do not duplicate a current write-up. Keep the earlier value and the evidence for its change; never update only a hash:',
+    ...revisions,
+    '',
+  ];
   const sections = WIKI_SECTION_ORDER.join(" → ");
   const rules = ruleLines(locale, writerId, hashLines, compiledAt).join("\n");
 
@@ -196,6 +197,7 @@ export function buildCompileBrief({
       "",
       existing,
       "",
+      ...review,
       "규칙:",
       rules,
       "",
@@ -222,6 +224,7 @@ export function buildCompileBrief({
     "",
     existing,
     "",
+    ...review,
     "Rules:",
     rules,
     "",

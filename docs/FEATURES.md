@@ -1110,28 +1110,51 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   brain because the runner's tool catalogue read and proposed ontology concepts only, and
   wrote its own reopening condition: *a local tool catalogue that reads a source and writes
   a page under one consent card reopens local Compile.* That catalogue is
-  `src/features/vault-agent/model/compile-tool-catalog.ts`, and it is two tools, kept out
-  of `AGENT_TOOLS` because neither exists on the MCP server. `read_source_text` opens one
+  `src/features/vault-agent/model/compile-tool-catalog.ts`, and it is three tools, kept out
+  of `AGENT_TOOLS` because these are local Compile operations. `read_source_text` opens one
   file this folder's own walk found under `sources/` and this bundle can decode — Markdown,
   plain text, CSV, TSV, JSON and HTML with its tags stripped — and returns it with every
   paragraph numbered `[p1]`, `[p2]`, capped at 8,000 characters with `truncated` stated
   rather than hidden. A PDF, Word, PowerPoint or Excel file comes back **unread and named**:
   reading those needs a parser Atlas does not ship, and shipping one is deferred rather
   than guessed at. Any other path — absolute, `..`, a backslash, or simply not in this
-  folder — is refused before the disk is touched. `propose_wiki_page` takes fields, never
+  folder — is refused before the disk is touched. `read_wiki_page` reads existing wiki
+  pages and filed answers from the current page inventory, with contiguous 8,000-character
+  reads for longer pages. It supplies prior context, never a source-read receipt.
+  Local source reads also return up to three related wiki suggestions: an exact shared
+  source takes priority, followed by rare lexical terms in titles and cached bodies,
+  including a Korean bigram fallback. The index is built only when Compile starts,
+  reusing the Library read cache. Results report searched pages, body-cache coverage
+  and omitted matches. Cached bodies are isolated by folder session and page version,
+  so switching to a same-named page in another folder cannot reuse its predecessor.
+  Suggestions carry no truth, currentness or complete-read authority;
+  a match still requires `read_wiki_page`, and no match does not prove absence.
+  Replacing a page requires its entire original text to have been read, keeps its exact
+  path (including `wiki/answers/`), and carries that read's modification time to the
+  existing concurrent-edit guard. `propose_wiki_page` takes fields, never
   Markdown: Atlas assembles the five sections itself and mints `created_by: model:<name>`,
   `compiled_at`, `sources:` and `source_hash:` from the bytes it actually handed over, so a
   page cannot claim a document the model never opened. **It writes nothing.** The turn ends
   at one card that names, per page, the path it would take, what each of its five sections
-  carries, how many citations it holds, which sources it was written from, which were read
+  carries, the full current and proposed text, how many citations it holds, which sources it was written from, which were read
   only in part, and which could not be opened at all; only Allow once writes, through the
-  same `applyProposal` a concept change takes. A page that fails the contract produces no
+  same `applyProposal` a concept change takes. Starting local Compile while reading a page
+  opens the existing guidance pane, where its review and approval remain available.
+  Source hashes are computed from the complete buffer that was read, not a later reopening
+  of the source path. A page that fails the contract produces no
   proposal at all, so the card has nothing to offer and shows the exact problem codes
   instead. Beyond the shared `validateWikiPage` rules the proposal adds two: every
   `## Decisions` bullet cites, and **every citation anchor resolves inside the bytes read
   this turn** — the shared validator captures an anchor and never opens a file, so
   `#p47` in a three-paragraph document would otherwise pass and land as a citation a reader
-  cannot follow. Three pages per turn, ten rounds. The button goes live only for a loopback
+  cannot follow. Three pages per turn, ten rounds. A folder with existing pages targets
+  one waiting source per turn to leave room for reading and revising its affected pages.
+  A source can have a current write-up while another citing page still needs review:
+  changed and unmeasured hashes on any citing page keep that source in the Compile queue,
+  and both the ACP brief and local prompt name the exact pages to recheck. Hashes pending
+  measurement do not create speculative revision work. Unfinished pages stay queued;
+  arrival order alone never establishes which conflicting claim is current.
+  The button goes live only for a loopback
   runner, because whole documents now leave the process and "on this computer" has to be
   true rather than named; a remote saved address and a folder whose waiting files all need
   a parser each get their own sentence naming what is missing rather than blaming the

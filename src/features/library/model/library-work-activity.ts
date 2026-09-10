@@ -101,12 +101,13 @@ export function libraryWorkTargetFromToolInput(
   return null;
 }
 
-/** `propose_wiki_page` has a structured slug rather than a file-path argument. */
+/** Local wiki tools have a structured slug rather than a file-path argument. */
 function targetFromProposalInput(rawInput: unknown): LibraryWorkTarget | null {
   if (!rawInput || typeof rawInput !== "object" || Array.isArray(rawInput)) return null;
   const slug = (rawInput as Record<string, unknown>).slug;
   if (typeof slug !== "string") return null;
   const clean = slug.trim().replace(/\.md$/, "");
+  if (clean.startsWith("wiki/")) return targetFromPath(clean, null);
   if (!clean || clean.includes("/") || clean === "." || clean === "..") return null;
   return { kind: "wiki", ref: `wiki/${clean}` };
 }
@@ -145,19 +146,19 @@ export function libraryWorkEventFromAcpSnapshot(
   };
 }
 
-/** A local executor identifies the only two tools this route exposes by exact name. */
+/** A local executor identifies the three tools this route exposes by exact name. */
 export function libraryWorkEventFromLocalSnapshot(
   snapshot: LibraryLocalToolSnapshot,
   vaultRoot: string | null,
   at: number,
 ): LibraryWorkEvent | null {
-  const kind = snapshot.name === "read_source_text"
+  const kind = snapshot.name === "read_source_text" || snapshot.name === "read_wiki_page"
     ? "read"
     : snapshot.name === "propose_wiki_page"
       ? "proposal"
       : null;
   if (!kind) return null;
-  const target = kind === "proposal"
+  const target = kind === "proposal" || snapshot.name === "read_wiki_page"
     ? targetFromProposalInput(snapshot.args)
     : libraryWorkTargetFromToolInput(snapshot.args, vaultRoot);
   if (snapshot.phase === "complete" && snapshot.outcome !== "ok") {
@@ -241,6 +242,7 @@ export function localCompileWaitingEvent(
   turnId: string,
   at: number,
   hasProposal: boolean,
+  paths: readonly string[] = [],
 ): LibraryWorkEvent | null {
   if (!hasProposal) return null;
   return {
@@ -248,7 +250,7 @@ export function localCompileWaitingEvent(
     workId: `local:${turnId}`,
     kind: "waiting",
     phase: "active",
-    target: null,
+    target: paths.length === 1 ? targetFromPath(paths[0], null) : null,
     at,
   };
 }

@@ -199,6 +199,14 @@ export interface LibrarySourceRow extends VaultSourceFile {
   state: SourceCompileState;
   /** Wiki pages citing this source, whether or not their hash still matches. */
   citedBy: string[];
+  /** Pages whose recorded source version differs from the measured file, including filed answers. */
+  reviewPages?: string[];
+}
+
+/** Source coverage and the currency of every citing page are separate obligations. */
+export function sourceNeedsCompile(row: LibrarySourceRow): boolean {
+  return row.state === 'not-compiled' || row.state === 'stale' || row.state === 'partial' ||
+    (row.reviewPages?.length ?? 0) > 0;
 }
 
 export interface LibraryModel {
@@ -247,18 +255,20 @@ export function buildLibraryModel({
   const citations = collectWikiCitations(docs);
   const rows: LibrarySourceRow[] = (sources ?? []).map((source) => {
     const cited = citations.get(source.path);
+    const actual = hashes.get(source.path)?.toLowerCase();
     return {
       ...source,
       state: deriveSourceState(cited, hashes.get(source.path)),
       citedBy: [...new Set((cited ?? []).map((citation) => citation.wikiSlug))].sort(),
+      reviewPages: actual === undefined ? [] : [...new Set((cited ?? [])
+        .filter((citation) => citation.sourceHash !== actual)
+        .map((citation) => citation.wikiSlug))].sort(),
     };
   });
   return {
     sources: rows,
     wikiPages: selectWikiPages(docs),
-    needsCompileCount: rows.filter(
-      (row) => row.state === 'not-compiled' || row.state === 'stale' || row.state === 'partial',
-    ).length,
+    needsCompileCount: rows.filter(sourceNeedsCompile).length,
     notCompiledCount: rows.filter((row) => row.state === 'not-compiled').length,
     staleCount: rows.filter((row) => row.state === 'stale').length,
     partialCount: rows.filter((row) => row.state === 'partial').length,

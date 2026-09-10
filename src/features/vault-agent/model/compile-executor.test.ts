@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AGENT_TOOLS } from './tool-catalog';
 import { COMPILE_ROUND_CAP, COMPILE_SOURCES_PER_TURN, COMPILE_TOOLS } from './compile-tool-catalog';
@@ -64,18 +64,20 @@ function executorFor(
 }
 
 describe('the Compile catalogue stays out of AGENT_TOOLS', () => {
-  it('neither tool joins the MCP-mirrored list', () => {
+  it('the compile tools do not join the MCP-mirrored list', () => {
     // `tests/contract/agent-tool-catalog.contract.test.ts` reads `mcp/src/index.js` and
     // demands an exact match for every member of AGENT_TOOLS. Merging these two lists is
     // how that contract would gain its first exception.
     const names = AGENT_TOOLS.map((tool) => tool.name);
     expect(names).not.toContain('read_source_text');
+    expect(names).not.toContain('read_wiki_page');
     expect(names).not.toContain('propose_wiki_page');
   });
 
-  it('is exactly two tools, and the round budget fits the work', () => {
+  it('provides source and wiki reads plus proposals within the existing round budget', () => {
     expect(COMPILE_TOOLS.map((tool) => tool.name)).toEqual([
       'read_source_text',
+      'read_wiki_page',
       'propose_wiki_page',
     ]);
     // One read plus one proposal per file, with rounds left for a correction.
@@ -84,6 +86,38 @@ describe('the Compile catalogue stays out of AGENT_TOOLS', () => {
 });
 
 describe('read_source_text — what it will and will not open', () => {
+  it('searches only the delivered source slice, accounts for suggestions, and still requires a complete wiki read', async () => {
+    const related = { candidates: [{ slug: 'wiki/answers/when', title: 'Saved answer', sameSource: false, matchedTerms: ['release'] }],
+      searchedPages: 40, fullTextPages: 32, limit: 3, omittedMatches: 2 };
+    const findRelatedPages = vi.fn<(path: string, text: string) => typeof related>(() => related);
+    const executor = executorFor({ 'sources/plan.md': { text: PLAN + 'x'.repeat(SOURCE_TEXT_CHAR_CAP) } }, {
+      findRelatedPages, wikiSlugs: ['wiki/answers/when'], readExistingPage: async () => ({ text: 'Existing human note', mtime: 42 }),
+    });
+    const read = await executor.execute(call('read_source_text', { path: 'sources/plan.md' }));
+    expect(JSON.parse(read.content).relatedPages).toEqual(related);
+    expect(findRelatedPages.mock.calls[0]?.[1].length).toBeLessThanOrEqual(SOURCE_TEXT_CHAR_CAP);
+    expect(read.vaultChars).toBeGreaterThan(SOURCE_TEXT_CHAR_CAP + JSON.stringify(related).length);
+    expect(executor.reads().map((entry) => entry.path)).toEqual(['sources/plan.md']);
+    const proposal = await executor.execute(call('propose_wiki_page', { slug: 'wiki/answers/when', title: 'Revised' }));
+    expect(proposal.isError).toBe(true);
+    expect(executor.proposals()).toEqual([]);
+  });
+
+  it('hashes the same complete read snapshot even if the source changes afterwards', async () => {
+    const files = { 'sources/plan.md': { text: PLAN } };
+    const sourcePort = port(files);
+    const hashSource = vi.fn(async (_path: string, bytes: ArrayBuffer) => {
+      files['sources/plan.md'].text = 'A later source version';
+      expect(new TextDecoder().decode(bytes)).toBe(PLAN);
+      return 'hash-of-the-read-version';
+    });
+    const executor = executorFor(files, { sourcePort: { ...sourcePort, hashSource } });
+    const result = await executor.execute(call('read_source_text', { path: 'sources/plan.md' }));
+    expect(result.content).toContain('We ship the Library in Q3.');
+    expect(executor.reads()[0].sha256).toBe('hash-of-the-read-version');
+    expect(hashSource).toHaveBeenCalledOnce();
+  });
+
   it('returns numbered paragraphs and the counts a citation is checked against', async () => {
     const executor = executorFor({ 'sources/quarter-plan.md': { text: PLAN } });
     const result = await executor.execute(call('read_source_text', { path: 'sources/quarter-plan.md' }));
@@ -220,9 +254,10 @@ describe('propose_wiki_page — a proposal, never a write', () => {
   it('carries the page it would replace so the mtime guard applies', async () => {
     const executor = executorFor(
       { 'sources/quarter-plan.md': { text: PLAN } },
-      { readExistingPage: async () => ({ text: 'the old page', mtime: 4242 }) },
+      { wikiSlugs: ['wiki/quarter-plan'], readExistingPage: async () => ({ text: 'the old page', mtime: 4242 }) },
     );
     await executor.execute(call('read_source_text', { path: 'sources/quarter-plan.md' }));
+    await executor.execute(call('read_wiki_page', { slug: 'wiki/quarter-plan' }));
     await executor.execute(call('propose_wiki_page', goodFields));
 
     expect(executor.proposals()[0].existing).toEqual({ text: 'the old page', mtime: 4242 });
@@ -245,5 +280,81 @@ describe('anything else', () => {
       argsInvalid: true,
     });
     expect(result.outcome).toBe('args-invalid');
+  });
+});
+
+describe('read_wiki_page and revising accumulated knowledge', () => {
+  const slug = 'wiki/answers/launch-date';
+  const old = { text: '---\ntitle: Launch date\nsources: [sources/quarter-plan.md]\n---\nThe prior answer was Q2.', mtime: 42 };
+  const fields = { slug, title: 'Launch date', summary: 'The current launch date.', facts: ['The Library ships in Q3. [[src:sources/quarter-plan.md#p2]]'] };
+
+  it('requires the existing page to be read before proposing its replacement', async () => {
+    const executor = executorFor({ 'sources/quarter-plan.md': { text: PLAN } }, {
+      wikiSlugs: [slug], readExistingPage: async () => old,
+    });
+    await executor.execute(call('read_source_text', { path: 'sources/quarter-plan.md' }));
+    const result = await executor.execute(call('propose_wiki_page', fields));
+    expect(result.isError).toBe(true);
+    expect(JSON.parse(result.content).refusal).toBe('wiki-not-read');
+    expect(executor.proposals()).toEqual([]);
+  });
+
+  it('keeps the exact nested address and the version actually read for the consent card', async () => {
+    let current = old;
+    const executor = executorFor({ 'sources/quarter-plan.md': { text: PLAN } }, {
+      wikiSlugs: [slug], readExistingPage: async () => current,
+    });
+    const read = await executor.execute(call('read_wiki_page', { slug }));
+    expect(read.outcome).toBe('ok');
+    expect(JSON.parse(read.content).text).toContain('The prior answer was Q2.');
+    expect(read.vaultChars).toBe(old.text.length);
+    current = { text: 'A person changed this while the model worked.', mtime: 43 };
+    await executor.execute(call('read_source_text', { path: 'sources/quarter-plan.md' }));
+    const proposed = await executor.execute(call('propose_wiki_page', fields));
+    expect(proposed.isError).toBe(false);
+    expect(executor.proposals()[0]).toMatchObject({ slug, path: `${slug}.md`, existing: old });
+  });
+
+  it('keeps distinct nested paths separate and permits a correction at the page cap', async () => {
+    const other = 'wiki/history/launch-date';
+    const executor = executorFor({ 'sources/quarter-plan.md': { text: PLAN } }, {
+      wikiSlugs: [slug, other], readExistingPage: async () => old, pageCap: 2,
+    });
+    await executor.execute(call('read_source_text', { path: 'sources/quarter-plan.md' }));
+    for (const path of [slug, other]) {
+      await executor.execute(call('read_wiki_page', { slug: path }));
+      expect((await executor.execute(call('propose_wiki_page', { ...fields, slug: path }))).isError).toBe(false);
+    }
+    expect(executor.proposals().map((proposal) => proposal.slug)).toEqual([slug, other]);
+    expect((await executor.execute(call('propose_wiki_page', { ...fields, slug, title: 'Corrected date' }))).isError).toBe(false);
+    expect(executor.proposals()).toHaveLength(2);
+  });
+
+  it.each(['wiki/../project', 'wiki/_log', 'wiki/missing', 'domains/release', 'wiki/answers/../../secret'])('does not read %s outside the wiki inventory', async (target) => {
+    const readExistingPage = vi.fn(async () => old);
+    const executor = executorFor({}, { wikiSlugs: [slug], readExistingPage });
+    expect((await executor.execute(call('read_wiki_page', { slug: target }))).isError).toBe(true);
+    expect(readExistingPage).not.toHaveBeenCalled();
+  });
+
+  it('pages a long snapshot and refuses replacement until every character was returned', async () => {
+    const long = { text: `${old.text}\n${'Long history. '.repeat(900)}`, mtime: 42 };
+    const executor = executorFor({ 'sources/quarter-plan.md': { text: PLAN } }, {
+      wikiSlugs: [slug], readExistingPage: async () => long,
+    });
+    const first = JSON.parse((await executor.execute(call('read_wiki_page', { slug }))).content);
+    expect(first.truncated).toBe(true);
+    expect(first.next).toBeGreaterThan(0);
+    expect((await executor.execute(call('read_wiki_page', { slug, from: first.next + 1 }))).isError).toBe(true);
+    await executor.execute(call('read_source_text', { path: 'sources/quarter-plan.md' }));
+    expect((await executor.execute(call('propose_wiki_page', fields))).isError).toBe(true);
+    const last = JSON.parse((await executor.execute(call('read_wiki_page', { slug, from: first.next }))).content);
+    expect(last.truncated).toBe(false);
+    expect((await executor.execute(call('propose_wiki_page', fields))).isError).toBe(false);
+  });
+
+  it('refuses a file that acquired an ontology kind after the inventory was built', async () => {
+    const executor = executorFor({}, { wikiSlugs: [slug], readExistingPage: async () => ({ text: '---\nkind: capability\n---\nMeaning', mtime: 42 }) });
+    expect((await executor.execute(call('read_wiki_page', { slug }))).isError).toBe(true);
   });
 });

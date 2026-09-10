@@ -219,6 +219,28 @@ function CompileRow({
           </p>
         </div>
       )}
+      {row.ok && row.page !== null ? (
+        <div className="mt-3 flex flex-col gap-3" data-testid="library-local-compile-preview">
+          {row.before !== null ? (
+            <div>
+              <h5 className="text-label font-[var(--font-weight-emphasis)] text-[color:var(--color-text-secondary)]">
+                {t("localCompile.before")}
+              </h5>
+              <pre className="mt-1 whitespace-pre-wrap break-words text-caption leading-caption text-[color:var(--color-text-secondary)]">
+                {row.before}
+              </pre>
+            </div>
+          ) : null}
+          <div>
+            <h5 className="text-label font-[var(--font-weight-emphasis)] text-[color:var(--color-text-primary)]">
+              {t("localCompile.after")}
+            </h5>
+            <pre className="mt-1 whitespace-pre-wrap break-words text-caption leading-caption text-[color:var(--color-text-primary)]">
+              {row.page}
+            </pre>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

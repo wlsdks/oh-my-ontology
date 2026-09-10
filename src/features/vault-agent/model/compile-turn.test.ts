@@ -279,7 +279,7 @@ describe('one Compile turn on a mocked OpenAI-compatible runner', () => {
     expect(card.rows[0].page).toBeNull();
   });
 
-  it('sends the two Compile tools and nothing from the ontology catalogue', async () => {
+  it('sends the Compile tools and nothing from the ontology catalogue', async () => {
     const { sent } = await runCompile([textBody('Nothing to do.')]);
     const body = JSON.parse(sent[0].body) as {
       tools: Array<{ function: { name: string } }>;
@@ -287,6 +287,7 @@ describe('one Compile turn on a mocked OpenAI-compatible runner', () => {
     };
     expect(body.tools.map((tool) => tool.function.name)).toEqual([
       'read_source_text',
+      'read_wiki_page',
       'propose_wiki_page',
     ]);
     expect(body.reasoning_effort).toBe('none');
