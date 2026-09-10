@@ -167,7 +167,7 @@ Rust repositories expose bounded static source receipts through the same `infer_
   `scripts/dogfood-mcp-walk.mjs`: Initialize/tools-list exact parity and installation/live usage verification.
 - `scripts/lib/mcp-bundle.mjs` · `scripts/build-mcp-bundle.mjs` ·
   `scripts/build-server-json.mjs` · `mcp/Dockerfile`: The two npm-free distribution
-  channels — bundle contents and manifest, the boot check that gates an artifact,
+  channels: bundle contents and manifest, the boot check that gates an artifact,
   the derived registry entry and its local schema validation, and the image whose
   label proves ownership.
 - `mcp/README.md`: Detailed single source of truth for the current public tool contract.
