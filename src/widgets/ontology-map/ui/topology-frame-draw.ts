@@ -8,7 +8,7 @@
 import type { CameraAxes } from "../engine/camera";
 import { collectDomeAncestry, domeAncestryEdgeKey } from "../model/dome-ancestry";
 import { buildTrailGlintLegs, trailGlintLocalPhase } from "../model/footprint-steps";
-import { bodyPresence, filamentPresence, galaxyRamp, galaxyTemperatureKey, starLuminance } from "../model/galaxy";
+import { bodyPresence, filamentPresence, galaxyTemperatureKey, starLuminance } from "../model/galaxy";
 import { rankEgoNeighborsByDOI, resolveEdgeEgoStateWithPair, resolveNodeEgoStateWithPair, resolveTrailLensNodeEgoState, trailNodeInkStrength, type EdgeEgoState, type EdgePairFocus, type NodeEgoState } from "../model/focus-state";
 import { resolveFreshnessVisual } from "../model/freshness";
 import { backgroundParallaxOrigin, resolveBackgroundOrigin } from "../model/background-parallax";
@@ -648,6 +648,13 @@ export interface FrameDrawParams {
   camera: CameraAxes;
   /** Visual-expression axis (constellation ↔ circuit) — node/edge/label morph, diffraction, vignette. */
   farT: number;
+  /**
+   * How far the galaxy view has come, 0 (flat) to 1 (sky).
+   *
+   * A ramp rather than the boolean the person picked, so switching views crossfades instead of
+   * cutting — the same shape every other lens on this canvas uses. The loop owns the clock.
+   */
+  galaxyRamp?: number;
   /** Semantic-zoom axis (`cameraScale / overviewEntryScale`) — drives tier visibility only. */
   zoomRatio: number;
   now: number;
@@ -1036,6 +1043,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     world,
     camera,
     farT,
+    galaxyRamp: galaxyRampProp = 0,
     zoomRatio,
     now,
     viewportWidth,
@@ -1212,15 +1220,16 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
    * is nothing here to switch and nothing to keep in sync. `model/galaxy.ts` owns the maths and
    * the reasoning; this file only spends it.
    *
-   * ⚠️ **2D only, and that is not a simplification.** The owner asked for the galaxy *"in 2D"*,
-   * and the dome is a different view with its own contract: it raises `farT` for its own reasons
-   * — depth convergence, not distance — and it carries contrast floors that assume relations stay
-   * readable against the ground. Left ungated, `filamentPresence` thinned containment lines in
-   * every 3D arrangement to a measured **1.22:1 against a 1.9:1 floor**
-   * (`tests/e2e/map-3d-relation-ink.spec.ts`, caught on CI 2026-09-10). Borrowing another view's
-   * altitude variable is not the same as being at altitude.
+   * ⚠️ **2D only.** The galaxy is one of the two *flat* views, and the dome is a different view
+   * with its own contract — it carries contrast floors that assume relations stay readable
+   * against its ground. While it shipped as an altitude the two collided outright:
+   * `filamentPresence` thinned containment lines in every 3D arrangement to a measured
+   * **1.22:1 against a 1.9:1 floor** (`tests/e2e/map-3d-relation-ink.spec.ts`, caught on CI
+   * 2026-09-10). The picker cannot produce that state any more — choosing a dome writes the
+   * galaxy off — but the guard stays, because a preference pair that *can* disagree eventually
+   * will.
    */
-  const galaxy = domeOn ? 0 : galaxyRamp(farT);
+  const galaxy = domeOn ? 0 : galaxyRampProp;
   const galaxyOn = galaxy > 0.001;
   /**
    * One node's 3D transform (world offset + perspective factor). Nodes, labels,

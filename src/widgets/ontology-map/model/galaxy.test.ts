@@ -1,74 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyAltitudeTier } from "./altitude";
 import {
   GALAXY_DIM_FLOOR,
-  GALAXY_ENTER_FAR_T,
   GALAXY_FILAMENT_FLOOR,
-  GALAXY_FULL_FAR_T,
   GALAXY_TEMPERATURE_ORDER,
   bodyPresence,
   filamentPresence,
-  galaxyRamp,
   galaxyTemperatureKey,
   starLuminance,
   starMagnitude,
 } from "./galaxy";
 
 /**
- * The galaxy is an **altitude**, and these tests hold the two promises that choice made: that
- * there is no flip anywhere on the way up, and that nothing the near view could tell you is lost
- * by the time you get to the top.
+ * The galaxy is a **view the person picks**, and these tests hold what that choice promised:
+ * that nothing the flat map could tell you is lost in the sky, and that the sky never claims a
+ * fact the data does not have.
+ *
+ * ⚠️ It was an altitude for one afternoon, and the tests that went with it are gone: a ramp
+ * measured against `farT`, a check that the sky was underway before the altitude chip said
+ * "constellation", and a no-step sweep across the whole zoom axis. The owner moved the galaxy
+ * into the view picker, so the transition is now a mode crossfade on the loop's clock and the
+ * ramp those tests guarded does not exist to guard.
  */
-describe("galaxyRamp — the sky arrives by distance, never by a switch", () => {
-  it("is absent on the workbench and complete in the sky", () => {
-    expect(galaxyRamp(0)).toBe(0);
-    expect(galaxyRamp(GALAXY_ENTER_FAR_T)).toBe(0);
-    expect(galaxyRamp(GALAXY_FULL_FAR_T)).toBe(1);
-    expect(galaxyRamp(1)).toBe(1);
-  });
-
-  it("never steps — the largest jump across the whole climb stays small", () => {
-    // The defect this forbids is a threshold: one frame of zoom that swaps the whole canvas.
-    // Sampling the entire axis at 1/500 catches a discontinuity anywhere on it, not only at the
-    // two ends a spot check would look at.
-    let largest = 0;
-    let previous = galaxyRamp(0);
-    for (let i = 1; i <= 500; i += 1) {
-      const value = galaxyRamp(i / 500);
-      largest = Math.max(largest, Math.abs(value - previous));
-      previous = value;
-    }
-    expect(largest).toBeLessThan(0.02);
-  });
-
-  it("rises monotonically, so zooming out never makes the sky retreat", () => {
-    let previous = -1;
-    for (let i = 0; i <= 200; i += 1) {
-      const value = galaxyRamp(i / 200);
-      expect(value).toBeGreaterThanOrEqual(previous);
-      previous = value;
-    }
-  });
-
-  /**
-   * The chip and the sky must not disagree. By the time a reader is told they are looking at a
-   * constellation, they must already be looking at one — the ramp starts inside the transition
-   * for exactly this reason.
-   */
-  it("is already well underway before the altitude chip says constellation", () => {
-    expect(classifyAltitudeTier(0.86)).toBe("constellation");
-    expect(galaxyRamp(0.86)).toBeGreaterThan(0.75);
-    expect(classifyAltitudeTier(0.1)).toBe("circuit");
-    expect(galaxyRamp(0.1)).toBe(0);
-  });
-
-  it("treats a broken altitude as the workbench rather than throwing", () => {
-    expect(galaxyRamp(Number.NaN)).toBe(0);
-    expect(galaxyRamp(-5)).toBe(0);
-  });
-});
-
 describe("starMagnitude — the fact the map already ranked by, made continuous", () => {
   it("orders by the same magnitude the bright-star ranking uses", () => {
     // `size + fullDegree * 18`: degree dominates, which is what makes a hub a hub.

@@ -311,6 +311,40 @@ export function useView3d(): boolean {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
+/* ── Galaxy (2D map, seen as a sky) ─────────────────────────────────────── */
+
+/**
+ * Whether the flat map is drawn as a galaxy — every node a star.
+ *
+ * Owner request, 2026-09-10: *"totally like a galaxy"*, in 2D. It shipped first as an
+ * **altitude**: zoom out far enough and the workbench became a sky, with no control anywhere.
+ * Seeing it built, the owner said where they had gone looking for it — the view picker that
+ * already holds Flat, Cone, Strata and Cloud — and chose to move it there and drop the altitude
+ * behaviour entirely. Both readings are defensible; what settles it is that a person looking
+ * for "how the map looks" opens that menu, and a mode nobody can find is a mode nobody has.
+ *
+ * It sits beside `view3d` rather than inside `MapArrangement` because it is not an arrangement:
+ * the three 3D entries move where nodes *are*, and this changes only how they are *drawn*. The
+ * menu presents all five as one choice because to a reader they are one question.
+ */
+const GALAXY_KEY = "atlas.appearance.galaxy";
+
+const DEFAULT_GALAXY = false;
+
+function readGalaxy(): boolean {
+  return readOnOff(GALAXY_KEY, DEFAULT_GALAXY);
+}
+
+export function writeGalaxy(value: boolean): void {
+  writeOnOff(GALAXY_KEY, value);
+}
+
+export function useGalaxy(): boolean {
+  const getSnapshot = useCallback(() => readGalaxy(), []);
+  const getServerSnapshot = useCallback(() => DEFAULT_GALAXY, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 /* ── Arrangement (3D map) ───────────────────────────────────────────────── */
 
 /**

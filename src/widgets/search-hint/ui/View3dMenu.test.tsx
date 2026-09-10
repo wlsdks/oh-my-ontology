@@ -75,6 +75,36 @@ describe("View3dMenu — 보기 고르개", () => {
     expect(window.localStorage.getItem("atlas.appearance.map-arrangement")).toBe("coupling");
   });
 
+  /**
+   * The galaxy is the *other flat view*, so picking it must turn the dome off as well as turn
+   * the sky on. The pair is what the drawing reads, and a state where both are on is one the
+   * picker must never be able to produce — the map's contrast floors for 3D assume the flat
+   * sky is not also being painted (`tests/e2e/map-3d-relation-ink.spec.ts`).
+   */
+  it("갤럭시를 고르면 하늘이 켜지고 3D 는 꺼진다 — 둘 다 켜진 상태는 만들 수 없다", () => {
+    window.localStorage.setItem("atlas.appearance.view3d", "on");
+    mount();
+    fireEvent.click(screen.getByTestId("topology-view-3d-choice-galaxy"));
+    expect(window.localStorage.getItem("atlas.appearance.galaxy")).toBe("on");
+    expect(window.localStorage.getItem("atlas.appearance.view3d")).toBe("off");
+  });
+
+  it("3D 를 고르면 하늘이 꺼진다 — 반대 방향도 같은 규칙", () => {
+    window.localStorage.setItem("atlas.appearance.galaxy", "on");
+    mount();
+    fireEvent.click(screen.getByTestId("topology-view-3d-choice-coupling"));
+    expect(window.localStorage.getItem("atlas.appearance.galaxy")).toBe("off");
+    expect(window.localStorage.getItem("atlas.appearance.view3d")).toBe("on");
+  });
+
+  it("평면을 고르면 하늘도 3D 도 꺼진다", () => {
+    window.localStorage.setItem("atlas.appearance.galaxy", "on");
+    mount();
+    fireEvent.click(screen.getByTestId("topology-view-3d-choice-flat"));
+    expect(window.localStorage.getItem("atlas.appearance.galaxy")).toBe("off");
+    expect(window.localStorage.getItem("atlas.appearance.view3d")).toBe("off");
+  });
+
   it("평면을 고르면 3D 가 꺼진다 — 끄기가 같은 목록에 있다", () => {
     window.localStorage.setItem("atlas.appearance.view3d", "on");
     mount();

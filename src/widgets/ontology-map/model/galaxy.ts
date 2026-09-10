@@ -2,27 +2,35 @@
  * **The constellation tier, made literal — the map seen from far enough away is a galaxy.**
  *
  * The owner, 2026-09-10: *"it'd be nice to have something like a galaxy mode, where things look
- * completely like stars, in 2D..! totally like a galaxy."* Of the three shapes put up for that,
- * the chosen one was **altitude, not a toggle**: no new control, no new mode, no second screen
- * to keep in sync. Zoom out and the workbench becomes a galaxy; zoom in and it is the workbench
- * again.
+ * completely like stars, in 2D..! totally like a galaxy."*
  *
- * That direction was not invented for the request — it was already half-built and unnamed.
- * `model/altitude.ts` has classified this canvas into `circuit → transitioning →
- * **constellation**` since it was written, `render/starfield.ts` paints far-field dust under a
- * header naming the language ("B1 constellation DNA"), and node shapes already converge to
- * circles as `farT` rises. What the top tier never did was *become* the thing it was called.
- * This module is that tier's own vocabulary.
+ * ⚠️ **It was an altitude for one afternoon, and the owner moved it.** Three directions went up
+ * before anything was built and *altitude* won: zoom out far enough and the workbench became a
+ * sky, with no control anywhere. Seeing it running, the owner said where they had actually gone
+ * looking for it — the view picker that already holds Flat, Cone, Strata and Cloud — and chose to put
+ * it there and drop the altitude behaviour outright. What settles it is not which reading is
+ * prettier: a person looking for *how the map looks* opens that menu, and a mode nobody can find
+ * is a mode nobody has. `galaxyRamp(farT)` is gone with that decision; the ramp below is now a
+ * **mode transition**, driven by a clock like every other lens on this canvas.
+ *
+ * The vocabulary was not invented for the request. `render/starfield.ts` paints far-field dust
+ * under a header naming the language ("B1 constellation DNA"), and node shapes already converge
+ * to circles as `farT` rises. The galaxy view finishes a sentence this canvas had started.
  *
  * ## What each mark says up there
  *
- * | Near (`circuit`) | Far (`constellation`) | The fact |
+ * | Flat | Galaxy | The fact |
  * |---|---|---|
- * | hexagon / square / circle | a round point of light | kind — the silhouette has converged, so |
- * | kind colour on the stroke | **colour temperature** | …kind moves to a channel distance keeps |
+ * | hexagon / square / circle | the same silhouette, **lit** | kind — shape is kept, not replaced |
+ * | kind colour on the stroke | colour temperature | kind again, for where shape has converged |
  * | radius by child count | radius by child count (unchanged) | how much it contains |
  * | — | **brightness** | how connected it is |
  * | dashed / solid relation | a faint filament | that a relation exists |
+ *
+ * The star is drawn on the node's own outline, so a domain stays a square and a project stays a
+ * hexagon while they burn. That matters for `docs/DESIGN-SYSTEM.md` §95 — kind is shape here as
+ * everywhere, and temperature is a *second* carrier that takes over only where altitude has
+ * already rounded every silhouette into the same circle.
  *
  * Nothing here invents a fact. Brightness is the *continuous* form of the magnitude this map has
  * always ranked its bright stars by (`size + fullDegree * 18`, ported from the prototype); the
@@ -32,37 +40,12 @@
  * ## Why the maths is here and not in the draw
  *
  * Same contract as the map's other expressive folders: plain numbers in, plain numbers out, no
- * canvas, no React, no clock, no tokens. Every value below is decidable from a node and a
- * camera altitude, so the galaxy is testable without a GPU and the frame draw is left owning
- * nothing but paint.
+ * canvas, no React, no clock, no tokens. Every value below is decidable from a node and how far
+ * the mode transition has come, so the galaxy is testable without a GPU and the frame draw is
+ * left owning nothing but paint.
  */
 
 import type { WorldNodeKind } from "../ui/topology-world";
-
-/**
- * Where the galaxy begins and where it is complete, on the `farT` altitude axis.
- *
- * `classifyAltitudeTier` calls everything above 0.85 "constellation" and everything below 0.15
- * "circuit". The ramp deliberately starts **inside the transition** rather than at the tier
- * boundary: a change that waited for 0.85 would arrive as a switch flipping, and the whole point
- * of choosing altitude over a toggle was that there is no flip. By the time the chip says
- * "constellation" the sky is already there.
- *
- * It ends at 0.97 rather than 1 because `farT` reaches 1 only at the very top of the zoom-out
- * range; a galaxy that is only complete at the last pixel of travel is a galaxy nobody sees.
- */
-export const GALAXY_ENTER_FAR_T = 0.55;
-export const GALAXY_FULL_FAR_T = 0.97;
-
-/** How present the galaxy is at this altitude, 0 (workbench) to 1 (sky). */
-export function galaxyRamp(farT: number): number {
-  if (!Number.isFinite(farT)) return 0;
-  const t = (farT - GALAXY_ENTER_FAR_T) / (GALAXY_FULL_FAR_T - GALAXY_ENTER_FAR_T);
-  const u = t < 0 ? 0 : t > 1 ? 1 : t;
-  // Smoothstep, so the sky arrives and settles rather than sliding in at a constant rate — the
-  // same curve the rest of this canvas uses for altitude-driven change.
-  return u * u * (3 - 2 * u);
-}
 
 /**
  * A node's magnitude, 0–1, from the two numbers this map has always ranked stars by.

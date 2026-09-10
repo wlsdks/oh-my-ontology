@@ -67,6 +67,15 @@ export interface CanvasActivityFlags {
    * animation the ambient-sleep guard is allowed to stop, but the idle gate must not.
    */
   trailMotionActive: boolean;
+  /**
+   * The galaxy view's crossfade has not landed yet.
+   *
+   * Switching between the flat map and the sky is a change the person asked for by picking it,
+   * so the frames that carry it are activity. Without this the ramp would settle only on
+   * whatever frame some other cause happened to buy, and the crossfade would stutter or stop
+   * halfway.
+   */
+  galaxySettling: boolean;
 }
 
 /**
@@ -169,7 +178,8 @@ export function isCanvasActive(flags: CanvasActivityFlags): boolean {
     flags.focusFadeSettling ||
     flags.spotlightSettling ||
     flags.trailLensSettling ||
-    flags.trailMotionActive
+    flags.trailMotionActive ||
+    flags.galaxySettling
   );
 }
 
