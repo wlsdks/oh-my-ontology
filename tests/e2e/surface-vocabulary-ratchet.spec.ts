@@ -72,20 +72,6 @@ import { seedFirstRunSeen } from "./first-run-seed";
 const BASELINE_SURFACE_COMBOS = 10;
 const BASELINE_CONTROL_COMBOS = 17;
 
-/**
- * ⚠️ **The download hero is pinned to one renderer** (2026-09-11). `HeroAtlas`
- * calls `webglAccelerated()`, which returns false on a software renderer —
- * SwiftShader in headless CI — and hands the stage to the 2D engine. The two
- * engines do not draw the same set of boxes, so this ratchet counted **10 on a
- * machine with hardware WebGL and 9 in CI**, and had been red on `main` since
- * 85ed106b7 while passing locally. A ratchet whose number depends on the GPU
- * measures the GPU.
- *
- * `?hero=three` is the escape hatch `HeroAtlas` documents for exactly this, and
- * the grid gate already uses it. Forcing the scene makes the count the same
- * everywhere; the fallback path's own surfaces belong to whatever gate chooses to
- * walk it deliberately.
- */
 const ROUTES = [
   "/ko/topology/",
   "/ko/docs/",
@@ -95,16 +81,8 @@ const ROUTES = [
   "/ko/agents/",
   "/ko/git/",
   "/ko/",
-  "/ko/download/?hero=three",
+  "/ko/download/",
 ] as const;
-
-/** `guides=off` has to join a route that already carries a query, not replace it. */
-function walkUrl(route: string): string {
-  const [path, query] = route.split("?");
-  const params = new URLSearchParams(query ?? "");
-  params.set("guides", "off");
-  return `${path}?${params.toString()}`;
-}
 
 test("표면 조합이 늘지 않는다", async ({ page }) => {
   await seedFirstRunSeen(page);
@@ -115,15 +93,7 @@ test("표면 조합이 늘지 않는다", async ({ page }) => {
   let painted = 0;
 
   for (const route of ROUTES) {
-    await page.goto(walkUrl(route));
-    // The three.js chunk loads on demand and the 2D engine holds the stage until it
-    // does, so a fixed wait would measure whichever engine won the race — the very
-    // renderer dependence this route is pinned to remove. Wait for the scene to
-    // announce itself instead; under a software renderer that takes longer than the
-    // settle below.
-    if (route.includes('hero=three')) {
-      await page.waitForSelector('[data-hero-engine="three"]', { timeout: 30_000 });
-    }
+    await page.goto(`${route}?guides=off`);
     await page.waitForTimeout(900);
     const found = await page.evaluate(() => {
       const out: { key: string; interactive: boolean }[] = [];
