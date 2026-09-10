@@ -837,6 +837,7 @@ export function LibraryPage() {
               ? `model:${agent.localModel.model}`
               : "agent:unknown",
           vaultRoot: nativeVaultRootPath ?? "",
+          now: new Date(),
         }),
       );
     } catch (error) {

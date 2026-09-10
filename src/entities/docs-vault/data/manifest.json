@@ -867,7 +867,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed, for a person who uses the product. Newest at the top. One entry per release, named by its tag; the single Unreleased entry at the top collects what has merged since the last tag, and the release cut renames it. v1.0.0",
-      "wordCount": 30026,
+      "wordCount": 30036,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -1011,7 +1011,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 39965,
+      "wordCount": 40002,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -1467,7 +1467,7 @@
       },
       "headings": [],
       "excerpt": "The ability to detect ACP (Agent Client Protocol) v1 coding-agent executors already installed on the device, directly launch those with verified app-owned permission gates (currently Claude Agent and Codex), and apply scoped permission review. No new Atlas API key or vendor integration is needed: it uses the subscripti",
-      "wordCount": 2309,
+      "wordCount": 2399,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ontology/elements/agents-destination"
@@ -2257,8 +2257,8 @@
       },
       "headings": [],
       "excerpt": "The app's connect flow and MCP surface that allow AI agents to discover, authenticate, read, and write the vault. Interactive agents within the app collect actual vault tool evidence. Activated only when both absolute paths and read manifests are present, ensuring concepts on screen, text read by models, and audit logs",
-      "wordCount": 570,
-      "updatedAt": "2026-09-06",
+      "wordCount": 555,
+      "updatedAt": "2026-09-11",
       "linksOut": []
     },
     {
@@ -4162,7 +4162,7 @@
       },
       "headings": [],
       "excerpt": "This temporary register measures the 2026-09-01 Atlas product-decision system. It is not a second decision archive. Significant rationale stays in DECISIONS.md; this file keeps only the typed facts needed to decide whether the gate earns, narrows, or loses its place. Run pnpm po:pilot for the current report and pnpm po",
-      "wordCount": 3181,
+      "wordCount": 3294,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "DECISIONS"

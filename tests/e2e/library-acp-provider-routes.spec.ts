@@ -150,6 +150,25 @@ async function startRefresh(page: Page, harness: LibraryWorkHarness) {
 }
 
 for (const runtimeId of ['claude-acp', 'codex-acp'] as const) {
+  test(`${runtimeId} receives the compile click time rather than an inferred timestamp`, async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-09-11T01:02:03Z'));
+    const harness = await openLibrary(page, runtimeId);
+    await page.getByTestId('library-index-segment-wiki').click();
+    const clickedAt = '2026-09-11T04:05:06Z';
+    await page.clock.setFixedTime(new Date(clickedAt));
+    await page.getByTestId('library-compile').click();
+    await expect.poll(async () => (await harness.snapshot(page)).calls.some((call) => call.method === 'session/prompt')).toBe(true);
+    await expectProviderSession(page, harness, runtimeId);
+    const snapshot = await harness.snapshot(page);
+    const prompt = snapshot.calls.find((call) => call.method === 'session/prompt');
+    const timestamps = [...promptText(prompt!).matchAll(/compiled_at:\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/g)].map((match) => match[1]);
+    expect(timestamps).toContain(clickedAt);
+    expect(timestamps).not.toContain('2026-09-11T01:02:03Z');
+    expect(snapshot.files[ANSWER]).toBe(OLD_PAGE);
+    expect(snapshot.files[SOURCE]).toBe(ORIGINAL);
+    expect(snapshot.writes).toHaveLength(0);
+  });
+
   test(`${runtimeId} refreshes the same retained answer through ACP and waits for confirmation`, async ({ page }) => {
     const harness = await openLibrary(page, runtimeId);
     await startRefresh(page, harness);

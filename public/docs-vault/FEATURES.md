@@ -1098,6 +1098,9 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   is what one document said), to link the pages it touches both ways, to record a
   disagreement on both pages with both citations, and to write nothing for a source
   that adds nothing.
+  The ACP brief supplies the measured Compile click time for `compiled_at`, so the
+  agent receives a concrete value to copy without querying a shell or inferring a
+  date. This is request-time guidance, not an app-attested completion receipt.
 - **Check the wiki** — starts one report-only ACP turn over `wiki/` for what
   `wiki-validate` cannot decide: two pages disagreeing, a claim a later page replaced,
   two pages that share a topic or a source without linking, and a name on three or

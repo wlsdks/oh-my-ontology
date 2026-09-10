@@ -120,6 +120,10 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 
 | 47 | 2026-09-11 | Preserve source record boundaries and disambiguate repeated document headings | one-way | review | judge | public-contract | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
 
+| 48 | 2026-09-11 | Supply the measured Compile click time to the existing ACP brief | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
+| 49 | 2026-09-11 | Probe source arrival order and human-correction retention through real ACP ingestion | two-way | solo | handoff | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -188,3 +192,6 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 46 | 2026-09-11 | pending | yes | no | pending |
 | 47 | 2026-09-11 | pass | yes | no | pending |
 | 46 | 2026-09-11 | pass | yes | no | pending |
+| 48 | 2026-09-11 | pending | yes | no | pending |
+| 49 | 2026-09-11 | pending | yes | no | pending |
+| 48 | 2026-09-11 | pass | yes | no | pending |

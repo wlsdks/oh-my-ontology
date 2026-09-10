@@ -81,8 +81,14 @@ Implementation evidence: `docs/ANALYSIS-RECORDS.md`, `src/widgets/analysis-workb
 
 ## Library retained-answer refresh
 
-The Library uses this same runtime to request an updated draft for one retained question. Its explicit request includes the selected vault, previous answer text and available original paths; the agent is asked to read and propose without writing. The app presents previous and proposed text for review and creates a new answer file only on the person's save action. Automatic wiki-write permission is suspended during refresh, and ordinary source compilation cannot automatically rewrite retained answers. Cancelling a refresh does not make Atlas file a revision; it cannot reverse an independent agent edit.
+The Library uses this same runtime to request an updated draft for one retained question. Its explicit request includes the selected vault, previous answer text and available original paths; the agent is asked to read and propose without writing. The app presents previous and proposed text for review and creates a new answer file only on the person's save action. Automatic wiki-write permission is suspended during refresh. During ordinary Compile, the brief tells the agent to leave retained answers unchanged and the app excludes their paths from automatic permission approval. A person can still allow a surfaced write request, and independent runtime filesystem writes do not pass through that predicate. Cancelling a refresh does not make Atlas file a revision; it cannot reverse an independent agent edit.
 
 This is a consumer of the existing ACP execution and permission contract, not a separate local-model-only runtime. Claude Code and Codex are supported Library execution routes. Protocol fixtures establish Library routing, cancellation and review behavior for their runtime IDs; they do not establish authenticated live-adapter synthesis quality.
 
 Implementation evidence: `src/views/library/ui/LibraryPage.tsx`, `src/views/library/lib/use-answer-refresh.ts`, `src/features/library/lib/answer-revision-store.ts`, and `tests/e2e/library-acp-provider-routes.spec.ts`. Record details and concurrency limits: `docs/RETAINED-ANSWERS.md`.
+
+## Library Compile request metadata
+
+A Library Compile request supplies the click time through the existing brief's `now` input as the intended `compiled_at`. The sender measures this value; the agent is asked to copy it. It is request-time guidance, not proof of when an agent wrote or completed a page.
+
+Implementation evidence: `src/views/library/ui/LibraryPage.tsx#handleCompile`, `src/features/library/lib/compile-brief.ts#buildCompileBrief`, and `tests/e2e/library-acp-provider-routes.spec.ts`.

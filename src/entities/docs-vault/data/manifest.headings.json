@@ -13400,6 +13400,11 @@
       "depth": 2,
       "text": "Library retained-answer refresh",
       "slug": "library-retained-answer-refresh"
+    },
+    {
+      "depth": 2,
+      "text": "Library Compile request metadata",
+      "slug": "library-compile-request-metadata"
     }
   ],
   "ontology/capabilities/agent-work-visibility": [

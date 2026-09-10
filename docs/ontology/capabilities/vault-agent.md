@@ -27,10 +27,7 @@ unproven and provide no guarantee beyond static link checks.
 
 ## Identity Boundary
 
-The "interactive agent in the app" mentioned here is the single vault-agent panel owned by this capability:
-it's a provider-neutral loop attaching to keys entered by users or local runners, calling only vault tools. The app
-launching a coding agent with a verified permission gate (currently Claude Agent) directly over ACP is a separate capability owned by `capabilities/acp-runtime`.
-That side has different layers for config isolation and permission gates, and the surface the user opens today differs with just one "executor" section in settings.
+The interactive vault agent owned here is a provider-neutral loop using a configured model or local runner and calling the vault tool catalogue. Launching Claude Code or Codex over ACP belongs to `capabilities/acp-runtime`. That separate capability records configuration isolation, the requests handled by the app's permission gate, and the limits on an agent's independent filesystem writes. A runtime mode label or app callback is not an operating-system filesystem sandbox.
 
 ## Evidence
 - src/features/vault-agent: provider-neutral agent loop, tool execution, evidence citation
