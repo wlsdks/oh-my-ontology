@@ -116,6 +116,7 @@ export function LibraryShelf({
       >
         {spines.map(({ page, freshness, ownProblem }) => {
           const active = page.slug === selectedSlug;
+          const answerVersion = model.answerVersions?.get(page.slug);
           const writer = (page.createdBy ?? "") !== majorityWriter ? writerLabel(page.createdBy, t) : null;
           /*
            * Everything the spine cannot draw at 26px wide is said here, so the mark and
@@ -143,6 +144,7 @@ export function LibraryShelf({
           const needsAttention = Boolean(ownProblem);
           const facts = [
             page.title,
+            answerVersion ? t(`answers.version.${answerVersion}`) : null,
             t(`shelf.freshness.${freshness}`),
             ownProblem ? t("wiki.offTemplateReason", { code: ownProblem.code }) : null,
             writer ? t("wiki.writtenBy", { author: writer }) : null,
@@ -245,6 +247,9 @@ export function LibraryShelf({
                       />
                     ) : null}
                     <span className="min-w-0 truncate">
+                      {answerVersion
+                        ? `${t(`answers.version.${answerVersion}`)} · `
+                        : ''}
                       {ownProblem
                         ? `${t(`shelf.state.${freshness}`)} · ${t("wiki.offTemplate")}`
                         : t(`shelf.state.${freshness}`)}

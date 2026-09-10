@@ -13,11 +13,18 @@ import {
   type VaultDoc,
 } from '@/entities/docs-vault';
 import { useStaticVaultSource } from '@/entities/vault-session';
-import { IconButton } from '@/shared/ui';
+import { IconButton, controlClass } from '@/shared/ui';
 import { splitHighlightSegments } from '@/shared/lib/highlight-match';
 import { useCopyFeedback } from '@/shared/lib/use-copy-feedback';
 import { useDelayedVisible } from '@/shared/lib/use-presence';
 import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
+import {
+  decodeWikilinkSlug,
+  normalizeOriginalPaths,
+  resolveSourceCitation,
+  rewriteWikilinks,
+  WIKILINK_SENTINEL,
+} from '@/shared/lib/source-citation';
 import { resolveWikilinkTargetSlug } from '@/shared/lib/parse-frontmatter';
 import { fetchServerDocContent } from '../lib/server-doc-content';
 import { resolveDocLink } from '../lib/resolve-doc-link';
@@ -51,6 +58,10 @@ interface Props {
   repoBlobBase?: string;
   /** Where this vault sits inside the repo (the bundled docs vault = `docs`). */
   vaultRepoRoot?: string;
+  /** Original source paths that this Library can currently navigate to. */
+  knownOriginalPaths?: ReadonlySet<string>;
+  /** Opens a known original source at the cited anchor. */
+  onSourceNavigate?: (path: string, anchor?: string) => void;
 }
 
 /**
@@ -76,6 +87,8 @@ export function DocsVaultViewer({
   resolveImage,
   repoBlobBase,
   vaultRepoRoot,
+  knownOriginalPaths,
+  onSourceNavigate,
 }: Props) {
   const t = useTranslations('vaultWidgets.viewer');
   const reducedMotion = usePrefersReducedMotion();
@@ -146,15 +159,7 @@ export function DocsVaultViewer({
          * A query shape survives the sanitiser. Gate:
          * `tests/contract/wikilink-url-scheme.contract.test.ts`.
          */
-        cleaned = cleaned.replace(
-          /\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g,
-          (_, target: string, label?: string) => {
-            const text = (label ?? target).trim();
-            const clean = target.trim();
-            const [slug, anchor] = clean.split('#');
-            return `[${text}](${WIKILINK_SENTINEL}${slug}${anchor ? `#${anchor}` : ''})`;
-          },
-        );
+        cleaned = rewriteWikilinks(cleaned);
         setRaw(cleaned);
       })
       .catch((err) => {
@@ -221,6 +226,14 @@ export function DocsVaultViewer({
     () => new Set([...vaultSlugs].map((slug) => slug.normalize('NFC'))),
     [vaultSlugs],
   );
+  /**
+   * Source paths are looked up by their decoded NFC form, while the callback receives
+   * the exact path supplied by the parent so a macOS NFD path still selects its row.
+   */
+  const normalizedOriginalPaths = useMemo(
+    () => normalizeOriginalPaths(knownOriginalPaths),
+    [knownOriginalPaths],
+  );
 
   const components: Components = {
       a({ href, children, ...rest }) {
@@ -229,7 +242,12 @@ export function DocsVaultViewer({
         // WIKILINK:slug#anchor. Matched directly against vault slugs.
         if (href.startsWith(WIKILINK_SENTINEL)) {
           const spec = href.slice(WIKILINK_SENTINEL.length);
-          const [rawWikiSlug, anchor] = spec.split('#');
+          const [rawWikiSlug, rawAnchor] = spec.split('#');
+          const typedSlug = rawWikiSlug ? decodeWikilinkSlug(rawWikiSlug) : rawWikiSlug;
+          const wikiSlug = typedSlug
+            ? resolveWikilinkTargetSlug(typedSlug, doc.slug)
+            : typedSlug;
+          const anchor = rawAnchor ? decodeWikilinkSlug(rawAnchor) : rawAnchor;
           /*
            * ⚠️ **Percent-decode and normalise to NFC** (measured fix, 2026-08-08).
            *
@@ -248,6 +266,54 @@ export function DocsVaultViewer({
            * normalised to NFC too; normalising one side leaves identical characters
            * that do not match). That rule is followed rather than re-decided.
            */
+          const citation = rawWikiSlug
+            ? resolveSourceCitation(
+                rawWikiSlug,
+                rawAnchor,
+                normalizedOriginalPaths,
+                onSourceNavigate !== undefined,
+              )
+            : null;
+          if (citation) {
+            if (citation.status === 'known' && citation.path && onSourceNavigate) {
+              return (
+                <button
+                  type="button"
+                  aria-label={t('sourceCitationTitle', {
+                    path: citation.path,
+                    anchor: citation.anchor ? `#${citation.anchor}` : '',
+                  })}
+                  data-source-path={citation.path}
+                  data-source-anchor={citation.anchor}
+                  onClick={() => onSourceNavigate(citation.path!, citation.anchor)}
+                  className={controlClass({
+                    shape: 'link',
+                    tone: 'accent',
+                    hoverInk: 'strong',
+                    className: 'inline align-baseline break-keep whitespace-normal',
+                  })}
+                >
+                  {children}
+                </button>
+              );
+            }
+            // The helper distinguishes an unavailable allow-list from an allow-listed
+            // missing source while keeping both states visibly non-navigable.
+            return (
+              <span
+                className="border-b border-dashed border-[color:var(--color-amber-source-a50)] text-[color:var(--color-amber-source-text-a85)]"
+                title={t(
+                  citation.status === 'missing'
+                    ? 'sourceCitationMissing'
+                    : 'sourceCitationUnavailable',
+                  { path: citation.rawPath },
+                )}
+                {...rest}
+              >
+                {children}
+              </span>
+            );
+          }
           /*
            * ⚠️ **Resolve against the document doing the linking, not against bare text**
            * (2026-09-09). This lookup matched the typed slug straight against the vault's
@@ -259,8 +325,6 @@ export function DocsVaultViewer({
            * the nested `ontology/` vault's links, which is the case that function was
            * written for in the first place.
            */
-          const typedSlug = rawWikiSlug ? decodeWikilinkSlug(rawWikiSlug) : rawWikiSlug;
-          const wikiSlug = typedSlug ? resolveWikilinkTargetSlug(typedSlug, doc.slug) : typedSlug;
           // A `project:` prefix routes to the public topology route, e.g. [[project:reactor]].
           if (wikiSlug && wikiSlug.startsWith('project:')) {
             const projectSlug = wikiSlug.slice('project:'.length);
@@ -633,30 +697,6 @@ export function DocsVaultViewer({
       </ReactMarkdown>
     </article>
   );
-}
-
-/**
- * The wikilink sentinel — **it has to look like a query.** A scheme shape (`X:`) is
- * erased entirely by `react-markdown`'s URL sanitiser (measured fix, 2026-08-08).
- * The gate reads this value from the source and checks that it survives sanitising.
- */
-const WIKILINK_SENTINEL = '?wikilink=';
-
-/**
- * Extract the vault slug from a wikilink URL — **percent-decode plus NFC**.
- *
- * Both are needed, in that order: decoding first is what makes NFC normalisation
- * apply to real characters. Input that fails to decode (a truncated `%`) returns the
- * raw value — a throw here means one whole document does not render.
- */
-function decodeWikilinkSlug(raw: string): string {
-  let decoded = raw;
-  try {
-    decoded = decodeURIComponent(raw);
-  } catch {
-    /* Truncated percent sequence — leave the raw value. */
-  }
-  return decoded.normalize('NFC');
 }
 
 type CalloutKind = 'note' | 'tip' | 'info' | 'warning' | 'danger' | 'success';

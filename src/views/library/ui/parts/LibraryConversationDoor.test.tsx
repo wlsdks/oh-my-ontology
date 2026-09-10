@@ -23,25 +23,26 @@ describe("the put-away conversation", () => {
     expect(screen.queryByTestId("library-conversation-running-dot")).toBeNull();
   });
 
-  it("says which step is running and what it is touching, not merely that something is", () => {
+  it("keeps the conversation destination visible beside the running phase", () => {
     const { chip } = draw({
       state: "editing",
       summary: "Write up the four sources",
       ontologySlug: null,
       toolName: "Write wiki/contractor-quotes.md",
     });
-    expect(chip).toHaveTextContent("Editing · Write wiki/contractor-quotes.md");
+    expect(chip).toHaveTextContent("Conversation · Editing");
     expect(screen.getByTestId("library-conversation-running-dot")).toBeInTheDocument();
   });
 
-  it("falls back to the request when the turn has not named a tool yet", () => {
+  it("does not replace the destination with the internal request", () => {
     const { chip } = draw({
       state: "planning",
       summary: "Check the wiki against its sources",
       ontologySlug: null,
       toolName: null,
     });
-    expect(chip).toHaveTextContent("Planning · Check the wiki against its sources");
+    expect(chip).toHaveTextContent("Conversation · Planning");
+    expect(chip).not.toHaveTextContent('Check the wiki against its sources');
   });
 
   it("says a shut dock is holding a permission card — the one turn that waits forever", () => {

@@ -199,7 +199,7 @@ export interface LibrarySourceRow extends VaultSourceFile {
   state: SourceCompileState;
   /** Wiki pages citing this source, whether or not their hash still matches. */
   citedBy: string[];
-  /** Pages whose recorded source version differs from the measured file, including filed answers. */
+  /** Compilable pages with a different source receipt; retained-answer revisions have their own review workflow. */
   reviewPages?: string[];
 }
 
@@ -261,7 +261,7 @@ export function buildLibraryModel({
       state: deriveSourceState(cited, hashes.get(source.path)),
       citedBy: [...new Set((cited ?? []).map((citation) => citation.wikiSlug))].sort(),
       reviewPages: actual === undefined ? [] : [...new Set((cited ?? [])
-        .filter((citation) => citation.sourceHash !== actual)
+        .filter((citation) => citation.sourceHash !== actual && !citation.wikiSlug.startsWith('wiki/answers/'))
         .map((citation) => citation.wikiSlug))].sort(),
     };
   });

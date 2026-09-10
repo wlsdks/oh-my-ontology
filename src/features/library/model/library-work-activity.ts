@@ -106,10 +106,20 @@ function targetFromProposalInput(rawInput: unknown): LibraryWorkTarget | null {
   if (!rawInput || typeof rawInput !== "object" || Array.isArray(rawInput)) return null;
   const slug = (rawInput as Record<string, unknown>).slug;
   if (typeof slug !== "string") return null;
-  const clean = slug.trim().replace(/\.md$/, "");
-  if (clean.startsWith("wiki/")) return targetFromPath(clean, null);
-  if (!clean || clean.includes("/") || clean === "." || clean === "..") return null;
-  return { kind: "wiki", ref: `wiki/${clean}` };
+  const value = slug.trim();
+  if (!value) return null;
+  if (value.startsWith("wiki/")) {
+    const clean = value.replace(/\.md$/, "");
+    if (clean.startsWith("wiki/_")) return null;
+    return targetFromPath(clean, null);
+  }
+  // Bare local Wiki slugs are names, not paths. Keep the extension and traversal
+  // boundaries explicit while allowing the nested wiki form above.
+  if (value.endsWith(".md") || value.includes("/") || value.includes("\\") || value === "." || value === "..") {
+    return null;
+  }
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) || value.length > 80) return null;
+  return { kind: "wiki", ref: `wiki/${value}` };
 }
 
 /**

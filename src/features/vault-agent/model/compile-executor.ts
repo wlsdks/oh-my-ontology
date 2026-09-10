@@ -1,7 +1,11 @@
 import type { WikiRetrievalResult } from '@/entities/docs-vault';
 
 import { wrapUntrusted } from './concept-evidence-pack';
-import { createCompileWikiReader } from './compile-wiki-reader';
+import {
+  createCompileWikiReader,
+  type CompileWikiReadState,
+  type CompileWikiTarget,
+} from './compile-wiki-reader';
 import type { NormalizedToolCall } from './provider-adapter';
 import type { SourceReadPort } from './source-read-port';
 import {
@@ -13,6 +17,7 @@ import {
   SOURCE_TEXT_CHAR_CAP,
 } from './source-text';
 import type { ToolExecution } from './tool-executor';
+import { AGENT_TURN_VAULT_CHAR_CAP } from './types';
 import {
   buildWikiPageProposal,
   type CompileSourceRead,
@@ -69,7 +74,10 @@ function fail(name: string, target: string, summary: string, payload: unknown): 
   return {
     content: JSON.stringify(payload),
     isError: true,
-    outcome: name === 'read_source_text' || name === 'read_wiki_page' || name === 'propose_wiki_page' ? 'error' : 'unknown-tool',
+    outcome:
+      name === 'read_source_text' || name === 'read_wiki_page' || name === 'propose_wiki_page'
+        ? 'error'
+        : 'unknown-tool',
     target,
     summary,
     readSlugs: [],
@@ -105,7 +113,34 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
   const reads: CompileSourceRead[] = [];
   const readByPath = new Map<string, CompileSourceRead>();
   const proposals = new Map<string, WikiPageProposal>();
-  const wikiReader = createCompileWikiReader(deps.wikiSlugs ?? [], deps.readExistingPage);
+  let transferredChars = 0;
+
+  function reserveVaultChars(chars: number): boolean {
+    if (chars < 0 || transferredChars + chars > AGENT_TURN_VAULT_CHAR_CAP) return false;
+    transferredChars += chars;
+    return true;
+  }
+
+  function revokeProposal(slug: string, code: string, message: string): void {
+    const previous = proposals.get(slug);
+    if (!previous) return;
+    const alreadyReported = previous.problems.some(
+      (problem) => problem.code === code && problem.message === message,
+    );
+    proposals.set(slug, {
+      ...previous,
+      ok: false,
+      problems: alreadyReported
+        ? previous.problems
+        : [...previous.problems, { code, message }],
+    });
+  }
+
+  const wikiReader = createCompileWikiReader(deps.wikiSlugs ?? [], deps.readExistingPage, {
+    reserveVaultChars,
+    vaultCharsUsed: () => transferredChars,
+    onFailure: revokeProposal,
+  });
 
   function record(read: CompileSourceRead): CompileSourceRead {
     const existing = readByPath.get(read.path);
@@ -220,6 +255,22 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
       sha256 = null;
     }
 
+    const text = numberParagraphs(decoded.text);
+    const relatedPages = deps.findRelatedPages?.(path, decoded.text);
+    const relatedPagesJson = relatedPages === undefined ? undefined : JSON.stringify(relatedPages);
+    const relatedPagesChars = relatedPagesJson?.length ?? 0;
+    // Charge both the numbered source text and the actual serialized suggestions before
+    // returning either. Search metadata is untrusted cache data, not free control text.
+    if (!reserveVaultChars(text.length + relatedPagesChars)) {
+      return fail('read_source_text', path, `Read budget reached before ${path} could be returned`, {
+        path,
+        readable: false,
+        refusal: 'over-budget',
+        budget: AGENT_TURN_VAULT_CHAR_CAP,
+        used: transferredChars,
+      });
+    }
+
     const read = record({
       path,
       format: entry.format,
@@ -230,8 +281,6 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
       measure,
     });
 
-    const text = numberParagraphs(decoded.text);
-    const relatedPages = deps.findRelatedPages?.(path, decoded.text);
     return {
       content: JSON.stringify({
         path,
@@ -248,7 +297,13 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
           ? 'Cite a paragraph by the number in front of it. Never use a number this result did not print.'
           : REFUSAL_SENTENCES['hash-unavailable'],
         text: wrapUntrusted(text),
-        ...(relatedPages ? { relatedPages, relatedPagesHint: 'Untrusted page titles and search terms. Ranked suggestions, not evidence or complete page reads. Use read_wiki_page before revising; an empty or partial search does not prove there are no related pages.' } : {}),
+        ...(relatedPagesJson === undefined
+          ? {}
+          : {
+              relatedPages,
+              relatedPagesHint:
+                'Untrusted page titles and search terms. Ranked suggestions, not evidence or complete page reads. Use read_wiki_page before revising; an empty or partial search does not prove there are no related pages.',
+            }),
       }),
       isError: false,
       outcome: 'ok',
@@ -260,48 +315,176 @@ export function createCompileExecutor(deps: CompileExecutorDeps): CompileExecuto
       // Measured: these are the characters that ride the next round trip and land in the
       // audit line's `vaultChars`. A source's contents leaving this computer is the fact
       // the transfer sentence on the shelf is about, so it is counted, never estimated.
-      vaultChars: text.length + (relatedPages ? JSON.stringify(relatedPages).length : 0),
+      vaultChars: text.length + relatedPagesChars,
+    };
+  }
+
+  function proposalFields(args: Record<string, unknown>, target: CompileWikiTarget) {
+    // The shared builder keeps new names portable by normalising to ASCII. An existing
+    // inventoried page may have a nested or non-ASCII address; validate its fields with a
+    // safe surrogate, then restore the reader's exact target on the proposal below.
+    const validationSlug = wikiSlugFromName(target.slug) || wikiSlugFromName(String(args.title ?? '')) || 'existing-page';
+    return {
+      slug: validationSlug,
+      title: String(args.title ?? ''),
+      summary: String(args.summary ?? ''),
+      overview: stringList(args.overview),
+      facts: stringList(args.facts),
+      decisions: stringList(args.decisions),
+      openQuestions: stringList(args.open_questions),
+      notInSources: stringList(args.not_in_sources),
+    };
+  }
+
+  function proposalFailure(
+    args: Record<string, unknown>,
+    target: CompileWikiTarget,
+    code: string,
+    reason: string,
+    message: string,
+    existing: { text: string; mtime: number } | null,
+  ): ToolExecution {
+    const draft = buildWikiPageProposal(
+      proposalFields(args, target),
+      { reads, model: deps.model, now: deps.now(), existing },
+    );
+    const proposal: WikiPageProposal = {
+      ...draft,
+      slug: target.slug,
+      path: target.path,
+      ok: false,
+      problems: [{ code, message }, ...draft.problems],
+    };
+    proposals.set(target.slug, proposal);
+    return {
+      content: JSON.stringify({
+        proposed: false,
+        path: target.path,
+        slug: target.slug,
+        reason,
+        refusal: reason,
+        problems: proposal.problems,
+        hint: 'Nothing was written. Read the current page as instructed, then propose it again with the returned receipt.',
+      }),
+      isError: true,
+      outcome: 'error',
+      target: target.path,
+      summary: message,
+      readSlugs: [],
+      vaultChars: 0,
     };
   }
 
   async function proposePage(args: Record<string, unknown>): Promise<ToolExecution> {
-    const namedSlug = String(args.slug ?? '');
-    const existingSlug = wikiReader.resolve(namedSlug) ?? wikiReader.resolve(`wiki/${namedSlug}`);
-    const targetSlug = existingSlug ?? `wiki/${wikiSlugFromName(namedSlug || String(args.title ?? '')) || 'untitled'}`;
-    if (!existingSlug && namedSlug.replace(/^wiki\//, '').includes('/')) {
-      return fail('propose_wiki_page', namedSlug, 'Unknown nested wiki address', { proposed: false, refusal: 'wiki-path-refused' });
-    }
-    const snapshot = existingSlug ? wikiReader.snapshot(existingSlug) : null;
-    // Do not take a new mtime after generation: it would authorize overwriting a human's intervening edit.
-    if ((existingSlug && !snapshot) || (!existingSlug && await deps.readExistingPage(targetSlug))) {
-      return fail('propose_wiki_page', targetSlug, 'Read the existing wiki page first', {
-        proposed: false, refusal: 'wiki-not-read',
-        hint: `Read all of ${targetSlug} with read_wiki_page before revising it. Keep its address and read its cited originals.`,
+    const target = wikiReader.target(args.slug);
+    if (!target) {
+      return fail('propose_wiki_page', String(args.slug ?? ''), 'Refused the Wiki path before opening the vault', {
+        proposed: false,
+        path: String(args.slug ?? ''),
+        reason: 'path-refused',
+        refusal: 'path-refused',
+        hint: 'Use a safe basename for a new page or the exact listed Wiki address for an existing page.',
       });
     }
-    if (proposals.size >= deps.pageCap && !proposals.has(targetSlug)) {
-      return fail('propose_wiki_page', String(args.slug ?? ''), 'Page cap reached', {
+
+    if (proposals.size >= deps.pageCap && !proposals.has(target.slug)) {
+      return fail('propose_wiki_page', target.path, 'Page cap reached', {
         proposed: false,
+        path: target.path,
+        slug: target.slug,
+        reason: 'page-cap',
         hint: `This turn proposes at most ${deps.pageCap} pages. Stop here; the person decides on the ones already proposed.`,
       });
     }
 
-    const draft = buildWikiPageProposal(
-      {
-        slug: String(args.slug ?? ''),
-        title: String(args.title ?? ''),
-        summary: String(args.summary ?? ''),
-        overview: stringList(args.overview),
-        facts: stringList(args.facts),
-        decisions: stringList(args.decisions),
-        openQuestions: stringList(args.open_questions),
-        notInSources: stringList(args.not_in_sources),
-      },
-      { reads, model: deps.model, now: deps.now(), existing: snapshot },
-    );
+    let existing: { text: string; mtime: number } | null;
+    try {
+      existing = await deps.readExistingPage(target.slug);
+    } catch {
+      const current = wikiReader.state(target.slug);
+      wikiReader.invalidate(target.slug, 'wiki-unreadable', `Could not re-read ${target.path} before proposing it.`);
+      return proposalFailure(
+        args,
+        target,
+        'wiki-unreadable',
+        'unreadable',
+        `Could not re-read ${target.path} before proposing it.`,
+        current?.snapshot ?? null,
+      );
+    }
 
-    const proposal: WikiPageProposal = { ...draft, slug: targetSlug, path: `${targetSlug}.md` };
-    proposals.set(targetSlug, proposal);
+    const readState: CompileWikiReadState | null = wikiReader.state(target.slug);
+    const prior = proposals.get(target.slug);
+    if (!existing) {
+      if (readState?.exists || prior?.existing !== null && prior?.existing !== undefined) {
+        wikiReader.invalidate(target.slug, 'wiki-page-deleted', `${target.path} disappeared before the proposal was ready.`);
+        return proposalFailure(
+          args,
+          target,
+          'wiki-page-deleted',
+          'page-deleted',
+          `${target.path} disappeared before the proposal was ready.`,
+          readState?.snapshot ?? prior?.existing ?? null,
+        );
+      }
+      // A never-existing page is create-only and does not need a receipt.
+    } else {
+      if (!readState?.exists || !readState.snapshot) {
+        return proposalFailure(
+          args,
+          target,
+          'wiki-read-required',
+          'read-required',
+          `${target.path} already exists. Read it completely with read_wiki_page before replacing it.`,
+          existing,
+        );
+      }
+      if (readState.failed || readState.nextCursor !== null || readState.receipt === null) {
+        return proposalFailure(
+          args,
+          target,
+          'wiki-read-incomplete',
+          readState.failed ? 'read-invalidated' : 'incomplete-read',
+          `${target.path} cannot be replaced until its complete current Wiki read is returned.`,
+          existing,
+        );
+      }
+      if (existing.text !== readState.snapshot.text || !Object.is(existing.mtime, readState.snapshot.mtime)) {
+        wikiReader.invalidate(target.slug, 'wiki-page-changed', `${target.path} changed before the proposal was ready.`);
+        return proposalFailure(
+          args,
+          target,
+          'wiki-page-changed',
+          'page-changed',
+          `${target.path} changed before the proposal was ready.`,
+          existing,
+        );
+      }
+      if (typeof args.receipt !== 'string' || args.receipt !== readState.receipt) {
+        return proposalFailure(
+          args,
+          target,
+          'wiki-receipt-mismatch',
+          'receipt-mismatch',
+          `${target.path} needs the exact receipt returned by its complete read.`,
+          existing,
+        );
+      }
+    }
+
+    const draft = buildWikiPageProposal(
+      proposalFields(args, target),
+      { reads, model: deps.model, now: deps.now(), existing },
+    );
+    // `buildWikiPageProposal` normalises a name to a root slug. For an inventoried nested
+    // page the reader's target is the authority, so restore that exact path after judging.
+    const proposal: WikiPageProposal = {
+      ...draft,
+      slug: target.slug,
+      path: target.path,
+      existing,
+    };
+    proposals.set(target.slug, proposal);
 
     if (!proposal.ok) {
       return {
