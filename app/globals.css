@@ -3476,6 +3476,12 @@
     /* Ego light — the focused node blooms (a soft indigo disc under it, blurred by `-glow-blur-px`) and its relation lines carry a glow of the same blur, both on the focus ramp; the hovered node carries the bloom at `-node-bloom-alpha` on its emphasis ramp. Light says "this is the one your hand is on"; nothing at rest glows. */
     --map-ego-glow-blur-px: 22;
     --map-ego-glow-alpha: 0.55;
+    /* The walked line's glow, stronger than the ego glow it stands in for: a constellation
+       line is light, not an emphasised relation, and at the ego value it read as a slightly
+       brighter dash rather than something lit (owner, 2026-09-10 — "make the lines glow
+       too"). Only ever spent inside an open trail lens. */
+    --map-trail-glow-alpha: 0.85;
+    --map-trail-glow-blur-px: 26;
     /* The bloom's own blur, wider than the line glow because a disc under a node has to read past the node's edge while a line's glow must stay a line. Named rather than written as `-ego-glow-blur-px * 1.4` in the canvas: a multiplier in TypeScript is a second blur step nobody can find (design council, 2026-09-08). */
     --map-node-bloom-blur-px: 31;
     --map-node-bloom-alpha: 0.35;

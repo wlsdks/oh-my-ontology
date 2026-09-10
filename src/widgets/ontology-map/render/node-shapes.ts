@@ -540,6 +540,45 @@ function minCornerRadius(kind: NodeShapeDrawState["kind"], r: number): number {
  * one-shot commit pulse, and the hover preview ring — all five are the same
  * primitive at a different radius/color/width/alpha.
  */
+/**
+ * The walked path's star — a node lit on **its own silhouette**.
+ *
+ * ⚠️ **Not a ring at the node radius.** The first build stroked a circle, which on a
+ * rounded-square domain drew a second shape around the first: exactly the "fourth circle in
+ * a grammar already holding the selection ring, the expand aura and the warding circle" that
+ * this codebase left the ring notation over on 2026-07-29. A star is the node *being bright*,
+ * so the light traces whatever outline the node's kind gives it — which is what
+ * `strokeKindOutline` has always done for the other five overlays.
+ *
+ * Two passes: wide and soft for the light thrown, tight and bright for the edge. The face is
+ * never filled — a wash over the node covers its own numeral, and a visited node ended up
+ * harder to read than an unvisited one (measured 2026-09-10).
+ *
+ * This is the one licensed emission on a node outline. `design.md` says "material, not
+ * emission" for the ring overlays, and that rule stands for every one of them: they mark
+ * state on a node you are looking at. This marks a node as *a star*, on a canvas whose own
+ * `starfield.ts` says magnitude by brightness, and only inside a lens the person opened.
+ */
+export function strokeNodeStarRim(
+  ctx: CanvasRenderingContext2D,
+  kind: NodeShapeDrawState["kind"],
+  x: number,
+  y: number,
+  radius: number,
+  farT: number,
+  ink: string,
+  lit: number,
+  blurPx: number,
+): void {
+  if (lit <= 0.01) return;
+  ctx.shadowColor = ink;
+  ctx.shadowBlur = blurPx;
+  strokeKindOutline(ctx, kind, x, y, radius, farT, ink, 1, Math.min(1, lit * 0.55));
+  ctx.shadowBlur = blurPx * 0.3;
+  strokeKindOutline(ctx, kind, x, y, radius, farT, ink, 1.6, Math.min(1, lit));
+  ctx.shadowBlur = 0;
+}
+
 function strokeKindOutline(
   ctx: CanvasRenderingContext2D,
   kind: NodeShapeDrawState["kind"],

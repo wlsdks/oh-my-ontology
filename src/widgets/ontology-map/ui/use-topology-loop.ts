@@ -5298,6 +5298,8 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         realmCosmosPoints: realmWarding ? cosmosPointsRef.current : null,
         footprintStepsById,
         footprintPref: footprintPrefRef.current,
+        trailStarInk: footprintStepColorRef.current,
+        footprintNewestStep: visitedTrailRef.current.length,
         walkedEdgeKeys: buildWalkedEdgeKeys(visitedTrailRef.current),
         walkedEdgeDirections: buildWalkedEdgeDirections(visitedTrailRef.current),
         footprintInk: footprintInkRef.current,
