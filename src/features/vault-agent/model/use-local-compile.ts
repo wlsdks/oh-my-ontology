@@ -179,13 +179,16 @@ export function useLocalCompile({
   const readExistingPage = useCallback(
     async (slug: string) => {
       const handle = vault.fileHandles.get(slug);
-      if (!handle) return null;
-      const doc = vault.manifest?.docs.find((candidate) => candidate.slug === slug);
-      try {
-        return { text: await (await handle.getFile()).text(), mtime: doc?.mtime ?? 0 };
-      } catch {
+      if (!handle) {
+        if (vault.manifest?.docs.some((candidate) => candidate.slug === slug)) {
+          throw new Error(`Could not open ${slug}.md`);
+        }
         return null;
       }
+      // Absence permits create-only; a failed read does not. Both text and timestamp
+      // must describe this snapshot, even when the folder's manifest has not refreshed.
+      const file = await handle.getFile();
+      return { text: await file.text(), mtime: file.lastModified };
     },
     [vault.fileHandles, vault.manifest],
   );
@@ -249,7 +252,7 @@ export function useLocalCompile({
                 outcome: null,
               });
               const result = await executor.execute(call);
-              setToolActivity({
+              if (!controller.signal.aborted) setToolActivity({
                 id: call.id,
                 name: call.name,
                 args: call.args,
@@ -273,9 +276,12 @@ export function useLocalCompile({
             },
           },
           started,
-          { signal: controller.signal, onProgress: setTurn },
+          { signal: controller.signal, onProgress: (progress) => {
+            if (!controller.signal.aborted) setTurn(progress);
+          } },
         );
 
+        if (controller.signal.aborted) return;
         setTurn(result.turn);
         const built = buildCompileConsentCard(executor.proposals(), {
           // A save point belongs to the surfaces that own Git (settings, Atlas Git), the
@@ -294,10 +300,11 @@ export function useLocalCompile({
          */
         setStatus("waiting");
       } catch (error) {
+        if (controller.signal.aborted) return;
         setErrorMessage(llmChatErrorMessage(error));
         setStatus("failed");
       } finally {
-        abortRef.current = null;
+        if (abortRef.current === controller) abortRef.current = null;
       }
     },
     [endpoint, labels, readExistingPage, sourcePort, targets, vaultRoot, vaultSessionScope],
@@ -308,12 +315,35 @@ export function useLocalCompile({
     if (!proposal || status !== "waiting") return;
     // Lock before the await: without it a double press is two concurrent vault writes.
     setStatus("applying");
+    const currentMtimes = new Map<string, number>();
+    try {
+      // Compare the exact before text as well as time: timestamp precision alone
+      // can miss a correction made while the consent card is open. Check every
+      // selected replacement before the applier starts its sequential writes.
+      for (const change of proposal.changes.filter((candidate) => candidate.selected)) {
+        for (const file of change.files) {
+          if (file.kind !== "modify") continue;
+          const slug = file.path.replace(/\.md$/, "");
+          const current = await readExistingPage(slug);
+          if (!current || current.text !== file.before || current.mtime !== change.expectedMtime) {
+            setErrorMessage(file.path);
+            setStatus("failed");
+            return;
+          }
+          currentMtimes.set(slug, current.mtime);
+        }
+      }
+    } catch (error) {
+      setErrorMessage(llmChatErrorMessage(error));
+      setStatus("failed");
+      return;
+    }
     const outcome = await applyProposal(
       proposal,
       {
         createDoc: (slug, content) => vault.createDoc(slug, content),
         saveDoc: (slug, content, options) => vault.saveDoc(slug, content, options ?? {}),
-        currentMtime: (slug) => vault.manifest?.docs.find((doc) => doc.slug === slug)?.mtime,
+        currentMtime: (slug) => currentMtimes.get(slug),
         refresh: () => vault.refresh(),
         snapshot: async () => null,
       },
@@ -330,7 +360,7 @@ export function useLocalCompile({
         : outcome.message,
     );
     setStatus("failed");
-  }, [card, status, vault]);
+  }, [card, readExistingPage, status, vault]);
 
   const dismiss = useCallback(() => {
     setCard(null);

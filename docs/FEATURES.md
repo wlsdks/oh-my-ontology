@@ -1143,22 +1143,39 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   brain because the runner's tool catalogue read and proposed ontology concepts only, and
   wrote its own reopening condition: *a local tool catalogue that reads a source and writes
   a page under one consent card reopens local Compile.* That catalogue is
-  `src/features/vault-agent/model/compile-tool-catalog.ts`, and it is two tools, kept out
-  of `AGENT_TOOLS` because neither exists on the MCP server. `read_source_text` opens one
+  `src/features/vault-agent/model/compile-tool-catalog.ts`. Its three Compile-only tools
+  stay outside the MCP-mirrored `AGENT_TOOLS`. `read_source_text` opens one
   file this folder's own walk found under `sources/` and this bundle can decode — Markdown,
   plain text, CSV, TSV, JSON and HTML with its tags stripped — and returns it with every
   paragraph numbered `[p1]`, `[p2]`, capped at 8,000 characters with `truncated` stated
   rather than hidden. A PDF, Word, PowerPoint or Excel file comes back **unread and named**:
   reading those needs a parser Atlas does not ship, and shipping one is deferred rather
   than guessed at. Any other path — absolute, `..`, a backslash, or simply not in this
-  folder — is refused before the disk is touched. `propose_wiki_page` takes fields, never
+  folder — is refused before the disk is touched. `read_wiki_page` returns an existing
+  write-up as untrusted context in sequential 4,000-character chunks. A replacement
+  requires the receipt returned after the complete current page has been read; skipped
+  chunks, unreadable pages, changed text or timestamps and stale receipts block it.
+  The Wiki context counts against the same 40,000-character turn budget, and does not
+  establish raw-source citation support. Human notes remain attributed prior context;
+  the model is instructed to resolve answered questions while preserving the remainder.
+  That instruction is not a guarantee of semantic preservation.
+  `propose_wiki_page` takes fields, never
   Markdown: Atlas assembles the five sections itself and mints `created_by: model:<name>`,
   `compiled_at`, `sources:` and `source_hash:` from the bytes it actually handed over, so a
   page cannot claim a document the model never opened. **It writes nothing.** The turn ends
   at one card that names, per page, the path it would take, what each of its five sections
   carries, how many citations it holds, which sources it was written from, which were read
   only in part, and which could not be opened at all; only Allow once writes, through the
-  same `applyProposal` a concept change takes. A page that fails the contract produces no
+  same `applyProposal` a concept change takes. The card displays the exact proposed
+  Markdown and lets the person switch to the complete previous page; a new page has
+  only its proposed preview. Local work owns the reader pane while running or awaiting
+  review, including folders with retained questions and an already selected document.
+  On narrow screens it uses the whole pane instead of competing with the index;
+  closing the work view returns to the previous selection. Before applying, local Compile compares
+  every selected replacement's exact prior text and timestamp with a fresh file read;
+  a detected correction refuses the write before any selected page is saved. Writes
+  remain sequential, with no claim of transactional rollback after an I/O failure.
+  A page that fails the contract produces no
   proposal at all, so the card has nothing to offer and shows the exact problem codes
   instead. Beyond the shared `validateWikiPage` rules the proposal adds two: every
   `## Decisions` bullet cites, and **every citation anchor resolves inside the bytes read

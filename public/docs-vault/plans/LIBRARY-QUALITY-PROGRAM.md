@@ -101,8 +101,15 @@ a held-out unapproved draft. Actual before-state gaps, a scripted personal note
 and retained answers survived the repaired replays. New gap coverage and later
 answer wording remain variable; these results are not a semantic guarantee.
 
+The [local Compile context probe](../benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11.md)
+closed the missing existing-page read path and exposed exact prior/proposed text
+at consent. Real local-model quality remains open: Gemma received the context
+without producing a proposal; Qwen produced a validly shaped but semantically
+incorrect refresh that lost the personal note. Neither result was approved or
+written. Complete reads and valid citations are necessary, not sufficient.
+
 Next work follows the remaining evidence: finish the native retained-answer
-visual checkpoint when the Mac is unlocked, close the local executor's missing
-existing-page context, and qualify recurring real owner work. Preserve the
+visual checkpoint when the Mac is unlocked, address the measured local semantic
+refresh failures, and qualify recurring real owner work. Preserve the
 distinction between source-byte currentness, extraction coverage, locator
 identity and factual support throughout.

@@ -2849,6 +2849,33 @@
       "slug": "decisions-and-falsifiers"
     }
   ],
+  "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Local Compile and existing human context — 2026-09-11",
+      "slug": "local-compile-and-existing-human-context-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Before-state",
+      "slug": "before-state"
+    },
+    {
+      "depth": 2,
+      "text": "Read and consent contract",
+      "slug": "read-and-consent-contract"
+    },
+    {
+      "depth": 2,
+      "text": "Sealed real-model case",
+      "slug": "sealed-real-model-case"
+    },
+    {
+      "depth": 2,
+      "text": "Evidence limits",
+      "slug": "evidence-limits"
+    }
+  ],
   "benchmark/MCP-ONE-CLICK-2026-09-07": [
     {
       "depth": 1,
@@ -9502,6 +9529,16 @@
       "depth": 2,
       "text": "2026-09-11 — Compile revisits resolved gaps and distinguishes policy from observation",
       "slug": "2026-09-11-compile-revisits-resolved-gaps-and-distinguishes-policy-from-observation"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Local Compile reads the existing write-up before proposing a replacement",
+      "slug": "2026-09-11-local-compile-reads-the-existing-write-up-before-proposing-a-replacement"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Local Compile approval exposes the exact previous and proposed text",
+      "slug": "2026-09-11-local-compile-approval-exposes-the-exact-previous-and-proposed-text"
     }
   ],
   "DEMO-SCENARIO": [
@@ -14320,6 +14357,11 @@
       "depth": 2,
       "text": "Constraints: Client config and native vault writes",
       "slug": "constraints-client-config-and-native-vault-writes"
+    },
+    {
+      "depth": 2,
+      "text": "Library Compile correction context",
+      "slug": "library-compile-correction-context"
     },
     {
       "depth": 2,

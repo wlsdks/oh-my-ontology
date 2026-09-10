@@ -320,7 +320,9 @@ have connected, by name and size only, and copies nothing until you approve;
 **Compile** starts one conversation with the in-app agent that reads the sources
 and writes a wiki page in the shape `wiki/_template.md` holds. Valid ACP wiki
 writes follow the existing automatic-write setting; local proposals retain their
-review card. Each source says whether it has been written up, whether the
+review card and must read the complete existing wiki page before proposing its
+replacement. Prior human notes remain attributed context, and current originals
+remain the source of citations. Each source says whether it has been written up, whether the
 page went stale after the source changed, and each page says which template
 lines it breaks. The graph marks observed reading, provisional writing and
 permission waits on exact file targets. Recent file changes remain inspectable

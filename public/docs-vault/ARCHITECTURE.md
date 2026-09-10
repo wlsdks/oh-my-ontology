@@ -281,6 +281,15 @@ graph. The separation is a property of the **walk**, not a filter applied later.
 - `tests/contract/library-never-enters-the-graph.contract.test.ts` runs one fixture
   folder through both walkers and the derivation, so neither file kind can become a node
   by accident.
+- Local Compile has its own source read, existing-Wiki read and proposal catalogue in
+  `src/features/vault-agent/model/compile-tool-catalog.ts`. Existing Markdown reaches
+  the model as untrusted context, with sequential coverage and a current snapshot
+  receipt required for replacement. Raw-source reads alone supply citation provenance.
+  `use-local-compile.ts` rechecks consented before text and timestamp before handing the
+  selected writes to the existing applier. `LibraryPage` owns the current local work
+  view independently of first-run guidance and preserves the previous reader selection
+  while the narrow index stands aside. This is separate from ACP agent permissions
+  and from the MCP-mirrored ontology tool catalogue.
 - `src-tauri/src/library.rs` owns the native half: hashing, the native picker, the import
   copy, metadata-only discovery, and Finder reveal. It writes nothing outside
   `<vault>/sources/`, and its discovery walk contains no writer.

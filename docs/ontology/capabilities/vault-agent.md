@@ -25,6 +25,12 @@ checks, and atomic rename. Thus, a parent name changing to an external symbolic 
 does not redirect a current vault write outside its opened directory. Windows reparse-point races are still
 unproven and provide no guarantee beyond static link checks.
 
+## Library Compile correction context
+
+Local Compile has a separate source-read, existing-Wiki-read and page-proposal catalogue. It returns existing Markdown as untrusted context in bounded sequential chunks, and requires a complete-read receipt plus an exact current text/timestamp match before replacing a page. Current raw-source reads alone supply citation support; prior human notes are attributed context, not source proof or instructions. The same turn budget includes both source and Wiki text. A later refused attempt invalidates an earlier ready proposal for the same identifiable page.
+
+The local consent card exposes the exact proposed and previous Markdown. Its current work view is independent of first-run guidance and the selected document; the narrow index stands aside, and closing the work view returns to the previous selection. Before applying selected replacements, the hook rechecks their prior text and fresh file timestamps; a detected correction stops those selected writes. Reading and receipts do not establish semantic preservation or human approval, and the sequential write path is not a transaction. The Library still lets the person choose its separate Claude Code or Codex ACP route; this local read contract does not govern an ACP agent's independent filesystem access.
+
 ## Identity Boundary
 
 The interactive vault agent owned here is a provider-neutral loop using a configured model or local runner and calling the vault tool catalogue. Launching Claude Code or Codex over ACP belongs to `capabilities/acp-runtime`. That separate capability records configuration isolation, the requests handled by the app's permission gate, and the limits on an agent's independent filesystem writes. A runtime mode label or app callback is not an operating-system filesystem sandbox.

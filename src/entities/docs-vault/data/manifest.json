@@ -95,7 +95,7 @@
       },
       "headings": [],
       "excerpt": "2026-07-27 update — the current architecture is a local-first, git-backed meaning layer: a folder of markdown files that records what each part of the product is, who owns it, what it depends on, and what proves it. People and AI coding agents read and write that same folder. Round 10 permanently removed every login an",
-      "wordCount": 5370,
+      "wordCount": 5463,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -539,6 +539,21 @@
       ]
     },
     {
+      "slug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+      "path": "docs/benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11.md",
+      "title": "Local Compile and existing human context — 2026-09-11",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "Local Compile previously assembled a replacement from raw sources without giving the model the existing Wiki body. The old body existed only in the proposal data; the rendered consent card showed paths and counts without either complete version. The repair makes existing context available through a bounded read before ",
+      "wordCount": 1042,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "plans/LIBRARY-QUALITY-PROGRAM",
+        "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11"
+      ]
+    },
+    {
       "slug": "benchmark/MCP-ONE-CLICK-2026-09-07",
       "path": "docs/benchmark/MCP-ONE-CLICK-2026-09-07.md",
       "title": "How other open-source clients make an MCP server one press — 2026-09-07",
@@ -919,7 +934,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 122025,
+      "wordCount": 122477,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "wiki/…",
@@ -1027,7 +1042,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 40104,
+      "wordCount": 40292,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -2273,7 +2288,7 @@
       },
       "headings": [],
       "excerpt": "The app's connect flow and MCP surface that allow AI agents to discover, authenticate, read, and write the vault. Interactive agents within the app collect actual vault tool evidence. Activated only when both absolute paths and read manifests are present, ensuring concepts on screen, text read by models, and audit logs",
-      "wordCount": 555,
+      "wordCount": 746,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -4121,12 +4136,13 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Owner direction, 2026-09-11: make Library useful enough that a person would choose Atlas for Library alone. Incoming originals should contribute to connected, maintained knowledge that a later reader can inspect, question, correct and reuse. The owner selected a question-led entrance with explicitly refreshed retained ",
-      "wordCount": 960,
+      "wordCount": 1020,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "benchmark/LIBRARY-COMMUNITY-2026-09-11",
         "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
-        "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11"
+        "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11"
       ]
     },
     {
@@ -4179,7 +4195,7 @@
       },
       "headings": [],
       "excerpt": "This temporary register measures the 2026-09-01 Atlas product-decision system. It is not a second decision archive. Significant rationale stays in DECISIONS.md; this file keeps only the typed facts needed to decide whether the gate earns, narrows, or loses its place. Run pnpm po:pilot for the current report and pnpm po",
-      "wordCount": 3370,
+      "wordCount": 3431,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "DECISIONS"
@@ -4647,6 +4663,11 @@
         "linkText": "Library quality program"
       },
       {
+        "fromSlug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+        "context": "read before a replacement can become ready. Reading does not establish semantic preservation. This is one part of the **[Library quality program]**. Claude Code and Codex ACP remain primary supported paths, with their separate [ordered-arrival evidence](LIBRARY-ACP-M",
+        "linkText": "Library quality program"
+      },
+      {
         "fromSlug": "RETAINED-ANSWERS",
         "context": "b/answer-revision.ts`, `answer-revision-store.ts`, and the Library view. The ongoing qualification scope is recorded in **[the Library quality program]**.",
         "linkText": "the Library quality program"
@@ -4848,6 +4869,18 @@
         "linkText": "discussion ledger"
       }
     ],
+    "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11": [
+      {
+        "fromSlug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+        "context": "am](../plans/LIBRARY-QUALITY-PROGRAM.md). Claude Code and Codex ACP remain primary supported paths, with their separate **[ordered-arrival evidence]**. This local-runner experiment does not qualify ACP or imply that ACP provider traffic stays local. ## Before-state At",
+        "linkText": "ordered-arrival evidence"
+      },
+      {
+        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
+        "context": "ding and ambiguous baseline locators remain in the report. The measured Compile click time is now supplied to ACP. The **[ordered-arrival maintenance comparison]** found and replayed a stale absence claim, then checked explicit policy replacement against a held-out unapproved draft.",
+        "linkText": "ordered-arrival\nmaintenance comparison"
+      }
+    ],
     "benchmark/tasks": [
       {
         "fromSlug": "benchmark/README",
@@ -4921,11 +4954,11 @@
         "linkText": "elements/agents-destination"
       }
     ],
-    "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11": [
+    "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11": [
       {
         "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
-        "context": "ding and ambiguous baseline locators remain in the report. The measured Compile click time is now supplied to ACP. The **[ordered-arrival maintenance comparison]** found and replayed a stale absence claim, then checked explicit policy replacement against a held-out unapproved draft.",
-        "linkText": "ordered-arrival\nmaintenance comparison"
+        "context": "ed replays. New gap coverage and later answer wording remain variable; these results are not a semantic guarantee. The **[local Compile context probe]** closed the missing existing-page read path and exposed exact prior/proposed text at consent. Real local-model quality r",
+        "linkText": "local Compile context probe"
       }
     ],
     "ontology/capabilities/mcp-server": [
@@ -6822,6 +6855,13 @@
             "type": "doc",
             "slug": "benchmark/LIBRARY-COMMUNITY-2026-09-11",
             "title": "Library community evidence — 2026-09-11"
+          },
+          {
+            "name": "LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+            "path": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+            "type": "doc",
+            "slug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+            "title": "Local Compile and existing human context — 2026-09-11"
           },
           {
             "name": "MCP-ONE-CLICK-2026-09-07",

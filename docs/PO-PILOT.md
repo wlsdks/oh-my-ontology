@@ -126,6 +126,8 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 
 | 50 | 2026-09-11 | Revisit resolved source gaps while preserving scoped policy and observation evidence | one-way | review | handoff | public-contract | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
 
+| 51 | 2026-09-11 | Read the complete existing Wiki before local Compile replacement | one-way | review | correct | public-contract | truth=unchanged;transfer=affected;agent-write=affected;human-correction=affected | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -200,3 +202,5 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 49 | 2026-09-11 | fail-caught | yes | no | reopened |
 | 50 | 2026-09-11 | pending | yes | no | pending |
 | 50 | 2026-09-11 | pass | yes | no | pending |
+| 51 | 2026-09-11 | pending | yes | no | pending |
+| 51 | 2026-09-11 | fail-caught | yes | no | reopened |

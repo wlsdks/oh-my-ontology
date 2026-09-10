@@ -15,14 +15,12 @@ import {
   libraryTransferSentence,
   type CompileAvailability,
 } from "../../lib/compile-availability";
-import type { LocalCompileSession } from "@/features/vault-agent";
 
 import type { CompileBrain } from "../../lib/compile-brain";
 import { libraryStepStates, libraryWaitingLine, type LibraryStepState } from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 import type { LibraryLocalModel } from "../../lib/use-library-agent";
 import { CompileBrainSelect } from "./CompileBrainSelect";
-import { LocalCompileCard } from "./LocalCompileCard";
 
 /**
  * **What to do next — three rows, not three essays.**
@@ -66,7 +64,6 @@ export interface LibraryStageProps {
   /** The connect-by-address runner, when one is configured on this computer. */
   localModel: LibraryLocalModel | null;
   /** The turn that runner runs, and the card it ends at, seated under the Compile press. */
-  localCompile: LocalCompileSession | null;
   /**
    * The brain that will run, and whether the person gets to change it.
    *
@@ -191,7 +188,6 @@ export function LibraryStage({
   route,
   agentLabel,
   localModel,
-  localCompile,
   brain,
   brainChoosable,
   onChooseBrain,
@@ -425,7 +421,7 @@ export function LibraryStage({
             </>
           }
           extra={
-            blockedBelow || partialNote || (localCompile && route === "local") || transfer ? (
+            blockedBelow || partialNote || transfer ? (
               <div className="mt-2 flex flex-col gap-1.5">
                 {blockedBelow ? (
                   <p
@@ -445,9 +441,6 @@ export function LibraryStage({
                   >
                     {partialNote}
                   </p>
-                ) : null}
-                {localCompile && route === "local" ? (
-                  <LocalCompileCard session={localCompile} model={localModel?.model ?? ""} t={t} />
                 ) : null}
                 {transfer ? (
                   <p

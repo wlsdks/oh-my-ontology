@@ -5308,3 +5308,21 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: wording may overfit this history or erase valid uncertainty. Both reviewers require exact-state ACP replays, source-hidden recovery and a held-out draft counterexample; a passing template is not semantic proof.
 **Falsifier**: a read source remains globally absent, valid historical/source-specific limits disappear, a draft becomes approved policy, observation becomes implementation proof, or a human note or retained answer changes during Compile.
 **Owner**: jinan
+
+## 2026-09-11 — Local Compile reads the existing write-up before proposing a replacement
+
+**Why**: an executor probe accepted a source-only replacement while the prior human note was available only in the consent diff, never in model context. The person had to rediscover a correction that the model could not see.
+**Prior**: supersedes only the two-tool clause of 2026-09-06 “Compile runs on a local model: a read tool, a proposal tool, one card, parsers deferred”. Keeps 2026-09-06 “Which brain Compile runs on is a default the person can change, not a rank” and 2026-09-11 “Library retains questions through explicit answer revisions”.
+**Decision**: add a Compile-only existing-Wiki reader with bounded sequential chunks. Replacing a page requires its complete-read receipt and an exact current text/timestamp match. Failed later proposals invalidate earlier ready replacements for that path. Prior notes remain attributed context, never borrowed raw-source evidence or instructions. At consent, recheck every selected replacement before sequential writes. Keep the local endpoint boundary, source citation rules, existing budgets and human approval. Claude Code and Codex ACP remain separate supported routes.
+**Dissent**: the diff already exposes deletions, while full prior reads consume context and still cannot guarantee preservation. Both reviewers require a sealed real-model case and a separate semantic verdict; a read receipt proves availability only.
+**Falsifier**: an incomplete or stale read permits replacement, a failed later proposal leaves an earlier one writable, a personal note becomes a source fact, or an ordinary page repeatedly cannot fit the unchanged bounds. Reopen the failing contract rather than claiming guaranteed maintenance.
+**Owner**: jinan
+
+## 2026-09-11 — Local Compile approval exposes the exact previous and proposed text
+
+**Why**: the preceding review referred to a consent diff, but direct render-source inspection found only paths, counts and source lists. Before/after text existed in the proposal data and was not shown to the person.
+**Prior**: extends 2026-09-11 “Local Compile reads the existing write-up before proposing a replacement” and corrects its assumption of an already visible diff. The existing read and approval boundaries stand.
+**Decision**: show exact proposed Markdown inside the current card, with a shared selector for the complete previous page when replacing a file. Open replacement previews by default and keep approval outside the content scroller. New pages offer their proposed preview only. State that automatic save points are unavailable and do not claim every write failure left zero changes.
+**Dissent**: full Markdown adds reading effort and a selector requires remembering the other version. It exposes the actual consented text within the current card; semantic summaries or selective diffs would introduce another interpretation to verify.
+**Falsifier**: a displayed version differs from the selected write payload, the prior correction is inaccessible, or preview scrolling obscures the approval controls at an affected width.
+**Owner**: jinan

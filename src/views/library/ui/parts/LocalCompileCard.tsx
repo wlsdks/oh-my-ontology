@@ -1,6 +1,7 @@
 "use client";
 
 import type { useTranslations } from "next-intl";
+import { useId, useState } from "react";
 import { AlertTriangle, FileText } from "lucide-react";
 
 import type { CompileCardRow, LocalCompileSession } from "@/features/vault-agent";
@@ -8,6 +9,7 @@ import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { BrandWaitingMark } from '@/shared/ui/brand-waiting-mark';
+import { SegmentedControl } from '@/shared/ui/segmented-control';
 
 /**
  * **The card the local Compile turn ends at**, seated under step two.
@@ -87,7 +89,8 @@ export function LocalCompileCard({
           {t("localCompile.title")}
         </h4>
         {card.rows.map((row) => (
-          <CompileRow key={row.path} row={row} t={t} />
+          <CompileRow key={row.path} row={row} t={t}
+            before={card.proposal?.changes.flatMap((change) => change.files).find((file) => file.path === row.path)?.before ?? null} />
         ))}
         {card.rows.length === 0 ? (
           <p className="text-label leading-body text-[color:var(--color-text-tertiary)]">
@@ -101,7 +104,7 @@ export function LocalCompileCard({
 
       {/* Outside the scroller: the two decisions must never scroll away from the reading. */}
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-        <Button variant="ghost" onClick={session.dismiss} data-testid="library-local-compile-deny">
+        <Button variant="ghost" onClick={session.dismiss} disabled={session.status === 'applying'} data-testid="library-local-compile-deny">
           {t("localCompile.deny")}
         </Button>
         {card.proposal ? (
@@ -125,10 +128,15 @@ export function LocalCompileCard({
 function CompileRow({
   row,
   t,
+  before,
 }: {
   row: CompileCardRow;
   t: ReturnType<typeof useTranslations<"library">>;
+  before: string | null;
 }) {
+  const [reviewOpen, setReviewOpen] = useState(row.replaces);
+  const [version, setVersion] = useState<'before' | 'after'>('after');
+  const reviewId = useId();
   return (
     <section
       data-testid="library-local-compile-row"
@@ -219,6 +227,30 @@ function CompileRow({
           </p>
         </div>
       )}
+      {row.ok && row.page !== null ? (
+        <div className="mt-3 min-w-0 border-t border-[color:var(--color-divider)] pt-2">
+          <Button variant="ghost" data-testid="library-local-compile-review-toggle"
+            aria-expanded={reviewOpen} aria-controls={reviewId}
+            onClick={() => setReviewOpen((open) => !open)}>
+            {t(row.replaces ? 'localCompile.comparePage' : 'localCompile.previewPage')}
+          </Button>
+          {reviewOpen ? (
+            <div id={reviewId} className="mt-2 flex min-w-0 flex-col gap-2">
+              {before !== null ? (
+                <div data-testid="library-local-compile-version">
+                  <SegmentedControl ariaLabel={t('localCompile.version')} value={version} onChange={setVersion}
+                    options={[{ value: 'before', label: t('localCompile.before') }, { value: 'after', label: t('localCompile.after') }]} />
+                </div>
+              ) : null}
+              <pre data-testid="library-local-compile-preview" tabIndex={0}
+                aria-label={t(version === 'before' && before !== null ? 'localCompile.before' : 'localCompile.after')}
+                className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-chip bg-[color:var(--color-overlay-1)] p-3 font-mono text-label leading-body text-[color:var(--color-text-secondary)]">
+                {version === 'before' && before !== null ? before : row.page}
+              </pre>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -103,6 +103,7 @@ import { LibraryCheckReport, findingKey, reportOutline } from "./parts/LibraryCh
 import { LibrarySection } from "./parts/LibrarySection";
 import { CompileBrainSelect } from "./parts/CompileBrainSelect";
 import { LibraryStage } from "./parts/LibraryStage";
+import { LocalCompileCard } from "./parts/LocalCompileCard";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock, type LibraryAgentOpeningRequest } from "./parts/LibraryAgentDock";
@@ -658,6 +659,8 @@ export function LibraryPage() {
   );
   const localToolActivity = agent.localCompile.toolActivity;
   const localWorkInScope = agent.localCompile.originVaultScope === workVaultScope;
+  const localReviewVisible = agent.route === "local" && localWorkInScope && agent.localCompile.status !== "idle";
+  const localReviewBusy = agent.localCompile.status === "running" || agent.localCompile.status === "applying";
   const handleTerminalToolObservation = useCallback((event: Extract<AcpEvent, { kind: "tool" }>) => {
     const receipt = completedAcpReadEvent(event, nativeVaultRootPath, Date.now());
     if (receipt) setLibraryWorkActivity((current) => completeLibraryWork(current, receipt));
@@ -1220,6 +1223,9 @@ export function LibraryPage() {
    * loaded is not the same event as focusing it because somebody pressed something.
    */
   const readerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (localReviewVisible) readerRef.current?.focus({ preventScroll: true });
+  }, [localReviewVisible]);
   const lastFocusedSelection = useRef<typeof selected | undefined>(undefined);
   useEffect(() => {
     if (lastFocusedSelection.current === undefined) {
@@ -1243,14 +1249,14 @@ export function LibraryPage() {
    * would close two things with one press.
    */
   useEffect(() => {
-    if (selected === null || findOpen || graphOpen) return;
+    if (localReviewVisible || selected === null || findOpen || graphOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       setSelected(null);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [agent.open, findOpen, graphOpen, selected]);
+  }, [agent.open, findOpen, graphOpen, localReviewVisible, selected]);
 
   /** Which list the index draws, and whether the column is folded — both per machine. */
   const indexSegment = useLibraryIndexSegment();
@@ -1540,7 +1546,7 @@ export function LibraryPage() {
     );
   }
 
-  const narrowShowsReader = selected !== null;
+  const narrowShowsReader = selected !== null || localReviewVisible;
   // Four states — both edges, either, neither — the way `AcpChatPanel` writes its own.
   const indexFade = "var(--tabbar-edge-fade)";
   const indexMask =
@@ -1565,7 +1571,7 @@ export function LibraryPage() {
       id="main"
       tabIndex={-1}
       data-testid="library-page"
-      data-library-state={opened ? opened.kind : "nothing-open"}
+      data-library-state={localReviewVisible ? "local-review" : opened ? opened.kind : "nothing-open"}
       /* The conversation dock remains anchored to this stable row. */
       className="topology-ui-scale relative flex min-h-0 w-full flex-1 bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)] max-lg:flex-col"
     >
@@ -1784,14 +1790,15 @@ export function LibraryPage() {
         />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
-            {selected ? (
+            {selected || localReviewVisible ? (
               <button
                 type="button"
-                onClick={() => setSelected(null)}
+                onClick={() => localReviewVisible ? agent.localCompile.dismiss() : setSelected(null)}
+                disabled={localReviewVisible && localReviewBusy}
                 data-testid="library-reader-back"
                 className={controlClass({ shape: "chip", tone: "muted" })}
               >
-                {t("graph.readerClose")}
+                {t(localReviewVisible ? "localCompile.back" : "graph.readerClose")}
               </button>
             ) : null}
             <div className="min-w-0 flex-1"><LibraryStatusStrip model={model} t={t} /></div>
@@ -1800,7 +1807,14 @@ export function LibraryPage() {
               {graphAction}{conversationDoor}
             </span>
           </div>
-          {!selected ? (
+          {localReviewVisible ? (
+            <div data-testid="library-local-review" className="min-h-0 flex-1 overflow-y-auto px-3 py-6">
+              <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
+                <LocalCompileCard session={agent.localCompile} model={agent.localModel?.model ?? ""} t={t} />
+              </div>
+            </div>
+          ) : null}
+          {!selected && !localReviewVisible ? (
             <div data-testid="library-reader-landing" className="min-h-0 flex-1 overflow-y-auto px-3 py-6">
               <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
                 <LibraryQuestions answers={retainedAnswers} knownSources={knownOriginalPaths} hashes={model.hashes}
@@ -1814,7 +1828,6 @@ export function LibraryPage() {
                   route={agent.route}
                   agentLabel={agent.runtime?.label ?? null}
                   localModel={agent.localModel}
-                  localCompile={agent.localCompile}
                   brain={agent.brain}
                   brainChoosable={agent.brainChoosable}
                   onChooseBrain={agent.chooseBrain}
@@ -1831,7 +1844,7 @@ export function LibraryPage() {
               </div>
             </div>
           ) : null}
-          <div
+          {!localReviewVisible ? <div
             data-testid="library-document-column"
             className={cn("flex min-h-0 min-w-0 flex-1 flex-col", !selected && "hidden")}
           >
@@ -1968,7 +1981,7 @@ export function LibraryPage() {
               />
             </div>
           ) : null}
-          </div>
+          </div> : null}
         </div>
       </div>
 
