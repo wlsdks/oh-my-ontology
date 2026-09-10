@@ -112,6 +112,10 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 42 | 2026-09-09 | Describe current general-knowledge Library actions while preserving code ontology scope | one-way | review | handoff | positioning | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | positioning | 2 | 0 | narrowed | po-evidence+po-wedge |
 | 43 | 2026-09-09 | Preserve unknown answer provenance when sources change before explicit filing | one-way | review | judge | rollback-cheap | truth=affected;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | narrowed | po-evidence+po-steward |
 
+| 44 | 2026-09-10 | Rejudge Library citations and page links against current folder membership | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
+| 45 | 2026-09-11 | Retain Library questions through reviewed answer revisions and recoverable evidence | one-way | review | handoff | public-contract | truth=affected;transfer=unchanged;agent-write=affected;human-correction=affected | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -172,3 +176,8 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 41 | 2026-09-09 | pending | yes | no | pending |
 | 42 | 2026-09-09 | pending | yes | no | pending |
 | 43 | 2026-09-09 | pending | yes | no | pending |
+| 44 | 2026-09-10 | pending | yes | no | pending |
+| 45 | 2026-09-11 | pending | yes | no | pending |
+| 44 | 2026-09-11 | pass | yes | no | held |
+| 45 | 2026-09-11 | fail-caught | yes | yes | reopened |
+| 45 | 2026-09-11 | pass | yes | no | pending |

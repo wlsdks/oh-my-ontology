@@ -1,14 +1,40 @@
 import type { Page } from "@playwright/test";
 
+import { buildCodexConfigToml } from "../../src/entities/vault-session/lib/ontology-starter";
+import { bundledServerLaunch } from "../../src/shared/config/mcp-server-launch";
 import { seedFirstRunSeen } from "./first-run-seed";
 
 const VAULT_ROOT = "/Users/probe/Ontology Atlas/launch";
+export const LIBRARY_WORK_MCP_BINARY = "/Applications/Ontology Atlas.app/Contents/MacOS/ontology-atlas-mcp";
+export const LIBRARY_WORK_CODEX_CONFIG = buildCodexConfigToml(
+  ".",
+  bundledServerLaunch(LIBRARY_WORK_MCP_BINARY),
+);
 
 const RUNTIME = {
   id: "claude-code", label: "Claude Agent", description: "", website: null, license: null,
   verified: true, icon: null, brandInk: null, launchKind: "npx", state: "ready",
   cliPath: "/opt/homebrew/bin/claude", adapterPath: null,
   adapterPackage: "@agentclientprotocol/claude-agent-acp", isolated: true,
+};
+
+export type LibraryWorkRuntimeId = "claude-acp" | "codex-acp";
+
+const ACP_RUNTIMES: Record<LibraryWorkRuntimeId, typeof RUNTIME> = {
+  "claude-acp": {
+    ...RUNTIME,
+    id: "claude-acp",
+    label: "Claude Agent",
+    cliPath: "/opt/homebrew/bin/claude",
+    adapterPackage: "@agentclientprotocol/claude-agent-acp@0.75.1",
+  },
+  "codex-acp": {
+    ...RUNTIME,
+    id: "codex-acp",
+    label: "Codex",
+    cliPath: "/opt/homebrew/bin/codex",
+    adapterPackage: "@agentclientprotocol/codex-acp@1.10.0",
+  },
 };
 
 const VAULT_FILES: Record<string, string> = {
@@ -72,11 +98,20 @@ export interface LibraryWorkHarness {
  */
 export async function installLibraryWorkHarness(
   page: Page,
-  options: { scenario?: LibraryWorkScenario; files?: Record<string, string> } = {},
+  options: {
+    scenario?: LibraryWorkScenario;
+    files?: Record<string, string>;
+    permissionFile?: string;
+    permissionText?: string;
+    writeMode?: 'ask' | 'auto';
+    filePermission?: boolean;
+    runtimeId?: LibraryWorkRuntimeId;
+  } = {},
 ): Promise<LibraryWorkHarness> {
   const scenario = options.scenario ?? "successful-write";
+  const runtime = options.runtimeId ? ACP_RUNTIMES[options.runtimeId] : RUNTIME;
   await page.addInitScript(
-    ({ initialFiles, initialScenario, vaultRoot, runtime, architecturePage }) => {
+    ({ initialFiles, initialScenario, vaultRoot, runtime, architecturePage, permissionFile, permissionText, writeMode, filePermission, mcpBinary }) => {
       const fixtureWindow = window as unknown as HarnessWindow;
       const record = (value: unknown): JsonRecord | null => typeof value === "object" && value !== null && !Array.isArray(value)
         ? value as JsonRecord
@@ -84,7 +119,7 @@ export async function installLibraryWorkHarness(
       const jsonRpcId = (value: unknown): JsonRpcId | null => typeof value === "number" || typeof value === "string"
         ? value
         : null;
-      window.localStorage.setItem("library.wikiWriteMode", "ask");
+      window.localStorage.setItem("library.wikiWriteMode", writeMode);
       const files: Record<string, string> = { ...initialFiles };
       const mtimes: Record<string, number> = {};
       const directories = new Set([".", ".ontology-atlas", "sources", "wiki"]);
@@ -133,11 +168,12 @@ export async function installLibraryWorkHarness(
         if (phase !== "read") return;
         update({ sessionUpdate: "tool_call_update", toolCallId: "read-architecture", status: "completed", rawInput: { file_path: "sources/architecture.docx" }, rawOutput: { text: "Architecture evidence" } });
         phase = "waiting";
-        const targetPath = initialScenario === "successful-write" ? `${vaultRoot}/wiki/architecture.md` : `${vaultRoot}/outside/unknown.md`;
-        const rawInput = { file_path: targetPath, content: architecturePage };
-        update({ sessionUpdate: "tool_call", toolCallId: "write-architecture", title: "mcp__atlas-vault__write_wiki_file", kind: "edit", status: "pending", _meta: { is_mcp_tool_call: true }, rawInput: { server: "atlas-vault", tool: "write_wiki_file", arguments: rawInput } });
+        const targetPath = initialScenario === "successful-write" ? `${vaultRoot}/${permissionFile ?? 'wiki/architecture.md'}` : `${vaultRoot}/outside/unknown.md`;
+        const rawInput = { file_path: targetPath, content: permissionText ?? architecturePage };
+        const title = filePermission ? `Write ${targetPath}` : 'mcp__atlas-vault__write_wiki_file';
+        update({ sessionUpdate: "tool_call", toolCallId: "write-architecture", title, kind: "edit", status: "pending", _meta: { is_mcp_tool_call: !filePermission }, rawInput: filePermission ? rawInput : { server: "atlas-vault", tool: "write_wiki_file", arguments: rawInput } });
         permissionId = 902;
-        acp({ jsonrpc: "2.0", id: permissionId, method: "session/request_permission", params: { sessionId, _meta: { is_mcp_tool_approval: true }, options: [{ kind: "reject_once", optionId: "reject", name: "Reject" }, { kind: "allow_once", optionId: "allow", name: "Allow once" }], toolCall: { toolCallId: "write-architecture", title: "mcp__atlas-vault__write_wiki_file", kind: "edit", rawInput } } });
+        acp({ jsonrpc: "2.0", id: permissionId, method: "session/request_permission", params: { sessionId, _meta: { is_mcp_tool_approval: !filePermission }, options: [{ kind: "reject_once", optionId: "reject", name: "Reject" }, { kind: "allow_once", optionId: "allow", name: "Allow once" }], toolCall: { toolCallId: "write-architecture", title, kind: "edit", rawInput } } });
       };
       const emitWrite = () => {
         if (phase !== "approved" || initialScenario !== "successful-write") return;
@@ -169,7 +205,12 @@ export async function installLibraryWorkHarness(
         if (method === "initialize" && id !== null) return result(id, { protocolVersion: 1, agentCapabilities: { loadSession: false, promptCapabilities: {} } });
         if (method === "session/list" && id !== null) return result(id, { sessions: [] });
         if (method === "session/new" && id !== null) return result(id, { sessionId, modes: { availableModes: [{ id: "default", name: "Default" }], currentModeId: "default" }, models: { availableModels: [], currentModelId: null } });
-        if ((method === "session/set_mode" || method === "session/set_model" || method === "session/cancel") && id !== null) return result(id, {});
+        if (method === 'session/cancel') {
+          if (id !== null) result(id, {});
+          if (promptId !== null) { result(promptId, { stopReason: 'cancelled' }); promptId = null; phase = 'finished'; }
+          return;
+        }
+        if ((method === "session/set_mode" || method === "session/set_model") && id !== null) return result(id, {});
         if (method === "session/prompt" && id !== null) { promptId = id; return; }
         if (id === permissionId && phase === "waiting") {
           const response = record(message.result);
@@ -188,7 +229,7 @@ export async function installLibraryWorkHarness(
         if (command === "acp_stop" || command === "start_vault_watch" || command === "ensure_vault_directory") return Promise.resolve(null);
         if (command === "acp_send") { try { const message: unknown = JSON.parse(String(args.line ?? "")); const parsed = record(message); if (parsed) handleClientMessage(parsed); } catch {} return Promise.resolve(null); }
         if (command === "acp_permission_verdict") return Promise.resolve("ask");
-        if (command === "mcp_bundled_server") return Promise.resolve({ path: "/Applications/Ontology Atlas.app/mcp", available: true, reason: null });
+        if (command === "mcp_bundled_server") return Promise.resolve({ path: mcpBinary, available: true, reason: null });
         if (command === "discover_mcp_connectors") return Promise.resolve({ servers: [], problems: [] });
         if (command === "discover_source_candidates") return Promise.resolve({ candidates: [], truncated: false, unreadableRoots: [] });
         if (command === "pick_vault_directory") return Promise.resolve(vaultRoot);
@@ -223,7 +264,7 @@ export async function installLibraryWorkHarness(
       fixtureWindow.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: (event: string, id: number) => { listeners.get(event)?.delete(id); callbacks.delete(id); } };
       fixtureWindow.__atlasLibraryWorkHarness = { emitRead, emitWait, emitWrite, finish, answer, mutateSource: write, snapshot: () => ({ files: { ...files }, writes: [...writes], calls: [...calls], events: [...events], scenario: initialScenario }) };
     },
-    { initialFiles: options.files ?? VAULT_FILES, initialScenario: scenario, vaultRoot: VAULT_ROOT, runtime: RUNTIME, architecturePage: ARCHITECTURE_PAGE },
+    { initialFiles: options.files ?? VAULT_FILES, initialScenario: scenario, vaultRoot: VAULT_ROOT, runtime, architecturePage: ARCHITECTURE_PAGE, permissionFile: options.permissionFile, permissionText: options.permissionText, writeMode: options.writeMode ?? 'ask', filePermission: options.filePermission ?? false, mcpBinary: LIBRARY_WORK_MCP_BINARY },
   );
   const call = (currentPage: Page, method: "emitRead" | "emitWait" | "emitWrite" | "finish") => currentPage.evaluate((name) => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.[name](), method);
   return { snapshot: (currentPage) => currentPage.evaluate(() => {

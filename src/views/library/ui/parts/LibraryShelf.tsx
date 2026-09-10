@@ -212,6 +212,7 @@ export function LibraryShelf({
                     {page.title}
                   </span>
                   <span className="text-label leading-label text-[color:var(--color-text-tertiary)]">
+                    {model.answerVersions?.get(page.slug) ? `${t(`answers.version.${model.answerVersions.get(page.slug)}`)} · ` : ''}
                     {t(`shelf.state.${freshness}`)}
                   </span>
                 </span>

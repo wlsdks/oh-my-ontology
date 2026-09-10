@@ -9,7 +9,7 @@ import {
   type VaultSourceFile,
 } from "@/entities/docs-vault";
 import { nativeVaultFileHashes } from "@/shared/lib/tauri-vault-fs";
-import { parseWikiLog, type WikiLogEntry } from "@/features/library";
+import { isRetainedAnswerPath, parseWikiLog, retainedAnswerHeads, type RetainedAnswerHead, type WikiLogEntry } from "@/features/library";
 import { isWikiFurnitureSlug, validateWikiFolder, validateWikiPage } from "@/shared/lib/wiki-page-schema";
 import { mergeWikiVerdict } from "./merge-wiki-verdict";
 
@@ -24,13 +24,14 @@ import { mergeWikiVerdict } from "./merge-wiki-verdict";
  *    its bytes are, so hashing it would spend a person's disk on a question nobody
  *    asked. In the app this is one native call for the whole batch; in a browser it is
  *    `crypto.subtle` over the bytes the person's own disk already holds.
- * 2. **A wiki page against its contract**, asked for once per `slug@mtime`. The page
+ * 2. **A wiki page's bytes**, read once per `slug@mtime`. The page
  *    body is not in the manifest — `VaultDoc` keeps frontmatter, headings and an
  *    excerpt — and `uncited-fact` is a question about bullets, so the file is read.
  *    Bounded to `wiki/` and cached, an edit re-reads exactly the page that changed.
  *
- * Both caches are keyed by something the folder decides (path, and mtime), so a file
- * changing on disk invalidates its own entry and nothing else. Neither cache is written
+ * The bytes are cached, but verdicts are derived against the current page and source
+ * membership: deleting another file can break an unchanged page's citation or link.
+ * A changed file invalidates its own byte entry. Neither cache is written
  * anywhere: the folder is the state, and a second store of what the folder already says
  * is what `.claude/rules/forbidden.md` refuses.
  */
@@ -47,6 +48,8 @@ interface LibraryWikiVerdict {
 }
 
 export interface LibraryUiModel extends LibraryModel {
+  retainedAnswers?: readonly RetainedAnswerHead[];
+  answerVersions?: ReadonlyMap<string, 'head' | 'older' | 'alternative' | 'unresolved'>;
   /** Verdicts by wiki slug. A slug absent from the map has not been read yet. */
   verdicts: Map<string, LibraryWikiVerdict>;
   /** Wiki pages that do not fit the contract, and have been measured. */
@@ -120,18 +123,12 @@ export function useLibraryModel({
    * behaviour written as a cascading render.
    */
   const [stampedHashes, setStampedHashes] = useState<Map<string, string>>(() => new Map());
-  const [verdicts, setVerdicts] = useState<Map<string, LibraryWikiVerdict>>(() => new Map());
-  /** `slug@mtime` of every wiki page already judged. */
-  const judgedStamps = useRef(new Set<string>());
   /**
-   * Page text by `slug@mtime`, kept so the folder half can be judged on every pass.
-   * A page's own verdict is stable until its bytes change; whether somebody links to it
-   * changes when *another* page changes, so the folder is re-read from this cache each
-   * time any page moves rather than only for the pages that did.
+   * Cache only completed reads. A cancelled effect must not mark a page judged and
+   * prevent its successor from publishing the verdict. Current membership selects
+   * which cached bytes may reach readers or the permission card.
    */
-  const rawByStamp = useRef(new Map<string, string>());
-  /** The same texts as state, for consumers that judge an agent's edit against the page. */
-  const [pageTexts, setPageTexts] = useState<Map<string, string>>(() => new Map());
+  const [rawByStamp, setRawByStamp] = useState<Map<string, string>>(() => new Map());
   const [logEntries, setLogEntries] = useState<WikiLogEntry[]>([]);
   const logStamp = useRef<string | null>(null);
 
@@ -154,7 +151,20 @@ export function useLibraryModel({
     [docs, enabled, hashes, sources],
   );
 
-  const wanted = model.pathsNeedingHash;
+  const wanted = useMemo(() => {
+    const observed = new Set<string>();
+    for (const doc of docs) {
+      const observations = doc.frontmatter.answer_source_observations;
+      if (!observations || typeof observations !== 'object' || Array.isArray(observations)) continue;
+      for (const [path, hash] of Object.entries(observations)) {
+        if (typeof hash === 'string' && /^[a-f0-9]{64}$/i.test(hash)) observed.add(path);
+      }
+    }
+    return [...new Set([
+      ...model.pathsNeedingHash,
+      ...model.sources.filter((source) => observed.has(source.path) && !hashes.has(source.path)).map((source) => source.path),
+    ])];
+  }, [docs, hashes, model.pathsNeedingHash, model.sources]);
   const wantedKey = wanted.join("\u0000");
 
   useEffect(() => {
@@ -214,69 +224,77 @@ export function useLibraryModel({
   }, [enabled, fileHandles, logDoc, logMtime]);
 
   const wikiPages = model.wikiPages;
-  const wikiKey = wikiPages.map((page) => page.slug).join("\u0000");
+  const retainedAnswers = useMemo(() => retainedAnswerHeads(docs), [docs]);
+  const answerVersions = useMemo(() => {
+    const heads = new Map(retainedAnswers.map((answer) => [answer.slug, answer]));
+    return new Map(docs.filter((doc) => isRetainedAnswerPath(doc.slug)).map((doc) => {
+      const head = heads.get(doc.slug);
+      const version = head?.historyProblem ? 'unresolved' : !head ? 'older' : head.alternatives > 1 ? 'alternative' : 'head';
+      return [doc.slug, version] as const;
+    }));
+  }, [docs, retainedAnswers]);
+  const pageInputs = useMemo(() => {
+    const bySlug = new Map(docs.map((doc) => [doc.slug, doc] as const));
+    return wikiPages
+      .filter((page) => !isWikiFurnitureSlug(page.slug))
+      .map((page) => ({ slug: page.slug, stamp: `${page.slug}@${bySlug.get(page.slug)?.mtime ?? 0}` }));
+  }, [docs, wikiPages]);
 
   useEffect(() => {
-    if (!enabled || wikiPages.length === 0) return;
+    if (!enabled) return;
+    const unread = pageInputs.filter(({ stamp }) => !rawByStamp.has(stamp));
+    if (unread.length === 0) return;
     let cancelled = false;
-    const bySlug = new Map(docs.map((doc) => [doc.slug, doc] as const));
-    const knownSources = (sources ?? []).map((source) => source.path);
     void (async () => {
-      const measured = new Map<string, LibraryWikiVerdict>();
-      const folderInput: Array<{ path: string; raw: string }> = [];
-      let changed = false;
-      for (const page of wikiPages) {
-        if (isWikiFurnitureSlug(page.slug)) continue;
-        const doc = bySlug.get(page.slug);
-        const stamp = `${page.slug}@${doc?.mtime ?? 0}`;
-        let raw = rawByStamp.current.get(stamp);
-        if (raw === undefined) {
-          const handle = fileHandles.get(page.slug);
-          if (!handle) continue;
-          try {
-            raw = await (await handle.getFile()).text();
-          } catch {
-            continue;
-          }
-          rawByStamp.current.set(stamp, raw);
-          changed = true;
+      const read = new Map<string, string>();
+      for (const { slug, stamp } of unread) {
+        const handle = fileHandles.get(slug);
+        if (!handle) continue;
+        try {
+          const raw = await (await handle.getFile()).text();
+          if (cancelled) return;
+          read.set(stamp, raw);
+        } catch {
+          if (cancelled) return;
+          // An unreadable page has no verdict. A later folder poll may retry it.
         }
-        folderInput.push({ path: `${page.slug}.md`, raw });
-        if (judgedStamps.current.has(stamp)) continue;
-        const { ok, problems } = validateWikiPage(raw, { knownSources });
-        judgedStamps.current.add(stamp);
-        measured.set(page.slug, {
-          ok,
-          firstProblem: problems[0]?.code ?? null,
-          firstProblemMessage: problems[0]?.message ?? null,
-          problemCount: problems.length,
-          problems,
-        });
       }
-      if (cancelled || (!changed && measured.size === 0)) return;
-      const folderByPath = new Map(
-        validateWikiFolder(folderInput).map((entry) => [entry.path, entry.problems] as const),
-      );
-      setPageTexts(new Map(folderInput.map(({ path, raw }) => [path.replace(/\.md$/, ""), raw] as const)));
-      setVerdicts((current) => {
+      if (cancelled || read.size === 0) return;
+      setRawByStamp((current) => {
         const next = new Map(current);
-        for (const [slug, verdict] of measured) next.set(slug, verdict);
-        for (const { path } of folderInput) {
-          const slug = path.replace(/\.md$/, "");
-          const base = next.get(slug);
-          if (!base) continue;
-          // Page problems first, folder problems after: the page's own shape is what
-          // a writer fixes first, and the first code shown is the one they see.
-          next.set(slug, mergeWikiVerdict(base, folderByPath.get(path) ?? []));
-        }
+        for (const [stamp, raw] of read) next.set(stamp, raw);
         return next;
       });
     })();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docs, enabled, fileHandles, sources, wikiKey]);
+  }, [enabled, fileHandles, pageInputs, rawByStamp]);
+
+  const { pageTexts, verdicts } = useMemo(() => {
+    const pageTexts = new Map<string, string>();
+    for (const { slug, stamp } of pageInputs) {
+      const raw = rawByStamp.get(stamp);
+      if (raw !== undefined) pageTexts.set(slug, raw);
+    }
+    const folderInput = [...pageTexts].map(([slug, raw]) => ({ path: `${slug}.md`, raw }));
+    const folderByPath = new Map(
+      validateWikiFolder(folderInput).map((entry) => [entry.path, entry.problems] as const),
+    );
+    const knownSources = (sources ?? []).map((source) => source.path);
+    const verdicts = new Map<string, LibraryWikiVerdict>();
+    for (const [slug, raw] of pageTexts) {
+      const { ok, problems } = validateWikiPage(raw, { knownSources });
+      verdicts.set(slug, mergeWikiVerdict({
+        ok,
+        firstProblem: problems[0]?.code ?? null,
+        firstProblemMessage: problems[0]?.message ?? null,
+        problemCount: problems.length,
+        problems,
+      }, folderByPath.get(`${slug}.md`) ?? []));
+    }
+    return { pageTexts, verdicts };
+  }, [pageInputs, rawByStamp, sources]);
 
   return useMemo(() => {
     const live = new Set(model.wikiPages.map((page) => page.slug));
@@ -289,6 +307,6 @@ export function useLibraryModel({
     const entries = logDoc ? logEntries : [];
     const lastCompile = [...entries].reverse().find((entry) => entry.kind === "compile") ?? null;
     const lastLint = [...entries].reverse().find((entry) => entry.kind === "lint") ?? null;
-    return { ...model, verdicts, offTemplateCount, hashes, pageTexts, log: { lastCompile, lastLint } };
-  }, [hashes, logDoc, logEntries, model, pageTexts, verdicts]);
+    return { ...model, verdicts, offTemplateCount, hashes, pageTexts, retainedAnswers, answerVersions, log: { lastCompile, lastLint } };
+  }, [answerVersions, hashes, logDoc, logEntries, model, pageTexts, retainedAnswers, verdicts]);
 }

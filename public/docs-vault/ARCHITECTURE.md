@@ -293,13 +293,20 @@ graph. The separation is a property of the **walk**, not a filter applied later.
   above did not change — only which screen draws them.
 - The reader owns the pane; the Library graph mounts only inside the shared
   viewport Dialog after an explicit Graph action. Its close path preserves
-  selection and scroll and restores the opener. The unselected landing uses the
-  existing LibraryStage guidance; there is no permanent graph/reader split.
+  selection and scroll and restores the opener. The unselected landing lists
+  retained questions and their evidence state; an empty history keeps the existing
+  LibraryStage guidance. There is no permanent graph/reader split.
 - Filed answers retain citations with `unmeasured` source receipts. Passive
   hashing describes current files, not the bytes used by an older answer. App
   writes register with the vault session's existing one-shot self-write ledger,
   so the polling toaster reports external changes without duplicating File's
   success and Undo feedback.
+- Retained answer refresh lives in `src/features/library/lib/answer-revision.ts`
+  and `answer-revision-store.ts`; view hooks own the proposal and comparison
+  lifecycle. ACP returns a draft, and an explicit save exclusively creates its
+  Markdown revision after checking previous text and observed source bytes.
+  These observations are separate from source-read provenance. The record and
+  concurrency limits are defined in [Retained answers](RETAINED-ANSWERS.md).
 
 The Library's live-work projection is separate from the persisted graph:
 `src/features/library/model/library-work-activity.ts` normalizes structured ACP

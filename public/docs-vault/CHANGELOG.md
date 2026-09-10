@@ -47,9 +47,11 @@
 
 ## 2026-09-09 · Unreleased: clearer Library reading and safer answer filing
 
-**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced-motion support.
+**Added**: saved questions show evidence changes and retain reviewed ACP answer revisions. Citations open source panels; competing histories remain visible.
 
-**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Dialog motion follows live system preferences.
+**Changed**: Library uses title rows and an on-request graph. Pending states use the Atlas character at native pixel size; dialogs respect live reduced-motion preferences.
+
+**Fixed**: answer filing preserves human notes and uncertainty without borrowing source-read hashes. New filings keep previous pages; stale edits block saving. Validation follows removed and restored originals. Undo cannot replace a newer turn.
 
 ## 2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list
 

@@ -1203,6 +1203,9 @@
       "loadFailed": "Failed to load document",
       "loadingLabel": "Loading document…",
       "wikilinkMissing": "Link not in this folder: {slug}",
+      "sourceCitationMissing": "Original source not in this folder: {path}",
+      "sourceCitationUnavailable": "Source navigation is unavailable: {path}",
+      "sourceCitationTitle": "Open original source {path}{anchor}",
       "projectLinkTitle": "Project: {slug}",
       "externalLinkUnresolved": "Outside this folder, so it can't be opened here: {href}",
       "imageMissing": "Image missing in this folder: {src}",
@@ -3212,7 +3215,7 @@
     "wikiWriteModeLabel": "When the agent writes a wiki page",
     "wikiWriteModeAuto": "Write at once",
     "wikiWriteModeAsk": "Ask each time",
-    "wikiWriteModeAutoCaption": "A page that fits the contract is written at once and noted in the conversation; one that does not stops at the permission card.",
+    "wikiWriteModeAutoCaption": "Source write-ups that fit the contract are written at once. Retained answers always require a separate review; other pages stop at the permission card when their format needs attention.",
     "wikiWriteModeAskCaption": "Every page stops at the permission card."
   },
   "copyProjectLink": {
@@ -4499,7 +4502,7 @@
           "hint": "{pages} read only the first part of this file, so the rest is not written up."
         },
         "stale": {
-          "label": "stale",
+          "label": "needs review",
           "hint": "{pages} was written from a different version of this file, or recorded no hash for it."
         },
         "checking": {
@@ -4513,8 +4516,8 @@
       "failedReason": "Could not add: {reason}",
       "revealFailed": "Could not show it in Finder: {reason}",
       "openFailed": "Could not open that file.",
-      "needsCompileSplit": "{notCompiled, plural, one {# not written up yet} other {# not written up yet}} · {stale, plural, one {# page behind its source} other {# pages behind their sources}}",
-      "staleOnly": "{count, plural, one {# page is behind its source} other {# pages are behind their sources}}",
+      "needsCompileSplit": "{notCompiled, plural, one {# not written up yet} other {# not written up yet}} · {stale, plural, one {# source version needs review} other {# source versions need review}}",
+      "staleOnly": "{count, plural, one {# source version needs review} other {# source versions need review}}",
       "partialOnly": "{count, plural, one {# read only in part} other {# read only in part}}",
       "import": "Bring from a service",
       "importTooltip": "Bring documents in from Notion, Confluence, Jira or GitHub"
@@ -4523,7 +4526,7 @@
       "header": "Wiki · {count}",
       "listAria": "Wiki pages in this folder",
       "compile": "Compile",
-      "compileTooltip": "Start one agent turn that reads the sources and writes wiki pages. A page that fits the contract lands at once; one that does not stops at your permission card.",
+      "compileTooltip": "Read sources and update their write-ups. Retained answers are reported for separate review and refresh.",
       "lint": "Check the wiki",
       "lintTooltip": "Start one agent turn that reads the wiki pages and reports disagreements, superseded claims, missing links, and names without a page. It writes nothing.",
       "candidateKind": {
@@ -4542,14 +4545,14 @@
       "unknownAuthor": "unknown",
       "offTemplate": "off-template",
       "offTemplateCount": "{count, plural, one {# page does not fit the template} other {# pages do not fit the template}}",
-      "transfer": "Traffic goes from the coding agent straight to its provider; Atlas is not in the middle and .ontology-atlas/llm-audit.jsonl does not record it. A page that fits the contract lands at once and is noted; one that does not stops at your permission card.",
+      "transfer": "The coding agent sends requests directly to its provider; Atlas does not record that traffic. Valid source write-ups can be written automatically. Retained answers always need separate review.",
       "compileFailed": "Could not start the agent turn: {reason}",
       "compileWebLimit": "Writing pages needs a coding agent running on this computer, which only the app can start. Reading and editing the pages works here.",
       "compileWebGetApp": "Get the app",
-      "offTemplateReason": "Does not fit the wiki template: {code}. Open the page to see what to change.",
-      "offTemplateAriaLabel": "How this page differs from the wiki template",
-      "offTemplateTitle": "This page does not fit the wiki template",
-      "offTemplateBody": "It is still a document and still yours to edit. Fixing these lines makes it readable the same way every other page is; `ontology-atlas wiki-validate` and the `validate_wiki` tool report the same codes.",
+      "offTemplateReason": "Page review needed: {code}. Open the page to inspect the finding.",
+      "offTemplateAriaLabel": "Page and evidence checks",
+      "offTemplateTitle": "Items to review on this page",
+      "offTemplateBody": "These checks cover the page structure, cited originals and links from other pages. A finding does not by itself mean the answer is wrong; inspect the named evidence before editing.",
       "writtenBy": "Written by {author}",
       "writer": {
         "human": "a person",
@@ -4796,6 +4799,69 @@
       "open": "Conversation",
       "running": "{phase} · {target}",
       "runningLabel": "Open the conversation. {agent} is still working: {phase}."
+    },
+    "answers": {
+      "title": "Questions you return to",
+      "lede": "Keep an answer, its sources and unresolved questions together. Return when the evidence changes.",
+      "ask": "Ask a question",
+      "empty": "Ask about your documents, then choose File the answer in the conversation. Your saved questions will appear here.",
+      "provenance": "Source observations show changes in files. They do not verify an answer or prove which bytes the agent read.",
+      "state": {
+        "changed": "Cited originals changed",
+        "missing": "A cited original is missing",
+        "new-sources": "New originals need consideration",
+        "unmeasured": "Source version not established",
+        "unchanged": "No change since source observation"
+      },
+      "alternatives": "{count} alternative revisions",
+      "historyProblem": "Revision history needs review",
+      "evidence": "Answer evidence and revisions",
+      "older": "This is an earlier retained answer. Return to questions to see later revisions.",
+      "refresh": "Ask agent for updated draft",
+      "previous": "Read previous version",
+      "back": "Back to questions",
+      "refreshUnavailable": "Refresh needs a connected coding agent in the installed app. You can still read the answer, sources and previous versions here.",
+      "history": {
+        "none": "",
+        "invalid": "The previous-version address is invalid.",
+        "missing": "The previous version is missing.",
+        "unmeasured": "The previous text was not recorded for comparison.",
+        "checking": "Checking the previous version…",
+        "matches": "Previous version matches the text used for this revision.",
+        "changed": "The previous version was edited after this revision was prepared."
+      },
+      "phase": {
+        "preparing": "Checking evidence…",
+        "running": "Preparing a new answer…",
+        "saving": "Saving revision…"
+      },
+      "compareTitle": "Compare the updated answer",
+      "compareHint": "Check the sources, human notes and unresolved questions. Saving creates a new draft and keeps the previous page.",
+      "before": "Previous retained answer",
+      "after": "Proposed new draft",
+      "rawText": "Read exact Markdown",
+      "sourceDelta": "{added} cited originals added · {removed} removed",
+      "sameSources": "The draft cites the same originals.",
+      "removedLines": "{count} earlier lines removed or reworded",
+      "closeCompare": "Continue reading",
+      "saveDraft": "Save as new draft",
+      "reviewDraft": "Review updated answer",
+      "saved": "New answer draft saved. The previous version is preserved.",
+      "savedNeedsReview": "Draft saved, but its comparison inputs need another check. Both versions are preserved.",
+      "comparisonVersion": "Which answer to read",
+      "refreshHint": "Sends a draft request to your connected coding agent and its provider. The agent keeps its existing folder permissions. Atlas files the new draft when you compare and choose Save as new draft.",
+      "paths": {
+        "changed": "Changed originals",
+        "missing": "Missing originals",
+        "added": "New originals to consider"
+      },
+      "version": {
+        "head": "Latest draft",
+        "older": "Earlier version",
+        "alternative": "Alternative draft",
+        "unresolved": "History incomplete"
+      },
+      "citedLocation": "Cited location in the original: {anchor}"
     }
   },
   "libraryImport": {

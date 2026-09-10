@@ -41,6 +41,9 @@ import {
   buildFixBrief,
   parseLintFindings,
   buildAnswerPage,
+  automaticWikiWriteAllowed,
+  answerObservation,
+  isRetainedAnswerPath,
   buildHumanPage,
   createWikiFile,
   deleteWikiFile,
@@ -80,7 +83,8 @@ import {
 import { cn } from "@/shared/lib/cn";
 import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
 import { RIGHT_DOCK_WIDTH_VAR } from "@/shared/lib/right-dock-reserve";
-import { getTauriVaultRootPath, revealTauriVaultFile } from "@/shared/lib/tauri-vault-fs";
+import { getTauriVaultRootPath, nativeVaultFileHashes, revealTauriVaultFile } from "@/shared/lib/tauri-vault-fs";
+import { parseFrontmatter } from '@/shared/lib/parse-frontmatter';
 import { controlClass } from "@/shared/ui/control-class";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { PAGE_COLUMN_STAGE } from "@/shared/ui/page-frame";
@@ -93,6 +97,8 @@ import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/com
 import { useLibraryModel } from "../lib/use-library-model";
 import { useObservedWikiWork } from "../lib/use-observed-wiki-work";
 import { useLibraryAgent } from "../lib/use-library-agent";
+import { useAnswerRefresh } from '../lib/use-answer-refresh';
+import { useAnswerHistory } from '../lib/use-answer-history';
 import { LibraryCheckReport, findingKey, reportOutline } from "./parts/LibraryCheckReport";
 import { LibrarySection } from "./parts/LibrarySection";
 import { CompileBrainSelect } from "./parts/CompileBrainSelect";
@@ -107,6 +113,9 @@ import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
 import { WikiPageHeader } from "./parts/WikiPageHeader";
 import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
+import { LibraryQuestions } from './parts/LibraryQuestions';
+import { RetainedAnswerContext } from './parts/RetainedAnswerContext';
+import { AnswerRevisionComparison } from './parts/AnswerRevisionComparison';
 
 /**
  * The **Library** — project documents of any format, and the wiki pages written from
@@ -234,6 +243,8 @@ export function LibraryPage() {
     };
   }, []);
   const [graphOpen, setGraphOpen] = useState(false);
+  const [sourceCitation, setSourceCitation] = useState<{ path: string; anchor?: string } | null>(null);
+  const [answerComparisonOpen, setAnswerComparisonOpen] = useState(false);
   const graphTriggerRef = useRef<HTMLButtonElement | null>(null);
   const graphRestoreFrameRef = useRef<number | null>(null);
   /** Set when a page opened on its own (a check ending), so the focus stays where the person had it. */
@@ -252,6 +263,7 @@ export function LibraryPage() {
    */
   const [compileRunning, setCompileRunning] = useState(false);
   const choose = useCallback((next: typeof selected) => {
+    setSourceCitation(null);
     setSelected(next);
     /*
      * **The switch follows what was opened.** A file can be reached from three places that
@@ -286,6 +298,8 @@ export function LibraryPage() {
     vaultRootPath: nativeVaultRootPath,
     enabled: hasFolder,
   });
+  const retainedAnswers = model.retainedAnswers ?? EMPTY_DOCS;
+  const knownOriginalPaths = useMemo(() => new Set(model.sources.map((source) => source.path)), [model.sources]);
 
   /**
    * **Nothing chosen is its own state, and it is the one this screen is for.**
@@ -312,6 +326,24 @@ export function LibraryPage() {
     if (opened?.kind !== "source") return null;
     return model.sources.find((row) => row.path === opened.path) ?? null;
   }, [model.sources, opened]);
+  const selectedAnswer = selectedWikiDoc && isRetainedAnswerPath(selectedWikiDoc.slug) ? selectedWikiDoc : null;
+  const answerHistory = useAnswerHistory(selectedAnswer, docs, model.pageTexts);
+  const answerRefreshButtonRef = useRef<HTMLButtonElement>(null);
+  const pendingAnswerFocus = useRef<string | null>(null);
+  useEffect(() => {
+    const target = pendingAnswerFocus.current;
+    if (!target) return;
+    if (opened?.kind !== 'wiki' || opened.slug !== target) {
+      pendingAnswerFocus.current = null;
+      return;
+    }
+    if (selectedAnswer?.slug !== target) return;
+    const frame = requestAnimationFrame(() => {
+      answerRefreshButtonRef.current?.focus();
+      pendingAnswerFocus.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [opened, selectedAnswer?.slug]);
 
   // ── The reading pane's own state, keyed by the open page. ────────────────────────
   const { articleScrollRef, activeHeadingSlug, setActiveHeadingSlug } = useDocReadingScrollSpy(
@@ -571,6 +603,11 @@ export function LibraryPage() {
     modifyFile: (path: string) => t("wiki.compileModifyFile", { path }),
     bridgeMissing: t("stage.blockedWeb"),
   });
+  const answerRefresh = useAnswerRefresh({
+    handle, sources: model.sources, vaultRoot: nativeVaultRootPath,
+    writer: agent.runtime ? `agent:${agent.runtime.id}` : 'agent:unknown', start: agent.start,
+  });
+  const { capture: captureAnswerRefresh, receive: receiveAnswerRefresh } = answerRefresh;
   const knownSlugs = useMemo(
     () => new Set((manifest?.docs ?? []).map((doc) => doc.slug)),
     [manifest],
@@ -919,13 +956,22 @@ export function LibraryPage() {
     filedAnswersRef.current.add(filed);
     setFilingAnswer(filed);
     try {
+      const cited = parseFrontmatter(page.text).frontmatter.sources;
+      const observedInput = {
+        ...input,
+        observations: nativeVaultRootPath && Array.isArray(cited)
+          ? await nativeVaultFileHashes(nativeVaultRootPath, cited.filter((path): path is string => typeof path === 'string')) ?? undefined
+          : undefined,
+        observedAt: new Date().toISOString(),
+      };
+      page = buildAnswerPage(observedInput);
       let created = false;
       for (let attempt = 0; attempt < 3; attempt += 1) {
         if (await createWikiFile(handle, page.path, page.text)) {
           created = true;
           break;
         }
-        page = buildAnswerPage(input);
+        page = buildAnswerPage(observedInput);
       }
       if (!created) throw new Error('Could not reserve a fresh answer filename; existing pages were preserved.');
       markSelfWrite(page.slug);
@@ -955,17 +1001,17 @@ export function LibraryPage() {
     } finally {
       setFilingAnswer((current) => current === filed ? null : current);
     }
-  }, [agent.runtime, handle, lastAnswer, markSelfWrite, model.pairing.originalsByWiki, model.sources, t, toast]);
+  }, [agent.runtime, handle, lastAnswer, markSelfWrite, model.pairing.originalsByWiki, model.sources, nativeVaultRootPath, t, toast]);
 
   const autoDecide = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null; toolName: string | null }) => {
-      if (writeMode !== "auto" || !nativeVaultRootPath) return null;
+      if (writeMode !== "auto" || !nativeVaultRootPath || captureAnswerRefresh()) return null;
       const page = wikiPagePathOf(request.filePath, nativeVaultRootPath);
-      if (!page) return null;
+      if (!page || !automaticWikiWriteAllowed(page)) return null;
       const verdict = judgeWrite(request);
       return verdict?.ok ? page : null;
     },
-    [judgeWrite, nativeVaultRootPath, writeMode],
+    [captureAnswerRefresh, judgeWrite, nativeVaultRootPath, writeMode],
   );
 
   /**
@@ -998,6 +1044,7 @@ export function LibraryPage() {
       // Unmatched prompts are ordinary conversation, not another run of the last
       // Compile/Check action. This classification never changes judgeWrite/autoDecide.
       const kind = opening?.kind ?? "ask";
+      const refreshTurn = kind === 'refresh' ? captureAnswerRefresh() : null;
       const selectionAtStart = latestSelectedRef.current;
       const asked = kind === "ask"
         ? opening && pendingAskRef.current
@@ -1020,6 +1067,13 @@ export function LibraryPage() {
       return async (completion: AcpTurnCompletion) => {
         setTurnRunning(false);
         setCompileRunning(false);
+        if (kind === 'refresh') {
+          setLibraryWorkActivity(clearLibraryWork);
+          if (refreshTurn) receiveAnswerRefresh(refreshTurn,
+            [...completion.events].reverse().find((event) => event.kind === 'agent')?.text ?? null,
+            completion.outcome);
+          return;
+        }
         // A cancelled or failed turn reported nothing: reading its absence as "nothing to fix"
         // would print a clean report over a check that never finished (design-interaction,
         // council 2026-09-07).
@@ -1082,7 +1136,7 @@ export function LibraryPage() {
         }
       };
     },
-    [agent.openingRequest, agent.runtime, choose, handle, model.sources],
+    [agent.openingRequest, agent.runtime, captureAnswerRefresh, choose, handle, model.sources, receiveAnswerRefresh],
   );
 
   /**
@@ -1740,12 +1794,18 @@ export function LibraryPage() {
               </button>
             ) : null}
             <div className="min-w-0 flex-1"><LibraryStatusStrip model={model} t={t} /></div>
-            <span className="flex shrink-0 items-center gap-2">{graphAction}{conversationDoor}</span>
+            <span className="flex shrink-0 items-center gap-2">
+              {answerRefresh.proposal ? <Button className="atlas-touch-floor" size="sm" variant="outline" data-testid="answer-review-open" onClick={() => setAnswerComparisonOpen(true)}>{t('answers.reviewDraft')}</Button> : null}
+              {graphAction}{conversationDoor}
+            </span>
           </div>
           {!selected ? (
             <div data-testid="library-reader-landing" className="min-h-0 flex-1 overflow-y-auto px-3 py-6">
               <div className={`${PAGE_COLUMN_STAGE} mx-auto`}>
-                <h2 className="mb-3 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
+                <LibraryQuestions answers={retainedAnswers} knownSources={knownOriginalPaths} hashes={model.hashes}
+                  onOpen={(slug) => choose({ kind: 'wiki', slug })}
+                  onAsk={agent.route === 'agent' ? () => agent.setOpen(true) : null} t={t} />
+                {retainedAnswers.length === 0 ? <><h2 className="mb-3 mt-8 px-3 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]">
                   {t("stage.title")}
                 </h2>
                 <LibraryStage
@@ -1766,6 +1826,7 @@ export function LibraryPage() {
                   busy={busy}
                   t={t}
                 />
+                </> : null}
               </div>
             </div>
           ) : null}
@@ -1824,6 +1885,16 @@ export function LibraryPage() {
                 t={t}
               />
               <WikiTemplateProblems problems={wikiProblems} t={t} />
+              {selectedAnswer ? <RetainedAnswerContext
+                refreshButtonRef={answerRefreshButtonRef}
+                observation={answerObservation(selectedAnswer.frontmatter, knownOriginalPaths, model.hashes)}
+                phase={turnRunning ? 'running' : answerRefresh.phase}
+                historyState={answerHistory.state}
+                older={!retainedAnswers.some((answer) => answer.slug === selectedAnswer.slug)}
+                onHome={() => choose(null)}
+                onPrevious={answerHistory.previous && answerHistory.exists ? () => choose({ kind: 'wiki', slug: answerHistory.previous! }) : null}
+                onRefresh={agent.route === 'agent' && nativeVaultRootPath ? () => { void answerRefresh.begin(selectedAnswer.slug); } : null}
+                error={answerRefresh.error} t={t} /> : null}
               {/* The passage a person selects here can be asked about at once; the chip and
                   its list hang from the selection inside this positioned box. */}
               <div
@@ -1840,6 +1911,8 @@ export function LibraryPage() {
                   onNavigate={(slug) => choose({ kind: "wiki", slug })}
                   getDocContent={getDocContent}
                   resolveImage={resolveImage}
+                  knownOriginalPaths={knownOriginalPaths}
+                  onSourceNavigate={(path, anchor) => { choose({ kind: 'source', path }); setSourceCitation({ path, anchor }); }}
                 />
                 {agent.route === "agent" ? (
                   <SelectionAsk
@@ -1869,6 +1942,7 @@ export function LibraryPage() {
             </DocReadingPane>
           ) : selectedSource ? (
             <div className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]">
+              {sourceCitation?.path === selectedSource.path && sourceCitation.anchor ? <p data-testid="library-source-citation" className="px-6 pt-4 text-body text-[color:var(--color-text-secondary)]">{t('answers.citedLocation', { anchor: sourceCitation.anchor })}</p> : null}
               <SourceSummary
                 row={selectedSource}
                 hash={model.hashes.get(selectedSource.path) ?? null}
@@ -1898,6 +1972,19 @@ export function LibraryPage() {
       </div>
 
       {/* A requested graph owns its viewport; closing it leaves the reader and dock intact. */}
+      {answerRefresh.snapshot && answerRefresh.proposal ? <AnswerRevisionComparison
+        open={answerComparisonOpen} question={answerRefresh.snapshot.question}
+        before={answerRefresh.snapshot.previousText} after={answerRefresh.proposal.text}
+        knownOriginalPaths={knownOriginalPaths}
+        problems={answerRefresh.proposal.problems} error={answerRefresh.error}
+        saving={answerRefresh.phase === 'saving'} onClose={() => setAnswerComparisonOpen(false)}
+        onOpenSource={(path, anchor) => { setAnswerComparisonOpen(false); choose({ kind: 'source', path }); setSourceCitation({ path, anchor }); }}
+        onSave={() => { void answerRefresh.save().then((result) => {
+          if (!result) return;
+          pendingAnswerFocus.current = result.slug;
+          markSelfWrite(result.slug); setAnswerComparisonOpen(false); agent.setOpen(false); choose({ kind: 'wiki', slug: result.slug });
+          toast.show(t(result.state === 'saved' ? 'answers.saved' : 'answers.savedNeedsReview'), result.state === 'saved' ? 'success' : 'error');
+        }); }} t={t} /> : null}
       <Dialog
         open={graphOpen}
         onClose={closeGraph}

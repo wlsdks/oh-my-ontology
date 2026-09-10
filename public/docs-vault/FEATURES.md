@@ -735,6 +735,20 @@ Sources remain original files; write-ups and filed answers remain wiki pages.
 Documents-only folders need no code nodes or separate mode switch. The ontology
 retains its codebase scope.
 
+**Retained questions and explicit revisions.** The Library landing lists saved
+questions and the tips of their answer histories. It distinguishes source-byte
+changes, missing or new originals and unmeasured evidence; observations never
+become source-read proof. A deliberate agent request produces a structured draft
+for comparison. Saving creates a new file, checks concurrent edits, preserves
+the previous page and exposes competing branches. Narrow comparisons switch
+between old and new text. The [record and boundaries](RETAINED-ANSWERS.md) describe
+the Markdown metadata and the limits of those checks.
+
+Library validation follows the current folder membership. Removing or restoring a
+cited source or a linked wiki page updates the affected verdicts even when the
+citing page is unchanged. Cached bytes avoid rereading unchanged pages; deleted
+pages and old revisions are withdrawn from the text supplied to page-write review.
+
 It shipped inside the Docs sidebar on 2026-09-05 and moved out the next day. The owner
 read the merged screen as cluttered and asked whether gathering documents belonged inside
 Docs at all, and the measurement agreed: five capped lists shared one 280px column, so

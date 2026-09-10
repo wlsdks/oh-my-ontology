@@ -2753,6 +2753,28 @@
       "slug": "what-this-does-and-does-not-show"
     }
   ],
+  "benchmark/LIBRARY-COMMUNITY-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Library community evidence — 2026-09-11",
+      "slug": "library-community-evidence-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Primary hypothesis",
+      "slug": "primary-hypothesis"
+    },
+    {
+      "depth": 2,
+      "text": "Discussion ledger",
+      "slug": "discussion-ledger"
+    },
+    {
+      "depth": 2,
+      "text": "Decisions and falsifiers",
+      "slug": "decisions-and-falsifiers"
+    }
+  ],
   "benchmark/MCP-ONE-CLICK-2026-09-07": [
     {
       "depth": 1,
@@ -9391,6 +9413,11 @@
       "depth": 2,
       "text": "2026-09-09 — Filing an answer does not borrow a later source hash",
       "slug": "2026-09-09-filing-an-answer-does-not-borrow-a-later-source-hash"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Library retains questions through explicit answer revisions",
+      "slug": "2026-09-11-library-retains-questions-through-explicit-answer-revisions"
     }
   ],
   "DEMO-SCENARIO": [
@@ -13326,6 +13353,11 @@
       "depth": 2,
       "text": "Versioned analysis review",
       "slug": "versioned-analysis-review"
+    },
+    {
+      "depth": 2,
+      "text": "Library retained-answer refresh",
+      "slug": "library-retained-answer-refresh"
     }
   ],
   "ontology/capabilities/agent-work-visibility": [
@@ -15869,6 +15901,33 @@
       "slug": "헌장-리마인드-이-정비에서-특히"
     }
   ],
+  "plans/LIBRARY-QUALITY-PROGRAM": [
+    {
+      "depth": 1,
+      "text": "Library quality program",
+      "slug": "library-quality-program"
+    },
+    {
+      "depth": 2,
+      "text": "Delivery order",
+      "slug": "delivery-order"
+    },
+    {
+      "depth": 2,
+      "text": "Execution routes",
+      "slug": "execution-routes"
+    },
+    {
+      "depth": 2,
+      "text": "Qualification",
+      "slug": "qualification"
+    },
+    {
+      "depth": 2,
+      "text": "Operating boundaries",
+      "slug": "operating-boundaries"
+    }
+  ],
   "plans/PRODUCT-PLAN-2026-07": [
     {
       "depth": 1,
@@ -16532,6 +16591,33 @@
       "depth": 2,
       "text": "Updating documentation",
       "slug": "updating-documentation"
+    }
+  ],
+  "RETAINED-ANSWERS": [
+    {
+      "depth": 1,
+      "text": "Retained answers and explicit revisions",
+      "slug": "retained-answers-and-explicit-revisions"
+    },
+    {
+      "depth": 2,
+      "text": "Evidence and authority",
+      "slug": "evidence-and-authority"
+    },
+    {
+      "depth": 2,
+      "text": "Markdown record",
+      "slug": "markdown-record"
+    },
+    {
+      "depth": 2,
+      "text": "Refresh and review",
+      "slug": "refresh-and-review"
+    },
+    {
+      "depth": 2,
+      "text": "Agent and terminal access",
+      "slug": "agent-and-terminal-access"
     }
   ],
   "superpowers/plans/2026-08-28-architecture-xray": [

@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 
 import { seedFirstRunSeen } from "./first-run-seed";
 import { installLibraryWorkHarness } from "./library-work-harness";
+import { parseFrontmatter } from '../../src/shared/lib/parse-frontmatter';
 
 const SOURCE = "sources/room-capacity.md";
 const ORIGINAL = "The room allows 24 participants.\n";
@@ -56,7 +57,9 @@ test("filing a retained answer preserves unmeasured evidence and the outstanding
   const answerPath = Object.keys(filed.files).find((path) => path.startsWith("wiki/answers/"))!;
   expect(filed.files[answerPath]).toContain(`${SOURCE}: unmeasured`);
   expect(filed.files[answerPath]).toContain(`${ORIGINAL.trim()} [[src:${SOURCE}#l1]]`);
-  expect(filed.files[answerPath]).not.toContain(createHash("sha256").update(REVISED).digest("hex"));
+  const retained = parseFrontmatter(filed.files[answerPath]).frontmatter;
+  expect(retained.source_hash).toEqual({ [SOURCE]: 'unmeasured' });
+  expect(retained.answer_source_observations).toEqual({ [SOURCE]: createHash("sha256").update(REVISED).digest("hex") });
   expect(filed.files["wiki/room.md"]).toBe(ORIGINAL_PAGE);
   expect(filed.files[SOURCE]).toBe(REVISED);
 
