@@ -22,6 +22,7 @@
 import { smoothstep } from "../model/altitude";
 import { FONT_WEIGHT } from "@/shared/ui/font-weight";
 import { computeHoverShimmer } from "../model/hover-shimmer";
+import { drawDiffractionSpike } from "./starfield";
 
 export interface Point {
   x: number;
@@ -541,25 +542,29 @@ function minCornerRadius(kind: NodeShapeDrawState["kind"], r: number): number {
  * primitive at a different radius/color/width/alpha.
  */
 /**
- * The walked path's star — a node lit on **its own silhouette**.
+ * **The walked path's star: the node, emitting.**
  *
- * ⚠️ **Not a ring at the node radius.** The first build stroked a circle, which on a
- * rounded-square domain drew a second shape around the first: exactly the "fourth circle in
- * a grammar already holding the selection ring, the expand aura and the warding circle" that
- * this codebase left the ring notation over on 2026-07-29. A star is the node *being bright*,
- * so the light traces whatever outline the node's kind gives it — which is what
- * `strokeKindOutline` has always done for the other five overlays.
+ * ⚠️ Two builds got this wrong before it worked, and both failures were the same mistake in
+ * different clothes — painting a *mark* instead of making the node *bright*.
  *
- * Two passes: wide and soft for the light thrown, tight and bright for the edge. The face is
- * never filled — a wash over the node covers its own numeral, and a visited node ended up
- * harder to read than an unvisited one (measured 2026-09-10).
+ * 1. A small star glyph beside the node. That is the footprint notation in another shape:
+ *    still an object to find and tie back to what it belongs to.
+ * 2. A pale outline stroke. The owner's verdict was exact — *"it's just dark grey"* — and it
+ *    was, because paint on a dark canvas is paint. Light on a dark canvas has to **add**.
  *
- * This is the one licensed emission on a node outline. `design.md` says "material, not
- * emission" for the ring overlays, and that rule stands for every one of them: they mark
- * state on a node you are looking at. This marks a node as *a star*, on a canvas whose own
- * `starfield.ts` says magnitude by brightness, and only inside a lens the person opened.
+ * So this composites with `lighter`, the one operation that turns strokes into emission, and
+ * builds the star the way the map already builds one: a radial bloom for the light it
+ * throws, `drawDiffractionSpike`'s four-point cross for the signature every bright node on
+ * this canvas already wears, and the node's own kind outline for the edge. The face is never
+ * filled — a wash covers the node's numeral, and a visited node ended up harder to read than
+ * an unvisited one (measured 2026-09-10).
+ *
+ * `design.md` reserves node-outline overlays for "material, not emission", and that rule
+ * stands for the five that mark state on a node you are already looking at. This one is not
+ * state: it says the node *is a star*, on a canvas whose own `starfield.ts` says magnitude
+ * by brightness, and only inside a lens the person opened.
  */
-export function strokeNodeStarRim(
+export function drawNodeStar(
   ctx: CanvasRenderingContext2D,
   kind: NodeShapeDrawState["kind"],
   x: number,
@@ -568,15 +573,62 @@ export function strokeNodeStarRim(
   farT: number,
   ink: string,
   lit: number,
-  blurPx: number,
+  spikes: boolean,
 ): void {
   if (lit <= 0.01) return;
-  ctx.shadowColor = ink;
-  ctx.shadowBlur = blurPx;
-  strokeKindOutline(ctx, kind, x, y, radius, farT, ink, 1, Math.min(1, lit * 0.55));
-  ctx.shadowBlur = blurPx * 0.3;
-  strokeKindOutline(ctx, kind, x, y, radius, farT, ink, 1.6, Math.min(1, lit));
-  ctx.shadowBlur = 0;
+  const k = Math.min(1, lit);
+  const prevOp = ctx.globalCompositeOperation;
+  const prevAlpha = ctx.globalAlpha;
+  ctx.globalCompositeOperation = "lighter";
+
+  // The light it throws. A gradient rather than a shadow blur: `shadowBlur` on a hairline
+  // spends almost all of itself on nothing, which is exactly why the outline read as grey.
+  const glow = ctx.createRadialGradient(x, y, radius * 0.35, x, y, radius * STAR_GLOW_REACH);
+  glow.addColorStop(0, withAlpha(ink, 0.62 * k));
+  glow.addColorStop(0.32, withAlpha(ink, 0.14 * k));
+  glow.addColorStop(0.62, withAlpha(ink, 0.035 * k));
+  glow.addColorStop(1, withAlpha(ink, 0));
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x, y, radius * STAR_GLOW_REACH, 0, Math.PI * 2);
+  ctx.fill();
+
+  // The signature. Same primitive the far-field bright stars wear, so a walked node and a
+  // big node are the same *kind* of thing — separated by the lens, not by inventing a mark.
+  if (spikes) {
+    drawDiffractionSpike(ctx, {
+      screenX: x,
+      screenY: y,
+      screenRadius: radius,
+      color: ink,
+      alpha: 0.72 * k,
+    });
+  }
+
+  // The edge itself, on the node's real silhouette — never a circle over a square.
+  strokeKindOutline(ctx, kind, x, y, radius, farT, ink, 1.8, k);
+  ctx.globalCompositeOperation = prevOp;
+  ctx.globalAlpha = prevAlpha;
+}
+
+/**
+ * How far the star's bloom reaches, in node radii.
+ *
+ * ⚠️ 3.2 with a gentle falloff was measured reading as **fog** rather than as a star — a
+ * soft blob wide enough to touch its neighbours, with the diffraction cross drowned inside
+ * it. A star is a point of light: bright and tight at the core, gone quickly. The reach came
+ * down and the falloff steepened, so most of the light lives inside the first third.
+ */
+const STAR_GLOW_REACH = 2.0;
+
+/** `#rrggbb` → `rgba(...)`, which a gradient stop takes where a `var()` cannot. */
+function withAlpha(hex: string, alpha: number): string {
+  const h = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
+  const r = parseInt(h.slice(1, 3), 16);
+  const g = parseInt(h.slice(3, 5), 16);
+  const b = parseInt(h.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${Math.max(0, Math.min(1, alpha)).toFixed(3)})`;
 }
 
 function strokeKindOutline(

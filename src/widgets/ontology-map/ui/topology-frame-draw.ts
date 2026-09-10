@@ -81,7 +81,7 @@ import {
   type ReservedBox,
   type SafeRect,
 } from "../render/label-layout";
-import { draw as nodeShapesDraw, strokeNodeStarRim } from "../render/node-shapes";
+import { draw as nodeShapesDraw, drawNodeStar } from "../render/node-shapes";
 import { clusterChipOccupancyRect, drawClusterChip, clusterChipScale, type ClusterBarLabels } from "../render/cluster-chips";
 import type { ClusterChip } from "../model/density-gate";
 import { drawDiffractionSpike, drawRealmCosmos, drawStarDust, type DustPoint } from "../render/starfield";
@@ -521,8 +521,8 @@ const TRAIL_GLINT_PERIOD_MS = 4000;
  * were never here". A floor is what keeps the whole path visible while still ordering it.
  */
 const TRAIL_STAR_FLOOR = 0.42;
-/** Glow around a walked node's own border, at full recency. */
-const TRAIL_STAR_BLUR_PX = 20;
+/** Recency above which a star also wears the map's four-point diffraction cross. */
+const TRAIL_SPIKE_FROM = 0.7;
 /**
  * How far a star's light swings as it twinkles, as a fraction of its own level.
  *
@@ -2536,7 +2536,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
        * keeps its face and gains a lit rim, twice over: a wide soft pass for the halo and a
        * tight bright pass for the edge itself.
        */
-      strokeNodeStarRim(
+      drawNodeStar(
         ctx,
         node.kind,
         screen.x,
@@ -2545,7 +2545,10 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
         farT,
         trailStarInk,
         lit,
-        TRAIL_STAR_BLUR_PX * recency,
+        // Spikes on the recent half of the walk only: every node wearing a cross turns the
+        // signature into wallpaper, and the ones a person is still thinking about are the
+        // recent ones.
+        recency > TRAIL_SPIKE_FROM,
       );
       drawFootprintSteps(
         { ctx, pref: footprintPref, ink: footprintInk, scale: footprintScale },
