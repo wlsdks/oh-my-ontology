@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-11 — The README loses half its words and keeps every fact the ledger put in its body
+
+**Why**: the owner opened the README and said it has too much text and does not look good. Measured: 1,107 lines, 7,896 prose words, eight centered paragraphs before the first heading, and a 125-line gate narrative `docs/DEVELOPMENT-CHECKS.md` already owns entry by entry.
+**Prior**: upholds 2026-08-03 "README proves the real screen first" and 2026-08-02 "README owns the public quality contract", both owner-accountable. The first cut dropped their quality-contract summary and UID/slug/path fact; Evidence caught it and they return as sentences, the remedy 2026-08-03 prescribes ("the missing typed fact is restored, not the long-form text").
+**Decision**: 3,561 prose words (−55%), 601 lines, all 11 captures kept, no section deleted outright. The header becomes one claim line, one category line and a link row; the gate narrative becomes a five-row command table plus its owning documents; compact-handoff detail goes to `mcp/README.md`, which carries it in full. Every mandated fact stays in the body: no node cap, contextual fan-out, earned bridge, packet bound is not a graph bound, UID/slug/path, external-trial isolation, typed relations, local-first, no npm. Two review must-fixes landed with it: `unsigned` rides the Windows link on the first screen, as `DownloadPage.tsx` already promises before pressing, and the updater manifest is a fixed URL staging release candidates, not a stable channel.
+**Dissent**: Evidence wanted the quality contract moved to `docs/ONTOLOGY-QUALITY.md` and 2026-08-02 overturned outright; not adopted, because the seven facts compress to two sentences and a reader sent to a link can misread the analyzer's packet bound as a graph cap.
+**Falsifier**: a fresh reader who cannot say what `uid` is for, or whether a vault has a node ceiling, from the README alone — then the sentences were too short and the facts go back as bullets.
+**Owner**: jinan
+
 ## 2026-09-10 — The galaxy is a view you pick, not an altitude you reach
 
 **Why**: the owner shipped the altitude version, looked at it, and said where they had gone looking for the feature — a screenshot of the map's view picker, with *"I thought the galaxy mode would be here"*. Both readings survive their own argument; what does not survive is a mode nobody can find. The altitude version also had no way to see the sky while working close in, which is most of the time a person spends on this map.
