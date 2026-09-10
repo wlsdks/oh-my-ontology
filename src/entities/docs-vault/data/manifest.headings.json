@@ -4162,8 +4162,8 @@
     },
     {
       "depth": 2,
-      "text": "2026-09-09 · Unreleased: clearer Library reading and safer answer filing",
-      "slug": "2026-09-09-unreleased-clearer-library-reading-and-safer-answer-filing"
+      "text": "2026-09-11 · Unreleased: two npm-free channels for the MCP server, clearer Library reading",
+      "slug": "2026-09-11-unreleased-two-npm-free-channels-for-the-mcp-server-clearer-library-reading"
     },
     {
       "depth": 2,
@@ -6505,6 +6505,11 @@
       "depth": 2,
       "text": "Record format",
       "slug": "record-format"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Atlas enters the MCP ecosystem as a release bundle and a container image, and npm stays retired",
+      "slug": "2026-09-11-atlas-enters-the-mcp-ecosystem-as-a-release-bundle-and-a-container-image-and-npm-stays-retired"
     },
     {
       "depth": 2,
@@ -10792,6 +10797,11 @@
       "depth": 3,
       "text": "Code-comment doc reference integrity",
       "slug": "code-comment-doc-reference-integrity"
+    },
+    {
+      "depth": 3,
+      "text": "MCP ecosystem channel",
+      "slug": "mcp-ecosystem-channel"
     },
     {
       "depth": 3,

@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-11 — Atlas enters the MCP ecosystem as a release bundle and a container image, and npm stays retired
+
+**Why**: the owner asked whether Atlas can be discoverable in the MCP ecosystem. 2026-07-27's Dissent 2, "MCP registries assume npm distribution; app-only sacrifices discoverability", lost on the premise that a registry needs a package. That premise is now false: the official registry accepts `mcpb` (a release asset verified by URL and SHA-256) and `oci` (an image verified by its label), and hosts no artifacts. Measured too: `punkpeye/awesome-mcp-servers` (94,762 stars) needs no Glama registration, and Glama builds a server from its Dockerfile to index it.
+**Prior**: upholds 2026-07-27 "the npm publish plan is dropped" rather than triggering its falsifier: it resumes npm only on observed registry-driven inflow, and reasons that "removal is reversible and publishing isn't". Both channels here are reversible, so that one-way door stays shut.
+**Decision**: `pnpm mcp:build-bundle` packs the server's own declared `files` list into an `.mcpb`, then unpacks and boots it before writing an artifact; the release attaches it with a checksum. `mcp/Dockerfile` serves both the `oci` entry and Glama's inspection. `pnpm mcp:registry` derives every published value, so no digest is typed by hand. One measured fix made it portable: `src/analysis-record.mts` relied on Node's type stripping, so the bundle died on Node 20 and 22; stripped, it answered `tools/list` with 38 tools on Node 20, 22, 24 and 25, as did the image over stdio. Publishing stays a human act.
+**Dissent**: npm is still what a CLI agent installs in one line, so discovery without it reaches desktop hosts first and `npx` users not at all. Conceded, not resolved: that is what 2026-07-27's falsifier defers until inflow is observed.
+**Falsifier**: registry-driven inflow with no install, which would mean a listing without a one-line install is decoration; or a host that ships neither Node nor MCPB support, which moves this channel to the compiled binary.
+**Owner**: jinan
+
 ## 2026-09-11 — The README loses half its words and keeps every fact the ledger put in its body
 
 **Why**: the owner opened the README and said it has too much text and does not look good. Measured: 1,107 lines, 7,896 prose words, eight centered paragraphs before the first heading, and a 125-line gate narrative `docs/DEVELOPMENT-CHECKS.md` already owns entry by entry.

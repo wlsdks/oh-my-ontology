@@ -45,11 +45,13 @@
 
 ---
 
-## 2026-09-09 · Unreleased: clearer Library reading and safer answer filing
+## 2026-09-11 · Unreleased: two npm-free channels for the MCP server, clearer Library reading
 
-**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced-motion support. Local Compile suggests related pages from cached text, reads them before revision, and shows current and proposed text for approval. A repeatable wiki evaluation reports missed revisions, lost notes and citation or disagreement omissions.
+**Added**: the MCP server also ships as an `.mcpb` bundle on each release and as a container image, so it can be listed in the official MCP Registry. Neither is a package registry: npm stays retired.
 
-**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Outdated filed answers remain queued even when another write-up is current. Dialog motion follows live system preferences.
+**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced motion. Local Compile suggests related pages from cached text, reads them before revision, and shows current and proposed text for approval. A repeatable wiki evaluation reports missed revisions and lost notes.
+
+**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Outdated filed answers stay queued even when another write-up is current. Dialog motion follows live system preferences.
 
 ## 2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list
 

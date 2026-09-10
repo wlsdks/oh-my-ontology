@@ -911,6 +911,10 @@ describe('focused check suggestions', () => {
     ]);
 
     assert.deepEqual(domainCommands(result), [
+      // The release workflow is also where the MCP ecosystem bundle is built and
+      // uploaded, so editing it re-checks that the registry entry still points at
+      // an artifact the release actually carries.
+      'pnpm test:mcp:bundle && pnpm mcp:registry:check',
       'pnpm docs:language',
       'pnpm docs:links',
       'pnpm test:mcp:docs',

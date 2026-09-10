@@ -83,10 +83,24 @@ MCP design contracts this package treats as release-critical:
 
 ### 1. Register with an agent
 
-The server reaches you through two channels: the installed macOS app, which
-carries a compiled copy of this server inside its own bundle, and a source
-checkout. npm publishing is retired (`docs/DECISIONS.md`, 2026-07-27), so
-there is no `npx` channel.
+The server reaches you through four channels, and none of them is npm — that
+publishing plan is retired (`docs/DECISIONS.md`, 2026-07-27), so there is no
+`npx` channel:
+
+| Channel | Who it is for | What it needs |
+|---|---|---|
+| **App-bundled** (primary) | anyone on macOS or Windows | nothing — the download carries a compiled copy of this server |
+| **Source checkout** | Linux, contributors, anyone who wants the CLI too | Node 24 and pnpm ([setup](../cli/README.md#set-up-from-a-source-checkout)) |
+| **MCPB bundle** | a host that installs `.mcpb` files in one click | the bundle from the [latest release](https://github.com/wlsdks/ontology-atlas/releases); it asks for your vault folder |
+| **Container image** | a client that would rather run a container | `docker run --rm -i -v /path/to/atlas:/vault ghcr.io/wlsdks/ontology-atlas-mcp` |
+
+The last two exist so the server is discoverable in the MCP ecosystem without a
+package registry: the official MCP Registry accepts an MCPB artifact hosted on a
+GitHub Release (verified by URL and SHA-256) and an OCI image (verified by its
+ownership label), and hosts no files itself. `pnpm mcp:build-bundle` builds and
+boots the bundle, `pnpm mcp:registry` derives the registry entry from the built
+artifact, and `mcp/Dockerfile` is both the image and what a directory that
+inspects servers by building them reads.
 
 **App-bundled (primary).** Open your vault folder in the app and press the
 connect button. It writes exactly this, with your vault's real absolute path

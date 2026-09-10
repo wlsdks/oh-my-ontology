@@ -576,6 +576,22 @@ jobs:
             --dir=release-assets --out=release-assets/latest.json \
             --tag="${RELEASE_TAG}" --repo="${GITHUB_REPOSITORY}"
 
+      - name: Build the MCP ecosystem bundle
+        # The MCPB artifact is what makes Atlas publishable to the official MCP
+        # Registry without an npm package: the registry verifies the release
+        # asset's URL and SHA-256 and hosts no files itself. The build boots the
+        # unpacked bundle before it writes an artifact, so a bundle that cannot
+        # start never reaches a release. Built after the updater manifest so the
+        # manifest builder, which splits architectures by folder, never sees this
+        # one.
+        run: |
+          pnpm --dir mcp install --frozen-lockfile
+          pnpm mcp:build-bundle
+          mkdir -p release-assets/mcp
+          cp .tmp/mcp-bundle/*.mcpb release-assets/mcp/
+          cd release-assets/mcp
+          for bundle in *.mcpb; do shasum -a 256 "$bundle" > "$bundle.sha256"; done
+
       - name: Upload draft GitHub Release assets
         uses: softprops/action-gh-release@c12583777ecdfd3be55c69cf75464299dc01057e # v3
         with:
@@ -595,6 +611,8 @@ jobs:
             release-assets/*/*.dSYM.zip
             release-assets/windows/*.exe
             release-assets/windows/*.exe.sha256
+            release-assets/mcp/*.mcpb
+            release-assets/mcp/*.mcpb.sha256
             release-assets/latest.json
 
       - name: Verify draft release assets
