@@ -94,8 +94,15 @@ and fresh wiki-only readers. Its small synthetic corpus establishes bounded
 recovery, not superiority or recurring owner value; unsupported extra wording
 and ambiguous baseline locators remain in the report.
 
-Next work follows the observed gaps: finish the native retained-answer visual
-checkpoint when the Mac is unlocked; supply the measured compile clock instead
-of leaving a model to infer it; then test successive and reversed arrivals with
-human corrections. Preserve the distinction between source-byte currentness,
-extraction coverage, locator identity and factual support throughout.
+The measured Compile click time is now supplied to ACP. The [ordered-arrival
+maintenance comparison](../benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11.md) found and
+replayed a stale absence claim, then checked explicit policy replacement against
+a held-out unapproved draft. Actual before-state gaps, a scripted personal note
+and retained answers survived the repaired replays. New gap coverage and later
+answer wording remain variable; these results are not a semantic guarantee.
+
+Next work follows the remaining evidence: finish the native retained-answer
+visual checkpoint when the Mac is unlocked, close the local executor's missing
+existing-page context, and qualify recurring real owner work. Preserve the
+distinction between source-byte currentness, extraction coverage, locator
+identity and factual support throughout.

@@ -124,6 +124,8 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 
 | 49 | 2026-09-11 | Probe source arrival order and human-correction retention through real ACP ingestion | two-way | solo | handoff | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
 
+| 50 | 2026-09-11 | Revisit resolved source gaps while preserving scoped policy and observation evidence | one-way | review | handoff | public-contract | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | meaning | 2 | 0 | verification-strengthened | po-evidence+po-steward |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -195,3 +197,6 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 48 | 2026-09-11 | pending | yes | no | pending |
 | 49 | 2026-09-11 | pending | yes | no | pending |
 | 48 | 2026-09-11 | pass | yes | no | pending |
+| 49 | 2026-09-11 | fail-caught | yes | no | reopened |
+| 50 | 2026-09-11 | pending | yes | no | pending |
+| 50 | 2026-09-11 | pass | yes | no | pending |

@@ -92,7 +92,7 @@ describe("the brief carries the template rather than describing it", () => {
   });
 });
 
-describe("the nine rules are all present, in both locales", () => {
+describe("the base compilation rules reach both locales", () => {
   const CASES: Array<{ locale: string; probes: string[] }> = [
     {
       locale: "en",

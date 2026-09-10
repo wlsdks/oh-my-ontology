@@ -495,6 +495,22 @@
       "linksOut": []
     },
     {
+      "slug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+      "path": "docs/benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11.md",
+      "title": "Library maintenance across ordered source arrivals — 2026-09-11",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "An ACP compilation read and cited a newly arrived handbook while leaving the old statement that the handbook was absent. The revised Compile brief repaired that failure in a replay from the exact previous file state. It also distinguishes an explicit approved policy replacement from a draft or an observed configuration",
+      "wordCount": 1495,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "plans/LIBRARY-QUALITY-PROGRAM",
+        "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+        "benchmark/LIBRARY-COMMUNITY-2026-09-11"
+      ]
+    },
+    {
       "slug": "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
       "path": "docs/benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11.md",
       "title": "Library source fidelity and ACP handoff — 2026-09-11",
@@ -867,7 +883,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed, for a person who uses the product. Newest at the top. One entry per release, named by its tag; the single Unreleased entry at the top collects what has merged since the last tag, and the release cut renames it. v1.0.0",
-      "wordCount": 30036,
+      "wordCount": 30041,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -903,7 +919,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 121807,
+      "wordCount": 122025,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "wiki/…",
@@ -1011,7 +1027,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 40002,
+      "wordCount": 40104,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -1467,7 +1483,7 @@
       },
       "headings": [],
       "excerpt": "The ability to detect ACP (Agent Client Protocol) v1 coding-agent executors already installed on the device, directly launch those with verified app-owned permission gates (currently Claude Agent and Codex), and apply scoped permission review. No new Atlas API key or vendor integration is needed: it uses the subscripti",
-      "wordCount": 2399,
+      "wordCount": 2490,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "ontology/elements/agents-destination"
@@ -4105,11 +4121,12 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Owner direction, 2026-09-11: make Library useful enough that a person would choose Atlas for Library alone. Incoming originals should contribute to connected, maintained knowledge that a later reader can inspect, question, correct and reuse. The owner selected a question-led entrance with explicitly refreshed retained ",
-      "wordCount": 908,
+      "wordCount": 960,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "benchmark/LIBRARY-COMMUNITY-2026-09-11",
-        "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11"
+        "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+        "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11"
       ]
     },
     {
@@ -4162,7 +4179,7 @@
       },
       "headings": [],
       "excerpt": "This temporary register measures the 2026-09-01 Atlas product-decision system. It is not a second decision archive. Significant rationale stays in DECISIONS.md; this file keeps only the typed facts needed to decide whether the gate earns, narrows, or loses its place. Run pnpm po:pilot for the current report and pnpm po",
-      "wordCount": 3294,
+      "wordCount": 3370,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "DECISIONS"
@@ -4615,6 +4632,11 @@
     ],
     "plans/LIBRARY-QUALITY-PROGRAM": [
       {
+        "fromSlug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "context": "on and a separately retained answer stayed unchanged throughout the measured updates. This is a bounded result for the **[Library quality program]**, not a general accuracy guarantee, provider ranking or proof of recurring owner value. It follows the [source-fidelity",
+        "linkText": "Library quality program"
+      },
+      {
         "fromSlug": "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
         "context": "# Library source fidelity and ACP handoff — 2026-09-11 This is a bounded synthetic experiment for the **[Library quality program]**, not a provider ranking or a standalone-usefulness verdict. Both real ACP adapters compiled three source-specific wiki",
         "linkText": "Library quality program"
@@ -4802,6 +4824,30 @@
         "linkText": "`results/2026-08-31-gb-r3-summary.md`"
       }
     ],
+    "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11": [
+      {
+        "fromSlug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "context": "ALITY-PROGRAM.md), not a general accuracy guarantee, provider ranking or proof of recurring owner value. It follows the **[source-fidelity comparison]** and tests the accumulation hypothesis from the [community research](LIBRARY-COMMUNITY-2026-09-11.md). ## Frozen baseli",
+        "linkText": "source-fidelity comparison"
+      },
+      {
+        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
+        "context": "ision storage. The source reader preserves quoted table records and gives repeated DOCX headings distinct locators. The **[real ACP comparison]** uses frozen originals, Claude Code and Codex ACP, raw-source controls and fresh wiki-only readers. Its small synthetic",
+        "linkText": "real ACP comparison"
+      }
+    ],
+    "benchmark/LIBRARY-COMMUNITY-2026-09-11": [
+      {
+        "fromSlug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "context": "[source-fidelity comparison](LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11.md) and tests the accumulation hypothesis from the **[community research]**. ## Frozen baseline Three short synthetic originals have different roles: | Original | What it establishes in the pr",
+        "linkText": "community research"
+      },
+      {
+        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
+        "context": "esearch on 2026-09-11 covered twelve directly opened discussions across Reddit, Hacker News and the Obsidian Forum; the **[discussion ledger]** records their provenance and falsifiers. [Karpathy's LLM Wiki proposal](https://gist.github.com/karpathy/442a6bf5559148",
+        "linkText": "discussion ledger"
+      }
+    ],
     "benchmark/tasks": [
       {
         "fromSlug": "benchmark/README",
@@ -4875,18 +4921,11 @@
         "linkText": "elements/agents-destination"
       }
     ],
-    "benchmark/LIBRARY-COMMUNITY-2026-09-11": [
+    "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11": [
       {
         "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
-        "context": "esearch on 2026-09-11 covered twelve directly opened discussions across Reddit, Hacker News and the Obsidian Forum; the **[discussion ledger]** records their provenance and falsifiers. [Karpathy's LLM Wiki proposal](https://gist.github.com/karpathy/442a6bf5559148",
-        "linkText": "discussion ledger"
-      }
-    ],
-    "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11": [
-      {
-        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
-        "context": "ision storage. The source reader preserves quoted table records and gives repeated DOCX headings distinct locators. The **[real ACP comparison]** uses frozen originals, Claude Code and Codex ACP, raw-source controls and fresh wiki-only readers. Its small synthetic",
-        "linkText": "real ACP comparison"
+        "context": "ding and ambiguous baseline locators remain in the report. The measured Compile click time is now supplied to ACP. The **[ordered-arrival maintenance comparison]** found and replayed a stale absence claim, then checked explicit policy replacement against a held-out unapproved draft.",
+        "linkText": "ordered-arrival\nmaintenance comparison"
       }
     ],
     "ontology/capabilities/mcp-server": [
@@ -6762,6 +6801,13 @@
             "type": "doc",
             "slug": "benchmark/FINDINGS-2026-09-06-wiki-probe",
             "title": "Findings 2026-09-06 · the sealed five-question wiki probe"
+          },
+          {
+            "name": "LIBRARY-ACP-MAINTENANCE-2026-09-11",
+            "path": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+            "type": "doc",
+            "slug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+            "title": "Library maintenance across ordered source arrivals — 2026-09-11"
           },
           {
             "name": "LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",

@@ -5299,3 +5299,12 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: unit grouping changes pagination and old ambiguous citations still need review. An ambiguity note does not repair a stored answer; it prevents selecting one possible target silently.
 **Falsifier**: a unique existing address identifies a different passage, a quoted qualifier is dropped or split, pagination loses a record, or a returned heading address still names two occurrences.
 **Owner**: jinan
+
+## 2026-09-11 — Compile revisits resolved gaps and distinguishes policy from observation
+
+**Why**: a real reverse-arrival ACP run cited a newly read handbook while retaining its earlier absence claim. It also left an explicit approved replacement framed as an undecided policy conflict.
+**Prior**: extends 2026-09-06 “The wiki page contract gains a folder half, and the Compile brief revises, flags, and links”; 2026-09-11 “Library retains questions through explicit answer revisions” stands. Keep the current source-specific pages and their historical claims.
+**Decision**: compare claim scope, source dates, source status and policy/observation roles before labeling a conflict. Record an explicit approved replacement without treating recency or a draft as approval. Revisit existing gaps on updated pages, resolving only answered parts with citations and qualifying obsolete absence claims. Preserve source-specific limits, personal notes and separately retained answers. Supply the request timestamp to each modified page as guidance, not an attested completion time. No write authority or accepted ontology meaning changes.
+**Dissent**: wording may overfit this history or erase valid uncertainty. Both reviewers require exact-state ACP replays, source-hidden recovery and a held-out draft counterexample; a passing template is not semantic proof.
+**Falsifier**: a read source remains globally absent, valid historical/source-specific limits disappear, a draft becomes approved policy, observation becomes implementation proof, or a human note or retained answer changes during Compile.
+**Owner**: jinan

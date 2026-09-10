@@ -2753,6 +2753,43 @@
       "slug": "what-this-does-and-does-not-show"
     }
   ],
+  "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11": [
+    {
+      "depth": 1,
+      "text": "Library maintenance across ordered source arrivals — 2026-09-11",
+      "slug": "library-maintenance-across-ordered-source-arrivals-2026-09-11"
+    },
+    {
+      "depth": 2,
+      "text": "Frozen baseline",
+      "slug": "frozen-baseline"
+    },
+    {
+      "depth": 2,
+      "text": "Failure and repair",
+      "slug": "failure-and-repair"
+    },
+    {
+      "depth": 2,
+      "text": "Exact-state replay",
+      "slug": "exact-state-replay"
+    },
+    {
+      "depth": 2,
+      "text": "Held-out counterexample",
+      "slug": "held-out-counterexample"
+    },
+    {
+      "depth": 2,
+      "text": "Audit corrections and limits",
+      "slug": "audit-corrections-and-limits"
+    },
+    {
+      "depth": 2,
+      "text": "Evidence coordinates",
+      "slug": "evidence-coordinates"
+    }
+  ],
   "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11": [
     {
       "depth": 1,
@@ -9460,6 +9497,11 @@
       "depth": 2,
       "text": "2026-09-11 — Source citations retain record boundaries and distinguish repeated headings",
       "slug": "2026-09-11-source-citations-retain-record-boundaries-and-distinguish-repeated-headings"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Compile revisits resolved gaps and distinguishes policy from observation",
+      "slug": "2026-09-11-compile-revisits-resolved-gaps-and-distinguishes-policy-from-observation"
     }
   ],
   "DEMO-SCENARIO": [
@@ -13405,6 +13447,11 @@
       "depth": 2,
       "text": "Library Compile request metadata",
       "slug": "library-compile-request-metadata"
+    },
+    {
+      "depth": 2,
+      "text": "Library source maintenance",
+      "slug": "library-source-maintenance"
     }
   ],
   "ontology/capabilities/agent-work-visibility": [

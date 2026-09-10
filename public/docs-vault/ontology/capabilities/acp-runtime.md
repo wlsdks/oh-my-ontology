@@ -92,3 +92,9 @@ Implementation evidence: `src/views/library/ui/LibraryPage.tsx`, `src/views/libr
 A Library Compile request supplies the click time through the existing brief's `now` input as the intended `compiled_at`. The sender measures this value; the agent is asked to copy it. It is request-time guidance, not proof of when an agent wrote or completed a page.
 
 Implementation evidence: `src/views/library/ui/LibraryPage.tsx#handleCompile`, `src/features/library/lib/compile-brief.ts#buildCompileBrief`, and `tests/e2e/library-acp-provider-routes.spec.ts`.
+
+## Library source maintenance
+
+Compile briefs ask the coding agent to reuse each source's own wiki page, distinguish explicit approved replacements from drafts or configuration observations, and revisit earlier uncertainty when new material arrives. A resolved gap must not remain a false current absence; unanswered parts and source-specific limits remain visible. Personal notes stay attributed, and retained answers still require their separate revision flow. These are generation instructions within the existing runtime authority, not a semantic validator or independent filesystem protection.
+
+Implementation evidence: `src/features/library/lib/compile-brief.ts`. Bounded real-adapter replay and its limits: `docs/benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11.md`.

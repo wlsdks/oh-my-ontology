@@ -1097,7 +1097,15 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   writer for one page per source, named after it and never folded into another (a page
   is what one document said), to link the pages it touches both ways, to record a
   disagreement on both pages with both citations, and to write nothing for a source
-  that adds nothing.
+  that adds nothing. Updating the same source reuses its own page. The brief compares
+  claim scope, source dates, source approval/draft status and policy/observation roles
+  before leaving a difference unresolved: an explicit approved replacement is recorded
+  as such, while recency alone or an observed configuration does not change policy.
+  It also asks the writer to revisit existing gaps on updated pages, resolve only the
+  parts new evidence answers, qualify obsolete absence wording and keep unanswered
+  source-specific limits. Personal notes remain attributed and verbatim; retained
+  answers still require their separate refresh/revision action. These are instructions
+  to the agent, not a semantic validator or a filesystem protection guarantee.
   The ACP brief supplies the measured Compile click time for `compiled_at`, so the
   agent receives a concrete value to copy without querying a shell or inferring a
   date. This is request-time guidance, not an app-attested completion receipt.
