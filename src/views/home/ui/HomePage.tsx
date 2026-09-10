@@ -103,7 +103,7 @@ import {
 } from "../model/use-spotlight-fit-transition";
 import { useLocalStorageBoolean } from "@/shared/lib/use-local-storage-boolean";
 import { useAudiencePlain } from "@/shared/lib/audience-preference";
-import { useCanvasBackground, useExpand, useFootprint, useGlyphSet, useMapArrangement, useView3d } from "@/shared/lib/appearance-preferences";
+import { useCanvasBackground, useExpand, useFootprint, useGalaxy, useGlyphSet, useMapArrangement, useView3d } from "@/shared/lib/appearance-preferences";
 
 const CREATE_NODE_DIALOG_TITLE_ID = "topology-create-node-dialog-title";
 // Bare `?p=` miss grace window — see the deeplinkMissNotifiedRef effect
@@ -445,6 +445,7 @@ function HomePageImpl() {
   const canvasBackground = useCanvasBackground();
   // 3D view (2026-08-18, opt-in): either the ownership Cone tree or the relation-driven Cloud.
   const view3d = useView3d();
+  const galaxy = useGalaxy();
   /** Which structural question places nodes in 3D — see the `MapArrangement` doc-block. */
   const mapArrangement = useMapArrangement();
   const footprint = useFootprint();
@@ -5744,6 +5745,7 @@ function HomePageImpl() {
                       glyphSet={glyphSet}
                       canvasBackground={canvasBackground}
                       view3d={view3d}
+                      galaxy={galaxy}
                       mapArrangement={mapArrangement}
                       // The "the viewport changed" event for the 3D selection reframe: true
                       // while the detail panel actually covers the screen, false once its
