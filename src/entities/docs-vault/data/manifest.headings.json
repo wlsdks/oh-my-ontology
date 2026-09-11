@@ -10968,6 +10968,11 @@
     },
     {
       "depth": 3,
+      "text": "MCP registry entry",
+      "slug": "mcp-registry-entry"
+    },
+    {
+      "depth": 3,
       "text": "MCP ecosystem channel",
       "slug": "mcp-ecosystem-channel"
     },

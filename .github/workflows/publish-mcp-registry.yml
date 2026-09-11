@@ -1,0 +1,168 @@
+name: Publish to MCP Registry
+run-name: Publish ${{ inputs.tag || github.event.release.tag_name }} to the MCP Registry
+
+# Listing Atlas in the official MCP Registry needs no package registry: the entry
+# points at the `.mcpb` asset on a GitHub Release, and the registry fetches that
+# asset itself to verify the URL and SHA-256. Two consequences shape this workflow:
+#
+#   1. It must run **after** the release leaves draft. A draft asset 404s to the
+#      anonymous fetch the registry makes, so `release: [published]` is the trigger
+#      rather than a tag push.
+#   2. It publishes **metadata we derive**, never a digest anyone typed:
+#      `pnpm mcp:registry` hashes the asset downloaded from the release itself.
+#
+# Authentication is OIDC — `mcp-publisher login github-oidc` proves this repository
+# owns the `io.github.wlsdks/*` namespace with the workflow's own identity, so no
+# token is stored and no person has to complete a device flow.
+#
+# The registry treats a version as immutable, and our server version
+# (`mcp/package.json`) moves independently of the app tag. A release that carries an
+# unchanged server version therefore has nothing new to publish, and this workflow
+# says so and stops instead of failing.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The published release tag whose .mcpb asset should be listed
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish the MCP server entry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve the release tag
+        id: release
+        run: |
+          tag="${{ inputs.tag || github.event.release.tag_name }}"
+          if [[ -z "${tag}" ]]; then
+            echo "::error::no release tag to publish"
+            exit 1
+          fi
+          # A release candidate must not burn the server version: the registry
+          # cannot take that version again once published.
+          if [[ "${tag}" == *-* ]]; then
+            echo "::notice::${tag} is a pre-release; the registry entry is published from final releases only"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout the released source
+        if: steps.release.outputs.skip != 'true'
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+
+      - name: Setup Node.js
+        if: steps.release.outputs.skip != 'true'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+
+      - name: Enable Corepack pnpm
+        if: steps.release.outputs.skip != 'true'
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
+
+      - name: Install dependencies
+        if: steps.release.outputs.skip != 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Read the server version this release carries
+        if: steps.release.outputs.skip != 'true'
+        id: server
+        run: |
+          version="$(node -p "require('./mcp/package.json').version")"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "artifact=ontology-atlas-mcp-${version}.mcpb" >> "$GITHUB_OUTPUT"
+
+      - name: Stop if the registry already lists this server version
+        if: steps.release.outputs.skip != 'true'
+        id: listed
+        run: |
+          # The registry rejects a repeat publication of one version, so an app
+          # release that changed no server code has nothing to add here.
+          listed="$(curl -fsS "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.wlsdks/ontology-atlas" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+                let versions=[];
+                try { const j=JSON.parse(s); for (const row of j.servers ?? []) { const v=row.server?.version ?? row.version; if (v) versions.push(v); } } catch {}
+                console.log(versions.join(" "));
+              })' || echo "")"
+          echo "registry lists: ${listed:-(nothing)}"
+          if grep -qw -- "${{ steps.server.outputs.version }}" <<< "${listed}"; then
+            echo "::notice::server version ${{ steps.server.outputs.version }} is already listed; nothing to publish"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download the published .mcpb asset
+        if: steps.release.outputs.skip != 'true' && steps.listed.outputs.skip != 'true'
+        run: |
+          # Hash what the registry will fetch, not a fresh local build: the entry's
+          # digest has to match the bytes a stranger downloads.
+          gh release download "${{ steps.release.outputs.tag }}" \
+            --pattern '*.mcpb' --dir .tmp/mcp-bundle --clobber
+          ls -l .tmp/mcp-bundle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Derive server.json from that asset
+        if: steps.release.outputs.skip != 'true' && steps.listed.outputs.skip != 'true'
+        run: |
+          pnpm mcp:registry -- --tag="${{ steps.release.outputs.tag }}" \
+            --artifact=".tmp/mcp-bundle/${{ steps.server.outputs.artifact }}"
+          cp .tmp/mcp-registry/server.json server.json
+          cat server.json
+
+      - name: Confirm the asset is reachable anonymously
+        if: steps.release.outputs.skip != 'true' && steps.listed.outputs.skip != 'true'
+        run: |
+          # The registry fetches the artifact with no credentials. A draft release,
+          # a renamed asset, or a private repository all fail here rather than
+          # leaving a listing that points at nothing.
+          url="$(node -p "require('./server.json').packages[0].identifier")"
+          code="$(curl -sIL -o /dev/null -w '%{http_code}' "${url}")"
+          echo "${url} → HTTP ${code}"
+          test "${code}" = "200"
+
+      - name: Install mcp-publisher
+        if: steps.release.outputs.skip != 'true' && steps.listed.outputs.skip != 'true'
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+          ./mcp-publisher --help | head -5
+
+      - name: Authenticate with this repository's own identity
+        if: steps.release.outputs.skip != 'true' && steps.listed.outputs.skip != 'true'
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish the entry
+        if: steps.release.outputs.skip != 'true' && steps.listed.outputs.skip != 'true'
+        run: ./mcp-publisher publish
+
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            echo "## MCP Registry"
+            echo ""
+            if [[ "${{ steps.release.outputs.skip }}" == "true" ]]; then
+              echo "Skipped: ${{ steps.release.outputs.tag }} is a pre-release."
+            elif [[ "${{ steps.listed.outputs.skip }}" == "true" ]]; then
+              echo "Skipped: server version ${{ steps.server.outputs.version }} is already listed."
+            else
+              echo "Published \`io.github.wlsdks/ontology-atlas\` version ${{ steps.server.outputs.version }}"
+              echo "from the \`${{ steps.server.outputs.artifact }}\` asset on ${{ steps.release.outputs.tag }}."
+              echo ""
+              echo "The OCI entry is deliberately absent: nothing here pushes that image, and"
+              echo "a listing naming an unpushed image is what the ownership check refuses."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -101,6 +101,13 @@ ownership label), and hosts no files itself. `pnpm mcp:build-bundle` builds and
 boots the bundle, and `pnpm mcp:registry` derives the registry entry from the
 built artifact.
 
+Publishing the registry entry is wired, not manual: `.github/workflows/publish-mcp-registry.yml`
+runs when a release is **published** (a draft asset 404s to the anonymous fetch the
+registry makes), hashes the asset the release actually carries, proves that URL
+returns 200, authenticates with this repository's own OIDC identity, and stops
+without failing when the server version is already listed, since the registry
+treats a version as immutable.
+
 Two honest limits on those rows. **The image is not published yet** — build it
 yourself with `docker build -t ontology-atlas-mcp mcp`, and note the context is
 `mcp/`, not the repository root, where the build fails on a missing
