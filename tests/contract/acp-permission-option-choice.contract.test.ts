@@ -352,7 +352,10 @@ describe('permission options — the app picks the one that ends with this call'
  * app launches from: a bump turns this red and the arrays get re-read.
  */
 // 0.75.1 (2026-09-07): `dist/permissions/` is byte-identical to the transcribed 0.75.0.
-const TRANSCRIBED_FROM = '@agentclientprotocol/claude-agent-acp@0.75.1';
+// 0.76.0 (2026-09-11): `dist/permissions/` is byte-identical to 0.75.1 again, and `optionId`
+// appears in no other `dist/**/*.js`, so nothing outside that directory builds an option array.
+// What 0.76.0 actually adds is `session-effort` and `session-model`; the builders did not move.
+const TRANSCRIBED_FROM = '@agentclientprotocol/claude-agent-acp@0.76.0';
 
 describe('transcribed adapter version', () => {
   it('reads the option builders from the version the app actually launches', () => {
