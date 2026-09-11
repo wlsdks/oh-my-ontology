@@ -9,18 +9,20 @@
 #      indexes the tools it advertises. Authoring this file is what keeps that
 #      inspection from guessing at the project structure.
 #
-# **The build context is `mcp/`, not the repository root.** Measured: from the root,
-# `docker build -f mcp/Dockerfile .` fails on `"/CHANGELOG.md": not found`, because
-# that file exists only under `mcp/`. A directory that guesses the context is
-# exactly the consumer this file was written for, so build it as:
+# **The build context is the repository root**, which is what an outside builder
+# assumes. It was `mcp/` until 2026-09-11, and that is the shape the awesome-list
+# bot's Glama requirement exposed: a directory that builds a server from its
+# Dockerfile starts at the root, where `COPY package.json` would take the app's
+# manifest and the build would die on a missing `CHANGELOG.md`. Paths here are
+# therefore repository-relative:
 #
-#   docker build -t ontology-atlas-mcp mcp
+#   docker build -f mcp/Dockerfile -t ontology-atlas-mcp .
 #
 # A plain build produces one architecture — measured arm64 on Apple silicon, which
 # an amd64 client cannot run. The published image must be built for both:
 #
-#   docker buildx build --platform linux/amd64,linux/arm64 \
-#     -t ghcr.io/wlsdks/ontology-atlas-mcp:<version> --push mcp
+#   docker buildx build --platform linux/amd64,linux/arm64 -f mcp/Dockerfile \
+#     -t ghcr.io/wlsdks/ontology-atlas-mcp:<version> --push .
 #
 # The server speaks stdio, so a client runs it with the vault mounted. Pass your
 # own uid: the image runs as root, and on a Linux bind mount that would leave the
@@ -45,12 +47,14 @@ LABEL org.opencontainers.image.licenses="MIT"
 WORKDIR /app
 
 # The lockfile is copied first so a source-only change reuses the install layer.
-COPY package.json pnpm-lock.yaml ./
+COPY mcp/package.json mcp/pnpm-lock.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile --prod
 
-COPY src ./src
-COPY scripts ./scripts
-COPY README.md CHANGELOG.md ./
+COPY mcp/src ./src
+COPY mcp/scripts ./scripts
+COPY mcp/README.md mcp/CHANGELOG.md ./
+# The licence the labels and manifest both claim travels with the image.
+COPY LICENSE ./
 
 # The server's own test suites are 60 files the image has no runner for.
 RUN rm -f src/*.test.mjs scripts/*.test.mjs

@@ -261,6 +261,13 @@ before commit `5eb3ba9ff`, and its decisions are in the ledger.
 **Proves**: Every .md path cited from a code comment, outside the docs/ontology example vault, resolves to a real file.
 **Escalate**: none
 
+### MCP registry entry
+
+**Run**: `pnpm mcp:registry:check`
+**Proves**: The image's ownership label still repeats the registry name and the artifact URL rule holds, before any release exists to publish.
+**Escalate**: `pnpm mcp:registry -- --tag=<published tag>` when an entry is actually going out; it validates the document the registry would reject
+**Fix**: Align `mcp/Dockerfile` and `scripts/lib/mcp-bundle.mjs` on one registry name, or shorten the registry description below the schema's 100 characters
+
 ### MCP ecosystem channel
 
 **Run**: `pnpm test:mcp:bundle`
