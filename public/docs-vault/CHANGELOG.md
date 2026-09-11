@@ -45,13 +45,13 @@
 
 ---
 
-## 2026-09-11 · Unreleased: two npm-free channels for the MCP server, clearer Library reading
+## 2026-09-11 · Unreleased: two npm-free channels for the MCP server, and Library answers that keep their evidence
 
-**Added**: the MCP server also ships as an `.mcpb` bundle on each release and as a container image, so it can be listed in the official MCP Registry. Neither is a package registry: npm stays retired.
+**Added**: the MCP server also ships as an `.mcpb` bundle on each release and as a container image, so it can be listed in the official MCP Registry; neither is a package registry and npm stays retired. Saved questions retain reviewed ACP answer revisions, inspectable citations and competing histories; an offline wiki evaluation reports maintenance omissions.
 
-**Changed**: Library uses readable title rows and opens its graph on request; pending operations use the Atlas character with native pixel sizing and reduced motion. Local Compile suggests related pages from cached text, reads them before revision, and shows current and proposed text for approval. A repeatable wiki evaluation reports missed revisions and lost notes.
+**Changed**: Library uses title rows, an on-request graph and related-page suggestions. Local revisions require complete prior reads and show previous/proposed text for approval. Pending states respect reduced motion.
 
-**Fixed**: ordinary cited conversations can be filed without borrowing current source hashes; create-only publication preserves earlier answers, and Undo cannot replace a newer turn. Outdated filed answers stay queued even when another write-up is current. Dialog motion follows live system preferences.
+**Fixed**: source receipts hash the bytes read; CSV records and repeated DOCX headings keep distinct locations. Answer filing does not borrow passive hashes, newer turns survive Undo, stale edits block saving, and outdated write-ups stay queued even when another is current.
 
 ## 2026-09-09 · v1.1.0: a lit gateway, a Library graph that stays beside the page, and connectors added from one list
 

@@ -107,8 +107,8 @@ describe("what the waiting line says", () => {
 
   it("names an outdated answer even when each original has a current write-up", () => {
     const sources = [
-      { ...source("compiled"), reviewPages: ["wiki/answers/release-date"] },
-      { ...source("compiled"), reviewPages: ["wiki/answers/release-date"] },
+      { ...source("compiled"), reviewPages: ["wiki/research/release-date"] },
+      { ...source("compiled"), reviewPages: ["wiki/research/release-date"] },
     ];
     expect(libraryWaitingLine({ ...counts(0, 0, 0), sources }, t)).toBe(
       'sources.pagesNeedReview({"count":1})',

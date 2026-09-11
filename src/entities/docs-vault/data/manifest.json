@@ -95,10 +95,11 @@
       },
       "headings": [],
       "excerpt": "2026-07-27 update — the current architecture is a local-first, git-backed meaning layer: a folder of markdown files that records what each part of the product is, who owns it, what it depends on, and what proves it. People and AI coding agents read and write that same folder. Round 10 permanently removed every login an",
-      "wordCount": 5527,
-      "updatedAt": "2026-09-10",
+      "wordCount": 5696,
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
+        "RETAINED-ANSWERS",
         "../AGENTS",
         "PRODUCT-DIRECTION",
         "FEATURES",
@@ -272,7 +273,7 @@
       "headings": [],
       "excerpt": "How this repo keeps its own instruction files in sync, and why the same pattern extends into the vault for facts that change faster than instructions do. Written from this repo's own history, not a hypothetical. Multiple coding-agent instruction files (AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md, …",
       "wordCount": 825,
-      "updatedAt": "2026-08-01",
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "../CLAUDE",
         "../.claude/rules/forbidden",
@@ -505,6 +506,65 @@
       "updatedAt": "2026-09-10",
       "linksOut": [
         "benchmark/WIKI-ACCUMULATION-EVAL"
+      ]
+    },
+    {
+      "slug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+      "path": "docs/benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11.md",
+      "title": "Library maintenance across ordered source arrivals — 2026-09-11",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "An ACP compilation read and cited a newly arrived handbook while leaving the old statement that the handbook was absent. The revised Compile brief repaired that failure in a replay from the exact previous file state. It also distinguishes an explicit approved policy replacement from a draft or an observed configuration",
+      "wordCount": 1495,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "plans/LIBRARY-QUALITY-PROGRAM",
+        "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+        "benchmark/LIBRARY-COMMUNITY-2026-09-11"
+      ]
+    },
+    {
+      "slug": "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+      "path": "docs/benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11.md",
+      "title": "Library source fidelity and ACP handoff — 2026-09-11",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "This is a bounded synthetic experiment for the Library quality program, not a provider ranking or a standalone-usefulness verdict. Both real ACP adapters compiled three source-specific wiki pages. Original bytes remained unchanged. A separate source-reader repair makes multiline table qualifiers recoverable from one re",
+      "wordCount": 1700,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "plans/LIBRARY-QUALITY-PROGRAM"
+      ]
+    },
+    {
+      "slug": "benchmark/LIBRARY-COMMUNITY-2026-09-11",
+      "path": "docs/benchmark/LIBRARY-COMMUNITY-2026-09-11.md",
+      "title": "Library community evidence — 2026-09-11",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "This research informs the Library quality program. It does not establish product demand, willingness to switch, or the technical cause of a reported failure. The set includes twelve directly opened discussions: five Reddit threads, three Hacker News threads and four Obsidian Forum threads. It is self-selected and weigh",
+      "wordCount": 924,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "plans/LIBRARY-QUALITY-PROGRAM"
+      ]
+    },
+    {
+      "slug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+      "path": "docs/benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11.md",
+      "title": "Local Compile and existing human context — 2026-09-11",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "Local Compile previously assembled a replacement from raw sources without giving the model the existing Wiki body. The old body existed only in the proposal data; the rendered consent card showed paths and counts without either complete version. The repair makes existing context available through a bounded read before ",
+      "wordCount": 1417,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "plans/LIBRARY-QUALITY-PROGRAM",
+        "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11"
       ]
     },
     {
@@ -868,7 +928,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed, for a person who uses the product. Newest at the top. One entry per release, named by its tag; the single Unreleased entry at the top collects what has merged since the last tag, and the release cut renames it. v1.0.0",
-      "wordCount": 30073,
+      "wordCount": 30070,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -904,7 +964,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 126203,
+      "wordCount": 128157,
       "updatedAt": "2026-09-11",
       "linksOut": [
         "wiki/…",
@@ -972,7 +1032,7 @@
       "headings": [],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from ontology-map has become the standard for page rollout (gateway → docs/ontology hub → projects/ins",
       "wordCount": 44615,
-      "updatedAt": "2026-09-10",
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "design-references/DESIGN-linear",
         "ONTOLOGY-MAP-DESIGN",
@@ -1000,7 +1060,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Which command to run first for an area of this repository, what a pass proves, and when to escalate. The reasons a gate exists live in docs/DECISIONS.md and in the gate's own header, not here. Start every change with the planner, and let it run what it recommends: It reads the Git diff (tracked and untracked), prints t",
-      "wordCount": 6203,
+      "wordCount": 6222,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -1012,10 +1072,11 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 40357,
-      "updatedAt": "2026-09-10",
+      "wordCount": 40895,
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "ANALYSIS-RECORDS",
+        "RETAINED-ANSWERS",
         "slug",
         "project:slug",
         "wiki/…",
@@ -1467,8 +1528,8 @@
       },
       "headings": [],
       "excerpt": "The ability to detect ACP (Agent Client Protocol) v1 coding-agent executors already installed on the device, directly launch those with verified app-owned permission gates (currently Claude Agent and Codex), and apply scoped permission review. No new Atlas API key or vendor integration is needed: it uses the subscripti",
-      "wordCount": 2098,
-      "updatedAt": "2026-09-05",
+      "wordCount": 2490,
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "ontology/elements/agents-destination"
       ]
@@ -1964,7 +2025,7 @@
       },
       "headings": [],
       "excerpt": "It provides a stdio JSON-RPC interface so that an AI coding agent can read and safely update local markdown vaults. People and agents use the same file as the source of truth, and the server does not own a separate database or model execution loop. The MCP server is the stdio JSON-RPC surface that lets an AI coding age",
-      "wordCount": 3868,
+      "wordCount": 3908,
       "updatedAt": "2026-09-11",
       "linksOut": []
     },
@@ -2257,8 +2318,8 @@
       },
       "headings": [],
       "excerpt": "The app's connect flow and MCP surface that allow AI agents to discover, authenticate, read, and write the vault. Interactive agents within the app collect actual vault tool evidence. Activated only when both absolute paths and read manifests are present, ensuring concepts on screen, text read by models, and audit logs",
-      "wordCount": 885,
-      "updatedAt": "2026-09-10",
+      "wordCount": 1135,
+      "updatedAt": "2026-09-11",
       "linksOut": []
     },
     {
@@ -4098,6 +4159,23 @@
       "linksOut": []
     },
     {
+      "slug": "plans/LIBRARY-QUALITY-PROGRAM",
+      "path": "docs/plans/LIBRARY-QUALITY-PROGRAM.md",
+      "title": "Library quality program",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "Owner direction, 2026-09-11: make Library useful enough that a person would choose Atlas for Library alone. Incoming originals should contribute to connected, maintained knowledge that a later reader can inspect, question, correct and reuse. The owner selected a question-led entrance with explicitly refreshed retained ",
+      "wordCount": 1177,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "benchmark/LIBRARY-COMMUNITY-2026-09-11",
+        "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+        "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11"
+      ]
+    },
+    {
       "slug": "plans/PRODUCT-PLAN-2026-07",
       "path": "docs/plans/PRODUCT-PLAN-2026-07.md",
       "title": "Ontology Atlas — 제품 계획 v9 (확정본, 2026-07-17)",
@@ -4147,8 +4225,8 @@
       },
       "headings": [],
       "excerpt": "This temporary register measures the 2026-09-01 Atlas product-decision system. It is not a second decision archive. Significant rationale stays in DECISIONS.md; this file keeps only the typed facts needed to decide whether the gate earns, narrows, or loses its place. Run pnpm po:pilot for the current report and pnpm po",
-      "wordCount": 2934,
-      "updatedAt": "2026-09-09",
+      "wordCount": 3495,
+      "updatedAt": "2026-09-11",
       "linksOut": [
         "DECISIONS"
       ]
@@ -4227,6 +4305,20 @@
       "wordCount": 236,
       "updatedAt": "2026-08-23",
       "linksOut": []
+    },
+    {
+      "slug": "RETAINED-ANSWERS",
+      "path": "docs/RETAINED-ANSWERS.md",
+      "title": "Retained answers and explicit revisions",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [],
+      "excerpt": "Library can be used without code or ontology nodes. Its question entrance lists the current tips of retained answer histories under wiki/answers/. Two tips of one history remain alternatives; the app does not choose a winner by date. Earlier pages remain readable through the selected answer and the wiki list. Atlas ans",
+      "wordCount": 774,
+      "updatedAt": "2026-09-11",
+      "linksOut": [
+        "plans/LIBRARY-QUALITY-PROGRAM"
+      ]
     },
     {
       "slug": "superpowers/plans/2026-08-28-architecture-xray",
@@ -4327,6 +4419,18 @@
         "fromSlug": "FEATURES",
         "context": "ng. Architecture and Analysis use the same archive and keep their ACP conversation mounted across context sections. **[Record contract and limits]**. - **Guarded ACP runtime eligibility** — The app offers Claude Agent and Codex for in-app ACP chat only behind an app-o",
         "linkText": "Record contract and limits"
+      }
+    ],
+    "RETAINED-ANSWERS": [
+      {
+        "fromSlug": "ARCHITECTURE",
+        "context": "ytes. These observations are separate from source-read provenance. The record and concurrency limits are defined in **[Retained answers]**. - `vault-library.ts` keeps source coverage separate from per-page freshness. `reviewPages` names stale or unmeasure",
+        "linkText": "Retained answers"
+      },
+      {
+        "fromSlug": "FEATURES",
+        "context": "ts, preserves the previous page and exposes competing branches. Narrow comparisons switch between old and new text. The **[record and boundaries]** describe the Markdown metadata and the limits of those checks. Library validation follows the current folder membershi",
+        "linkText": "record and boundaries"
       }
     ],
     "../AGENTS": [
@@ -4572,6 +4676,33 @@
         "linkText": "`docs/CODEBASE-ONTOLOGY-POSITIONING.md`"
       }
     ],
+    "plans/LIBRARY-QUALITY-PROGRAM": [
+      {
+        "fromSlug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "context": "on and a separately retained answer stayed unchanged throughout the measured updates. This is a bounded result for the **[Library quality program]**, not a general accuracy guarantee, provider ranking or proof of recurring owner value. It follows the [source-fidelity",
+        "linkText": "Library quality program"
+      },
+      {
+        "fromSlug": "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+        "context": "# Library source fidelity and ACP handoff — 2026-09-11 This is a bounded synthetic experiment for the **[Library quality program]**, not a provider ranking or a standalone-usefulness verdict. Both real ACP adapters compiled three source-specific wiki",
+        "linkText": "Library quality program"
+      },
+      {
+        "fromSlug": "benchmark/LIBRARY-COMMUNITY-2026-09-11",
+        "context": "# Library community evidence — 2026-09-11 This research informs the **[Library quality program]**. It does not establish product demand, willingness to switch, or the technical cause of a reported failure. The set inc",
+        "linkText": "Library quality program"
+      },
+      {
+        "fromSlug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+        "context": "read before a replacement can become ready. Reading does not establish semantic preservation. This is one part of the **[Library quality program]**. Claude Code and Codex ACP remain primary supported paths, with their separate [ordered-arrival evidence](LIBRARY-ACP-M",
+        "linkText": "Library quality program"
+      },
+      {
+        "fromSlug": "RETAINED-ANSWERS",
+        "context": "b/answer-revision.ts`, `answer-revision-store.ts`, and the Library view. The ongoing qualification scope is recorded in **[the Library quality program]**.",
+        "linkText": "the Library quality program"
+      }
+    ],
     "../CLAUDE": [
       {
         "fromSlug": "audits/CASE-STUDY-AGENTS-MD-DRIFT",
@@ -4589,7 +4720,7 @@
     "../mcp/README": [
       {
         "fromSlug": "audits/CASE-STUDY-AGENTS-MD-DRIFT",
-        "context": "every session — the same \"consult a reference file instead of restating it\" move, aimed at facts instead of rules. See **[`mcp/README.md`]** for the tool surface an agent uses to read and write that reference file, and [`AGENTS.md`](../../AGENTS.md#working-wit",
+        "context": "every session — the same \"consult a reference file instead of restating it\" move, aimed at facts instead of rules. See **[`mcp/README.md`]** for the tool surface an agent uses to read and write that reference file, and [`AGENTS.md`](../../AGENTS.md#source-auth",
         "linkText": "`mcp/README.md`"
       }
     ],
@@ -4756,6 +4887,42 @@
         "linkText": "wiki accumulation evaluation"
       }
     ],
+    "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11": [
+      {
+        "fromSlug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "context": "ALITY-PROGRAM.md), not a general accuracy guarantee, provider ranking or proof of recurring owner value. It follows the **[source-fidelity comparison]** and tests the accumulation hypothesis from the [community research](LIBRARY-COMMUNITY-2026-09-11.md). ## Frozen baseli",
+        "linkText": "source-fidelity comparison"
+      },
+      {
+        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
+        "context": "ision storage. The source reader preserves quoted table records and gives repeated DOCX headings distinct locators. The **[real ACP comparison]** uses frozen originals, Claude Code and Codex ACP, raw-source controls and fresh wiki-only readers. Its small synthetic",
+        "linkText": "real ACP comparison"
+      }
+    ],
+    "benchmark/LIBRARY-COMMUNITY-2026-09-11": [
+      {
+        "fromSlug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+        "context": "[source-fidelity comparison](LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11.md) and tests the accumulation hypothesis from the **[community research]**. ## Frozen baseline Three short synthetic originals have different roles: | Original | What it establishes in the pr",
+        "linkText": "community research"
+      },
+      {
+        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
+        "context": "esearch on 2026-09-11 covered twelve directly opened discussions across Reddit, Hacker News and the Obsidian Forum; the **[discussion ledger]** records their provenance and falsifiers. [Karpathy's LLM Wiki proposal](https://gist.github.com/karpathy/442a6bf5559148",
+        "linkText": "discussion ledger"
+      }
+    ],
+    "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11": [
+      {
+        "fromSlug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+        "context": "am](../plans/LIBRARY-QUALITY-PROGRAM.md). Claude Code and Codex ACP remain primary supported paths, with their separate **[ordered-arrival evidence]**. This local-runner experiment does not qualify ACP or imply that ACP provider traffic stays local. ## Before-state At",
+        "linkText": "ordered-arrival evidence"
+      },
+      {
+        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
+        "context": "ding and ambiguous baseline locators remain in the report. The measured Compile click time is now supplied to ACP. The **[ordered-arrival maintenance comparison]** found and replayed a stale absence claim, then checked explicit policy replacement against a held-out unapproved draft.",
+        "linkText": "ordered-arrival\nmaintenance comparison"
+      }
+    ],
     "benchmark/tasks": [
       {
         "fromSlug": "benchmark/README",
@@ -4839,6 +5006,13 @@
         "fromSlug": "ontology/domains/agent-integration",
         "context": "frontmatter · **[elements/agents-destination]**",
         "linkText": "elements/agents-destination"
+      }
+    ],
+    "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11": [
+      {
+        "fromSlug": "plans/LIBRARY-QUALITY-PROGRAM",
+        "context": "ed replays. New gap coverage and later answer wording remain variable; these results are not a semantic guarantee. The **[local Compile context probe]** closed the missing existing-page read path and exposed exact prior/proposed text at consent. Real local-model quality r",
+        "linkText": "local Compile context probe"
       }
     ],
     "ontology/capabilities/mcp-server": [
@@ -6723,6 +6897,34 @@
             "title": "Local wiki retrieval and revision pilot — 2026-09-10"
           },
           {
+            "name": "LIBRARY-ACP-MAINTENANCE-2026-09-11",
+            "path": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+            "type": "doc",
+            "slug": "benchmark/LIBRARY-ACP-MAINTENANCE-2026-09-11",
+            "title": "Library maintenance across ordered source arrivals — 2026-09-11"
+          },
+          {
+            "name": "LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+            "path": "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+            "type": "doc",
+            "slug": "benchmark/LIBRARY-ACP-SOURCE-FIDELITY-2026-09-11",
+            "title": "Library source fidelity and ACP handoff — 2026-09-11"
+          },
+          {
+            "name": "LIBRARY-COMMUNITY-2026-09-11",
+            "path": "benchmark/LIBRARY-COMMUNITY-2026-09-11",
+            "type": "doc",
+            "slug": "benchmark/LIBRARY-COMMUNITY-2026-09-11",
+            "title": "Library community evidence — 2026-09-11"
+          },
+          {
+            "name": "LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+            "path": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+            "type": "doc",
+            "slug": "benchmark/LIBRARY-LOCAL-WIKI-CONTEXT-2026-09-11",
+            "title": "Local Compile and existing human context — 2026-09-11"
+          },
+          {
             "name": "MCP-ONE-CLICK-2026-09-07",
             "path": "benchmark/MCP-ONE-CLICK-2026-09-07",
             "type": "doc",
@@ -7703,6 +7905,13 @@
             "title": "디자인 전면 정비 마스터 플랜 (2026-07-25, 소유자 실보고 22건)"
           },
           {
+            "name": "LIBRARY-QUALITY-PROGRAM",
+            "path": "plans/LIBRARY-QUALITY-PROGRAM",
+            "type": "doc",
+            "slug": "plans/LIBRARY-QUALITY-PROGRAM",
+            "title": "Library quality program"
+          },
+          {
             "name": "PRODUCT-PLAN-2026-07",
             "path": "plans/PRODUCT-PLAN-2026-07",
             "type": "doc",
@@ -7969,6 +8178,13 @@
         "type": "doc",
         "slug": "README",
         "title": "Documentation Guide"
+      },
+      {
+        "name": "RETAINED-ANSWERS",
+        "path": "RETAINED-ANSWERS",
+        "type": "doc",
+        "slug": "RETAINED-ANSWERS",
+        "title": "Retained answers and explicit revisions"
       },
       {
         "name": "TECH-STACK",

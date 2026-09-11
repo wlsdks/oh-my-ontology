@@ -71,6 +71,23 @@ describe("Library work activity", () => {
     }
   });
 
+  it.each(["plan", "wiki/plan.md"])("shows an existing Wiki read at its own target: %s", (slug) => {
+    expect(libraryWorkEventFromLocalSnapshot({
+      id: "wiki-read", name: "read_wiki_page", args: { slug }, phase: "active", outcome: null,
+    }, "/vault", 1)).toMatchObject({ kind: "read", phase: "active", target: { kind: "wiki", ref: "wiki/plan" } });
+    expect(libraryWorkEventFromLocalSnapshot({
+      id: "wiki-read", name: "read_wiki_page", args: { slug }, phase: "complete", outcome: "error",
+    }, "/vault", 2)).toMatchObject({ kind: "error", phase: "complete", target: null });
+  });
+
+  it.each(["../plan", "sources/plan.md", "wiki/../outside", "wiki/_template.md", "plan\\other", "plan.md"])(
+    "does not infer a local Wiki target from a refused name: %s", (slug) => {
+      expect(libraryWorkEventFromLocalSnapshot({
+        id: "wiki-read", name: "read_wiki_page", args: { slug }, phase: "active", outcome: null,
+      }, "/vault", 1)?.target).toBeNull();
+    },
+  );
+
   it("records only a completed ACP read and observed or successful writes", () => {
     expect(completedAcpReadEvent({ id: "read", kind: "tool", toolKind: "read", status: "pending", rawInput: { path: "sources/a.txt" } }, "/vault", 1)).toBeNull();
     expect(completedAcpReadEvent({ id: "read", kind: "tool", toolKind: "read", status: "failed", rawInput: { path: "sources/a.txt" } }, "/vault", 1)).toBeNull();

@@ -12,7 +12,7 @@
  *
  * Nothing is converted and kept: the file is read on request and the text returned once.
  * Only the formats an agent cannot read natively get a real parser (DOCX, XLSX); CSV and
- * text formats are split the way their anchors count (rows, lines). A PDF is reported as
+ * text formats are split the way their anchors count (records, lines). A PDF is reported as
  * something the agent reads itself, because the runtimes do, page numbers included.
  *
  * The zip reader below is deliberately small: central directory, local header, one
@@ -128,14 +128,12 @@ export function headingSlug(title) {
  * every paragraph under it carries that heading's `h:<slug>` anchor. Paragraphs before
  * the first heading carry `p1`, the one page a short letter or note has.
  */
-export function docxUnits(buffer) {
+function parseDocx(buffer) {
   const entries = readZipEntries(buffer);
   const document = entries.get('word/document.xml');
   if (!document) throw new Error('not a DOCX: word/document.xml is missing');
   const xml = document().toString('utf8');
-  const units = [];
-  let anchor = 'p1';
-  let heading = null;
+  const paragraphs = [];
   let headingCount = 0;
   for (const match of xml.matchAll(/<w:p\b[\s\S]*?<\/w:p>/g)) {
     const paragraph = match[0];
@@ -148,15 +146,56 @@ export function docxUnits(buffer) {
     if (!text) continue;
     const style = /<w:pStyle\b[^>]*w:val="([^"]+)"/.exec(paragraph)?.[1] ?? '';
     if (/^(heading|title)\d*$/i.test(style) || /^(제목|見出し)\d*$/.test(style)) {
-      heading = text;
       headingCount += 1;
-      anchor = `h:${headingSlug(text) || `heading-${headingCount}`}`;
-      units.push({ anchor, heading, text, kind: 'heading' });
+      paragraphs.push({ text, kind: 'heading', base: `h:${headingSlug(text) || `heading-${headingCount}`}` });
       continue;
     }
-    units.push({ anchor, heading, text, kind: 'paragraph' });
+    paragraphs.push({ text, kind: 'paragraph' });
   }
-  return units;
+
+  const baseCounts = new Map();
+  for (const paragraph of paragraphs) {
+    if (paragraph.kind !== 'heading') continue;
+    baseCounts.set(paragraph.base, (baseCounts.get(paragraph.base) ?? 0) + 1);
+  }
+  // Reserve every natural base before allocating duplicate suffixes. This keeps a
+  // unique heading such as `Scope 2` at h:scope-2 even when h:scope is repeated.
+  const reservedBases = new Set(baseCounts.keys());
+  const usedAnchors = new Set();
+  const nextSuffixByBase = new Map();
+  const ambiguousAnchors = [...baseCounts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([base, count]) => `${base} (${count} occurrences)`);
+
+  const units = [];
+  let anchor = 'p1';
+  let heading = null;
+  for (const paragraph of paragraphs) {
+    if (paragraph.kind === 'heading') {
+      heading = paragraph.text;
+      if (baseCounts.get(paragraph.base) === 1) {
+        anchor = paragraph.base;
+      } else {
+        let suffix = nextSuffixByBase.get(paragraph.base) ?? 1;
+        let generated;
+        do {
+          generated = `${paragraph.base}-${suffix}`;
+          suffix += 1;
+        } while (reservedBases.has(generated) || usedAnchors.has(generated));
+        nextSuffixByBase.set(paragraph.base, suffix);
+        anchor = generated;
+      }
+      usedAnchors.add(anchor);
+      units.push({ anchor, heading, text: paragraph.text, kind: 'heading' });
+      continue;
+    }
+    units.push({ anchor, heading, text: paragraph.text, kind: 'paragraph' });
+  }
+  return { units, ambiguousAnchors };
+}
+
+export function docxUnits(buffer) {
+  return parseDocx(buffer).units;
 }
 
 /**
@@ -215,12 +254,68 @@ export function xlsxUnits(buffer, { sheet } = {}) {
   return units;
 }
 
-/** A CSV or TSV: one unit per non-empty row, `r<n>` counting from the first line. */
-function tableUnits(text) {
-  return String(text)
-    .split(/\r?\n/)
-    .map((line, index) => ({ anchor: `r${index + 1}`, text: line.trim(), kind: 'row' }))
-    .filter((unit) => unit.text);
+/**
+ * A CSV or TSV: one unit per non-empty record, with `r<n>` naming its physical
+ * starting line. This is a quote-aware boundary scan rather than a full CSV
+ * validator: a malformed unclosed quote retains the rest of the source as one
+ * record so text is never silently discarded.
+ */
+function tableUnits(text, delimiter = ',') {
+  const source = String(text).replace(/^\uFEFF/, '');
+  const units = [];
+  let recordStart = 0;
+  let recordStartLine = 1;
+  let physicalLine = 1;
+  let inQuotes = false;
+  let atFieldStart = true;
+
+  const pushRecord = (end) => {
+    const record = source.slice(recordStart, end);
+    if (record.trim()) units.push({ anchor: `r${recordStartLine}`, text: record, kind: 'row' });
+  };
+
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    if (inQuotes) {
+      if (character === '"') {
+        if (source[index + 1] === '"') {
+          index += 1;
+        } else {
+          inQuotes = false;
+          atFieldStart = false;
+        }
+        continue;
+      }
+      if (character !== '\r' && character !== '\n') continue;
+      const crlf = character === '\r' && source[index + 1] === '\n';
+      physicalLine += 1;
+      if (crlf) index += 1;
+      continue;
+    }
+
+    if (character === '"' && atFieldStart) {
+      inQuotes = true;
+      continue;
+    }
+    if (character === delimiter) {
+      atFieldStart = true;
+      continue;
+    }
+    if (character !== '\r' && character !== '\n') {
+      atFieldStart = false;
+      continue;
+    }
+
+    const crlf = character === '\r' && source[index + 1] === '\n';
+    physicalLine += 1;
+    pushRecord(index);
+    if (crlf) index += 1;
+    recordStart = index + 1;
+    recordStartLine = physicalLine;
+    atFieldStart = true;
+  }
+  pushRecord(source.length);
+  return { units, unclosedQuoteStartLine: inQuotes ? recordStartLine : undefined };
 }
 
 /** A text file: one unit per non-empty line, `l<n>` counting from the first line. */
@@ -282,15 +377,29 @@ export function readSourceText(buffer, path, options = {}) {
   let units;
   let note;
   switch (format) {
-    case 'docx':
-      units = docxUnits(buffer);
+    case 'docx': {
+      const parsed = parseDocx(buffer);
+      units = parsed.units;
+      if (parsed.ambiguousAnchors.length > 0) {
+        note =
+          `Ambiguous legacy DOCX heading addresses: ${parsed.ambiguousAnchors.join(', ')}. ` +
+          'Duplicate headings use distinct generated anchors in the returned units; cite those anchors instead.';
+      }
       break;
+    }
     case 'xlsx':
       units = xlsxUnits(buffer, { sheet: options.sheet });
       break;
-    case 'csv':
-      units = tableUnits(buffer.toString('utf8'));
+    case 'csv': {
+      const parsed = tableUnits(buffer.toString('utf8'), extension === 'tsv' ? '\t' : ',');
+      units = parsed.units;
+      if (parsed.unclosedQuoteStartLine !== undefined) {
+        note =
+          `Unclosed quoted record begins at physical line r${parsed.unclosedQuoteStartLine}; ` +
+          'its raw remainder was retained as one unit through EOF. This is not a full CSV/TSV validity check.';
+      }
       break;
+    }
     case 'text':
       units = lineUnits(buffer.toString('utf8'));
       break;

@@ -735,6 +735,28 @@ Sources remain original files; write-ups and filed answers remain wiki pages.
 Documents-only folders need no code nodes or separate mode switch. The ontology
 retains its codebase scope.
 
+**Retained questions and explicit revisions.** The Library landing lists saved
+questions and the tips of their answer histories. It distinguishes source-byte
+changes, missing or new originals and unmeasured evidence; observations never
+become source-read proof. A deliberate agent request produces a structured draft
+for comparison. Saving creates a new file, checks concurrent edits, preserves
+the previous page and exposes competing branches. Narrow comparisons switch
+between old and new text. The [record and boundaries](RETAINED-ANSWERS.md) describe
+the Markdown metadata and the limits of those checks.
+
+Library validation follows the current folder membership. Removing or restoring a
+cited source or a linked wiki page updates the affected verdicts even when the
+citing page is unchanged. Cached bytes avoid rereading unchanged pages; deleted
+pages and old revisions are withdrawn from the text supplied to page-write review.
+
+The MCP source reader preserves valid quoted CSV/TSV records across embedded
+newlines. Row addresses keep their physical starting lines, while pagination
+advances by record. Repeated normalized DOCX headings receive distinct anchors;
+existing unique heading addresses stay unchanged. Reader notes identify ambiguous
+legacy addresses and malformed quoted remainders. Original bytes and existing
+wiki citations are not rewritten, and a matching source hash does not prove that
+an old ambiguous citation identifies the intended passage.
+
 It shipped inside the Docs sidebar on 2026-09-05 and moved out the next day. The owner
 read the merged screen as cluttered and asked whether gathering documents belonged inside
 Docs at all, and the measurement agreed: five capped lists shared one 280px column, so
@@ -1075,7 +1097,18 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   writer for one page per source, named after it and never folded into another (a page
   is what one document said), to link the pages it touches both ways, to record a
   disagreement on both pages with both citations, and to write nothing for a source
-  that adds nothing.
+  that adds nothing. Updating the same source reuses its own page. The brief compares
+  claim scope, source dates, source approval/draft status and policy/observation roles
+  before leaving a difference unresolved: an explicit approved replacement is recorded
+  as such, while recency alone or an observed configuration does not change policy.
+  It also asks the writer to revisit existing gaps on updated pages, resolve only the
+  parts new evidence answers, qualify obsolete absence wording and keep unanswered
+  source-specific limits. Personal notes remain attributed and verbatim; retained
+  answers still require their separate refresh/revision action. These are instructions
+  to the agent, not a semantic validator or a filesystem protection guarantee.
+  The ACP brief supplies the measured Compile click time for `compiled_at`, so the
+  agent receives a concrete value to copy without querying a shell or inferring a
+  date. This is request-time guidance, not an app-attested completion receipt.
 - **Check the wiki** — starts one report-only ACP turn over `wiki/` for what
   `wiki-validate` cannot decide: two pages disagreeing, a claim a later page replaced,
   two pages that share a topic or a source without linking, and a name on three or
@@ -1110,17 +1143,22 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   brain because the runner's tool catalogue read and proposed ontology concepts only, and
   wrote its own reopening condition: *a local tool catalogue that reads a source and writes
   a page under one consent card reopens local Compile.* That catalogue is
-  `src/features/vault-agent/model/compile-tool-catalog.ts`, and it is three tools, kept out
-  of `AGENT_TOOLS` because these are local Compile operations. `read_source_text` opens one
+  `src/features/vault-agent/model/compile-tool-catalog.ts`. Its three Compile-only tools
+  stay outside the MCP-mirrored `AGENT_TOOLS`. `read_source_text` opens one
   file this folder's own walk found under `sources/` and this bundle can decode — Markdown,
   plain text, CSV, TSV, JSON and HTML with its tags stripped — and returns it with every
   paragraph numbered `[p1]`, `[p2]`, capped at 8,000 characters with `truncated` stated
   rather than hidden. A PDF, Word, PowerPoint or Excel file comes back **unread and named**:
   reading those needs a parser Atlas does not ship, and shipping one is deferred rather
   than guessed at. Any other path — absolute, `..`, a backslash, or simply not in this
-  folder — is refused before the disk is touched. `read_wiki_page` reads existing wiki
-  pages and filed answers from the current page inventory, with contiguous 8,000-character
-  reads for longer pages. It supplies prior context, never a source-read receipt.
+  folder — is refused before the disk is touched. `read_wiki_page` returns an existing
+  write-up as untrusted context in sequential 4,000-character chunks. A replacement
+  requires the receipt returned after the complete current page has been read; skipped
+  chunks, unreadable pages, changed text or timestamps and stale receipts block it.
+  The Wiki context counts against the same 40,000-character turn budget, and does not
+  establish raw-source citation support. Human notes remain attributed prior context;
+  the model is instructed to resolve answered questions while preserving the remainder.
+  That instruction is not a guarantee of semantic preservation.
   Local source reads also return up to three related wiki suggestions: an exact shared
   source takes priority, followed by rare lexical terms in titles and cached bodies,
   including a Korean bigram fallback. The index is built only when Compile starts,
@@ -1129,18 +1167,25 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   so switching to a same-named page in another folder cannot reuse its predecessor.
   Suggestions carry no truth, currentness or complete-read authority;
   a match still requires `read_wiki_page`, and no match does not prove absence.
-  Replacing a page requires its entire original text to have been read, keeps its exact
-  path (including `wiki/answers/`), and carries that read's modification time to the
-  existing concurrent-edit guard. `propose_wiki_page` takes fields, never
+  Existing inventoried nested Wiki pages keep their exact paths. Retained answers
+  under `wiki/answers/` use the explicit answer-refresh/revision workflow instead
+  of ordinary Compile replacement. `propose_wiki_page` takes fields, never
   Markdown: Atlas assembles the five sections itself and mints `created_by: model:<name>`,
   `compiled_at`, `sources:` and `source_hash:` from the bytes it actually handed over, so a
   page cannot claim a document the model never opened. **It writes nothing.** The turn ends
   at one card that names, per page, the path it would take, what each of its five sections
   carries, the full current and proposed text, how many citations it holds, which sources it was written from, which were read
   only in part, and which could not be opened at all; only Allow once writes, through the
-  same `applyProposal` a concept change takes. Starting local Compile while reading a page
-  opens the existing guidance pane, where its review and approval remain available.
-  Source hashes are computed from the complete buffer that was read, not a later reopening
+  same `applyProposal` a concept change takes. The card displays the exact proposed
+  Markdown and lets the person switch to the complete previous page; a new page has
+  only its proposed preview. Local work owns the reader pane while running or awaiting
+  review, including folders with retained questions and an already selected document.
+  On narrow screens it uses the whole pane instead of competing with the index;
+  closing the work view returns to the previous selection. Before applying, local Compile compares
+  every selected replacement's exact prior text and timestamp with a fresh file read;
+  a detected correction refuses the write before any selected page is saved. Writes
+  remain sequential, with no claim of transactional rollback after an I/O failure.
+  Source hashes are computed from the complete buffer read, not a later reopening
   of the source path. A page that fails the contract produces no
   proposal at all, so the card has nothing to offer and shows the exact problem codes
   instead. Beyond the shared `validateWikiPage` rules the proposal adds two: every
@@ -1162,8 +1207,14 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   `gemma4:12b` (82s) each read both sources and proposed both pages with every bullet cited
   and every anchor resolvable; `qwen3.6:35b-a3b` proposed pages with no citations at all,
   which the card refused with `uncited-fact` and no write action.
-- **Which brain runs is chosen, not ranked** (owner, 2026-09-06, second pass). A verified
-  coding agent still opens formats the runner cannot, so it stays the **default** — but it
+- **Which brain runs is chosen, not ranked** (owner, 2026-09-06, second pass).
+  The Compile request names the selected runner as writer. Local requests use their
+  bounded readable target list and three-tool proposal workflow, with paragraph
+  citations and metadata supplied by Atlas. ACP requests retain their source
+  readers and Markdown template, while saving follows the selected write mode
+  and runtime permissions. Chronology, unresolved gaps, personal notes and
+  retained-answer rules are shared across both paths.
+  A verified coding agent still opens formats the runner cannot, so it stays the **default** — but it
   no longer outranks the runner, because the reason a local runner is set up at all is to
   be pointed at a folder whose documents should not leave the machine, and a precedence
   rule takes exactly that choice away. When this computer offers both, step two's

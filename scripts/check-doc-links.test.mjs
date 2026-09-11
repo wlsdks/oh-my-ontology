@@ -6,10 +6,14 @@ import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 
 import {
+  collectAnchors,
+  collectHtmlLinks,
   collectMarkdownLinks,
   collectProseDocRefs,
+  headingAnchorSlug,
   isExternalTarget,
   isHistoricalDoc,
+  linkFragment,
   stripFencedBlocks,
 } from './lib/doc-links.mjs';
 import { checkFile, listMarkdownFiles, parseArgs, resolveLinkTarget, usage } from './check-doc-links.mjs';
@@ -166,6 +170,90 @@ describe('checkFile', () => {
         );
       },
     );
+  });
+});
+
+
+describe('heading anchors', () => {
+  /**
+   * Every expectation here was read off GitHub's own rendered `id=` for the same
+   * heading, not derived from the rule. The rule this replaced collapsed runs of
+   * whitespace and dropped `_`, which is why `docs/DESIGN-SYSTEM.md` shipped 13
+   * table-of-contents links that resolved nowhere.
+   */
+  it('matches the ids GitHub renders, including the double hyphen an em dash leaves', () => {
+    assert.equal(headingAnchorSlug('Library index — readable page titles'), 'library-index--readable-page-titles');
+    assert.equal(headingAnchorSlug('Topology node focus & scale (ego popover)'), 'topology-node-focus--scale-ego-popover');
+    assert.equal(headingAnchorSlug('Trailing spaces   collapse?'), 'trailing-spaces---collapse');
+  });
+
+  it('keeps `_` and strips backticks, emphasis and apostrophes the way GitHub does', () => {
+    assert.equal(headingAnchorSlug('2.2 Direct `is_a` / `broader` test'), '22-direct-is_a--broader-test');
+    assert.equal(headingAnchorSlug('snake_case and ~strike~ and **bold** text'), 'snake_case-and-strike-and-bold-text');
+    assert.equal(headingAnchorSlug("Absolute rules (Don'ts)"), 'absolute-rules-donts');
+  });
+
+  it('keeps Hangul, because these documents have Korean headings', () => {
+    assert.equal(headingAnchorSlug('한글 제목 — 대시 포함'), '한글-제목--대시-포함');
+  });
+
+  it('suffixes a repeated heading the way GitHub disambiguates it', () => {
+    assert.deepEqual([...collectAnchors('## Same\n## Same\n## Same')], ['same', 'same-1', 'same-2']);
+  });
+
+  it('collects explicit ids and ignores headings inside fences', () => {
+    const markdown = ['## Real', '```md', '## Fenced', '```', '<a name="Hand-Written"></a>'].join('\n');
+    const anchors = collectAnchors(markdown);
+    assert.equal(anchors.has('real'), true);
+    assert.equal(anchors.has('fenced'), false);
+    assert.equal(anchors.has('hand-written'), true);
+  });
+
+  it('reads the fragment of a target, decoded, and nothing when there is none', () => {
+    assert.equal(linkFragment('cli/README.md#set-up-from-a-source-checkout'), 'set-up-from-a-source-checkout');
+    assert.equal(linkFragment('#%ED%95%9C%EA%B8%80'), '한글');
+    assert.equal(linkFragment('./plain.md'), null);
+    assert.equal(linkFragment('./trailing.md#'), null);
+  });
+
+  it('finds anchors in raw HTML hrefs, which is how the README nav row is written', () => {
+    assert.deepEqual(collectHtmlLinks('<a href="#status--read-this-before-installing">Status</a>'), [
+      { line: 1, target: '#status--read-this-before-installing' },
+    ]);
+  });
+});
+
+describe('checkFile anchors', () => {
+  it('reports a renamed section on the target side, which a file-existence check cannot see', () => {
+    withRepo({
+      'docs/a.md': '[jump](./b.md#gone) and [ok](./b.md#kept)',
+      'docs/b.md': '## Kept',
+    }, (root) => {
+      const problems = checkFile(join(root, 'docs/a.md'), { root });
+      assert.deepEqual(problems.map((problem) => [problem.kind, problem.target]), [['anchor', './b.md#gone']]);
+    });
+  });
+
+  it('checks same-document anchors and raw HTML hrefs too', () => {
+    withRepo({
+      'docs/a.md': ['# Title', '[here](#title)', '[nowhere](#missing)', '<a href="#title">x</a>', '<a href="#gone">y</a>'].join('\n'),
+    }, (root) => {
+      const problems = checkFile(join(root, 'docs/a.md'), { root });
+      assert.deepEqual(problems.map((problem) => problem.target), ['#missing', '#gone']);
+    });
+  });
+
+  it('reports a missing file once, without a second anchor complaint about it', () => {
+    withRepo({ 'docs/a.md': '[x](./missing.md#section)' }, (root) => {
+      const problems = checkFile(join(root, 'docs/a.md'), { root });
+      assert.deepEqual(problems.map((problem) => problem.kind), ['link']);
+    });
+  });
+
+  it('leaves a fragment on a non-markdown target alone', () => {
+    withRepo({ 'docs/a.md': '[x](../src/thing.ts#L12)', 'src/thing.ts': 'export const thing = 1;\n' }, (root) => {
+      assert.deepEqual(checkFile(join(root, 'docs/a.md'), { root }), []);
+    });
   });
 });
 

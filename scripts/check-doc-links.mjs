@@ -15,11 +15,14 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
+  collectAnchors,
   collectHtmlAssetRefs,
+  collectHtmlLinks,
   collectMarkdownLinks,
   collectProseDocRefs,
   isExternalTarget,
   isHistoricalDoc,
+  linkFragment,
 } from './lib/doc-links.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -123,17 +126,61 @@ export function resolveLinkTarget(fromFile, target, root = ROOT) {
   return path.resolve(path.dirname(fromFile), decoded);
 }
 
+const anchorCache = new Map();
+
+/** Anchors of one markdown file, or null when it cannot be read as markdown. */
+function anchorsOf(file) {
+  if (!anchorCache.has(file)) {
+    let anchors = null;
+    if (file.endsWith('.md') && exists(file)) {
+      try {
+        anchors = collectAnchors(readFileSync(file, 'utf-8'));
+      } catch {
+        anchors = null;
+      }
+    }
+    anchorCache.set(file, anchors);
+  }
+  return anchorCache.get(file);
+}
+
+/**
+ * A `#fragment` is checked only when its target markdown file is readable. A
+ * missing file is already reported as a broken link, and a fragment on a
+ * non-markdown target is not ours to resolve.
+ */
+function anchorProblem(file, relative, link, root) {
+  const fragment = linkFragment(link.target);
+  if (fragment === null) return null;
+  const target = link.target.startsWith('#') ? file : resolveLinkTarget(file, link.target, root);
+  if (!target) return null;
+  const anchors = anchorsOf(target);
+  if (!anchors || anchors.size === 0 || anchors.has(fragment)) return null;
+  return { file: relative, line: link.line, target: link.target, kind: 'anchor' };
+}
+
 export function checkFile(file, { root = ROOT } = {}) {
   const relative = path.relative(root, file).split('\\').join('/');
   const markdown = readFileSync(file, 'utf-8');
   const problems = [];
 
   for (const link of collectMarkdownLinks(markdown)) {
-    if (isExternalTarget(link.target) || link.target.startsWith('#')) continue;
-    const resolved = resolveLinkTarget(file, link.target, root);
-    if (resolved && !exists(resolved)) {
-      problems.push({ file: relative, line: link.line, target: link.target, kind: 'link' });
+    if (isExternalTarget(link.target)) continue;
+    if (!link.target.startsWith('#')) {
+      const resolved = resolveLinkTarget(file, link.target, root);
+      if (resolved && !exists(resolved)) {
+        problems.push({ file: relative, line: link.line, target: link.target, kind: 'link' });
+        continue;
+      }
     }
+    const anchor = anchorProblem(file, relative, link, root);
+    if (anchor) problems.push(anchor);
+  }
+
+  for (const link of collectHtmlLinks(markdown)) {
+    if (isExternalTarget(link.target) || !link.target.includes('#')) continue;
+    const anchor = anchorProblem(file, relative, link, root);
+    if (anchor) problems.push(anchor);
   }
 
   for (const asset of collectHtmlAssetRefs(markdown)) {

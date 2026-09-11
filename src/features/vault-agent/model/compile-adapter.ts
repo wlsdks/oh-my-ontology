@@ -20,14 +20,74 @@ function readablePathsRead(exchanges: TurnAssembly['exchanges']): string[] {
   return [...new Set(paths)];
 }
 
-function proposedCount(exchanges: TurnAssembly['exchanges']): number {
-  let count = 0;
+interface WikiReadObservation {
+  path: string;
+  complete: boolean;
+  exists: boolean | null;
+  nextCursor: number | null;
+  isError: boolean;
+}
+
+function payloadOf(result: TurnAssembly['exchanges'][number]['toolResults'][number]): Record<string, unknown> {
+  try {
+    const payload = JSON.parse(result.content) as unknown;
+    return payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function wikiPath(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  return /^wiki\/[a-z0-9]+(?:-[a-z0-9]+)*\.md$/.test(value) ? value : null;
+}
+
+function wikiTargetsMentioned(userText: string): string[] {
+  const paths: string[] = [];
+  const regex = /\bwiki\/[a-z0-9]+(?:-[a-z0-9]+)*\.md\b/g;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(userText)) !== null) {
+    if (!paths.includes(match[0]!)) paths.push(match[0]!);
+  }
+  return paths;
+}
+
+function wikiReads(exchanges: TurnAssembly['exchanges']): Map<string, WikiReadObservation> {
+  const states = new Map<string, WikiReadObservation>();
   for (const exchange of exchanges) {
     for (const result of exchange.toolResults) {
-      if (result.name === 'propose_wiki_page' && !result.isError) count += 1;
+      if (result.name !== 'read_wiki_page') continue;
+      const payload = payloadOf(result);
+      const path = wikiPath(payload.path);
+      if (!path) continue;
+      states.set(path, {
+        path,
+        complete: payload.complete === true && !result.isError,
+        exists: typeof payload.exists === 'boolean' ? payload.exists : null,
+        nextCursor: typeof payload.nextCursor === 'number' ? payload.nextCursor : null,
+        isError: result.isError,
+      });
     }
   }
-  return count;
+  return states;
+}
+
+/** Only the latest proposal result for a page decides whether it remains ready. */
+function finalProposalStatuses(exchanges: TurnAssembly['exchanges']): Map<string, boolean> {
+  const statuses = new Map<string, boolean>();
+  for (const exchange of exchanges) {
+    for (const result of exchange.toolResults) {
+      const payload = payloadOf(result);
+      const path = wikiPath(payload.path);
+      if (!path) continue;
+      if (result.name === 'propose_wiki_page') statuses.set(path, !result.isError);
+      // Any later Wiki read for the same path starts a new read attempt (or reports a
+      // changed/unavailable continuation), so a previous proposal for that path is no
+      // longer current. The next model request must not finish on stale history.
+      if (result.name === 'read_wiki_page' && statuses.has(path)) statuses.set(path, false);
+    }
+  }
+  return statuses;
 }
 
 /**
@@ -83,10 +143,44 @@ export const compileAdapter: ProviderAdapter = {
   reviewResponse(turn: TurnAssembly, parsed: NormalizedResponse) {
     if (parsed.toolCalls.length > 0) return { action: 'accept' as const };
     if (turn.tools.length === 0) return { action: 'accept' as const };
-    if (proposedCount(turn.exchanges) > 0) return { action: 'accept' as const };
+    if ([...finalProposalStatuses(turn.exchanges).values()].some(Boolean)) {
+      return { action: 'accept' as const };
+    }
+
+    const retryCount = turn.exchanges.filter((exchange) => exchange.retry).length;
+    const reads = wikiReads(turn.exchanges);
+    const requiredWiki = wikiTargetsMentioned(turn.userText);
+    const unfinished = [...reads.values()].filter(
+      (read) => !read.isError && !read.complete && read.nextCursor !== null,
+    );
+    const missingRequired = requiredWiki.filter((path) => {
+      const read = reads.get(path);
+      return !read || read.isError || !read.complete;
+    });
+
+    if (unfinished.length > 0 || missingRequired.length > 0) {
+      if (retryCount >= COMPILE_NUDGE_CAP) return { action: 'accept' as const };
+      if (unfinished.length > 0) {
+        return {
+          action: 'retry' as const,
+          expectedTool: 'read_wiki_page',
+          message:
+            `Continue reading ${unfinished.map((read) => `\`${read.path}\``).join(', ')} ` +
+            'with the exact `nextCursor` from the last result. Do not propose or answer in prose until the complete current page has been returned.',
+        };
+      }
+      return {
+        action: 'retry' as const,
+        expectedTool: 'read_wiki_page',
+        message:
+          `Read the existing page ${missingRequired.map((path) => `\`${path}\``).join(', ')} ` +
+          'through `read_wiki_page` before proposing a replacement. Follow every cursor and echo the final receipt; do not answer in prose.',
+      };
+    }
+
     const read = readablePathsRead(turn.exchanges);
     if (read.length === 0) return { action: 'accept' as const };
-    if (turn.exchanges.filter((exchange) => exchange.retry).length >= COMPILE_NUDGE_CAP) {
+    if (retryCount >= COMPILE_NUDGE_CAP) {
       return { action: 'accept' as const };
     }
     return {

@@ -749,6 +749,7 @@ export function LibrarySection({
                   >
                     <BookText size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
                     <span className="min-w-0 flex-1 truncate">{page.title}</span>
+                    {model.answerVersions?.get(page.slug) ? <span className="flex-none text-caption text-[color:var(--color-text-secondary)]">{t(`answers.version.${model.answerVersions.get(page.slug)}`)}</span> : null}
                     {(page.createdBy ?? "") !== majorityWriter ? (
                       <span
                         data-testid="library-wiki-writer"

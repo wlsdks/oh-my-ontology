@@ -63,6 +63,24 @@ record stays in Git history before commit `e4fb49a89`.
 **Falsifier**: no host has installed this bundle and no image is pushed. A listing that produces no install within 90 days fires 2026-07-27's deferred npm question, not this record; a host with neither Node nor MCPB support moves this channel to the compiled binary.
 **Owner**: jinan
 
+## 2026-09-11 — A heading answers to both anchor rules, because its document is read in two places
+
+**Why**: fixing `docs/DESIGN-SYSTEM.md`'s contents list for GitHub would have broken it inside the app. Every file under `docs/` is rendered twice — by GitHub and by the app's docs viewer — and the two heading rules disagree on 1,650 of 3,324 headings, because an em dash between spaces leaves GitHub two hyphens and `slugFromChildren` one. Whichever rule wrote a link, it resolved on exactly one surface.
+**Prior**: extends the same day's "The link gate reads the half after the `#`", which made the divergence visible by checking fragments at all.
+**Decision**: each `h1`/`h2`/`h3` in the docs viewer emits the GitHub form as a second, empty `aria-hidden` anchor beside its own id, and only when the two forms differ. The id above it is unchanged, so scroll-spy, the contents rail and `manifest.headings.json` need no migration, and a heading whose forms already agree gains nothing. Measured in the built static export: clicking the GitHub-form contents link lands the heading 189px from the top of the reading column, the alias span is 0×19 inside a 20px heading, and the heading's height still equals its line-height. `anchor-slug-parity.contract.test.ts` holds the app copy and the gate's copy to the same output across every heading in `docs/`.
+**Dissent**: migrate the app to GitHub's rule outright and keep one anchor per heading. Not adopted here: it rewrites 1,650 manifest slugs, and every in-body link and deeplink written in the collapsed form breaks the moment it lands. The alias is additive and reversible; the migration is neither, and it deserves its own pass.
+**Falsifier**: a reader who lands on the alias and sees the heading scrolled under sticky chrome rather than below it — then the alias needs the heading's own scroll-margin, not a bare span.
+**Owner**: jinan
+
+## 2026-09-11 — The link gate reads the half after the `#`, and one slug function serves both sides
+
+**Why**: shortening the README left a pointer at `cli/README.md#set-up-from-a-source-checkout`, and nothing checked that fragment — `check-doc-links.mjs` split on `#` and verified only the file. An inventory found one already dead — `AGENTS.md#working-with-the-ontology-while-you-code`, a heading gone for months — and 13 more in `docs/DESIGN-SYSTEM.md`'s own generated table of contents.
+**Prior**: upholds 2026-08-01 "check only facts a machine can derive" — a fragment resolving against real headings is referential integrity, not a prose pin. Continues the same day's "The README loses half its words".
+**Decision**: `pnpm docs:links` now resolves `#fragment` for markdown links, same-document links and raw HTML `href`s whose target markdown file is readable; a missing file is still reported once as a link, and a fragment on a non-markdown target is left alone. The TOC generator and the gate share one `headingAnchorSlug`, every expectation read off GitHub's rendered `id=` rather than derived: each whitespace run becomes a hyphen, `_` survives, backticks and apostrophes do not. The local copy it replaces collapsed whitespace and dropped `_`, which produced the 13. Probed on four shapes — same-file, cross-file, HTML href, and a heading renamed on the target side — each red, then green.
+**Dissent**: `pnpm decisions:check` should also trigger on `README.md`, since this session's first cut removed ledger-pinned facts while that gate stayed green. Not adopted: that gate holds only mechanical rows by design, and its design-spec row was narrowed from file names to an inventory because "in the diff means ledger" produced 63 false positives. A README trigger would demand a record for a typo.
+**Falsifier**: a heading whose GitHub id disagrees with `headingAnchorSlug` — then one wrong function is wrong for both consumers, the cost of unifying them.
+**Owner**: jinan
+
 ## 2026-09-11 — The README loses half its words and keeps every fact the ledger put in its body
 
 **Why**: the owner opened the README and said it has too much text and does not look good. Measured: 1,107 lines, 7,896 prose words, eight centered paragraphs before the first heading, and a 125-line gate narrative `docs/DEVELOPMENT-CHECKS.md` already owns entry by entry.
@@ -5416,3 +5434,57 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: a full-text comparison is slower to review than an automatic merge, and reducing the batch costs throughput. Accepted because model compliance does not prove preservation of human notes. The inspected card had only counts before this change; automatic rewriting would conceal the measured loss. Topic-wide semantic matching and reliable human-note preservation remain further work.
 **Falsifier**: a current write-up hides an outdated answer; a local replacement is accepted without the full previous text; a concurrent page edit is overwritten; the card conceals deleted content; or an unfinished page is reported current without new source evidence.
 **Owner**: Codex, for the owner's Library request.
+
+## 2026-09-11 — Library retains questions through explicit answer revisions
+
+**Why**: the owner chose questions with maintained answers as the next Library direction, then named standalone Library usefulness as a long-term goal. A source-hidden walk recovered the old/new accounts but mistook a refresh button for a read-only review action; duplicate titles and a renamed conversation control also obscured recovery.
+**Prior**: extends 2026-09-09 “General knowledge belongs in Library; the ontology retains its codebase scope”. Narrows 2026-09-09 “Filing an answer does not borrow a later source hash”: byte observations may be recorded separately, never as read provenance. Supersedes the default canvas hierarchy in 2026-09-08 “The Library canvas stands beside the page it is about”; Graph remains an explicit supporting view.
+**Decision**: the landing lists retained questions and history tips; competing tips remain alternatives. An explicit coding-agent request creates a structured draft for comparison, then exclusive filing preserves previous Markdown. Source changes, missing/new originals, unmeasured provenance and altered history remain distinct. Refresh never auto-allows a page write, and ordinary compilation cannot auto-allow retained-answer paths. Narrow comparisons switch between versions; the conversation door always names its destination. Claude Code and Codex ACP are required execution routes alongside local/connected models.
+**Dissent**: source-led reading may already be sufficient, while answer histories add clutter and a maintenance obligation. The selected slice must prove later-reader recovery before any broader maintained-synthesis or demand claim.
+**Falsifier**: a reader cannot recover the prior account or known evidence gaps; a saved revision overwrites later human text; an observation is presented as proof of an answer; or Library requires code nodes to retain knowledge. Reopen the smallest failing workflow before expansion.
+**Owner**: jinan
+
+## 2026-09-11 — Source citations retain record boundaries and distinguish repeated headings
+
+**Why**: a real extractor probe split one quoted CSV record across two row units and assigned the same DOCX heading address to two different scopes. A byte hash could not resolve either location defect.
+**Prior**: extends 2026-09-07 “The MCP server reads a source's text on request; Atlas still keeps no converted copy” and 2026-09-11 “Library retains questions through explicit answer revisions”. Hashes establish byte identity, not extraction fidelity or citation precision.
+**Decision**: group quoted CSV/TSV records without shifting their physical starting-line anchors; paginate the resulting units. Retain an unclosed quoted remainder with an explicit note. Give every colliding DOCX heading occurrence a distinct generated anchor, reserving natural names first. Keep unique anchors unchanged and name ambiguous legacy addresses in a note. Do not rewrite originals or migrate citations automatically.
+**Dissent**: unit grouping changes pagination and old ambiguous citations still need review. An ambiguity note does not repair a stored answer; it prevents selecting one possible target silently.
+**Falsifier**: a unique existing address identifies a different passage, a quoted qualifier is dropped or split, pagination loses a record, or a returned heading address still names two occurrences.
+**Owner**: jinan
+
+## 2026-09-11 — Compile revisits resolved gaps and distinguishes policy from observation
+
+**Why**: a real reverse-arrival ACP run cited a newly read handbook while retaining its earlier absence claim. It also left an explicit approved replacement framed as an undecided policy conflict.
+**Prior**: extends 2026-09-06 “The wiki page contract gains a folder half, and the Compile brief revises, flags, and links”; 2026-09-11 “Library retains questions through explicit answer revisions” stands. Keep the current source-specific pages and their historical claims.
+**Decision**: compare claim scope, source dates, source status and policy/observation roles before labeling a conflict. Record an explicit approved replacement without treating recency or a draft as approval. Revisit existing gaps on updated pages, resolving only answered parts with citations and qualifying obsolete absence claims. Preserve source-specific limits, personal notes and separately retained answers. Supply the request timestamp to each modified page as guidance, not an attested completion time. No write authority or accepted ontology meaning changes.
+**Dissent**: wording may overfit this history or erase valid uncertainty. Both reviewers require exact-state ACP replays, source-hidden recovery and a held-out draft counterexample; a passing template is not semantic proof.
+**Falsifier**: a read source remains globally absent, valid historical/source-specific limits disappear, a draft becomes approved policy, observation becomes implementation proof, or a human note or retained answer changes during Compile.
+**Owner**: jinan
+
+## 2026-09-11 — Local Compile reads the existing write-up before proposing a replacement
+
+**Why**: an executor probe accepted a source-only replacement while the prior human note was available only in the consent diff, never in model context. The person had to rediscover a correction that the model could not see.
+**Prior**: supersedes only the two-tool clause of 2026-09-06 “Compile runs on a local model: a read tool, a proposal tool, one card, parsers deferred”. Keeps 2026-09-06 “Which brain Compile runs on is a default the person can change, not a rank” and 2026-09-11 “Library retains questions through explicit answer revisions”.
+**Decision**: add a Compile-only existing-Wiki reader with bounded sequential chunks. Replacing a page requires its complete-read receipt and an exact current text/timestamp match. Failed later proposals invalidate earlier ready replacements for that path. Prior notes remain attributed context, never borrowed raw-source evidence or instructions. At consent, recheck every selected replacement before sequential writes. Keep the local endpoint boundary, source citation rules, existing budgets and human approval. Claude Code and Codex ACP remain separate supported routes.
+**Dissent**: the diff already exposes deletions, while full prior reads consume context and still cannot guarantee preservation. Both reviewers require a sealed real-model case and a separate semantic verdict; a read receipt proves availability only.
+**Falsifier**: an incomplete or stale read permits replacement, a failed later proposal leaves an earlier one writable, a personal note becomes a source fact, or an ordinary page repeatedly cannot fit the unchanged bounds. Reopen the failing contract rather than claiming guaranteed maintenance.
+**Owner**: jinan
+
+## 2026-09-11 — Local Compile approval exposes the exact previous and proposed text
+
+**Why**: the preceding review referred to a consent diff, but direct render-source inspection found only paths, counts and source lists. Before/after text existed in the proposal data and was not shown to the person.
+**Prior**: extends 2026-09-11 “Local Compile reads the existing write-up before proposing a replacement” and corrects its assumption of an already visible diff. The existing read and approval boundaries stand.
+**Decision**: show exact proposed Markdown inside the current card, with a shared selector for the complete previous page when replacing a file. Open replacement previews by default and keep approval outside the content scroller. New pages offer their proposed preview only. State that automatic save points are unavailable and do not claim every write failure left zero changes.
+**Dissent**: full Markdown adds reading effort and a selector requires remembering the other version. It exposes the actual consented text within the current card; semantic summaries or selective diffs would introduce another interpretation to verify.
+**Falsifier**: a displayed version differs from the selected write payload, the prior correction is inaccessible, or preview scrolling obscures the approval controls at an affected width.
+**Owner**: jinan
+
+## 2026-09-11 — Related Wiki maintenance preserves explicit retained-answer revisions
+
+**Why**: integrating the latest main combined related-page maintenance with the question-led revision workflow. Ordinary Compile could otherwise queue immutable answer history forever or replace a retained answer at its old path.
+**Prior**: keeps 2026-09-10 “Compile revisits existing write-ups and filed answers” for detection and ordinary Wiki revisions, but supersedes its same-path writing for `wiki/answers/` with 2026-09-11 “Library retains questions through explicit answer revisions”. The complete-read receipt and exact-text review decisions stand.
+**Decision**: retain related-page retrieval, per-page freshness and inventoried nested Wiki addresses. Reserved answer paths stay visible in citations and their question/history surfaces but use explicit refresh and create-only revision saving; they do not enter ordinary Compile's replacement queue. Local source hashes describe the complete bytes read. A replacement still needs complete prior context, its receipt and current text/time checks.
+**Dissent**: one automatic compilation queue would be simpler. It would erase the distinction between revising a source write-up and preserving the prior answer that a person returned to compare.
+**Falsifier**: a reserved answer is replaced by ordinary Compile, immutable history keeps source compilation permanently queued, a stale ordinary write-up disappears behind a current one, or a nested Wiki replacement loses its exact address or read/currentness guard.
+**Owner**: jinan

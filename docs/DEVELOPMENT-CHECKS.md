@@ -122,7 +122,7 @@ before commit `5eb3ba9ff`, and its decisions are in the ledger.
 ### macOS desktop readiness
 
 **Run**: `pnpm desktop:check`
-**Proves**: the macOS desktop Tauri scaffold readiness gate passes for static export, image mode, docs-vault freshness, CLI/MCP verification, desktop-grade quality bar coverage, route smoke scope, and `src-tauri` shell files.
+**Proves**: the macOS desktop Tauri scaffold readiness gate passes for static export, image mode, docs-vault freshness, CLI/MCP verification, desktop-grade quality bar coverage, route smoke scope, and `src-tauri` shell files. README download and release links follow the configured site and repository; editable explanatory sentences are not pinned.
 **Escalate**: `pnpm desktop:doctor`, then `pnpm test:desktop:check` / `pnpm test:desktop:runtime` / `pnpm test:desktop:bridge`
 **Fix**: keep `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` versions matched so app metadata, DMG filenames, and release tags move together.
 
@@ -252,7 +252,7 @@ before commit `5eb3ba9ff`, and its decisions are in the ledger.
 ### Repo link and citation integrity
 
 **Run**: `pnpm docs:links`
-**Proves**: Repo-relative markdown links and repo-anchored .md path citations in prose resolve, including a document citing a nonexistent vault path.
+**Proves**: Repo-relative markdown links, raw HTML hrefs and repo-anchored .md path citations resolve, including the `#section` half against the target's real headings.
 **Escalate**: `pnpm docs:links:external` to also resolve external http(s) links over the network
 
 ### Code-comment doc reference integrity

@@ -245,6 +245,12 @@ the page. **Compile** starts one conversation that reads the sources and writes
 the page; the traffic goes from your coding agent straight to its own provider,
 which the screen states instead of implying that Atlas sits in the middle.
 
+Library also works without code or ontology nodes. Keep a question and its cited
+answer, inspect source changes, request an updated draft through Claude Code or
+Codex ACP, and compare before saving a new revision. Earlier answers remain
+available. Local Compile has its own read and approval path. See
+[retained answers](docs/RETAINED-ANSWERS.md).
+
 ### 5. Plan against reviewed architecture
 
 ![The current Architecture screen in the installed macOS app, comparing the seven reviewed roles of this repository, numbered from Routes down to Shared foundation with what each role is in two lines, against the imports observed in code beside each one, a check in the Delta column where they agree, every stroke stating its rule as a sentence and the measured crossing with its import count, and the reviewed structure and inspection receipt named above with Re-inspect source and Roles and rules](docs/assets/readme/architecture-flow.png)
@@ -510,53 +516,12 @@ have documents and no code. Full contracts: the
 
 ## Running from source
 
-Requires Node.js 24 and pnpm. This is the fallback for platforms without an
-installed app.
-
-```bash
-# Keep the tool outside the project you are describing.
-git clone https://github.com/wlsdks/ontology-atlas ~/tools/ontology-atlas
-cd ~/tools/ontology-atlas && pnpm install
-pnpm --dir mcp install --frozen-lockfile   # mcp/ has its own lockfile — the line above skips it
-ATLAS=~/tools/ontology-atlas/cli/src/index.mjs
-
-cd /path/to/your/repo
-node $ATLAS init ./atlas                   # scaffold a vault and its agent config
-node $ATLAS index . --vault ./atlas        # analyze without writing; --apply is the write boundary
-node $ATLAS agent-brief ./atlas            # the complete diagnostic handoff
-node $ATLAS mcp-verify ./atlas             # after restarting your agent: prove the live connection
-```
-
-Both install commands are required — `mcp/` owns a separate lockfile, so rerun it
-after each pull; the preflight rejects an unresolved or non-exact runtime
-dependency and prints the exact repair. What a compact `--task` handoff will and
-will not claim is documented in the [agent guide](mcp/README.md).
-
-> Run `init` in your own repository, not inside the Atlas clone. This clone ships
-> a committed `.mcp.json` pointing at Atlas's own vault, and `init` refuses to
-> overwrite it — your agent would silently answer from *our* ontology. That file
-> also declares a review-only `chrome-devtools` server the design seats measure
-> rendered geometry through; [AGENTS.md](AGENTS.md) owns that contract.
-
-Run the desktop shell with `pnpm desktop:dev`.
-
-## Verifying a change
-
-Start with `pnpm checks:changed`: it picks the focused gates for the files you
-changed, `-- --run` executes every recommendation and stops at the first failure,
-and it is the last command before a pull request.
-
-| Command | What it answers |
-|---|---|
-| `pnpm checks:changed` | Which gates this change actually needs |
-| `pnpm docs:check` | Docs gates, including `pnpm docs:language`, `pnpm source:language`, `pnpm changelog:check`, `pnpm dev-checks:check` |
-| `pnpm knip` | Dead files, exports and types across every scope |
-| `pnpm decisions:find <terms>` · `pnpm decisions:check` | The decision record to cite or overturn, and whether this change owes one |
-| `pnpm harness:report` · `pnpm harness:outcomes` | What the agent hooks caught, and whether that lane still earns its place |
-
-[Development checks](docs/DEVELOPMENT-CHECKS.md) is the full gate reference, one
-entry per area; [map testability](docs/MAP-TESTABILITY.md) owns canvas
-performance, readability, contrast, and instrumentation.
+Linux and every other platform without a packaged build run the browser app, or
+the CLI and MCP server from a source checkout: Node.js 24 and pnpm, one clone
+outside the project you are describing, then `init` inside your own repository
+and `mcp-verify` to prove the live connection. The exact commands, the two
+required installs, and the reason `init` refuses to run inside the Atlas clone
+are in [set up from a source checkout](cli/README.md#set-up-from-a-source-checkout).
 
 ## Documentation
 
@@ -582,6 +547,22 @@ forks, and that is a security boundary rather than a formality. Inside this
 repository [AGENTS.md](AGENTS.md) is canonical for people and agents alike, and
 product decisions route through `pnpm po:route -- --help` from change facts
 rather than a self-declared risk.
+
+Verification starts with `pnpm checks:changed`, which picks the focused gates for
+the files you changed; `-- --run` executes every recommendation and stops at the
+first failure, and it is the last command before a pull request.
+
+| Command | What it answers |
+|---|---|
+| `pnpm checks:changed` | Which gates this change actually needs |
+| `pnpm docs:check` | Docs gates, including `pnpm docs:language`, `pnpm source:language`, `pnpm changelog:check`, `pnpm dev-checks:check` |
+| `pnpm knip` | Dead files, exports and types across every scope |
+| `pnpm decisions:find <terms>` · `pnpm decisions:check` | The decision record to cite or overturn, and whether this change owes one |
+| `pnpm harness:report` · `pnpm harness:outcomes` | What the agent hooks caught, and whether that lane still earns its place |
+
+[Development checks](docs/DEVELOPMENT-CHECKS.md) is the full gate reference, one
+entry per area; [map testability](docs/MAP-TESTABILITY.md) owns canvas
+performance, readability, contrast, and instrumentation.
 
 ## License
 

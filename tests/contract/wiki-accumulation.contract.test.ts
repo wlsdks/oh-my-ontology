@@ -14,6 +14,29 @@ function indexFor(fixture: typeof accumulationCases[number]) {
   return buildWikiRetrievalIndex(docs, new Map(pages.map(({ slug, raw }) => [slug, raw])));
 }
 
+async function readWikiCompletely(
+  execute: (call: { id: string; name: string; args: Record<string, unknown>; argsInvalid: boolean }) => Promise<{ isError?: boolean; content: string; summary: string }>,
+  slug: string,
+) {
+  let cursor: number | undefined;
+  for (;;) {
+    const args = cursor === undefined ? { slug } : { slug, cursor };
+    const result = await execute({ id: 'read-wiki', name: 'read_wiki_page', args, argsInvalid: false });
+    expect(result.isError, result.content).toBe(false);
+    const payload = JSON.parse(result.content) as { complete?: boolean; receipt?: unknown; nextCursor?: unknown };
+    if (payload.complete === true) {
+      expect(typeof payload.receipt).toBe('string');
+      expect(payload.receipt).not.toBe('');
+      return payload.receipt as string;
+    }
+    expect(typeof payload.nextCursor).toBe('number');
+    expect(Number.isSafeInteger(payload.nextCursor)).toBe(true);
+    expect(payload.nextCursor as number).toBeGreaterThanOrEqual(0);
+    if (cursor !== undefined) expect(payload.nextCursor as number).toBeGreaterThan(cursor);
+    cursor = payload.nextCursor as number;
+  }
+}
+
 describe('wiki accumulation: independent source reads, retrieval, revision and omission scoring', () => {
   for (const fixture of accumulationCases) {
     it(`${fixture.id}: the oracle passes the production executor and the omission rubric catches damaged revisions`, async () => {
@@ -28,10 +51,10 @@ describe('wiki accumulation: independent source reads, retrieval, revision and o
         },
       });
       for (const path of Object.keys(fixture.sources)) await executor.execute({ id: path, name: 'read_source_text', args: { path }, argsInvalid: false });
-      await executor.execute({ id: 'page', name: 'read_wiki_page', args: { slug: fixture.existing.slug }, argsInvalid: false });
+      const receipt = await readWikiCompletely(executor.execute.bind(executor), fixture.existing.slug);
       const proposed = await executor.execute({ id: 'proposal', name: 'propose_wiki_page', argsInvalid: false, args: {
         slug: fixture.existing.slug, title: fixture.existing.title, summary: fixture.existing.title,
-        ...fixture.oracle, not_in_sources: [],
+        ...fixture.oracle, not_in_sources: [], receipt,
       } });
       expect(proposed.isError, proposed.content).toBe(false);
       const page = executor.proposals()[0].page;
