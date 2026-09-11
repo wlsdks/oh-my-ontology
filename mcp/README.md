@@ -108,6 +108,12 @@ returns 200, authenticates with this repository's own OIDC identity, and stops
 without failing when the server version is already listed, since the registry
 treats a version as immutable.
 
+Third-party directories list it from the same two facts. [Glama](https://glama.ai/mcp/servers/wlsdks/ontology-atlas)
+builds the server from `mcp/Dockerfile` and introspects the running process for
+its tool list, so nothing there is typed by hand either. The root `glama.json`
+names the GitHub accounts allowed to maintain that entry; it is the whole file,
+because `maintainers` is the only field its schema requires.
+
 Two honest limits on those rows. **The image is not published yet** — build it
 yourself with `docker build -f mcp/Dockerfile -t ontology-atlas-mcp .` from the
 repository root, which is the context an outside directory uses when it builds a
