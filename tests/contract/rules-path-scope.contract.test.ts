@@ -281,12 +281,13 @@ describe("`.claude/rules` path scoping contract", () => {
     const blocks = text.match(VENDOR_REGION) ?? [];
 
     expect(blocks.length, "AGENTS.md should carry the Next block exactly once").toBe(1);
+    const block = blocks[0] ?? "";
     // Byte-for-byte what `next` writes. If Next changes its block, this fails and
     // the fix is to let the writer update it, not to edit inside the markers.
-    expect(blocks[0]).toContain("# This is NOT the Next.js you know");
-    expect(blocks[0]).toContain("node_modules/next/dist/server/lib/generate-agent-files.js");
+    expect(block).toContain("# This is NOT the Next.js you know");
+    expect(block).toContain("node_modules/next/dist/server/lib/generate-agent-files.js");
     expect(
-      Buffer.byteLength(blocks[0], "utf8"),
+      Buffer.byteLength(block, "utf8"),
       "the region between the markers grew — something of ours was put inside it",
     ).toBeLessThanOrEqual(900);
   });
