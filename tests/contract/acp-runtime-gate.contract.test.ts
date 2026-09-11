@@ -134,8 +134,12 @@ describe('관문 — 말하는 것과 거는 것이 같아야 한다', () => {
     ) as { agents: Array<{ id: string; launch?: { package?: string } }> };
     // Newest upstream since 2026-09-07 (owner: "the version is always the newest"); its
     // `read-only` mode is a workspace-write sandbox, and the vault's Git history is the undo.
+    // 1.11.0 (2026-09-11): the `AgentMode` block in `dist/index.js` is byte-identical to
+    // 1.10.0's — `read-only` still carries `on-request` approvals, `workspaceWrite` with an
+    // empty `writableRoots`, and `networkAccess: false`. Only its line offset moved, and the
+    // bundled `@openai/codex` went 0.153.3 → 0.153.4.
     expect(registry.agents.find((agent) => agent.id === 'codex-acp')?.launch?.package).toBe(
-      '@agentclientprotocol/codex-acp@1.10.0',
+      '@agentclientprotocol/codex-acp@1.11.0',
     );
     expect(readFileSync(join(ROOT, 'mcp/src/write-consent.mjs'), 'utf8')).toContain(
       'codex_approval_kind',

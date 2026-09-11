@@ -1,10 +1,10 @@
 # Executor Marks — Where They Came From and What Was Fixed
 
-The 38 SVGs in this folder are **other companies' product marks**. They are used
+The SVGs in this folder are **other companies' product marks**. They are used
 solely as identifiers to say "this is that tool," and must not be used to mimic
 the vendor's design.
 
-## Graphics (All 38)
+## Graphics (every mark in this folder)
 
 | | |
 |---|---|
@@ -14,7 +14,7 @@ the vendor's design.
 | Filtering | SVGs containing `<script>` or external `href` are excluded (`scripts/build-acp-registry.mjs`) |
 | Rendering Method | Used as a **mask** (`VendorMark`). Content inside the SVG is not drawn on screen; only the silhouette remains, so other companies' files cannot affect our UI |
 
-The registry rejects **filled-color SVGs** via registration rules — all 38 are
+The registry rejects **filled-color SVGs** via registration rules — all of them are
 monochrome with `fill="currentColor"`. Therefore, colors come separately below.
 
 ## Colors (Only 11)

@@ -185,14 +185,23 @@ describe('작업 방식 목록 — 관문을 없애는 것은 안 내놓는다',
  * new tarball and re-transcribe rather than discover the drift in an installed session.
  */
 const TRANSCRIBED_FROM = {
-  /** 0.75.1 (2026-09-07): `session-mode.js` and `permissions/` byte-identical to the transcribed 0.75.0. */
-  claude: '@agentclientprotocol/claude-agent-acp@0.75.1',
+  /**
+   * 0.75.1 (2026-09-07): `session-mode.js` and `permissions/` byte-identical to the transcribed
+   * 0.75.0. 0.76.0 (2026-09-11): `session-mode.js` is unchanged again and the advertised mode
+   * vocabulary is identical by count across `dist/**` (`bypassPermissions` 16, `acceptEdits` 10,
+   * `dontAsk` 4, `"plan"` 10, `availableModes` 12). What it adds is `session-model.js` and
+   * `session-effort.js` — model and effort choices, neither of which can skip a permission
+   * request, which is the one criterion this file measures.
+   */
+  claude: '@agentclientprotocol/claude-agent-acp@0.76.0',
   /**
    * The launch is the newest upstream since 2026-09-07 (owner: "the version is always the
    * newest"; the pin's overturn is in `docs/DECISIONS.md`). 1.10.0 was inspected on 2026-09-05 and
    * its `AgentMode.ts` is byte-identical to 1.9.0, so the kinds transcribed above describe it.
+   * 1.11.0 (2026-09-11): the `AgentMode` block in `dist/index.js` is byte-identical to 1.10.0's —
+   * same three modes, same kinds, same sandbox policies — so the transcription still holds.
    */
-  codexLaunch: '@agentclientprotocol/codex-acp@1.10.0',
+  codexLaunch: '@agentclientprotocol/codex-acp@1.11.0',
 };
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..');
