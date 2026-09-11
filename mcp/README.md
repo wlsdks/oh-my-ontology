@@ -101,12 +101,16 @@ ownership label), and hosts no files itself. `pnpm mcp:build-bundle` builds and
 boots the bundle, and `pnpm mcp:registry` derives the registry entry from the
 built artifact.
 
-Publishing the registry entry is wired, not manual: `.github/workflows/publish-mcp-registry.yml`
-runs when a release is **published** (a draft asset 404s to the anonymous fetch the
-registry makes), hashes the asset the release actually carries, proves that URL
-returns 200, authenticates with this repository's own OIDC identity, and stops
-without failing when the server version is already listed, since the registry
-treats a version as immutable.
+Publishing the registry entry is wired, not manual: the release workflow's last job
+calls `.github/workflows/publish-mcp-registry.yml` once the release leaves draft (a
+draft asset 404s to the anonymous fetch the registry makes). It hashes the asset the
+release actually carries, proves that URL returns 200, authenticates with this
+repository's own OIDC identity, and stops without failing when the server version is
+already listed, since the registry treats a version as immutable. It was a separate
+`release: [published]` workflow until v1.2.0 shipped and it had zero runs: the release
+is published with `GITHUB_TOKEN`, and GitHub starts no workflow from an event that
+token raised. `workflow_dispatch` remains, for re-listing a release that is already
+out.
 
 Third-party directories list it from the same two facts. [Glama](https://glama.ai/mcp/servers/wlsdks/ontology-atlas)
 builds the server from `mcp/Dockerfile` and introspects the running process for

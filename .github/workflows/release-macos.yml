@@ -758,3 +758,27 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+  # The listing follows publication inside the same run, on purpose.
+  #
+  # This was a separate workflow on `release: [published]` until 2026-09-11, when
+  # v1.2.0 shipped and it had **zero runs**: `publish-macos` takes the release out of
+  # draft with `GITHUB_TOKEN`, and GitHub will not start a workflow from an event that
+  # token raised. The trigger could never fire for our own releases, and the entry had
+  # to be dispatched by hand — an "it is wired" claim that was not true.
+  #
+  # `needs: publish-macos` is the honest ordering: the registry fetches the asset with
+  # no credentials, so it must already be public. The called workflow keeps its own
+  # `workflow_dispatch` for re-listing a release that is already out.
+  list-mcp-registry:
+    name: List the MCP server entry
+    needs: [admit-release, publish-macos]
+    permissions:
+      # Not repository write. `id-token: write` mints the short-lived OIDC assertion
+      # `mcp-publisher login github-oidc` exchanges to prove this repository owns the
+      # `io.github.wlsdks/*` namespace; it grants nothing over this repository's contents.
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/publish-mcp-registry.yml
+    with:
+      tag: ${{ needs.admit-release.outputs.release_tag }}
