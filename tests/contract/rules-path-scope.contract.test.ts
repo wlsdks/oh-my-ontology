@@ -253,15 +253,48 @@ describe("`.claude/rules` path scoping contract", () => {
    */
   const RESIDENT_CONTEXT_BYTES = 26_935;
 
+  /**
+   * One region of `AGENTS.md` is not ours (2026-09-11). `@vercel/detect-agent`
+   * reports an agent from environment variables alone, so whenever an **agent**
+   * runs `pnpm dev` or `pnpm build`, Next writes its own block between
+   * `<!-- BEGIN:nextjs-agent-rules -->` and its END marker. A human contributor
+   * never sees it; an agent session gets a dirty `AGENTS.md` and a red ratchet,
+   * twice in one session before this. There is no opt-out environment variable,
+   * and `hasCurrentAgentRules()` stops the writer only once the current block is
+   * committed — so the block is committed, and this measurement excludes it.
+   *
+   * The exclusion is bookkeeping, not permission: we cannot shrink a region the
+   * tool rewrites, and pretending we own those bytes would mean either a
+   * permanently red gate or a ceiling raised for someone else's prose. What the
+   * gate still guards is every byte we write, and the test below refuses the
+   * obvious abuse — our own paragraphs smuggled inside the markers.
+   */
+  const VENDOR_REGION = /<!-- BEGIN:nextjs-agent-rules -->[\s\S]*?<!-- END:nextjs-agent-rules -->\n?/g;
+
+  function authoredBytes(file: string): number {
+    const text = readFileSync(join(process.cwd(), file), "utf8");
+    return Buffer.byteLength(text.replace(VENDOR_REGION, ""), "utf8");
+  }
+
+  it("keeps the tool-managed region tool-managed", () => {
+    const text = readFileSync(join(process.cwd(), "AGENTS.md"), "utf8");
+    const blocks = text.match(VENDOR_REGION) ?? [];
+
+    expect(blocks.length, "AGENTS.md should carry the Next block exactly once").toBe(1);
+    // Byte-for-byte what `next` writes. If Next changes its block, this fails and
+    // the fix is to let the writer update it, not to edit inside the markers.
+    expect(blocks[0]).toContain("# This is NOT the Next.js you know");
+    expect(blocks[0]).toContain("node_modules/next/dist/server/lib/generate-agent-files.js");
+    expect(
+      Buffer.byteLength(blocks[0], "utf8"),
+      "the region between the markers grew — something of ours was put inside it",
+    ).toBeLessThanOrEqual(900);
+  });
+
   it("ratchets the whole resident context downward, never up", () => {
     const files = ["AGENTS.md", "CLAUDE.md", ...ALWAYS_LOADED.map((f) => join(".claude/rules", f))];
-    const bytes = files.reduce(
-      (sum, file) => sum + readFileSync(join(process.cwd(), file)).byteLength,
-      0,
-    );
-    const detail = files
-      .map((file) => `  ${readFileSync(join(process.cwd(), file)).byteLength} ${file}`)
-      .join("\n");
+    const bytes = files.reduce((sum, file) => sum + authoredBytes(file), 0);
+    const detail = files.map((file) => `  ${authoredBytes(file)} ${file}`).join("\n");
 
     expect(
       bytes,
