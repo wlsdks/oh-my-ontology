@@ -54,6 +54,24 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-11 — A heading answers to both anchor rules, because its document is read in two places
+
+**Why**: fixing `docs/DESIGN-SYSTEM.md`'s contents list for GitHub would have broken it inside the app. Every file under `docs/` is rendered twice — by GitHub and by the app's docs viewer — and the two heading rules disagree on 1,650 of 3,324 headings, because an em dash between spaces leaves GitHub two hyphens and `slugFromChildren` one. Whichever rule wrote a link, it resolved on exactly one surface.
+**Prior**: extends the same day's "The link gate reads the half after the `#`", which made the divergence visible by checking fragments at all.
+**Decision**: each `h1`/`h2`/`h3` in the docs viewer emits the GitHub form as a second, empty `aria-hidden` anchor beside its own id, and only when the two forms differ. The id above it is unchanged, so scroll-spy, the contents rail and `manifest.headings.json` need no migration, and a heading whose forms already agree gains nothing. Measured in the built static export: clicking the GitHub-form contents link lands the heading 189px from the top of the reading column, the alias span is 0×19 inside a 20px heading, and the heading's height still equals its line-height. `anchor-slug-parity.contract.test.ts` holds the app copy and the gate's copy to the same output across every heading in `docs/`.
+**Dissent**: migrate the app to GitHub's rule outright and keep one anchor per heading. Not adopted here: it rewrites 1,650 manifest slugs, and every in-body link and deeplink written in the collapsed form breaks the moment it lands. The alias is additive and reversible; the migration is neither, and it deserves its own pass.
+**Falsifier**: a reader who lands on the alias and sees the heading scrolled under sticky chrome rather than below it — then the alias needs the heading's own scroll-margin, not a bare span.
+**Owner**: jinan
+
+## 2026-09-11 — The link gate reads the half after the `#`, and one slug function serves both sides
+
+**Why**: shortening the README left a pointer at `cli/README.md#set-up-from-a-source-checkout`, and nothing checked that fragment — `check-doc-links.mjs` split on `#` and verified only the file. An inventory found one already dead — `AGENTS.md#working-with-the-ontology-while-you-code`, a heading gone for months — and 13 more in `docs/DESIGN-SYSTEM.md`'s own generated table of contents.
+**Prior**: upholds 2026-08-01 "check only facts a machine can derive" — a fragment resolving against real headings is referential integrity, not a prose pin. Continues the same day's "The README loses half its words".
+**Decision**: `pnpm docs:links` now resolves `#fragment` for markdown links, same-document links and raw HTML `href`s whose target markdown file is readable; a missing file is still reported once as a link, and a fragment on a non-markdown target is left alone. The TOC generator and the gate share one `headingAnchorSlug`, every expectation read off GitHub's rendered `id=` rather than derived: each whitespace run becomes a hyphen, `_` survives, backticks and apostrophes do not. The local copy it replaces collapsed whitespace and dropped `_`, which produced the 13. Probed on four shapes — same-file, cross-file, HTML href, and a heading renamed on the target side — each red, then green.
+**Dissent**: `pnpm decisions:check` should also trigger on `README.md`, since this session's first cut removed ledger-pinned facts while that gate stayed green. Not adopted: that gate holds only mechanical rows by design, and its design-spec row was narrowed from file names to an inventory because "in the diff means ledger" produced 63 false positives. A README trigger would demand a record for a typo.
+**Falsifier**: a heading whose GitHub id disagrees with `headingAnchorSlug` — then one wrong function is wrong for both consumers, the cost of unifying them.
+**Owner**: jinan
+
 ## 2026-09-11 — The README loses half its words and keeps every fact the ledger put in its body
 
 **Why**: the owner opened the README and said it has too much text and does not look good. Measured: 1,107 lines, 7,896 prose words, eight centered paragraphs before the first heading, and a 125-line gate narrative `docs/DEVELOPMENT-CHECKS.md` already owns entry by entry.

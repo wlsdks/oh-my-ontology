@@ -15,6 +15,7 @@ import {
 import { useStaticVaultSource } from '@/entities/vault-session';
 import { IconButton, controlClass } from '@/shared/ui';
 import { splitHighlightSegments } from '@/shared/lib/highlight-match';
+import { githubAnchorSlug } from '@/shared/lib/github-anchor-slug';
 import { useCopyFeedback } from '@/shared/lib/use-copy-feedback';
 import { useDelayedVisible } from '@/shared/lib/use-presence';
 import { usePrefersReducedMotion } from '@/shared/lib/use-prefers-reduced-motion';
@@ -214,6 +215,21 @@ export function DocsVaultViewer({
   // with the same text now collide on id (the browser anchors to the first), and that
   // trade-off beats killing navigation for every heading.
   const headingSlugOf = (children: React.ReactNode) => slugFromChildren(children);
+
+  /**
+   * The same heading under GitHub's rule, when that differs from this viewer's.
+   * A document under `docs/` is read here and on GitHub, and the two rules
+   * disagree on half of this repository's headings (an em dash between spaces
+   * leaves two hyphens for GitHub, one here). Rendering the GitHub form as a
+   * second, empty anchor keeps a link written for either surface live in both;
+   * scroll-spy and the contents rail keep using the id above, so the manifest
+   * needs no change.
+   */
+  const headingAliasOf = (children: React.ReactNode) => {
+    const canonical = slugFromChildren(children);
+    const alias = githubAnchorSlug(flattenText(children));
+    return alias && alias !== canonical ? alias : null;
+  };
 
   /**
    * An NFC copy of the vault slugs — the lookup set wikilink resolution uses.
@@ -465,12 +481,14 @@ export function DocsVaultViewer({
       },
       h1({ children, ...rest }) {
         const slug = headingSlugOf(children);
+        const alias = headingAliasOf(children);
         return (
           <h2
             id={slug}
             className="group relative mt-0 mb-6 text-display font-[var(--font-weight-strong)] leading-display text-[color:var(--color-text-primary)]"
             {...rest}
           >
+            {alias ? <span id={alias} aria-hidden /> : null}
             {highlightChildren(children, 'h1')}
             <HeadingAnchor anchor={slug} docSlug={doc.slug} basePath={basePath} />
           </h2>
@@ -478,6 +496,7 @@ export function DocsVaultViewer({
       },
       h2({ children, ...rest }) {
         const slug = headingSlugOf(children);
+        const alias = headingAliasOf(children);
         return (
           <h2
             id={slug}
@@ -487,6 +506,7 @@ export function DocsVaultViewer({
             className="group relative mt-10 mb-3 text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)] first:mt-0"
             {...rest}
           >
+            {alias ? <span id={alias} aria-hidden /> : null}
             {highlightChildren(children, 'h2')}
             <HeadingAnchor anchor={slug} docSlug={doc.slug} basePath={basePath} />
           </h2>
@@ -494,12 +514,14 @@ export function DocsVaultViewer({
       },
       h3({ children, ...rest }) {
         const slug = headingSlugOf(children);
+        const alias = headingAliasOf(children);
         return (
           <h3
             id={slug}
             className="group relative mt-6 mb-2 text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)]"
             {...rest}
           >
+            {alias ? <span id={alias} aria-hidden /> : null}
             {highlightChildren(children, 'h3')}
             <HeadingAnchor anchor={slug} docSlug={doc.slug} basePath={basePath} />
           </h3>

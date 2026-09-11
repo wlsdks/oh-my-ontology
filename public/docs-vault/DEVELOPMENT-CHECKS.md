@@ -252,7 +252,7 @@ before commit `5eb3ba9ff`, and its decisions are in the ledger.
 ### Repo link and citation integrity
 
 **Run**: `pnpm docs:links`
-**Proves**: Repo-relative markdown links and repo-anchored .md path citations in prose resolve, including a document citing a nonexistent vault path.
+**Proves**: Repo-relative markdown links, raw HTML hrefs and repo-anchored .md path citations resolve, including the `#section` half against the target's real headings.
 **Escalate**: `pnpm docs:links:external` to also resolve external http(s) links over the network
 
 ### Code-comment doc reference integrity

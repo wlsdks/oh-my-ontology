@@ -27,6 +27,38 @@ Requires Node 24+ (Active LTS as of 2026-07). The CLI spawns the MCP server in
 > Users who only want the agent connection do not need this CLI at all — the
 > installed macOS app bundles the MCP server and writes the config itself.
 
+## Set up from a source checkout
+
+Requires Node.js 24 and pnpm. This is the path for platforms without an
+installed app, and for anyone who wants the CLI itself.
+
+```bash
+# Keep the tool outside the project you are describing.
+git clone https://github.com/wlsdks/ontology-atlas ~/tools/ontology-atlas
+cd ~/tools/ontology-atlas && pnpm install
+pnpm --dir mcp install --frozen-lockfile   # mcp/ has its own lockfile — the line above skips it
+ATLAS=~/tools/ontology-atlas/cli/src/index.mjs
+
+cd /path/to/your/repo
+node $ATLAS init ./atlas                   # scaffold a vault and its agent config
+node $ATLAS index . --vault ./atlas        # analyze without writing; --apply is the write boundary
+node $ATLAS agent-brief ./atlas            # the complete diagnostic handoff
+node $ATLAS mcp-verify ./atlas             # after restarting your agent: prove the live connection
+```
+
+Both install commands are required — `mcp/` owns a separate lockfile, so rerun it
+after each pull; the preflight rejects an unresolved or non-exact runtime
+dependency and prints the exact repair. What a compact `--task` handoff will and
+will not claim is documented in the [agent guide](../mcp/README.md).
+
+> Run `init` in your own repository, not inside the Atlas clone. This clone ships
+> a committed `.mcp.json` pointing at Atlas's own vault, and `init` refuses to
+> overwrite it — your agent would silently answer from *our* ontology. That file
+> also declares a review-only `chrome-devtools` server the design seats measure
+> rendered geometry through; [AGENTS.md](../AGENTS.md) owns that contract.
+
+Run the desktop shell from the same checkout with `pnpm desktop:dev`.
+
 ## Commands (R12)
 
 Every ontology node carries an immutable lowercase UUIDv4 `uid` and a mutable,
