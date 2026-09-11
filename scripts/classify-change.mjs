@@ -127,6 +127,9 @@ const KNOWN_PATHS = [
   /^(?:AGENTS|CLAUDE|CODE_OF_CONDUCT|CONTRIBUTING|NOTICE|README|SECURITY)\.md$/,
   /^LICENSE$/,
   /^(?:eslint\.config\.mjs|next\.config\.ts|package\.json|playwright\.config\.ts|pnpm-lock\.yaml|postcss\.config\.mjs|tsconfig\.json|vitest\.config\.ts|vitest\.setup\.ts)$/,
+  // A third-party directory reads this at the repository root and nothing here builds from it,
+  // so it is known and drives no lane. `glama.json` names who may maintain the Glama listing.
+  /^glama\.json$/,
 ];
 
 const ROOT_VITEST_INPUTS = [
