@@ -45,7 +45,7 @@
 
 ---
 
-## 2026-09-11 · Unreleased: two npm-free channels for the MCP server, and Library answers that keep their evidence
+## 2026-09-11 · v1.2.0: two npm-free channels for the MCP server, and Library answers that keep their evidence
 
 **Added**: the MCP server also ships as an `.mcpb` bundle on each release and as a container image, so it can be listed in the official MCP Registry; neither is a package registry and npm stays retired. Saved questions retain reviewed ACP answer revisions, inspectable citations and competing histories; an offline wiki evaluation reports maintenance omissions.
 
