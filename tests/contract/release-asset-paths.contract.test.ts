@@ -95,6 +95,10 @@ function fakeBundle(root: string, version: string, arch: string): string {
 }
 
 const VERSION = "1.0.0-rc.5";
+// The bundle is named from the server's own version, which is not the app's tag.
+const MCP_VERSION = (
+  JSON.parse(readFileSync("mcp/package.json", "utf8")) as { version: string }
+).version;
 const TAG = `v${VERSION}`;
 const REPO = "wlsdks/ontology-atlas";
 const scratch = mkdtempSync(join(tmpdir(), "oa-release-paths-"));
@@ -208,6 +212,15 @@ describe("릴리스 자산 경로 계약", () => {
       version: VERSION,
     });
 
+    // The MCP ecosystem bundle is staged by the workflow's own build step, in its
+    // own folder: the updater manifest builder splits architectures by folder, so
+    // this one must not look like an arch.
+    const mcpDir = join(root, "mcp");
+    mkdirSync(mcpDir, { recursive: true });
+    const bundleName = `ontology-atlas-mcp-${MCP_VERSION}.mcpb`;
+    writeFileSync(join(mcpDir, bundleName), "mcpb");
+    writeFileSync(join(mcpDir, `${bundleName}.sha256`), `${"b".repeat(64)}  ${bundleName}\n`);
+
     const expected = new Set<string>(["release-assets/latest.json"]);
     for (const [arch, files] of staged) {
       for (const file of files) {
@@ -215,6 +228,8 @@ describe("릴리스 자산 경로 계약", () => {
       }
     }
     for (const file of windows.files) expected.add(`release-assets/windows/${file}`);
+    expected.add(`release-assets/mcp/${bundleName}`);
+    expected.add(`release-assets/mcp/${bundleName}.sha256`);
 
     const matched = new Set<string>();
     for (const glob of globs) {

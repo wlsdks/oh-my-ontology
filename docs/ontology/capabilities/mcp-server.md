@@ -32,6 +32,7 @@ The MCP server is the stdio JSON-RPC surface that lets an AI coding agent read a
 - Project source binding and unbinding through `connect_project_source` and `disconnect_project_source`, with source-currentness receipts.
 - Concurrency guards, dry-runs, and structured errors that refuse duplicates, broken relationships, and destructive changes before a write lands.
 - The bundled server carried by the installed macOS app, including the delivery check that the installed bundle is the exact built bundle and preserves repository source-path case.
+- Two distribution channels that are not package registries, so the server is listable in the official MCP Registry: an `.mcpb` bundle attached to each GitHub Release, which a host installs and which asks the person for the vault folder, and a container image whose ownership label carries the registry name. Each build boots the unpacked bundle and compares its advertised tools against the generated inventory before an artifact exists; the registry entry derives its own values, including the artifact digest, and leaves the image entry out until that image is pushed.
 - The ontology construction lifecycle: an exact review plan, digest-bound qualification by an evaluator separated from the maker, human approval, and only then the released write plan.
 - Permanent `uid` and editable `slug` identity, preserved across rename, reclassify, and merge.
 
@@ -43,6 +44,7 @@ The MCP server is the stdio JSON-RPC surface that lets an AI coding agent read a
 - A backend, accounts, or any canonical store other than the user's Markdown files.
 - Auto-saving creation proposals without human approval, or any write before `confirm: true`.
 - Proof of runtime behaviour, reverse or transitive dependency, or business truth from a declared import edge alone.
+- A package-registry channel. npm publishing was retired on 2026-07-27 and `npx ontology-atlas` is not a channel; the ecosystem listing reaches strangers through a release asset and an image instead. No agent publishes either: the entry is written to a scratch file and a person runs the publisher.
 
 ## User Outcomes
 
@@ -163,6 +165,11 @@ Rust repositories expose bounded static source receipts through the same `infer_
   separating structure/source candidates and unresolved targets into action-first human approval packets.
 - `mcp/scripts/verify.mjs` · `mcp/src/integration.test.mjs` ·
   `scripts/dogfood-mcp-walk.mjs`: Initialize/tools-list exact parity and installation/live usage verification.
+- `scripts/lib/mcp-bundle.mjs` · `scripts/build-mcp-bundle.mjs` ·
+  `scripts/build-server-json.mjs` · `mcp/Dockerfile`: The two npm-free distribution
+  channels: bundle contents and manifest, the boot check that gates an artifact,
+  the derived registry entry and its local schema validation, and the image whose
+  label proves ownership.
 - `mcp/README.md`: Detailed single source of truth for the current public tool contract.
 
 ## Confidence

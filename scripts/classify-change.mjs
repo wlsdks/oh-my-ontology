@@ -79,6 +79,10 @@ export const FULL_LANE_COMMANDS = Object.freeze({
     'pnpm test:mcp:unit',
     'pnpm integration:mcp',
     'pnpm docs:surface:check',
+    // The ecosystem channel's own agreement: the bundle ships the server's
+    // declared files, the image's ownership label repeats the registry name, and
+    // the release uploads the exact artifact the registry entry points at.
+    'pnpm test:mcp:bundle',
     'pnpm dogfood:release-gate',
   ]),
 });

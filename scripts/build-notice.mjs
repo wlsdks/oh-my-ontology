@@ -133,7 +133,13 @@ the program that links it.
 
 Scope: the macOS \`.app\` and Windows installer published on the releases page,
 which contain the static web export, the \`ontology-atlas\` application binary, and
-the \`ontology-atlas-mcp\` sidecar binary.
+the \`ontology-atlas-mcp\` sidecar binary; plus the two artifacts that carry the MCP
+server on its own — the \`.mcpb\` bundle attached to each release and the
+\`ghcr.io/wlsdks/ontology-atlas-mcp\` image. Those two vendor three MIT packages
+(\`@modelcontextprotocol/core\`, \`@modelcontextprotocol/server\`, \`zod\`), each keeping
+its own \`LICENSE\` inside the artifact beside Atlas's, and carry no native binaries.
+A new distributed artifact belongs in this sentence: a notice that under-lists is a
+compliance failure.
 
 The two inventories at the end are read from the **build graphs** that produce those
 artifacts, so they are supersets of what is actually shipped: a proc-macro crate such

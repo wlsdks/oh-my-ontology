@@ -86,7 +86,8 @@ second direct source.
   outright. [Security](SECURITY.md) states what is and is not promised.
 - **Installing the desktop app installs the agent surface.** Both bundles carry
   the compiled MCP server. There is no npm package; every other platform runs the
-  browser app, or the CLI and MCP server from a source checkout.
+  browser app, the CLI and MCP server from a source checkout, or the MCP server
+  as an `.mcpb` bundle or a container image ([channels](mcp/README.md#1-register-with-an-agent)).
 - **A `-rc.N` build walks the same signing, notarization, installer, and updater
   checks as a final one** — what it lacks is a wide run behind it. The in-app
   updater reads a fixed Pages manifest staged from the newest non-draft release,
@@ -505,7 +506,9 @@ have documents and no code. Full contracts: the
   declared claim, never an entailment; an absent one is a visible gap, never a
   negative fact. [Specification §5.2](docs/ONTOLOGY-ATLAS-SPEC.md#52-standards-boundary).
 - **Not a service, and not on npm.** No backend, account, telemetry, daemon, or
-  port; `npx ontology-atlas` is a 404 and not a future feature.
+  port; `npx ontology-atlas` is a 404 and not a future feature. The MCP server
+  still reaches the ecosystem's registries as a release bundle or a container
+  image, neither of which is a package registry.
 - **Not extensible by running other people's code.** There will be no third-party
   plugin runtime. Extension happens through MCP tools, agent skills, and files in
   your own vault — things a `git diff` shows you before they run.

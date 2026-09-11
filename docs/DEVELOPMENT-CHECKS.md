@@ -261,6 +261,13 @@ before commit `5eb3ba9ff`, and its decisions are in the ledger.
 **Proves**: Every .md path cited from a code comment, outside the docs/ontology example vault, resolves to a real file.
 **Escalate**: none
 
+### MCP ecosystem channel
+
+**Run**: `pnpm test:mcp:bundle`
+**Proves**: The bundle ships every declared server file with the one typed module stripped, the image's ownership label repeats the registry name, and the release uploads the exact artifact the registry entry points at.
+**Escalate**: `pnpm mcp:build-bundle` when the server's files or dependencies changed, since it boots the unpacked artifact
+**Fix**: Rebuild the bundle, or align `mcp/Dockerfile` and `scripts/lib/mcp-bundle.mjs` on one registry name
+
 ### MCP/docs contract
 
 **Run**: `pnpm test:mcp:docs`

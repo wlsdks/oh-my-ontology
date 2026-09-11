@@ -4290,8 +4290,8 @@
     },
     {
       "depth": 2,
-      "text": "2026-09-09 · Unreleased: clearer Library reading and safer answer filing",
-      "slug": "2026-09-09-unreleased-clearer-library-reading-and-safer-answer-filing"
+      "text": "2026-09-11 · Unreleased: two npm-free channels for the MCP server, and Library answers that keep their evidence",
+      "slug": "2026-09-11-unreleased-two-npm-free-channels-for-the-mcp-server-and-library-answers-that-keep-their-evidence"
     },
     {
       "depth": 2,
@@ -6633,6 +6633,11 @@
       "depth": 2,
       "text": "Record format",
       "slug": "record-format"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-11 — Atlas enters the MCP ecosystem as a release bundle; the image is prepared, not published",
+      "slug": "2026-09-11-atlas-enters-the-mcp-ecosystem-as-a-release-bundle-the-image-is-prepared-not-published"
     },
     {
       "depth": 2,
@@ -10960,6 +10965,11 @@
       "depth": 3,
       "text": "Code-comment doc reference integrity",
       "slug": "code-comment-doc-reference-integrity"
+    },
+    {
+      "depth": 3,
+      "text": "MCP ecosystem channel",
+      "slug": "mcp-ecosystem-channel"
     },
     {
       "depth": 3,

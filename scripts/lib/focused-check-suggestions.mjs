@@ -56,6 +56,22 @@ const RULES = [
     matches: [/^\.mcp\.json(?:\.example)?$/, /^\.codex\/config\.toml$/],
   },
   {
+    // The ecosystem channel is two artifacts and one metadata entry, and the
+    // pieces verify each other: the image's ownership label must repeat the
+    // registry name, and the release must upload the exact artifact name the
+    // entry points at. Editing any one piece alone is how that agreement breaks.
+    command: 'pnpm test:mcp:bundle && pnpm mcp:registry:check',
+    reason: 'the MCP ecosystem channel changed — bundle build, container image, registry entry, or release upload',
+    matches: [
+      /^scripts\/(?:build-mcp-bundle|build-server-json)\.mjs$/,
+      /^scripts\/lib\/mcp-bundle\.mjs$/,
+      /^scripts\/mcp-bundle\.test\.mjs$/,
+      /^mcp\/Dockerfile$/,
+      /^mcp\/package\.json$/,
+      /^\.github\/workflows\/release-macos\.yml$/,
+    ],
+  },
+  {
     command: 'pnpm docs-vault:check',
     reason: 'static docs-vault input or generated output changed',
     // Every build input and every generated output (bug sweep 2026-09-01): the

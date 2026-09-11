@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-11 — Atlas enters the MCP ecosystem as a release bundle; the image is prepared, not published
+
+**Why**: the owner asked whether Atlas can be discoverable in the MCP ecosystem. 2026-07-27's Dissent 2, "MCP registries assume npm distribution", lost on a premise that a registry needs a package. Its validators say otherwise: `mcpb` is a release asset the registry fetches itself, verified by URL and SHA-256, and `oci` an image verified by its config label. `awesome-mcp-servers` (94,762 stars) needs no Glama registration, and Glama builds a server from its Dockerfile.
+**Prior**: upholds 2026-07-27 "the npm publish plan is dropped" rather than firing its falsifier: it resumes npm only on observed registry-driven inflow, reasoning that "removal is reversible and publishing isn't". Both channels here are reversible, so that door stays shut.
+**Decision**: `pnpm mcp:build-bundle` packs the server's declared `files` list into an `.mcpb`, then unpacks and boots it — 38 tools against the generated inventory, not a floor — before writing an artifact stamped with its commit. `pnpm mcp:registry` validates the document it emits: review caught the server's description at 126 characters against a schema limit of 100, so the entry carries its own. The OCI entry needs `--with-image`, since nothing here pushes that image and a listing naming an unpushed one is what the ownership check refuses. Publishing stays a human act, after the release leaves draft.
+**Dissent**: npm is still the one-line install for a CLI agent, so discovery without it reaches desktop hosts first and `npx` users not at all. Conceded, not resolved: 2026-07-27's falsifier defers it until inflow is observed. Second, the registry is in preview and may reset its data.
+**Falsifier**: no host has installed this bundle and no image is pushed. A listing that produces no install within 90 days fires 2026-07-27's deferred npm question, not this record; a host with neither Node nor MCPB support moves this channel to the compiled binary.
+**Owner**: jinan
+
 ## 2026-09-11 — A heading answers to both anchor rules, because its document is read in two places
 
 **Why**: fixing `docs/DESIGN-SYSTEM.md`'s contents list for GitHub would have broken it inside the app. Every file under `docs/` is rendered twice — by GitHub and by the app's docs viewer — and the two heading rules disagree on 1,650 of 3,324 headings, because an em dash between spaces leaves GitHub two hyphens and `slugFromChildren` one. Whichever rule wrote a link, it resolved on exactly one surface.
