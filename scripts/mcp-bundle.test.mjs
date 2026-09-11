@@ -268,10 +268,29 @@ describe('the image', () => {
     assert.match(DOCKERFILE, /^USER node$/m);
   });
 
-  it('states its build context and the multi-architecture push, both measured', () => {
-    assert.match(DOCKERFILE, /build context is `mcp\/`, not the repository root/);
-    assert.match(DOCKERFILE, /docker buildx build --platform linux\/amd64,linux\/arm64/);
+  /**
+   * An outside builder starts at the repository root. The awesome-list bot's
+   * Glama requirement is what exposed this: a directory that builds a server
+   * from its Dockerfile would have taken the app's `package.json` and died on a
+   * missing `CHANGELOG.md`. Every COPY is repository-relative now, so the same
+   * file serves us and them.
+   */
+  it('copies from the repository root, since that is the context a directory uses', () => {
+    assert.match(DOCKERFILE, /build context is the repository root/);
+    for (const line of DOCKERFILE.split('\n').filter((row) => row.startsWith('COPY '))) {
+      assert.match(line, /^COPY (?:mcp\/|LICENSE)/, `a root-context build needs a repository-relative source: ${line}`);
+    }
+    assert.match(DOCKERFILE, /docker build -f mcp\/Dockerfile -t ontology-atlas-mcp \./);
+  });
+
+  it('states the multi-architecture push and the uid override, both measured', () => {
+    assert.match(DOCKERFILE, /docker buildx build --platform linux\/amd64,linux\/arm64 -f mcp\/Dockerfile/);
     assert.match(DOCKERFILE, /--user "\$\(id -u\):\$\(id -g\)"/);
+  });
+
+  it('carries the licence its own labels claim', () => {
+    assert.match(DOCKERFILE, /^COPY LICENSE \.\/$/m);
+    assert.match(DOCKERFILE, /org\.opencontainers\.image\.licenses="MIT"/);
   });
 
   it('carries no test suite, because it has no runner for one', () => {
