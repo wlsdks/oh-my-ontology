@@ -43,11 +43,21 @@ function jobBlock(source: string, jobName: string): string {
   return source.slice(start, next ? start + match[0].length + next.index : source.length);
 }
 
+/**
+ * The part of a job that declares **who it runs as**, stopping before what it runs.
+ *
+ * Two body shapes end that header. A normal job's is `steps:`; a job that calls a
+ * reusable workflow has no steps at all and opens with a job-level `uses:` (four
+ * spaces — a step's `uses:` is six and lives inside `steps:`). Recognising only the
+ * first was fail-closed rather than silently wrong: `list-mcp-registry` threw here
+ * instead of passing unexamined. It still has to be recognised, because a permission
+ * this helper cannot see is a permission `writePermissionsByJob` cannot audit.
+ */
 function jobHeader(source: string, jobName: string): string {
   const block = jobBlock(source, jobName);
-  const steps = block.indexOf("\n    steps:");
-  if (steps < 0) throw new Error(`workflow steps not found: ${jobName}`);
-  return block.slice(0, steps);
+  const body = /\n    (?:steps|uses):/.exec(block);
+  if (!body) throw new Error(`workflow job body not found: ${jobName}`);
+  return block.slice(0, body.index);
 }
 
 function stepNamesUsingSecret(source: string, secretName: string): string[] {
@@ -245,10 +255,15 @@ describe("워크플로 보안 계약", () => {
     expect(jobBlock(release, "publish-macos")).toMatch(
       /^    permissions:\n(?:      .+\n)*?      contents: write\s*$/m,
     );
+    // `list-mcp-registry` is the one write that is not a write over this repository:
+    // `id-token: write` mints the short-lived OIDC assertion the registry exchanges for
+    // proof of namespace ownership. It is listed rather than exempted, so a job that
+    // quietly gained `contents: write` beside it would still show up here.
     expect(writePermissionsByJob(release)).toEqual({
       "build-windows": ["checks"],
       "stage-macos": ["contents"],
       "publish-macos": ["contents"],
+      "list-mcp-registry": ["id-token"],
     });
 
     // Pokes the helper itself so that a new job cannot slip past a check that only
@@ -258,6 +273,15 @@ describe("워크플로 보안 계약", () => {
       "  unexpected-writer:\n    permissions:\n      contents: write\n    steps:\n      - run: true\n\n  build-macos:\n",
     );
     expect(writePermissionsByJob(synthetic)["unexpected-writer"]).toEqual(["contents"]);
+
+    // The same poke in the reusable-workflow shape, which has no `steps:` to find.
+    // Without this the helper could regress to steps-only and go green again, because
+    // every job it then failed to read would simply be absent from the mapping.
+    const syntheticCall = release.replace(
+      "  build-macos:\n",
+      "  unexpected-caller:\n    permissions:\n      contents: write\n    uses: ./.github/workflows/publish-mcp-registry.yml\n    with:\n      tag: v0.0.0\n\n  build-macos:\n",
+    );
+    expect(writePermissionsByJob(syntheticCall)["unexpected-caller"]).toEqual(["contents"]);
   });
 
   it("서명 secret 은 필요한 release step 에서만 보인다", () => {

@@ -1,15 +1,22 @@
 name: Publish to MCP Registry
-run-name: Publish ${{ inputs.tag || github.event.release.tag_name }} to the MCP Registry
+run-name: Publish ${{ inputs.tag }} to the MCP Registry
 
 # Listing Atlas in the official MCP Registry needs no package registry: the entry
 # points at the `.mcpb` asset on a GitHub Release, and the registry fetches that
 # asset itself to verify the URL and SHA-256. Two consequences shape this workflow:
 #
 #   1. It must run **after** the release leaves draft. A draft asset 404s to the
-#      anonymous fetch the registry makes, so `release: [published]` is the trigger
-#      rather than a tag push.
+#      anonymous fetch the registry makes, so the release workflow calls this one
+#      as its last step rather than a tag push starting it.
 #   2. It publishes **metadata we derive**, never a digest anyone typed:
 #      `pnpm mcp:registry` hashes the asset downloaded from the release itself.
+#
+# **Why `workflow_call` and not `release: [published]`** (measured 2026-09-11): the
+# release is published by `gh release edit` with `GITHUB_TOKEN`, and GitHub does not
+# start a workflow from an event that token raised — the recursion guard. v1.2.0 went
+# out and this workflow had zero runs; the entry had to be dispatched by hand. Being
+# a job of the release run instead makes the listing follow publication for the same
+# reason the publication itself is trusted, rather than depending on who pressed it.
 #
 # Authentication is OIDC — `mcp-publisher login github-oidc` proves this repository
 # owns the `io.github.wlsdks/*` namespace with the workflow's own identity, so no
@@ -21,8 +28,12 @@ run-name: Publish ${{ inputs.tag || github.event.release.tag_name }} to the MCP 
 # says so and stops instead of failing.
 
 on:
-  release:
-    types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        description: The published release tag whose .mcpb asset should be listed
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       tag:
@@ -42,7 +53,7 @@ jobs:
       - name: Resolve the release tag
         id: release
         run: |
-          tag="${{ inputs.tag || github.event.release.tag_name }}"
+          tag="${{ inputs.tag }}"
           if [[ -z "${tag}" ]]; then
             echo "::error::no release tag to publish"
             exit 1
